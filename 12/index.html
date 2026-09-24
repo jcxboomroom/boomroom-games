@@ -1,127 +1,9183 @@
-<!DOCTYPE html> <html lang="zh-Hant"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"> <meta name="theme-color" content="#05050b"> <meta name="apple-mobile-web-app-capable" content="yes"> <title>霓虹電梯 Crash Lift</title> <style> :root{ --bg:#05050b; --panel:#0c0d18; --panel2:#111323; --line:rgba(255,255,255,.10); --text:#f7f5ff; --muted:#969ab1; --pink:#ff2e9a; --purple:#8a5cff; --cyan:#27e6ff; --green:#37f6ae; --gold:#ffd75a; --red:#ff526e; --orange:#ff944f; } *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; } html,body{ width:100%; height:100%; margin:0; overflow:hidden; background:var(--bg); color:var(--text); font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", "Segoe UI", sans-serif; } button{ font:inherit; border:none; color:inherit; cursor:pointer; user-select:none; -webkit-user-select:none; } body{ background: radial-gradient(circle at 50% -20%,rgba(138,92,255,.25),transparent 38%), radial-gradient(circle at 5% 55%,rgba(255,46,154,.10),transparent 28%), radial-gradient(circle at 100% 70%,rgba(39,230,255,.08),transparent 28%), linear-gradient(180deg,#080710 0%,#030308 100%); } .app{ width:100%; height:100%; max-width:760px; margin:0 auto; position:relative; overflow:hidden; } .grid-bg{ position:absolute; inset:0; pointer-events:none; opacity:.25; background-image: linear-gradient(rgba(39,230,255,.06) 1px,transparent 1px), linear-gradient(90deg,rgba(39,230,255,.06) 1px,transparent 1px); background-size:28px 28px; mask-image:linear-gradient(to bottom,transparent,black 12%,black 90%,transparent); } .scanline{ position:absolute; left:0; right:0; height:1px; background:rgba(255,255,255,.09); box-shadow:0 0 15px rgba(39,230,255,.25); opacity:.25; pointer-events:none; z-index:5; animation:scan 4.5s linear infinite; } .topbar{ height:70px; position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:10px 12px 7px; gap:10px; } .brand{ display:flex; align-items:center; gap:10px; min-width:0; } .logo{ width:42px; height:42px; border-radius:14px; display:grid; place-items:center; font-size:24px; background: linear-gradient(145deg,rgba(255,46,154,.20),rgba(138,92,255,.23)), #101021; border:1px solid rgba(255,255,255,.12); box-shadow: 0 0 24px rgba(138,92,255,.12), inset 0 0 18px rgba(255,255,255,.025); } .brand-text{ min-width:0; } .brand-title{ font-size:18px; font-weight:1000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.3px; } .brand-sub{ margin-top:2px; font-size:9px; color:var(--muted); letter-spacing:1px; } .top-actions{ display:flex; gap:7px; } .icon-btn{ width:39px; height:39px; border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.055); border:1px solid var(--line); font-size:17px; } .icon-btn:active{ transform:scale(.95); } .main{ position:relative; z-index:10; height:calc(100% - 70px); padding:0 10px 10px; display:flex; flex-direction:column; gap:9px; } .status-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; } .phase{ padding:7px 10px; border-radius:999px; border:1px solid rgba(39,230,255,.22); background:rgba(39,230,255,.08); color:#8defff; font-size:11px; font-weight:900; } .round-chip{ padding:7px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.045); color:#b0b2c4; font-size:11px; } .game-stage{ position:relative; flex:1; min-height:330px; border-radius:23px; overflow:hidden; background: radial-gradient(circle at 50% 15%,rgba(138,92,255,.19),transparent 31%), linear-gradient(180deg,#0f1120 0%,#080912 100%); border:1px solid rgba(255,255,255,.09); box-shadow:0 22px 70px rgba(0,0,0,.42); } .stage-glow{ position:absolute; width:360px; height:360px; left:50%; top:25%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle,rgba(39,230,255,.08),transparent 68%); pointer-events:none; } .star-layer, .particle-layer{ position:absolute; inset:0; overflow:hidden; pointer-events:none; } .star{ position:absolute; width:2px; height:2px; background:#fff; border-radius:50%; opacity:.35; animation:starMove linear infinite; } .flying-particle{ position:absolute; width:5px; height:5px; border-radius:50%; opacity:0; animation:flyParticle .8s ease-out forwards; } .multiplier-wrap{ position:absolute; top:16px; left:14px; right:14px; display:flex; justify-content:center; text-align:center; z-index:8; } .multiplier-box{ min-width:180px; padding:9px 16px 11px; border-radius:17px; background:rgba(7,8,15,.72); border:1px solid rgba(255,255,255,.10); backdrop-filter:blur(8px); box-shadow:0 9px 28px rgba(0,0,0,.28); } .multiplier{ font-size:48px; line-height:1; font-weight:1000; letter-spacing:-2px; color:#fff; text-shadow: 0 0 20px rgba(138,92,255,.35), 0 0 38px rgba(39,230,255,.18); transition:transform .18s ease; } .multiplier.hot{ color:#ff86c8; text-shadow: 0 0 18px rgba(255,46,154,.50), 0 0 42px rgba(255,46,154,.25); } .multiplier-label{ margin-top:4px; font-size:9px; color:var(--muted); letter-spacing:1.5px; font-weight:800; } .elevator-track{ position:absolute; left:50%; top:105px; bottom:20px; width:130px; transform:translateX(-50%); border-left:1px solid rgba(39,230,255,.12); border-right:1px solid rgba(39,230,255,.12); background: linear-gradient(90deg, rgba(39,230,255,.025), rgba(138,92,255,.05), rgba(39,230,255,.025)); } .track-lines{ position:absolute; inset:0; background: repeating-linear-gradient( to bottom, transparent 0, transparent 27px, rgba(39,230,255,.08) 28px, transparent 29px ); opacity:.65; animation:trackMove .55s linear infinite; } .floor-mark{ position:absolute; left:-44px; width:28px; text-align:right; color:#6c718a; font-size:9px; font-weight:800; } .floor-mark.r1{top:13%} .floor-mark.r2{top:34%} .floor-mark.r3{top:55%} .floor-mark.r4{top:76%} .elevator{ position:absolute; left:50%; width:86px; height:76px; transform:translateX(-50%); bottom:10%; border-radius:15px; background: linear-gradient(145deg,#25293b,#10131e); border:1px solid rgba(255,255,255,.18); box-shadow: 0 0 25px rgba(39,230,255,.13), 0 20px 35px rgba(0,0,0,.30), inset 0 0 20px rgba(255,255,255,.025); transition: bottom .16s linear, filter .2s ease, transform .2s ease; z-index:4; } .elevator.rocket{ animation:elevatorBob .35s ease-in-out infinite alternate; } .elevator.crashed{ filter:brightness(.62) saturate(.65); animation:elevatorCrash .45s ease-in forwards; } .elevator-top{ height:20px; border-bottom:1px solid rgba(255,255,255,.09); display:flex; align-items:center; justify-content:center; gap:6px; } .lamp{ width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 8px rgba(55,246,174,.7); } .cabin{ height:55px; display:grid; place-items:center; font-size:35px; filter:drop-shadow(0 0 9px rgba(39,230,255,.25)); } .engine-glow{ position:absolute; bottom:-12px; left:50%; width:58px; height:28px; transform:translateX(-50%); background:radial-gradient(ellipse at center,rgba(39,230,255,.80),rgba(138,92,255,.24),transparent 70%); filter:blur(4px); animation:enginePulse .18s infinite alternate; } .crash-line{ position:absolute; left:12%; right:12%; bottom:16%; height:2px; background:linear-gradient(90deg,transparent,#ff526e,transparent); box-shadow:0 0 12px rgba(255,82,110,.65); opacity:0; z-index:3; } .crash-line.show{ animation:crashLine .6s ease-out; } .center-message{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:15; pointer-events:none; opacity:0; transform:scale(.88); transition:.2s ease; } .center-message.show{ opacity:1; transform:scale(1); } .center-message-inner{ padding:17px 21px; border-radius:20px; text-align:center; background:rgba(8,7,13,.85); border:1px solid rgba(255,255,255,.12); box-shadow:0 20px 60px rgba(0,0,0,.45); backdrop-filter:blur(7px); } .center-big{ font-size:36px; line-height:1; font-weight:1000; text-shadow:0 0 24px rgba(255,46,154,.35); } .center-small{ margin-top:7px; color:#bbb9ca; font-size:11px; font-weight:800; } .board-panel{ flex:0 0 176px; min-height:176px; display:flex; flex-direction:column; border-radius:20px; overflow:hidden; background:rgba(10,10,18,.88); border:1px solid var(--line); box-shadow:0 16px 40px rgba(0,0,0,.30); } .board-header{ height:38px; flex:0 0 38px; padding:0 11px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); } .board-title{ font-weight:950; font-size:12px; } .board-info{ color:var(--muted); font-size:10px; } .players{ padding:7px; overflow:auto; display:flex; flex-direction:column; gap:6px; } .player-row{ min-height:46px; display:grid; grid-template-columns:35px minmax(0,1fr) auto; align-items:center; gap:8px; padding:6px 8px; border-radius:13px; background:rgba(255,255,255,.032); border:1px solid rgba(255,255,255,.06); } .player-row.self{ background:linear-gradient( 90deg, rgba(39,230,255,.08), rgba(255,255,255,.02) ); border-color:rgba(39,230,255,.20); } .player-row.cashed{ border-color:rgba(55,246,174,.25); background:rgba(55,246,174,.055); } .player-row.crashed{ opacity:.60; } .avatar{ width:35px; height:35px; border-radius:11px; overflow:hidden; display:grid; place-items:center; background:linear-gradient(145deg,#26243c,#12121d); border:1px solid rgba(255,255,255,.10); font-weight:1000; font-size:12px; } .avatar img{ width:100%; height:100%; display:block; object-fit:cover; } .player-name{ display:flex; align-items:center; gap:5px; min-width:0; } .name-text{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:900; } .badge{ display:inline-flex; align-items:center; padding:3px 5px; border-radius:5px; background:rgba(39,230,255,.08); color:#77edff; border:1px solid rgba(39,230,255,.14); font-size:8px; font-weight:900; flex:none; } .player-meta{ margin-top:2px; font-size:9px; color:var(--muted); } .player-right{ text-align:right; } .bet{ color:var(--gold); font-size:11px; font-weight:1000; } .player-result{ margin-top:2px; font-size:9px; font-weight:900; } .player-result.win{ color:var(--green); } .player-result.loss{ color:#85899e; } .control-panel{ flex:0 0 auto; padding:9px; border-radius:20px; background: linear-gradient( 135deg, rgba(17,14,29,.96), rgba(9,9,17,.96) ); border:1px solid var(--line); box-shadow:0 17px 45px rgba(0,0,0,.36); } .bet-title-row{ display:flex; align-items:center; justify-content:space-between; margin:0 3px 7px; } .bet-title{ font-weight:950; font-size:12px; } .my-bet{ color:var(--muted); font-size:10px; } .bet-options{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; } .bet-btn{ height:41px; border-radius:12px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); font-size:12px; font-weight:950; transition:.15s ease; } .bet-btn:active{ transform:scale(.96); } .bet-btn.selected{ color:var(--gold); border-color:rgba(255,215,90,.34); background:rgba(255,215,90,.08); box-shadow:0 0 18px rgba(255,215,90,.05); } .bet-btn:disabled{ opacity:.35; cursor:not-allowed; } .action-row{ display:grid; grid-template-columns:1fr; gap:7px; margin-top:7px; } .main-btn{ height:47px; border-radius:14px; font-weight:1000; font-size:14px; background:linear-gradient(135deg,#8a5cff,#ff2e9a); box-shadow:0 10px 26px rgba(138,92,255,.20); position:relative; overflow:hidden; } .main-btn:before{ content:""; position:absolute; left:-65%; top:-80%; width:38%; height:230%; transform:skewX(-20deg); background:linear-gradient( 100deg, transparent, rgba(255,255,255,.23), transparent ); animation:shine 2.7s linear infinite; } .main-btn.cashout{ background:linear-gradient(135deg,#19d99b,#00a9df); box-shadow:0 10px 26px rgba(55,246,174,.18); } .main-btn.crash-disabled{ background:linear-gradient(135deg,#3d202a,#2b1821); color:#9d7f8a; box-shadow:none; } .main-btn:disabled{ opacity:.38; cursor:not-allowed; box-shadow:none; } .main-btn span{ position:relative; z-index:2; } .toast-layer{ position:absolute; top:74px; left:10px; right:10px; z-index:100; display:flex; flex-direction:column; align-items:center; gap:7px; pointer-events:none; } .toast{ max-width:92%; padding:9px 13px; border-radius:12px; background:rgba(11,10,18,.94); border:1px solid rgba(255,255,255,.12); box-shadow:0 13px 34px rgba(0,0,0,.38); font-size:11px; font-weight:850; animation:toastIn .22s ease,toastOut .28s ease 2.35s forwards; } .result-modal{ position:absolute; inset:0; z-index:120; display:none; align-items:center; justify-content:center; padding:14px; background:rgba(2,2,6,.68); backdrop-filter:blur(8px); } .result-modal.show{ display:flex; } .result-card{ width:min(520px,100%); max-height:86vh; overflow:auto; border-radius:24px; padding:18px; background: radial-gradient(circle at 50% 0,rgba(138,92,255,.18),transparent 34%), linear-gradient(145deg,#141425,#0b0b13); border:1px solid rgba(255,255,255,.13); box-shadow:0 30px 100px rgba(0,0,0,.62); animation:resultIn .3s cubic-bezier(.2,.75,.2,1); } .result-head{ text-align:center; } .result-icon{ font-size:43px; line-height:1; } .result-title{ margin-top:7px; font-size:23px; font-weight:1000; } .result-subtitle{ margin-top:3px; font-size:11px; color:var(--muted); } .result-highlight{ margin-top:14px; padding:13px; border-radius:17px; text-align:center; background:linear-gradient( 135deg, rgba(55,246,174,.08), rgba(39,230,255,.05) ); border:1px solid rgba(55,246,174,.14); } .highlight-name{ font-size:16px; font-weight:1000; } .highlight-money{ margin-top:3px; color:var(--green); font-size:25px; font-weight:1000; } .result-list{ margin-top:11px; display:flex; flex-direction:column; gap:6px; } .result-row{ min-height:45px; display:grid; grid-template-columns:27px 34px minmax(0,1fr) auto; align-items:center; gap:7px; padding:6px 8px; border-radius:12px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.06); } .result-rank{ text-align:center; font-weight:1000; } .result-name{ font-size:11px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .result-bet{ margin-top:2px; color:var(--muted); font-size:8px; } .result-payout{ font-size:11px; font-weight:1000; } .result-payout.win{ color:var(--green); } .result-payout.zero{ color:#767a8d; } .result-close{ margin-top:11px; width:100%; height:45px; border-radius:13px; background:rgba(255,255,255,.06); border:1px solid var(--line); font-size:12px; font-weight:950; } .help-panel{ position:absolute; inset:74px 10px 10px; z-index:115; display:none; overflow:auto; padding:16px; border-radius:21px; background:rgba(7,7,13,.97); border:1px solid rgba(255,255,255,.12); box-shadow:0 30px 100px rgba(0,0,0,.65); } .help-panel.show{ display:block; } .help-head{ display:flex; align-items:center; justify-content:space-between; gap:7px; } .help-title{ font-size:19px; font-weight:1000; } .help-block{ margin-top:9px; padding:11px; border-radius:13px; background:rgba(255,255,255,.035); border:1px solid rgba(255,255,255,.06); } .help-block strong{ font-size:12px; } .help-block p{ margin:5px 0 0; font-size:11px; color:#b4b5c4; line-height:1.65; } .help-note{ margin-top:11px; color:#8e92a6; font-size:10px; line-height:1.6; } .crash-overlay{ position:absolute; inset:0; z-index:110; pointer-events:none; opacity:0; background: radial-gradient(circle at 50% 42%,rgba(255,82,110,.35),transparent 53%); } .crash-overlay.active{ animation:crashFlash .85s ease-out; } .screen-shake{ animation:screenShake .46s ease; } .landscape-warning{ display:none; position:fixed; inset:0; z-index:9999; background:#05050b; color:#fff; align-items:center; justify-content:center; text-align:center; padding:25px; } .landscape-warning strong{ display:block; font-size:21px; } .landscape-warning span{ display:block; margin-top:7px; color:#9498ab; font-size:12px; } @media (orientation:landscape) and (max-height:600px){ .landscape-warning{ display:flex; } } @media (max-width:390px){ .brand-title{ font-size:16px; } .game-stage{ min-height:292px; } .multiplier{ font-size:41px; } .elevator-track{ width:112px; } .elevator{ width:76px; height:70px; } .cabin{ font-size:32px; } .board-panel{ flex-basis:158px; min-height:158px; } .main-btn{ height:45px; } } @keyframes shine{ 0%,56%{left:-65%} 100%{left:155%} } @keyframes scan{ 0%{top:8%} 100%{top:94%} } @keyframes starMove{ from{ transform:translateY(115%); opacity:0; } 18%{opacity:.45} 82%{opacity:.45} to{ transform:translateY(-115%); opacity:0; } } @keyframes trackMove{ to{ background-position:0 29px; } } @keyframes elevatorBob{ from{transform:translateX(-50%) translateY(0)} to{transform:translateX(-50%) translateY(-2px)} } @keyframes enginePulse{ from{opacity:.55;transform:translateX(-50%) scaleX(.85)} to{opacity:1;transform:translateX(-50%) scaleX(1.15)} } @keyframes elevatorCrash{ 0%{transform:translateX(-50%) translateY(0) rotate(0)} 30%{transform:translateX(-50%) translateY(7px) rotate(-3deg)} 100%{transform:translateX(-50%) translateY(105px) rotate(7deg)} } @keyframes crashLine{ 0%{opacity:0;transform:scaleX(.2)} 20%{opacity:1} 100%{opacity:0;transform:scaleX(1.1)} } @keyframes crashFlash{ 0%{opacity:0} 15%{opacity:1} 100%{opacity:0} } @keyframes screenShake{ 0%,100%{transform:translate(0,0)} 18%{transform:translate(-3px,2px)} 36%{transform:translate(3px,-2px)} 54%{transform:translate(-2px,-1px)} 72%{transform:translate(2px,1px)} } @keyframes toastIn{ from{ opacity:0; transform:translateY(-7px) scale(.96); } to{ opacity:1; transform:translateY(0) scale(1); } } @keyframes toastOut{ to{ opacity:0; transform:translateY(-6px) scale(.96); } } @keyframes resultIn{ from{ opacity:0; transform:translateY(12px) scale(.96); } to{ opacity:1; transform:translateY(0) scale(1); } } @keyframes flyParticle{ 0%{ opacity:1; transform:translate(0,0) scale(1); } 100%{ opacity:0; transform:translate(var(--dx),var(--dy)) rotate(var(--r)) scale(.2); } } </style> </head> <body> <div class="app" id="app"> <div class="grid-bg"></div> <div class="scanline"></div> <header class="topbar"> <div class="brand"> <div class="logo">🚀</div> <div class="brand-text"> <div class="brand-title">霓虹電梯</div> <div class="brand-sub">CRASH LIFT · NEON PARTY GAME</div> </div> </div>
-<div class="top-actions">
-  <button class="icon-btn" id="soundBtn">🔊</button>
-  <button class="icon-btn" id="helpBtn">❔</button>
-</div>
-</header> <main class="main">
-<div class="status-row">
-  <div class="phase" id="phaseLabel">等待下注</div>
-  <div class="round-chip" id="roundLabel">第 1 局</div>
-</div>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
 
-<section class="game-stage" id="gameStage">
+<meta
+  name="viewport"
+  content="width=device-width,
+           initial-scale=1,
+           maximum-scale=1,
+           user-scalable=no,
+           viewport-fit=cover">
 
-  <div class="stage-glow"></div>
+<meta name="theme-color" content="#05060d">
+
+<title>霓虹電梯 Crash Lift</title>
+
+<style>
+/* =========================================================
+   BOOMROOM CRASH LIFT
+   Single-file HTML5 Mobile Party Game
+   ========================================================= */
+
+:root{
+  --bg:#05060d;
+  --bg2:#080a13;
+  --panel:#0d101c;
+  --panel2:#111523;
+
+  --cyan:#25e7ff;
+  --cyan2:#70f3ff;
+
+  --purple:#895cff;
+  --purple2:#b99cff;
+
+  --pink:#ff2995;
+  --pink2:#ff72bc;
+
+  --green:#39f6ad;
+  --green2:#91ffd5;
+
+  --gold:#ffd85a;
+  --orange:#ff9d52;
+
+  --red:#ff4c68;
+  --red2:#ff8295;
+
+  --text:#f7f7ff;
+  --muted:#9298af;
+  --muted2:#656b82;
+
+  --line:rgba(255,255,255,.09);
+  --line2:rgba(255,255,255,.14);
+
+  --shadow:0 22px 70px rgba(0,0,0,.45);
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "PingFang TC",
+    "Noto Sans TC",
+    "Microsoft JhengHei",
+    "Segoe UI",
+    sans-serif;
+
+  overscroll-behavior:none;
+}
+
+body{
+  touch-action:manipulation;
+}
+
+button{
+  font:inherit;
+  color:inherit;
+  border:none;
+  outline:none;
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+}
+
+button:active{
+  transform:scale(.97);
+}
+
+.app{
+  width:100%;
+  height:100dvh;
+  min-height:100dvh;
+  max-width:760px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+
+  padding-top:
+    env(safe-area-inset-top);
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+
+  background:
+    radial-gradient(
+      circle at 50% -18%,
+      rgba(137,92,255,.28),
+      transparent 36%
+    ),
+
+    radial-gradient(
+      circle at -5% 50%,
+      rgba(255,41,149,.11),
+      transparent 28%
+    ),
+
+    radial-gradient(
+      circle at 105% 65%,
+      rgba(37,231,255,.10),
+      transparent 30%
+    ),
+
+    linear-gradient(
+      180deg,
+      #090a13 0%,
+      #03040a 100%
+    );
+}
+
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
+
+.bg-grid{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.18;
+
+  background-image:
+    linear-gradient(
+      rgba(37,231,255,.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(37,231,255,.06) 1px,
+      transparent 1px
+    );
+
+  background-size:30px 30px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 12%,
+      black 90%,
+      transparent 100%
+    );
+}
+
+.bg-glow{
+  position:absolute;
+  width:420px;
+  height:420px;
+  top:18%;
+  left:50%;
+  transform:translate(-50%,-50%);
+
+  border-radius:50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(37,231,255,.075),
+      transparent 68%
+    );
+
+  pointer-events:none;
+}
+
+.scanline{
+  position:absolute;
+  z-index:2;
+  left:0;
+  right:0;
+  top:5%;
+  height:1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(37,231,255,.32),
+      transparent
+    );
+
+  opacity:.3;
+
+  pointer-events:none;
+
+  animation:
+    scanMove 5s linear infinite;
+}
+
+.star-layer{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+}
+
+.star{
+  position:absolute;
+  width:2px;
+  height:2px;
+  border-radius:50%;
+  background:#fff;
+  opacity:.28;
+
+  animation:
+    starFloat linear infinite;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.topbar{
+  height:72px;
+  padding:
+    8px
+    12px
+    7px
+    12px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  gap:10px;
+
+  position:relative;
+  z-index:10;
+}
+
+.brand{
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+
+  gap:9px;
+}
+
+.brand-logo{
+  width:43px;
+  height:43px;
+
+  border-radius:14px;
+
+  display:grid;
+  place-items:center;
+
+  font-size:23px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(37,231,255,.10),
+      rgba(137,92,255,.20)
+    ),
+
+    #101220;
+
+  border:1px solid var(--line2);
+
+  box-shadow:
+    0 0 25px rgba(137,92,255,.15),
+    inset 0 0 16px rgba(255,255,255,.025);
+
+  flex:none;
+}
+
+.brand-text{
+  min-width:0;
+}
+
+.brand-title{
+  font-size:18px;
+  line-height:1;
+  font-weight:1000;
+  letter-spacing:.4px;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.brand-sub{
+  margin-top:4px;
+
+  font-size:8px;
+  color:var(--muted);
+
+  letter-spacing:1.3px;
+
+  white-space:nowrap;
+}
+
+.top-actions{
+  display:flex;
+  gap:7px;
+}
+
+.icon-btn{
+  width:39px;
+  height:39px;
+
+  border-radius:12px;
+
+  display:grid;
+  place-items:center;
+
+  background:
+    rgba(255,255,255,.045);
+
+  border:1px solid var(--line);
+
+  font-size:17px;
+}
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+.main{
+  width:100%;
+  height:calc(100% - 72px);
+
+  padding:
+    0
+    10px
+    9px;
+
+  position:relative;
+  z-index:5;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:8px;
+
+  min-height:0;
+}
+
+.status-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex:none;
+}
+
+.phase{
+  padding:6px 10px;
+
+  border-radius:999px;
+
+  background:
+    rgba(37,231,255,.07);
+
+  color:var(--cyan2);
+
+  border:
+    1px solid
+    rgba(37,231,255,.19);
+
+  font-size:10px;
+  font-weight:950;
+}
+
+.phase.running{
+  color:#ff94cf;
+  background:
+    rgba(255,41,149,.08);
+
+  border-color:
+    rgba(255,41,149,.19);
+}
+
+.phase.crashed{
+  color:#ff7e90;
+  background:
+    rgba(255,76,104,.10);
+
+  border-color:
+    rgba(255,76,104,.20);
+}
+
+.round-chip{
+  padding:6px 10px;
+
+  border-radius:999px;
+
+  border:1px solid var(--line);
+
+  background:
+    rgba(255,255,255,.04);
+
+  color:#b1b4c4;
+
+  font-size:10px;
+}
+
+/* =========================================================
+   GAME STAGE
+   ========================================================= */
+
+.game-stage{
+  position:relative;
+
+  flex:1;
+  min-height:285px;
+
+  border-radius:23px;
+
+  overflow:hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 8%,
+      rgba(137,92,255,.17),
+      transparent 33%
+    ),
+
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(37,231,255,.045),
+      transparent 50%
+    ),
+
+    linear-gradient(
+      180deg,
+      #101323 0%,
+      #080a12 100%
+    );
+
+  border:
+    1px solid rgba(255,255,255,.085);
+
+  box-shadow:var(--shadow);
+}
+
+.multiplier-zone{
+  position:absolute;
+
+  top:13px;
+  left:10px;
+  right:10px;
+
+  display:flex;
+  justify-content:center;
+
+  z-index:8;
+
+  pointer-events:none;
+}
+
+.multiplier-card{
+  min-width:188px;
+
+  padding:
+    9px
+    18px
+    11px;
+
+  text-align:center;
+
+  border-radius:17px;
+
+  background:
+    rgba(5,6,12,.70);
+
+  border:
+    1px solid
+    rgba(255,255,255,.09);
+
+  backdrop-filter:blur(8px);
+
+  box-shadow:
+    0 12px 34px rgba(0,0,0,.28);
+}
+
+.multiplier{
+  font-size:48px;
+  line-height:.95;
+
+  font-weight:1000;
+
+  letter-spacing:-2px;
+
+  color:#fff;
+
+  text-shadow:
+    0 0 20px rgba(137,92,255,.32),
+    0 0 45px rgba(37,231,255,.15);
+}
+
+.multiplier.warning{
+  color:#ffd365;
+
+  text-shadow:
+    0 0 21px
+    rgba(255,216,90,.42);
+}
+
+.multiplier.danger{
+  color:#ff82ba;
+
+  text-shadow:
+    0 0 25px
+    rgba(255,41,149,.48),
+    0 0 50px
+    rgba(255,41,149,.22);
+}
+
+.multiplier.crash{
+  color:var(--red);
+
+  text-shadow:
+    0 0 25px
+    rgba(255,76,104,.50);
+}
+
+.multiplier-caption{
+  margin-top:5px;
+
+  font-size:9px;
+
+  font-weight:850;
+
+  color:var(--muted);
+
+  letter-spacing:1px;
+}
+
+/* =========================================================
+   ELEVATOR TRACK
+   ========================================================= */
+
+.track{
+  position:absolute;
+
+  left:50%;
+  top:97px;
+  bottom:12px;
+
+  width:140px;
+
+  transform:translateX(-50%);
+
+  border:
+    1px solid
+    rgba(37,231,255,.095);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(37,231,255,.018),
+      rgba(137,92,255,.055),
+      rgba(37,231,255,.018)
+    );
+}
+
+.track::before,
+.track::after{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  bottom:0;
+
+  width:1px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(37,231,255,.22),
+      transparent
+    );
+}
+
+.track::before{
+  left:17px;
+}
+
+.track::after{
+  right:17px;
+}
+
+.track-lines{
+  position:absolute;
+  inset:0;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 24px,
+      rgba(37,231,255,.075) 25px,
+      transparent 27px
+    );
+
+  animation:
+    trackScroll .45s linear infinite;
+
+  opacity:.72;
+}
+
+.floor{
+  position:absolute;
+
+  left:-43px;
+
+  width:31px;
+
+  text-align:right;
+
+  font-size:8px;
+
+  color:#60677e;
+
+  font-weight:850;
+}
+
+.floor.f1{top:12%}
+.floor.f2{top:32%}
+.floor.f3{top:53%}
+.floor.f4{top:74%}
+
+/* =========================================================
+   ELEVATOR
+   ========================================================= */
+
+.elevator{
+  position:absolute;
+
+  left:50%;
+  bottom:8%;
+
+  width:86px;
+  height:79px;
+
+  transform:
+    translateX(-50%);
+
+  z-index:4;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #2b3043,
+      #111522
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.18);
+
+  box-shadow:
+    0 0 28px
+    rgba(37,231,255,.13),
+
+    0 20px 35px
+    rgba(0,0,0,.34),
+
+    inset 0 0 20px
+    rgba(255,255,255,.025);
+
+  transition:
+    bottom .08s linear,
+    filter .18s ease,
+    transform .18s ease;
+}
+
+.elevator.active{
+  animation:
+    elevatorFloat .35s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+.elevator.flash{
+  filter:
+    brightness(1.6)
+    saturate(1.25);
+}
+
+.elevator.crashed{
+  animation:
+    elevatorCrash
+    .55s
+    ease-in forwards;
+
+  filter:
+    brightness(.58)
+    saturate(.65);
+}
+
+.elevator-top{
+  height:21px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:5px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.08);
+}
+
+.light{
+  width:5px;
+  height:5px;
+
+  border-radius:50%;
+
+  background:var(--green);
+
+  box-shadow:
+    0 0 8px
+    rgba(57,246,173,.8);
+}
+
+.cabin{
+  height:56px;
+
+  display:grid;
+  place-items:center;
+
+  font-size:36px;
+
+  filter:
+    drop-shadow(
+      0 0 10px
+      rgba(37,231,255,.28)
+    );
+}
+
+.engine{
+  position:absolute;
+
+  left:50%;
+  bottom:-17px;
+
+  width:60px;
+  height:35px;
+
+  transform:
+    translateX(-50%);
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(37,231,255,.72),
+      rgba(137,92,255,.25),
+      transparent 70%
+    );
+
+  filter:blur(4px);
+
+  animation:
+    enginePulse
+    .18s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+/* =========================================================
+   GAME FEEDBACK
+   ========================================================= */
+
+.stage-message{
+  position:absolute;
+
+  inset:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:20;
+
+  pointer-events:none;
+
+  opacity:0;
+  transform:scale(.88);
+
+  transition:
+    opacity .20s ease,
+    transform .20s ease;
+}
+
+.stage-message.show{
+  opacity:1;
+  transform:scale(1);
+}
+
+.stage-message-inner{
+  padding:
+    15px
+    21px;
+
+  border-radius:19px;
+
+  background:
+    rgba(6,7,13,.86);
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  backdrop-filter:blur(7px);
+
+  text-align:center;
+
+  box-shadow:
+    0 22px 60px
+    rgba(0,0,0,.45);
+}
+
+.stage-message-big{
+  font-size:37px;
+  line-height:1;
+
+  font-weight:1000;
+
+  text-shadow:
+    0 0 25px
+    rgba(255,41,149,.32);
+}
+
+.stage-message-small{
+  margin-top:6px;
+
+  color:#b8bbca;
+
+  font-size:10px;
+
+  font-weight:850;
+}
+
+/* =========================================================
+   CRASH FX
+   ========================================================= */
+
+.crash-flash{
+  position:absolute;
+
+  inset:0;
+
+  z-index:21;
+
+  pointer-events:none;
+
+  opacity:0;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(255,76,104,.44),
+      transparent 60%
+    );
+}
+
+.crash-flash.play{
+  animation:
+    crashFlash
+    .75s
+    ease-out;
+}
+
+.particle-layer{
+  position:absolute;
+
+  inset:0;
+
+  z-index:22;
+
+  overflow:hidden;
+
+  pointer-events:none;
+}
+
+/* =========================================================
+   PLAYERS
+   ========================================================= */
+
+.player-panel{
+  flex:0 0 158px;
+  min-height:158px;
+
+  display:flex;
+  flex-direction:column;
+
+  overflow:hidden;
+
+  border-radius:20px;
+
+  background:
+    rgba(10,11,19,.90);
+
+  border:
+    1px solid
+    var(--line);
+
+  box-shadow:
+    0 15px 42px
+    rgba(0,0,0,.28);
+}
+
+.panel-header{
+  height:35px;
+
+  flex:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 11px;
+
+  border-bottom:
+    1px solid
+    var(--line);
+}
+
+.panel-title{
+  font-size:11px;
+  font-weight:950;
+}
+
+.panel-info{
+  color:var(--muted);
+  font-size:9px;
+}
+
+.player-list{
+  padding:6px;
+
+  overflow:auto;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+
+  min-height:0;
+}
+
+.player-row{
+  min-height:42px;
+
+  display:grid;
+
+  grid-template-columns:
+    34px
+    minmax(0,1fr)
+    auto;
+
+  align-items:center;
+
+  gap:7px;
+
+  padding:
+    5px
+    7px;
+
+  border-radius:12px;
+
+  background:
+    rgba(255,255,255,.032);
+
+  border:
+    1px solid
+    rgba(255,255,255,.06);
+}
+
+.player-row.self{
+  border-color:
+    rgba(37,231,255,.18);
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(37,231,255,.065),
+      rgba(255,255,255,.018)
+    );
+}
+
+.player-row.running{
+  background:
+    linear-gradient(
+      90deg,
+      rgba(137,92,255,.055),
+      rgba(255,255,255,.018)
+    );
+}
+
+.player-row.cashed{
+  border-color:
+    rgba(57,246,173,.20);
+
+  background:
+    rgba(57,246,173,.045);
+}
+
+.player-row.crashed{
+  opacity:.60;
+}
+
+.avatar{
+  width:34px;
+  height:34px;
+
+  overflow:hidden;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:10px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #2b2c42,
+      #11131e
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.09);
+
+  font-size:12px;
+  font-weight:1000;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.player-main{
+  min-width:0;
+}
+
+.player-name{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  min-width:0;
+}
+
+.name-text{
+  min-width:0;
+
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+
+  font-size:11px;
+  font-weight:900;
+}
+
+.badge{
+  flex:none;
+
+  padding:
+    2px
+    5px;
+
+  border-radius:5px;
+
+  background:
+    rgba(37,231,255,.075);
+
+  border:
+    1px solid
+    rgba(37,231,255,.12);
+
+  color:#7eeeff;
+
+  font-size:7px;
+  font-weight:900;
+}
+
+.player-meta{
+  margin-top:2px;
+
+  color:var(--muted);
+
+  font-size:8px;
+}
+
+.player-right{
+  text-align:right;
+}
+
+.player-bet{
+  color:var(--gold);
+
+  font-size:10px;
+
+  font-weight:1000;
+}
+
+.player-payout{
+  margin-top:1px;
+
+  font-size:8px;
+
+  font-weight:900;
+}
+
+.player-payout.win{
+  color:var(--green);
+}
+
+.player-payout.loss{
+  color:#757a8d;
+}
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.control-panel{
+  flex:none;
+
+  padding:8px;
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      140deg,
+      rgba(16,17,29,.97),
+      rgba(8,9,16,.97)
+    );
+
+  border:
+    1px solid
+    var(--line);
+
+  box-shadow:
+    0 17px 46px
+    rgba(0,0,0,.34);
+}
+
+.control-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:
+    0
+    3px
+    6px;
+}
+
+.control-title strong{
+  font-size:11px;
+  font-weight:950;
+}
+
+.my-status{
+  color:var(--muted);
+
+  font-size:8px;
+}
+
+.bet-buttons{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:6px;
+}
+
+.bet-button{
+  height:39px;
+
+  border-radius:11px;
+
+  background:
+    rgba(255,255,255,.043);
+
+  border:
+    1px solid
+    rgba(255,255,255,.075);
+
+  font-size:11px;
+
+  font-weight:950;
+}
+
+.bet-button.selected{
+  color:var(--gold);
+
+  background:
+    rgba(255,216,90,.075);
+
+  border-color:
+    rgba(255,216,90,.32);
+
+  box-shadow:
+    0 0 18px
+    rgba(255,216,90,.055);
+}
+
+.bet-button:disabled{
+  opacity:.35;
+}
+
+.main-action{
+  width:100%;
+  height:45px;
+
+  margin-top:6px;
+
+  border-radius:13px;
+
+  position:relative;
+  overflow:hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #8058ff,
+      #ff2995
+    );
+
+  box-shadow:
+    0 10px 27px
+    rgba(137,92,255,.20);
+
+  font-size:13px;
+  font-weight:1000;
+}
+
+.main-action.cashout{
+  background:
+    linear-gradient(
+      135deg,
+      #17d99d,
+      #00a9db
+    );
+
+  box-shadow:
+    0 10px 27px
+    rgba(57,246,173,.18);
+}
+
+.main-action.frozen{
+  background:
+    linear-gradient(
+      135deg,
+      #23362f,
+      #182723
+    );
+
+  color:#a4d4c4;
+
+  box-shadow:none;
+}
+
+.main-action.crashed{
+  background:
+    linear-gradient(
+      135deg,
+      #40212b,
+      #29171f
+    );
+
+  color:#a1818d;
+
+  box-shadow:none;
+}
+
+.main-action::before{
+  content:"";
+
+  position:absolute;
+
+  left:-70%;
+  top:-80%;
+
+  width:35%;
+  height:230%;
+
+  transform:
+    skewX(-20deg);
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.22),
+      transparent
+    );
+
+  animation:
+    actionShine
+    2.8s linear
+    infinite;
+}
+
+.main-action span{
+  position:relative;
+  z-index:2;
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.toast-layer{
+  position:absolute;
+
+  top:78px;
+  left:10px;
+  right:10px;
+
+  z-index:90;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  gap:6px;
+
+  pointer-events:none;
+}
+
+.toast{
+  max-width:92%;
+
+  padding:
+    8px
+    12px;
+
+  border-radius:11px;
+
+  background:
+    rgba(8,9,16,.95);
+
+  border:
+    1px solid
+    rgba(255,255,255,.11);
+
+  box-shadow:
+    0 12px 34px
+    rgba(0,0,0,.38);
+
+  font-size:10px;
+
+  font-weight:850;
+
+  animation:
+    toastIn
+    .22s ease,
+    toastOut
+    .30s ease
+    2.25s forwards;
+}
+
+/* =========================================================
+   HELP PANEL
+   ========================================================= */
+
+.help-panel{
+  position:absolute;
+
+  inset:
+    74px
+    10px
+    10px
+    10px;
+
+  z-index:100;
+
+  display:none;
+
+  overflow:auto;
+
+  padding:15px;
+
+  border-radius:20px;
+
+  background:
+    rgba(6,7,13,.97);
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  box-shadow:
+    0 30px 100px
+    rgba(0,0,0,.65);
+}
+
+.help-panel.show{
+  display:block;
+}
+
+.help-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.help-title{
+  font-size:18px;
+  font-weight:1000;
+}
+
+.help-block{
+  margin-top:8px;
+
+  padding:10px;
+
+  border-radius:12px;
+
+  background:
+    rgba(255,255,255,.032);
+
+  border:
+    1px solid
+    rgba(255,255,255,.055);
+}
+
+.help-block strong{
+  font-size:11px;
+}
+
+.help-block p{
+  margin:
+    5px
+    0
+    0;
+
+  color:#b0b3c2;
+
+  font-size:10px;
+
+  line-height:1.65;
+}
+
+.help-note{
+  margin-top:10px;
+
+  color:#777d92;
+
+  font-size:9px;
+
+  line-height:1.6;
+}
+
+/* =========================================================
+   RESULT
+   ========================================================= */
+
+.result-modal{
+  position:absolute;
+
+  inset:0;
+
+  z-index:110;
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:13px;
+
+  background:
+    rgba(2,2,6,.70);
+
+  backdrop-filter:blur(8px);
+}
+
+.result-modal.show{
+  display:flex;
+}
+
+.result-card{
+  width:min(520px,100%);
+  max-height:88vh;
+  overflow:auto;
+
+  border-radius:23px;
+
+  padding:17px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0,
+      rgba(137,92,255,.19),
+      transparent 35%
+    ),
+
+    linear-gradient(
+      145deg,
+      #151625,
+      #090a12
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  box-shadow:
+    0 30px 100px
+    rgba(0,0,0,.65);
+
+  animation:
+    resultIn
+    .28s
+    cubic-bezier(.2,.75,.2,1);
+}
+
+.result-header{
+  text-align:center;
+}
+
+.result-icon{
+  font-size:43px;
+}
+
+.result-title{
+  margin-top:5px;
+
+  font-size:23px;
+  font-weight:1000;
+}
+
+.result-subtitle{
+  margin-top:3px;
+
+  font-size:9px;
+
+  color:var(--muted);
+}
+
+.result-highlight{
+  margin-top:13px;
+
+  padding:12px;
+
+  border-radius:15px;
+
+  text-align:center;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(57,246,173,.075),
+      rgba(37,231,255,.045)
+    );
+
+  border:
+    1px solid
+    rgba(57,246,173,.13);
+}
+
+.highlight-name{
+  font-size:15px;
+  font-weight:1000;
+}
+
+.highlight-payout{
+  margin-top:3px;
+
+  color:var(--green);
+
+  font-size:24px;
+
+  font-weight:1000;
+}
+
+.result-list{
+  margin-top:10px;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:5px;
+}
+
+.result-row{
+  min-height:43px;
+
+  display:grid;
+
+  grid-template-columns:
+    25px
+    33px
+    minmax(0,1fr)
+    auto;
+
+  align-items:center;
+
+  gap:7px;
+
+  padding:
+    5px
+    7px;
+
+  border-radius:11px;
+
+  background:
+    rgba(255,255,255,.033);
+
+  border:
+    1px solid
+    rgba(255,255,255,.055);
+}
+
+.result-rank{
+  text-align:center;
+
+  font-size:13px;
+
+  font-weight:1000;
+}
+
+.result-name{
+  font-size:10px;
+  font-weight:900;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.result-detail{
+  margin-top:1px;
+
+  color:var(--muted);
+
+  font-size:7px;
+}
+
+.result-money{
+  font-size:10px;
+  font-weight:1000;
+}
+
+.result-money.win{
+  color:var(--green);
+}
+
+.result-money.zero{
+  color:#70758a;
+}
+
+.result-close{
+  width:100%;
+
+  height:44px;
+
+  margin-top:9px;
+
+  border-radius:13px;
+
+  background:
+    rgba(255,255,255,.055);
+
+  border:
+    1px solid
+    var(--line);
+
+  font-size:11px;
+  font-weight:950;
+}
+
+/* =========================================================
+   DEV MODE
+   ========================================================= */
+
+.dev-badge{
+  position:absolute;
+
+  left:50%;
+
+  bottom:calc(
+    env(safe-area-inset-bottom) + 6px
+  );
+
+  transform:translateX(-50%);
+
+  z-index:200;
+
+  display:none;
+
+  padding:
+    3px
+    7px;
+
+  border-radius:999px;
+
+  background:
+    rgba(255,157,82,.08);
+
+  border:
+    1px solid
+    rgba(255,157,82,.18);
+
+  color:#ffb679;
+
+  font-size:7px;
+
+  font-weight:900;
+
+  pointer-events:none;
+}
+
+.dev-mode .dev-badge{
+  display:block;
+}
+
+/* =========================================================
+   LANDSCAPE WARNING
+   ========================================================= */
+
+.landscape-warning{
+  display:none;
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:9999;
+
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+
+  padding:25px;
+
+  background:#04050a;
+
+  color:#fff;
+}
+
+.landscape-warning strong{
+  display:block;
+
+  font-size:21px;
+}
+
+.landscape-warning span{
+  display:block;
+
+  margin-top:7px;
+
+  color:#8d93a8;
+
+  font-size:11px;
+}
+
+@media(
+  orientation:landscape
+) and (
+  max-height:600px
+){
+  .landscape-warning{
+    display:flex;
+  }
+}
+
+/* =========================================================
+   SMALL DEVICES
+   ========================================================= */
+
+@media(max-width:390px){
+
+  .brand-title{
+    font-size:16px;
+  }
+
+  .game-stage{
+    min-height:265px;
+  }
+
+  .multiplier{
+    font-size:42px;
+  }
+
+  .track{
+    width:118px;
+  }
+
+  .elevator{
+    width:77px;
+    height:71px;
+  }
+
+  .cabin{
+    font-size:32px;
+  }
+
+  .player-panel{
+    flex-basis:145px;
+    min-height:145px;
+  }
+
+  .main-action{
+    height:43px;
+  }
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes scanMove{
+  from{
+    top:5%;
+  }
+
+  to{
+    top:94%;
+  }
+}
+
+@keyframes starFloat{
+  from{
+    transform:translateY(120%);
+    opacity:0;
+  }
+
+  15%{
+    opacity:.35;
+  }
+
+  80%{
+    opacity:.35;
+  }
+
+  to{
+    transform:translateY(-120%);
+    opacity:0;
+  }
+}
+
+@keyframes trackScroll{
+  from{
+    background-position:
+      0 0;
+  }
+
+  to{
+    background-position:
+      0 27px;
+  }
+}
+
+@keyframes elevatorFloat{
+  from{
+    transform:
+      translateX(-50%)
+      translateY(0);
+  }
+
+  to{
+    transform:
+      translateX(-50%)
+      translateY(-2px);
+  }
+}
+
+@keyframes enginePulse{
+  from{
+    opacity:.55;
+    transform:
+      translateX(-50%)
+      scaleX(.85);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      translateX(-50%)
+      scaleX(1.15);
+  }
+}
+
+@keyframes elevatorCrash{
+  0%{
+    transform:
+      translateX(-50%)
+      translateY(0)
+      rotate(0);
+  }
+
+  25%{
+    transform:
+      translateX(-50%)
+      translateY(7px)
+      rotate(-3deg);
+  }
+
+  100%{
+    transform:
+      translateX(-50%)
+      translateY(110px)
+      rotate(8deg);
+  }
+}
+
+@keyframes crashFlash{
+  0%{
+    opacity:0;
+  }
+
+  15%{
+    opacity:1;
+  }
+
+  100%{
+    opacity:0;
+  }
+}
+
+@keyframes actionShine{
+  0%,58%{
+    left:-70%;
+  }
+
+  100%{
+    left:155%;
+  }
+}
+
+@keyframes toastIn{
+  from{
+    opacity:0;
+    transform:
+      translateY(-7px)
+      scale(.96);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes toastOut{
+  to{
+    opacity:0;
+    transform:
+      translateY(-6px)
+      scale(.97);
+  }
+}
+
+@keyframes resultIn{
+  from{
+    opacity:0;
+    transform:
+      translateY(14px)
+      scale(.96);
+  }
+
+  to{
+    opacity:1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@keyframes screenShake{
+  0%,100%{
+    transform:translate(0,0);
+  }
+
+  20%{
+    transform:translate(-3px,2px);
+  }
+
+  40%{
+    transform:translate(3px,-2px);
+  }
+
+  60%{
+    transform:translate(-2px,-1px);
+  }
+
+  80%{
+    transform:translate(2px,1px);
+  }
+}
+
+.app.shake{
+  animation:
+    screenShake
+    .45s
+    ease;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app" id="app">
+
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="scanline"></div>
   <div class="star-layer" id="starLayer"></div>
-  <div class="particle-layer" id="particleLayer"></div>
 
-  <div class="multiplier-wrap">
-    <div class="multiplier-box">
-      <div class="multiplier" id="multiplier">1.00x</div>
-      <div class="multiplier-label" id="multiplierLabel">等待玩家下注</div>
-    </div>
-  </div>
+  <!-- ======================================================
+       TOP
+       ====================================================== -->
 
-  <div class="elevator-track">
-    <div class="track-lines"></div>
+  <header class="topbar">
 
-    <div class="floor-mark r1">10F</div>
-    <div class="floor-mark r2">20F</div>
-    <div class="floor-mark r3">30F</div>
-    <div class="floor-mark r4">40F</div>
+    <div class="brand">
 
-    <div class="elevator" id="elevator">
-      <div class="elevator-top">
-        <div class="lamp"></div>
-        <div class="lamp"></div>
-        <div class="lamp"></div>
+      <div class="brand-logo">
+        🚀
       </div>
-      <div class="cabin">🛗</div>
-      <div class="engine-glow"></div>
+
+      <div class="brand-text">
+
+        <div class="brand-title">
+          霓虹電梯
+        </div>
+
+        <div class="brand-sub">
+          CRASH LIFT · RISK & TIMING
+        </div>
+
+      </div>
+
     </div>
-  </div>
 
-  <div class="crash-line" id="crashLine"></div>
+    <div class="top-actions">
 
-  <div class="center-message" id="centerMessage">
-    <div class="center-message-inner">
-      <div class="center-big" id="centerBig"></div>
-      <div class="center-small" id="centerSmall"></div>
+      <button
+        class="icon-btn"
+        id="soundBtn"
+        aria-label="音效">
+        🔊
+      </button>
+
+      <button
+        class="icon-btn"
+        id="helpBtn"
+        aria-label="玩法">
+        ❔
+      </button>
+
     </div>
+
+  </header>
+
+  <!-- ======================================================
+       MAIN
+       ====================================================== -->
+
+  <main class="main">
+
+    <div class="status-row">
+
+      <div
+        class="phase"
+        id="phaseLabel">
+        💰 等待下注
+      </div>
+
+      <div
+        class="round-chip"
+        id="roundLabel">
+        第 1 局
+      </div>
+
+    </div>
+
+    <!-- ====================================================
+         GAMEPLAY
+         ==================================================== -->
+
+    <section
+      class="game-stage"
+      id="gameStage">
+
+      <div class="multiplier-zone">
+
+        <div class="multiplier-card">
+
+          <div
+            class="multiplier"
+            id="multiplier">
+            1.00x
+          </div>
+
+          <div
+            class="multiplier-caption"
+            id="multiplierCaption">
+            等待玩家下注
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="track">
+
+        <div class="track-lines"></div>
+
+        <div class="floor f1">
+          10F
+        </div>
+
+        <div class="floor f2">
+          20F
+        </div>
+
+        <div class="floor f3">
+          30F
+        </div>
+
+        <div class="floor f4">
+          40F
+        </div>
+
+        <div
+          class="elevator"
+          id="elevator">
+
+          <div class="elevator-top">
+            <span class="light"></span>
+            <span class="light"></span>
+            <span class="light"></span>
+          </div>
+
+          <div class="cabin">
+            🛗
+          </div>
+
+          <div class="engine"></div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="stage-message"
+        id="stageMessage">
+
+        <div class="stage-message-inner">
+
+          <div
+            class="stage-message-big"
+            id="stageMessageBig">
+          </div>
+
+          <div
+            class="stage-message-small"
+            id="stageMessageSmall">
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="crash-flash"
+        id="crashFlash">
+      </div>
+
+      <div
+        class="particle-layer"
+        id="particleLayer">
+      </div>
+
+    </section>
+
+    <!-- ====================================================
+         PLAYERS
+         ==================================================== -->
+
+    <section class="player-panel">
+
+      <div class="panel-header">
+
+        <div class="panel-title">
+          👥 房間玩家
+        </div>
+
+        <div
+          class="panel-info"
+          id="playerInfo">
+          1 / 6 人
+        </div>
+
+      </div>
+
+      <div
+        class="player-list"
+        id="playerList">
+      </div>
+
+    </section>
+
+    <!-- ====================================================
+         CONTROLS
+         ==================================================== -->
+
+    <section class="control-panel">
+
+      <div class="control-title">
+
+        <strong>
+          Entry 下注銀幣
+        </strong>
+
+        <div
+          class="my-status"
+          id="myStatus">
+          尚未下注
+        </div>
+
+      </div>
+
+      <div class="bet-buttons">
+
+        <button
+          class="bet-button"
+          data-bet="100">
+          100 🪙
+        </button>
+
+        <button
+          class="bet-button"
+          data-bet="500">
+          500 🪙
+        </button>
+
+        <button
+          class="bet-button"
+          data-bet="1000">
+          1000 🪙
+        </button>
+
+      </div>
+
+      <button
+        class="main-action"
+        id="mainAction"
+        disabled>
+
+        <span>
+          請先選擇下注
+        </span>
+
+      </button>
+
+    </section>
+
+  </main>
+
+  <!-- ======================================================
+       TOAST
+       ====================================================== -->
+
+  <div
+    class="toast-layer"
+    id="toastLayer">
   </div>
 
-  <div class="crash-overlay" id="crashOverlay"></div>
-</section>
+  <!-- ======================================================
+       HELP
+       ====================================================== -->
 
-<section class="board-panel">
-  <div class="board-header">
-    <div class="board-title">👥 房間玩家</div>
-    <div class="board-info" id="boardInfo">0 / 6 人</div>
+  <section
+    class="help-panel"
+    id="helpPanel">
+
+    <div class="help-header">
+
+      <div class="help-title">
+        🚀 霓虹電梯玩法
+      </div>
+
+      <button
+        class="icon-btn"
+        id="closeHelp">
+        ✕
+      </button>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ① 下注
+      </strong>
+
+      <p>
+        選擇 100、500 或 1000 銀幣。
+        必須成功完成 Entry 才能加入本局。
+      </p>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ② 電梯起飛
+      </strong>
+
+      <p>
+        電梯升高時倍率持續增加。
+        其他玩家的下注與狀態會即時顯示。
+      </p>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ③ 收錢
+      </strong>
+
+      <p>
+        電梯爆掉之前可以選擇「收錢」。
+        收錢後獎勵會立即固定，不會再增加。
+      </p>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ④ 10 秒資格
+      </strong>
+
+      <p>
+        為避免極短時間取得不合理獎勵，
+        本遊戲前 10 秒不開放有效獎勵結算。
+        10 秒後才可以收錢。
+      </p>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ⑤ CRASH
+      </strong>
+
+      <p>
+        每局由房主產生唯一的爆炸倍率，
+        再同步到房內玩家。
+        爆炸時尚未收錢者本局獎勵為 0。
+      </p>
+
+    </div>
+
+    <div class="help-block">
+
+      <strong>
+        ⑥ 再玩一次
+      </strong>
+
+      <p>
+        本局結束後自動進入下一局，
+        適合一邊語音聊天一邊連續挑戰。
+      </p>
+
+    </div>
+
+    <div class="help-note">
+      本遊戲中的銀幣僅供 BoomRoom
+      娛樂遊戲使用，不提供現金提領、
+      現金兌換或投資功能。
+    </div>
+
+  </section>
+
+  <!-- ======================================================
+       RESULT
+       ====================================================== -->
+
+  <section
+    class="result-modal"
+    id="resultModal">
+
+    <div class="result-card">
+
+      <div class="result-header">
+
+        <div
+          class="result-icon"
+          id="resultIcon">
+          💥
+        </div>
+
+        <div
+          class="result-title"
+          id="resultTitle">
+          CRASH!
+        </div>
+
+        <div
+          class="result-subtitle"
+          id="resultSubtitle">
+          本局結束
+        </div>
+
+      </div>
+
+      <div class="result-highlight">
+
+        <div
+          class="highlight-name"
+          id="highlightName">
+          —
+        </div>
+
+        <div
+          class="highlight-payout"
+          id="highlightPayout">
+          0 🪙
+        </div>
+
+      </div>
+
+      <div
+        class="result-list"
+        id="resultList">
+      </div>
+
+      <button
+        class="result-close"
+        id="resultClose">
+        繼續下一局
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- DEVELOPMENT MODE -->
+  <div class="dev-badge">
+    開發測試模式 · 未連接 BoomRoom SDK
   </div>
-  <div class="players" id="players"></div>
-</section>
 
-<section class="control-panel">
-  <div class="bet-title-row">
-    <div class="bet-title">下注銀幣</div>
-    <div class="my-bet" id="myBet">尚未下注</div>
+</div>
+
+<div class="landscape-warning">
+  <div>
+    <strong>
+      📱 請轉回手機直向
+    </strong>
+
+    <span>
+      霓虹電梯針對直向手機畫面設計
+    </span>
   </div>
-
-  <div class="bet-options">
-    <button class="bet-btn" data-bet="100">100 🪙</button>
-    <button class="bet-btn" data-bet="500">500 🪙</button>
-    <button class="bet-btn" data-bet="1000">1000 🪙</button>
-  </div>
-
-  <div class="action-row">
-    <button class="main-btn" id="mainBtn" disabled>
-      <span>請先選擇下注</span>
-    </button>
-  </div>
-</section>
-</main> <div class="toast-layer" id="toastLayer"></div> <div class="help-panel" id="helpPanel"> <div class="help-head"> <div class="help-title">🚀 霓虹電梯玩法</div> <button class="icon-btn" id="closeHelp">✕</button> </div>
-<div class="help-block">
-  <strong>① 選擇下注</strong>
-  <p>選擇 100、500 或 1000 銀幣。下注成功後，你會立刻出現在房間玩家列表。</p>
 </div>
 
-<div class="help-block">
-  <strong>② 電梯升空</strong>
-  <p>電梯開始上升，倍率會從 1.00x 持續增加。大家可以看到彼此目前的下注。</p>
-</div>
 
-<div class="help-block">
-  <strong>③ 見好就收</strong>
-  <p>電梯爆掉以前，按下「收錢」即可按照當下倍率結算。例如 500 × 2.00x = 1000 銀幣。</p>
-</div>
+<script>
+"use strict";
 
-<div class="help-block">
-  <strong>④ CRASH</strong>
-  <p>每局由房主產生本局的爆炸點，並同步給房內玩家。爆炸後還沒收錢的玩家本局沒有獎勵。</p>
-</div>
+/* =========================================================
+   GAME INFO
+   ========================================================= */
 
-<div class="help-block">
-  <strong>⑤ 下一局</strong>
-  <p>結算後自動進入下一局。看誰能活得最久、創造最高倍率。</p>
-</div>
+const GAME_INFO = {
+  id: "crash_lift",
+  category: "多人風險競技",
+  name: "霓虹電梯",
+  description: "下注後等待電梯升高，在 CRASH 前選擇收錢。",
+  version: "2.0.0",
+  entryCost: [100, 500, 1000],
+  maxPlayers: 6,
+  controlModes: ["Touch", "Pointer"],
+  duration: "約 20～70 秒",
+  multiplayer: true,
+  rewardEnabled: true
+};
 
-<div class="help-note">
-  本遊戲中的銀幣僅供 BoomRoom 娛樂遊戲使用，不提供現金提領或兌換功能。
-</div>
-</div> <div class="result-modal" id="resultModal"> <div class="result-card">
-  <div class="result-head">
-    <div class="result-icon" id="resultIcon">💥</div>
-    <div class="result-title" id="resultTitle">CRASH!</div>
-    <div class="result-subtitle" id="resultSubtitle">本局已結束</div>
-  </div>
 
-  <div class="result-highlight">
-    <div class="highlight-name" id="highlightName">—</div>
-    <div class="highlight-money" id="highlightMoney">0 🪙</div>
-  </div>
+/* =========================================================
+   CONFIG
+   ========================================================= */
 
-  <div class="result-list" id="resultList"></div>
+const CONFIG = {
 
-  <button class="result-close" id="resultClose">繼續下一局</button>
-</div>
-</div> </div> <div class="landscape-warning"> <div> <strong>📱 請轉回手機直向</strong> <span>霓虹電梯針對直向手機畫面最佳化</span> </div> </div> <script> (() => { "use strict"; /* ========================================================= BoomRoom SDK ========================================================= */ const SDK_READY = !!window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser === "function"; let currentUser = { id: "local-" + Math.random().toString(36).slice(2,10), username: "示範玩家", avatar: "" }; if (SDK_READY) { try { const u = window.BoomRoomSDK.getUser(); if (u) { currentUser = { id: String(u.id || currentUser.id), username: String(u.username || "玩家"), avatar: String(u.avatar || "") }; } } catch (err) { console.warn("BoomRoomSDK.getUser() error:", err); } } const ME = currentUser.id; /* ========================================================= DOM ========================================================= */ const $ = (id) => document.getElementById(id); const app = $("app"); const gameStage = $("gameStage"); const phaseLabel = $("phaseLabel"); const roundLabel = $("roundLabel"); const multiplier = $("multiplier"); const multiplierLabel = $("multiplierLabel"); const elevator = $("elevator"); const crashLine = $("crashLine"); const crashOverlay = $("crashOverlay"); const centerMessage = $("centerMessage"); const centerBig = $("centerBig"); const centerSmall = $("centerSmall"); const playersEl = $("players"); const boardInfo = $("boardInfo"); const myBetEl = $("myBet"); const mainBtn = $("mainBtn"); const betButtons = [...document.querySelectorAll(".bet-btn")]; const toastLayer = $("toastLayer"); const particleLayer = $("particleLayer"); const starLayer = $("starLayer"); const soundBtn = $("soundBtn"); const helpBtn = $("helpBtn"); const helpPanel = $("helpPanel"); const closeHelp = $("closeHelp"); const resultModal = $("resultModal"); const resultIcon = $("resultIcon"); const resultTitle = $("resultTitle"); const resultSubtitle = $("resultSubtitle"); const highlightName = $("highlightName"); const highlightMoney = $("highlightMoney"); const resultList = $("resultList"); const resultClose = $("resultClose"); /* ========================================================= 音效 ========================================================= */ let audioCtx = null; let soundEnabled = true; function ensureAudio() { if (!soundEnabled) return; try { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } if (audioCtx.state === "suspended") { audioCtx.resume(); } } catch (e) {} } function tone(freq, duration, type="sine", volume=.035, delay=0) { if (!soundEnabled) return; ensureAudio(); if (!audioCtx) return; try { const now = audioCtx.currentTime + delay; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = type; osc.frequency.setValueAtTime(freq, now); gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(volume, now + .012); gain.gain.exponentialRampToValueAtTime(.0001, now + duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + duration + .02); } catch (e) {} } function soundClick() { tone(680,.07,"triangle",.035); } function soundBet() { tone(440,.07,"triangle",.035); tone(660,.09,"triangle",.03,.06); } function soundStart() { tone(392,.08,"triangle",.03); tone(523,.09,"triangle",.035,.07); tone(784,.13,"triangle",.04,.15); } function soundCashout() { tone(620,.07,"triangle",.04); tone(880,.08,"triangle",.04,.07); tone(1174,.12,"triangle",.035,.15); } function soundCrash() { tone(120,.25,"sawtooth",.06); tone(75,.38,"square",.035,.04); tone(180,.10,"sawtooth",.025,.10); if (navigator.vibrate) { try { navigator.vibrate([80,40,150]); } catch(e){} } } soundBtn.addEventListener("click", () => { soundEnabled = !soundEnabled; soundBtn.textContent = soundEnabled ? "🔊" : "🔇"; if (soundEnabled) { ensureAudio(); soundClick(); } }); document.addEventListener("pointerdown", ensureAudio, {once:false}); /* ========================================================= 遊戲設定 ========================================================= */ const MAX_PLAYERS = 6; const BET_OPTIONS = [100,500,1000]; const BETTING_SECONDS = 10; const ROUND_END_DELAY = 4400; /* 倍率曲線： 從 1.00x 開始逐步上升。 Host 預先產生 crashPoint，所有玩家只接收結果。 */ const MIN_CRASH = 1.08; const MAX_CRASH = 25.00; /* ========================================================= 資料 ========================================================= */ const players = {}; players[ME] = { id: ME, username: currentUser.username || "玩家", avatar: currentUser.avatar || "", joinedAt: Date.now(), bet: 0, status: "waiting", cashoutMultiplier: 0, payout: 0 }; let hostId = null; let isHost = false; let hostLocked = false; let selectedBet = null; let pendingPurchase = null; let phase = "BETTING"; let roundId = 1; let bettingDeadline = 0; let roundStartTime = 0; let roundDeadline = 0; let currentMultiplier = 1.00; let crashPointPublic = null; let resultPayload = null; const seenEvents = new Set(); /* Host 私有資料： crashPoint 不能在玩家 UI 初始時顯示， 但它由 Host 在回合開始時建立，再透過 ROUND_START 將同一結果送給其他客戶端。 */ const hostState = { crashPoint: null, startedAt: 0, participants: [], settled: false }; /* ========================================================= 工具 ========================================================= */ function eventId() { return ME + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8); } function money(n) { return Number(n || 0).toLocaleString("zh-TW"); } function shortName(name) { const s = String(name || "玩家"); return s.length > 10 ? s.slice(0,9) + "…" : s; } function escapeHtml(text) { return String(text ?? "") .replaceAll("&","&amp;") .replaceAll("<","&lt;") .replaceAll(">","&gt;") .replaceAll('"',"&quot;") .replaceAll("'","&#039;"); } function getUserName(id) { return players[id]?.username || "玩家"; } function getBetters() { return Object.values(players).filter(p => p.bet > 0); } function getPot() { return getBetters().reduce((sum,p) => sum + p.bet, 0); } function addPlayer(info) { if (!info || !info.id) return; const id = String(info.id); if (!players[id]) { players[id] = { id, username: String(info.username || "玩家"), avatar: String(info.avatar || ""), joinedAt: Number(info.joinedAt || Date.now()), bet: 0, status: "waiting", cashoutMultiplier: 0, payout: 0 }; } else { players[id].username = String(info.username || players[id].username || "玩家"); players[id].avatar = String(info.avatar || players[id].avatar || ""); if (info.joinedAt != null) { players[id].joinedAt = Math.min( players[id].joinedAt || Date.now(), Number(info.joinedAt) ); } } renderPlayers(); } function markEvent(id) { if (!id) return true; if (seenEvents.has(id)) return false; seenEvents.add(id); if (seenEvents.size > 1200) { const first = seenEvents.values().next().value; seenEvents.delete(first); } return true; } function toast(message, duration=3000) { const el = document.createElement("div"); el.className = "toast"; el.textContent = message; toastLayer.appendChild(el); setTimeout(() => { el.remove(); }, duration); } function announcement(big, small="", duration=1000) { centerBig.textContent = big; centerSmall.textContent = small; centerMessage.classList.add("show"); clearTimeout(announcement._timer); announcement._timer = setTimeout(() => { centerMessage.classList.remove("show"); }, duration); } function explodeParticles(count=42) { const rect = gameStage.getBoundingClientRect(); const cx = rect.width / 2; const cy = rect.height * .45; for (let i=0; i<count; i++) { const p = document.createElement("div"); p.className = "flying-particle"; const choices = [ "#ff2e9a", "#8a5cff", "#27e6ff", "#ffd75a", "#ffffff", "#ff526e" ]; p.style.background = choices[Math.floor(Math.random()*choices.length)]; p.style.left = cx + "px"; p.style.top = cy + "px"; const angle = Math.random() * Math.PI * 2; const distance = 60 + Math.random() * 190; p.style.setProperty("--dx", Math.cos(angle) * distance + "px"); p.style.setProperty("--dy", Math.sin(angle) * distance + "px"); p.style.setProperty("--r", (Math.random()*900-450) + "deg"); particleLayer.appendChild(p); setTimeout(() => p.remove(),900); } } function createStars() { starLayer.innerHTML = ""; for (let i=0;i<38;i++) { const s = document.createElement("div"); s.className = "star"; s.style.left = Math.random()*100 + "%"; s.style.top = Math.random()*100 + "%"; const size = .7 + Math.random()*2; s.style.width = size + "px"; s.style.height = size + "px"; s.style.animationDuration = (2.5 + Math.random()*4.5) + "s"; s.style.animationDelay = (-Math.random()*5) + "s"; starLayer.appendChild(s); } } /* ========================================================= Crash Point 生成 ========================================================= */ function randomCrashPoint() { /* 主機每局只生成一次。 使用簡單的受控分布，並限制最大倍率，避免異常獎勵。 */ const r = Math.random(); let point; if (r < 0.48) { point = 1.08 + Math.random() * 0.92; } else if (r < 0.78) { point = 2.00 + Math.random() * 1.70; } else if (r < 0.93) { point = 3.70 + Math.random() * 3.80; } else if (r < 0.987) { point = 7.50 + Math.random() * 7.50; } else { point = 15.00 + Math.random() * 10.00; } point = Math.max( MIN_CRASH, Math.min(MAX_CRASH, point) ); return Math.floor(point * 100) / 100; } /* 將經過時間轉成倍率。 越往後，增加速度越快。 */ function multiplierFromElapsed(ms) { const seconds = Math.max(0,ms) / 1000; /* 1.00 → 1.10 → 1.30 → 1.65 → 2.10 ... 用指數曲線增加。 */ const value = Math.exp(seconds * 0.16); return Math.max( 1, Math.floor(value * 100) / 100 ); } /* ========================================================= BoomRoom 廣播 ========================================================= */ function sendEvent(eventName,payload={}) { const finalPayload = { eventId:eventId(), ...payload }; markEvent(finalPayload.eventId); if ( !SDK_READY || typeof window.BoomRoomSDK.sendGameEvent !== "function" ) { handleEvent(eventName,finalPayload,ME,true); return; } try { window.BoomRoomSDK.sendGameEvent( eventName, finalPayload ); } catch(err) { console.warn("sendGameEvent failed:",err); toast("連線廣播失敗"); } } function sendHostEvent(eventName,payload={}) { sendEvent(eventName,payload); } window.addEventListener("message",(e) => { let data = e.data; try { if (typeof data === "string") { data = JSON.parse(data); } } catch(err) { return; } if ( !data || data.action !== "gameEventReceived" ) { return; } const eventName = data.eventName; const payload = data.payload || {}; const senderId = String(data.userId || payload.from || ""); if (!markEvent(payload.eventId)) return; handleEvent( eventName, payload, senderId, false ); }); /* ========================================================= Host 選舉 ========================================================= */ function determineHost() { if (hostLocked) return; const list = Object.values(players) .sort((a,b) => { const ta = Number(a.joinedAt || Infinity); const tb = Number(b.joinedAt || Infinity); if (ta !== tb) return ta - tb; return a.id.localeCompare(b.id); }); if (!list.length) return; hostId = list[0].id; isHost = hostId === ME; /* 一旦第一局開始，就鎖定 Host。 這是為了防止回合途中更換 Host 導致 crashPoint 不一致。 */ if (!hostLocked) { if (isHost) { toast("👑 你是房主，負責控制電梯"); } else { toast("🟢 已連線 · 房主：" + shortName(getUserName(hostId))); } } renderPlayers(); } function announcePlayer() { sendEvent("PLAYER_HELLO",{ from:ME, user:{ id:ME, username:currentUser.username || "玩家", avatar:currentUser.avatar || "", joinedAt:players[ME].joinedAt } }); setTimeout(determineHost,850); /* 若自己是房主，也主動詢問是否有其他玩家。 */ setTimeout(() => { sendEvent("ROOM_REQUEST",{ requesterId:ME }); },1000); } /* ========================================================= 訊息處理 ========================================================= */ function handleEvent(eventName,payload,senderId,local=false) { switch(eventName) { case "PLAYER_HELLO": { const u = payload.user; if (!u?.id) return; addPlayer({ id:String(u.id), username:u.username, avatar:u.avatar, joinedAt:Number(u.joinedAt || Date.now()) }); if (!hostLocked) { setTimeout(determineHost,80); } break; } case "ROOM_REQUEST": { if (!isHost) return; const target = String(payload.requesterId || senderId || ""); if (!target) return; sendHostEvent("ROOM_STATE",{ targetId:target, hostId, phase, roundId, bettingDeadline, roundStartTime, roundDeadline, currentMultiplier, crashPoint:( phase === "RUNNING" ? hostState.crashPoint : null ), players:Object.values(players).map(p => ({ id:p.id, username:p.username, avatar:p.avatar, joinedAt:p.joinedAt, bet:p.bet, status:p.status, cashoutMultiplier:p.cashoutMultiplier, payout:p.payout })) }); break; } case "ROOM_STATE": { if ( payload.targetId && String(payload.targetId) !== ME ) { return; } if (payload.hostId) { hostId = String(payload.hostId); isHost = hostId === ME; hostLocked = true; } if (Array.isArray(payload.players)) { payload.players.forEach(addPlayer); } phase = payload.phase || phase; roundId = Number(payload.roundId || roundId); bettingDeadline = Number(payload.bettingDeadline || 0); roundStartTime = Number(payload.roundStartTime || 0); roundDeadline = Number(payload.roundDeadline || 0); currentMultiplier = Number( payload.currentMultiplier || currentMultiplier ); if ( payload.crashPoint != null && phase === "RUNNING" ) { crashPointPublic = Number(payload.crashPoint); } if (phase === "RUNNING") { multiplier.textContent = currentMultiplier.toFixed(2) + "x"; } renderAll(); break; } case "BET_PLACED": { const id = String(payload.playerId || senderId || ""); if (!id) return; addPlayer({ id, username:payload.username || "玩家", avatar:payload.avatar || "", joinedAt:Number( payload.joinedAt || Date.now() ) }); if (phase !== "BETTING") return; const amount = Number(payload.amount || 0); if (!BET_OPTIONS.includes(amount)) return; players[id].bet = amount; players[id].status = "ready"; players[id].cashoutMultiplier = 0; players[id].payout = 0; renderAll(); if (isHost) { maybeStartCountdown(); } break; } case "BETTING_START": { if (phase !== "BETTING") return; bettingDeadline = Number(payload.deadline || 0); renderAll(); break; } case "ROUND_START": { const incomingRound = Number(payload.roundId || 0); if (incomingRound !== roundId) { roundId = incomingRound; } hostLocked = true; if (payload.hostId) { hostId = String(payload.hostId); isHost = hostId === ME; } if (Array.isArray(payload.participants)) { const currentIds = new Set( payload.participants.map( p => String(p.id) ) ); Object.values(players).forEach(p => { if (!currentIds.has(p.id)) { p.bet = 0; p.status = "watching"; p.cashoutMultiplier = 0; p.payout = 0; } }); payload.participants.forEach(p => { addPlayer({ id:String(p.id), username:p.username, avatar:p.avatar, joinedAt:Number( p.joinedAt || Date.now() ) }); players[String(p.id)].bet = Number(p.bet || 0); players[String(p.id)].status = "running"; players[String(p.id)].cashoutMultiplier = 0; players[String(p.id)].payout = 0; }); } phase = "RUNNING"; roundStartTime = Number(payload.startTime || Date.now()); roundDeadline = Number(payload.crashDeadline || 0); currentMultiplier = 1; crashPointPublic = Number(payload.crashPoint || 1); multiplier.textContent = "1.00x"; multiplierLabel.textContent = "電梯正在升空"; elevator.classList.add("rocket"); announcement( "🚀 起飛！", "見好就收 · 別等到 CRASH", 900 ); soundStart(); renderAll(); break; } case "PLAYER_CASHOUT": { if (!isHost) return; if (phase !== "RUNNING") return; const id = String(payload.playerId || senderId || ""); if (!players[id]) return; /* Host 只接受： - 目前還在 RUNNING - 玩家確實有下注 - 玩家尚未 cashout - 當前倍率尚未碰到 crash point */ if (players[id].bet <= 0) return; if (players[id].status !== "running") return; const liveMultiplier = multiplierFromElapsed( Date.now() - roundStartTime ); if ( hostState.crashPoint != null && liveMultiplier >= hostState.crashPoint ) { return; } const payout = Math.floor( players[id].bet * liveMultiplier ); players[id].status = "cashed"; players[id].cashoutMultiplier = liveMultiplier; players[id].payout = payout; sendHostEvent("CASHOUT_RESULT",{ roundId, playerId:id, multiplier:liveMultiplier, payout }); renderPlayers(); if (id === ME) { soundCashout(); } if (payout > 0) { toast( "💰 " + shortName(getUserName(id)) + " 收錢 " + liveMultiplier.toFixed(2) + "x" ); } maybeFinishEarly(); break; } case "CASHOUT_RESULT": { if (Number(payload.roundId) !== roundId) return; const id = String(payload.playerId || senderId || ""); if (!players[id]) return; players[id].status = "cashed"; players[id].cashoutMultiplier = Number(payload.multiplier || 0); players[id].payout = Number(payload.payout || 0); if (id === ME) { soundCashout(); /* 將最終結算交給 BoomRoom SDK。 */ requestGameOverOnce( roundId, players[id].payout ); } renderAll(); break; } case "ROUND_CRASH": { if (Number(payload.roundId) !== roundId) return; phase = "CRASHED"; currentMultiplier = Number(payload.crashPoint || currentMultiplier); crashPointPublic = Number(payload.crashPoint || currentMultiplier); multiplier.textContent = currentMultiplier.toFixed(2) + "x"; multiplierLabel.textContent = "CRASH!"; Object.keys(players).forEach(id => { const p = players[id]; if (p.bet > 0 && p.status === "running") { p.status = "crashed"; p.payout = 0; p.cashoutMultiplier = 0; } }); elevator.classList.remove("rocket"); elevator.classList.add("crashed"); crashLine.classList.remove("show"); void crashLine.offsetWidth; crashLine.classList.add("show"); crashOverlay.classList.remove("active"); void crashOverlay.offsetWidth; crashOverlay.classList.add("active"); app.classList.remove("screen-shake"); void app.offsetWidth; app.classList.add("screen-shake"); explodeParticles(54); soundCrash(); announcement( "💥 CRASH!", "電梯爆在 " + currentMultiplier.toFixed(2) + "x", 1500 ); if (ME in players) { /* 只有尚未 cashout 的玩家才是輸家。 已經 cashout 的玩家已在 CASHOUT_RESULT 中獲得 gameOver。 */ if ( players[ME].bet > 0 && players[ME].status === "crashed" ) { requestGameOverOnce(roundId,0); } } renderAll(); if (payload.result) { resultPayload = payload.result; } setTimeout(() => { showResult(); }, 850); setTimeout(() => { beginNextRound(); }, ROUND_END_DELAY); break; } case "NEW_ROUND": { if ( Number(payload.roundId || 0) <= roundId ) { return; } resetRound( Number(payload.roundId) ); break; } } } /* ========================================================= 下注 SDK ========================================================= */ window.onPurchaseSuccess = function(itemId) { if (!pendingPurchase) return; const purchase = pendingPurchase; if (purchase.itemId !== itemId) { return; } pendingPurchase = null; if (phase !== "BETTING") { toast("本局下注時間已結束"); renderAll(); return; } if (players[ME].bet > 0) { toast("你本局已經下注"); renderAll(); return; } players[ME].bet = purchase.amount; players[ME].status = "ready"; players[ME].cashoutMultiplier = 0; players[ME].payout = 0; selectedBet = purchase.amount; sendEvent("BET_PLACED",{ playerId:ME, username:currentUser.username, avatar:currentUser.avatar, joinedAt:players[ME].joinedAt, amount:purchase.amount, itemId:purchase.itemId }); soundBet(); toast( "✅ 下注成功：" + money(purchase.amount) + " 🪙" ); renderAll(); if (isHost) { maybeStartCountdown(); } }; window.onPurchaseFailed = function(itemId) { if (!pendingPurchase) return; if (pendingPurchase.itemId !== itemId) { return; } pendingPurchase = null; toast( "❌ 下注沒有成功，可能是餘額不足或已取消" ); renderAll(); }; function requestBet(amount) { ensureAudio(); soundClick(); if (phase !== "BETTING") { toast("現在不是下注階段"); return; } if (players[ME].bet > 0) { toast( "本局已下注 " + money(players[ME].bet) + " 🪙" ); return; } if (!BET_OPTIONS.includes(amount)) return; selectedBet = amount; const itemId = "crash_lift_bet_" + amount; pendingPurchase = { itemId, amount, roundId }; /* 正式 BoomRoom： 必須由 SDK 扣除銀幣。 */ if ( SDK_READY && typeof window.BoomRoomSDK.requestPurchase === "function" ) { try { window.BoomRoomSDK.requestPurchase( itemId, amount ); } catch(err) { pendingPurchase = null; toast("無法發起下注"); } } else { /* 無 SDK 預覽模式。 */ setTimeout(() => { if ( pendingPurchase && pendingPurchase.itemId === itemId ) { window.onPurchaseSuccess(itemId); } },180); } renderAll(); } betButtons.forEach(btn => { btn.addEventListener("click",() => { requestBet( Number(btn.dataset.bet) ); }); }); /* ========================================================= gameOver 只允許一次 ========================================================= */ const gameOverClaimed = new Set(); function requestGameOverOnce(rid,amount) { if (gameOverClaimed.has(rid)) return; gameOverClaimed.add(rid); if ( !SDK_READY || typeof window.BoomRoomSDK.gameOver !== "function" ) { return; } /* 金額必須由本局合法下注 × 合法倍率得出， 並限制到 MAX_CRASH 以避免異常值。 */ const safeAmount = Math.max( 0, Math.floor( Math.min( Number(amount || 0), 1000 * MAX_CRASH ) ) ); try { window.BoomRoomSDK.gameOver( safeAmount ); } catch(err) { console.warn( "BoomRoomSDK.gameOver() error:", err ); } } /* ========================================================= Host：下注倒數 ========================================================= */ let countdownStarted = false; function maybeStartCountdown() { if (!isHost) return; if (phase !== "BETTING") return; const bettors = getBetters(); if (bettors.length < 2) return; if (countdownStarted) return; countdownStarted = true; bettingDeadline = Date.now() + BETTING_SECONDS * 1000; sendHostEvent("BETTING_START",{ roundId, deadline:bettingDeadline }); announcement( "⏱️ 開始倒數", "還有 " + BETTING_SECONDS + " 秒", 800 ); } /* ========================================================= Host：正式開局 ========================================================= */ function startRoundAsHost() { if (!isHost) return; if (phase !== "BETTING") return; const participants = getBetters().slice(0,MAX_PLAYERS); if (participants.length < 2) { countdownStarted = false; bettingDeadline = 0; toast("至少需要 2 名玩家下注"); return; } hostLocked = true; phase = "RUNNING"; /* 重要： Host 在這裡只建立一次 crashPoint。 */ hostState.crashPoint = randomCrashPoint(); hostState.startedAt = Date.now(); hostState.participants = participants.map(p => p.id); hostState.settled = false; roundStartTime = hostState.startedAt; currentMultiplier = 1; /* 由 crashPoint 對應時間。 如果 crashPoint 比較大，電梯會升久一點。 */ const crashSeconds = Math.log( hostState.crashPoint ) / .16; roundDeadline = roundStartTime + Math.max( 1300, crashSeconds * 1000 ); participants.forEach(p => { p.status = "running"; p.cashoutMultiplier = 0; p.payout = 0; }); /* crashPoint 同步給所有客戶端， 讓每個畫面能精確呈現相同結果。 */ sendHostEvent("ROUND_START",{ roundId, hostId, startTime:roundStartTime, crashDeadline:roundDeadline, crashPoint:hostState.crashPoint, participants:participants.map(p => ({ id:p.id, username:p.username, avatar:p.avatar, joinedAt:p.joinedAt, bet:p.bet })) }); soundStart(); renderAll(); } /* ========================================================= Host：Cashout / Crash ========================================================= */ function requestCashout() { ensureAudio(); soundClick(); if (phase !== "RUNNING") { return; } if ( players[ME].bet <= 0 || players[ME].status !== "running" ) { return; } if (isHost) { /* Host 可以直接處理自己的 Cashout。 */ handleEvent( "PLAYER_CASHOUT", { playerId:ME, roundId, eventId:eventId() }, ME, true ); } else { sendEvent("PLAYER_CASHOUT",{ playerId:ME, roundId, multiplier:currentMultiplier }); } } function hostCrash() { if (!isHost) return; if (phase !== "RUNNING") return; if (hostState.settled) return; hostState.settled = true; const crash = hostState.crashPoint; /* Host 確保最後倍率絕對等於已生成結果， 避免浮點誤差。 */ currentMultiplier = crash; const result = buildRoundResult(); sendHostEvent("ROUND_CRASH",{ roundId, crashPoint:crash, result }); /* Host 自己也會收到相同本地事件。 */ handleEvent( "ROUND_CRASH", { roundId, crashPoint:crash, result }, ME, true ); } function maybeFinishEarly() { if (!isHost) return; if (phase !== "RUNNING") return; const activePlayers = hostState.participants.filter(id => { const p = players[id]; return p && p.status === "running"; }); /* 所有人都收錢，就不必等到 crash。 */ if (activePlayers.length === 0) { const finalPoint = Math.max( 1, Math.min( currentMultiplier, hostState.crashPoint ) ); hostState.crashPoint = finalPoint; hostCrash(); } } /* ========================================================= 回合結果 ========================================================= */ function buildRoundResult() { const rows = hostState.participants.map(id => { const p = players[id]; return { id, username:p?.username || "玩家", avatar:p?.avatar || "", bet:Number(p?.bet || 0), status:p?.status || "crashed", multiplier:Number( p?.cashoutMultiplier || 0 ), payout:Number(p?.payout || 0) }; }); rows.sort((a,b) => { if ( a.status === "cashed" && b.status !== "cashed" ) return -1; if ( b.status === "cashed" && a.status !== "cashed" ) return 1; return b.multiplier - a.multiplier; }); return { pot:getPot(), crashPoint:hostState.crashPoint, rows }; } function showResult() { if (!resultPayload) { resultPayload = buildRoundResult(); } const rows = resultPayload.rows || []; const mine = rows.find( r => r.id === ME ); const winner = rows.find( r => r.payout > 0 ); resultIcon.textContent = winner && winner.id === ME ? "🏆" : "💥"; resultTitle.textContent = winner && winner.id === ME ? "你成功收錢！" : "電梯 CRASH！"; resultSubtitle.textContent = "本局爆在 " + Number( resultPayload.crashPoint || 1 ).toFixed(2) + "x"; if (winner) { highlightName.textContent = "🏆 " + shortName( winner.username ); highlightMoney.textContent = "+" + money(winner.payout) + " 🪙"; } else { highlightName.textContent = "本局沒有人成功收錢"; highlightMoney.textContent = "0 🪙"; } resultList.innerHTML = ""; rows.forEach((r,index) => { const row = document.createElement("div"); row.className = "result-row"; const rank = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : String(index+1); let payoutText = "0 🪙"; let payoutClass = "zero"; if (r.payout > 0) { payoutText = "+" + money(r.payout) + " 🪙"; payoutClass = "win"; } row.innerHTML = ` <div class="result-rank">${rank}</div> <div class="avatar"> ${ r.avatar ? `<img src="${escapeHtml(r.avatar)}" alt="">` : escapeHtml( String( r.username || "?" ).charAt(0) ) } </div> <div style="min-width:0"> <div class="result-name"> ${escapeHtml( shortName(r.username) )} </div> <div class="result-bet"> 下注 ${money(r.bet)} 🪙 ${ r.multiplier > 0 ? " · 收在 " + r.multiplier.toFixed(2) + "x" : "" } </div> </div> <div class="result-payout ${payoutClass}"> ${payoutText} </div> `; resultList.appendChild(row); }); resultModal.classList.add("show"); } function closeResult() { resultModal.classList.remove("show"); } resultClose.addEventListener("click",() => { ensureAudio(); soundClick(); closeResult(); }); /* ========================================================= 下一局 ========================================================= */ function resetRound(newRoundId) { phase = "BETTING"; roundId = newRoundId; bettingDeadline = 0; roundStartTime = 0; roundDeadline = 0; currentMultiplier = 1.00; crashPointPublic = null; countdownStarted = false; pendingPurchase = null; selectedBet = null; resultPayload = null; hostState.crashPoint = null; hostState.startedAt = 0; hostState.participants = []; hostState.settled = false; Object.values(players).forEach(p => { p.bet = 0; p.status = "waiting"; p.cashoutMultiplier = 0; p.payout = 0; }); elevator.classList.remove( "rocket", "crashed" ); multiplier.textContent = "1.00x"; multiplierLabel.textContent = "等待玩家下注"; closeResult(); renderAll(); if (isHost) { setTimeout(() => { announce( "✨ 新的一局", "選擇下注，準備起飛", 900 ); },150); } } function beginNextRound() { if (!isHost) return; const next = roundId + 1; sendHostEvent("NEW_ROUND",{ roundId:next }); resetRound(next); } /* ========================================================= Main Button ========================================================= */ mainBtn.addEventListener("click",() => { ensureAudio(); if (phase === "BETTING") { if ( isHost && players[ME].bet > 0 ) { if (getBetters().length >= 2) { startRoundAsHost(); } else { toast("至少需要 2 名玩家下注"); } } else if ( !players[ME].bet ) { toast("請先選擇下注金額"); } return; } if (phase === "RUNNING") { requestCashout(); return; } if ( phase === "CRASHED" || phase === "RESULT" ) { return; } }); /* ========================================================= UI ========================================================= */ function avatarHTML(player) { if (player.avatar) { return ` <img src="${escapeHtml(player.avatar)}" alt="" > `; } return escapeHtml( String( player.username || "?" ).charAt(0) ); } function renderPlayers() { const values = Object.values(players) .sort((a,b) => { /* 正在遊戲中的玩家排前面。 */ const order = { running:0, cashed:1, crashed:2, ready:3, waiting:4, watching:5 }; const oa = order[a.status] ?? 9; const ob = order[b.status] ?? 9; if (oa !== ob) { return oa - ob; } return a.joinedAt - b.joinedAt; }) .slice(0,MAX_PLAYERS); boardInfo.textContent = values.length + " / " + MAX_PLAYERS + " 人"; playersEl.innerHTML = ""; values.forEach(p => { const row = document.createElement("div"); row.className = "player-row" + (p.id === ME ? " self" : "") + (p.status === "cashed" ? " cashed" : "") + (p.status === "crashed" ? " crashed" : ""); let statusText = "等待下注"; if (p.status === "ready") { statusText = "已下注"; } else if (p.status === "running") { statusText = "🚀 上升中"; } else if (p.status === "cashed") { statusText = "✅ 已收錢 · " + p.cashoutMultiplier.toFixed(2) + "x"; } else if (p.status === "crashed") { statusText = "💥 爆掉"; } else if (p.status === "watching") { statusText = "觀戰"; } let resultText = ""; if (p.status === "cashed") { resultText = `<span class="player-result win">+${money(p.payout)} 🪙</span>`; } else if (p.status === "crashed") { resultText = `<span class="player-result loss">0 🪙</span>`; } row.innerHTML = ` <div class="avatar"> ${avatarHTML(p)} </div> <div style="min-width:0"> <div class="player-name"> <div class="name-text"> ${escapeHtml( shortName(p.username) )} </div> ${ p.id === ME ? `<span class="badge">你</span>` : "" } ${ p.id === hostId ? `<span class="badge">房主</span>` : "" } </div> <div class="player-meta"> ${escapeHtml(statusText)} ${resultText} </div> </div> <div class="player-right"> ${ p.bet ? `<div class="bet">${money(p.bet)} 🪙</div>` : `<div class="bet" style="color:#55596d">—</div>` } </div> `; playersEl.appendChild(row); }); if (!values.length) { playersEl.innerHTML = ` <div style=" text-align:center; padding:23px 10px; color:#6f7386; font-size:11px; "> 正在等待玩家加入…… </div> `; } } function renderControls() { const myBet = Number(players[ME].bet || 0); myBetEl.textContent = myBet ? "已下注 " + money(myBet) + " 🪙" : "尚未下注"; betButtons.forEach(btn => { const amount = Number(btn.dataset.bet); btn.classList.toggle( "selected", selectedBet === amount ); btn.disabled = phase !== "BETTING" || !!myBet || !!pendingPurchase; }); let label = "請先選擇下注"; let disabled = true; if (pendingPurchase) { label = "正在確認下注…"; disabled = true; } else if (phase === "BETTING") { if (myBet && isHost) { label = getBetters().length >= 2 ? "🚀 開始這局" : "等待其他玩家下注"; disabled = getBetters().length < 2; } else if (myBet) { label = "等待房主開始…"; disabled = true; } else { label = "請選擇下注"; disabled = true; } } else if (phase === "RUNNING") { if ( players[ME].bet > 0 && players[ME].status === "running" ) { label = "💰 收錢 · " + ( players[ME].bet * currentMultiplier ).toLocaleString( "zh-TW", { maximumFractionDigits:0 } ) + " 🪙"; disabled = false; } else { label = players[ME].status === "cashed" ? "✅ 已收錢" : "觀戰中"; disabled = true; } } else if (phase === "CRASHED") { label = "💥 CRASH"; disabled = true; } mainBtn.disabled = disabled; mainBtn.classList.toggle( "cashout", phase === "RUNNING" && players[ME].status === "running" ); mainBtn.classList.toggle( "crash-disabled", phase === "CRASHED" ); mainBtn.querySelector("span").textContent = label; } function renderPhase() { if (phase === "BETTING") { phaseLabel.textContent = "💰 等待下注"; } else if (phase === "RUNNING") { phaseLabel.textContent = "🚀 電梯上升中"; } else if (phase === "CRASHED") { phaseLabel.textContent = "💥 本局 CRASH"; } else { phaseLabel.textContent = "🏆 結算"; } roundLabel.textContent = "第 " + roundId + " 局"; } function renderAll() { renderPhase(); renderPlayers(); renderControls(); } /* ========================================================= Timer / Animation Loop ========================================================= */ function frame(now) { /* BETTING */ if (phase === "BETTING") { if ( bettingDeadline > 0 && now >= bettingDeadline ) { bettingDeadline = 0; if (isHost) { countdownStarted = false; if (getBetters().length >= 2) { startRoundAsHost(); } } } } /* RUNNING */ if ( phase === "RUNNING" && roundStartTime > 0 ) { const elapsed = now - roundStartTime; currentMultiplier = multiplierFromElapsed(elapsed); /* Host 到達 crash point： 優先由 Host 發出 ROUND_CRASH。 */ if ( isHost && hostState.crashPoint != null && currentMultiplier >= hostState.crashPoint ) { currentMultiplier = hostState.crashPoint; hostCrash(); } /* 避免主機因背景分頁被瀏覽器降頻。 */ if ( isHost && roundDeadline > 0 && now >= roundDeadline ) { hostCrash(); } updateMultiplierUI(); } /* 下一局前的動畫刷新。 */ renderControls(); requestAnimationFrame(frame); } function updateMultiplierUI() { multiplier.textContent = currentMultiplier.toFixed(2) + "x"; multiplier.classList.toggle( "hot", currentMultiplier >= 2 ); if (phase === "RUNNING") { multiplierLabel.textContent = players[ME]?.status === "running" ? "現在收錢可以鎖定獎勵" : "電梯正在升空"; /* 讓電梯上升。 */ const seconds = roundStartTime ? Math.max( 0, (Date.now()-roundStartTime)/1000 ) : 0; const percent = Math.min( 82, 8 + seconds * 8 ); elevator.style.bottom = percent + "%"; } else if (phase === "BETTING") { multiplierLabel.textContent = bettingDeadline ? ( "下注倒數 " + Math.max( 0, Math.ceil( (bettingDeadline-Date.now())/1000 ) ) + " 秒" ) : "等待玩家下注"; } } requestAnimationFrame(frame); /* ========================================================= Help ========================================================= */ helpBtn.addEventListener("click",() => { ensureAudio(); soundClick(); helpPanel.classList.add("show"); }); closeHelp.addEventListener("click",() => { soundClick(); helpPanel.classList.remove("show"); }); /* ========================================================= Demo Mode ========================================================= */ /* 未在 BoomRoom WebView 中執行時，建立兩個虛擬玩家。 只為方便測試畫面、動畫與玩法。 */ function createDemoPlayers() { if (SDK_READY) return; setTimeout(() => { addPlayer({ id:"demo-p1", username:"霓虹小紅", avatar:"", joinedAt:players[ME].joinedAt + 1 }); addPlayer({ id:"demo-p2", username:"電梯阿強", avatar:"", joinedAt:players[ME].joinedAt + 2 }); setTimeout(() => { demoBotBet(); },500); },500); } function demoBotBet() { if (SDK_READY) return; if (phase !== "BETTING") return; ["demo-p1","demo-p2"].forEach( (id,index) => { if (!players[id]) return; if (players[id].bet > 0) return; setTimeout(() => { if (phase !== "BETTING") return; players[id].bet = index === 0 ? 500 : 1000; players[id].status = "ready"; renderAll(); if (isHost) { maybeStartCountdown(); } },index*500); } ); } function demoBotAction() { if (SDK_READY) return; if (!isHost) return; if (phase !== "RUNNING") return; const botIds = [ "demo-p1", "demo-p2" ]; botIds.forEach(id => { const p = players[id]; if (!p) return; if (p.status !== "running") return; /* Bot 在不同倍率隨機收錢。 不會修改 Host 的 crashPoint。 */ const chance = currentMultiplier < 1.5 ? .01 : currentMultiplier < 2.5 ? .035 : .07; if (Math.random() < chance) { handleEvent( "PLAYER_CASHOUT", { playerId:id, roundId, eventId:eventId() }, id, true ); } }); } setInterval(() => { demoBotAction(); },250); /* ========================================================= 初始化 ========================================================= */ function boot() { createStars(); addPlayer({ id:ME, username:currentUser.username, avatar:currentUser.avatar, joinedAt:players[ME].joinedAt }); renderAll(); if (SDK_READY) { toast("🟢 BoomRoom 已連線"); } else { toast( "🧪 預覽模式：未偵測到 BoomRoom SDK", 3600 ); } announce( "🚀 霓虹電梯", "選擇下注，等待電梯起飛", 1300 ); announcePlayer(); /* 預覽模式用本地 host。 正式 BoomRoom 將依玩家 join 時間選出 Host。 */ if (!SDK_READY) { setTimeout(() => { determineHost(); if (isHost) { setTimeout( demoBotBet, 800 ); } },650); } } boot(); })(); </script> </body> </html>
+  DEBUG:false,
+
+  MAX_PLAYERS:6,
+
+  BET_OPTIONS:[100,500,1000],
+
+  BETTING_SECONDS:8,
+
+  MIN_REWARD_QUALIFICATION_SECONDS:10,
+
+  MIN_CRASH_MULTIPLIER:1.45,
+
+  MAX_CRASH_MULTIPLIER:15,
+
+  MAX_PAYOUT:15000,
+
+  HEARTBEAT_INTERVAL:4000,
+
+  PLAYER_TIMEOUT:12000,
+
+  HOST_TIMEOUT:10000,
+
+  MAX_EVENT_CACHE:1200,
+
+  MAX_PARTICLES:44,
+
+  PARTICLE_LOW_FPS:24,
+
+  ROUND_END_DELAY:4200
+
+};
+
+
+/* =========================================================
+   STATE MACHINE
+   ========================================================= */
+
+const STATES = Object.freeze({
+
+  LOBBY:"LOBBY",
+
+  BETTING:"BETTING",
+
+  COUNTDOWN:"COUNTDOWN",
+
+  PLAYING:"PLAYING",
+
+  RESULT:"RESULT"
+
+});
+
+let gameState = STATES.LOBBY;
+
+
+/* =========================================================
+   BOOMROOM SDK
+   ========================================================= */
+
+const SDK_AVAILABLE =
+  !!window.BoomRoomSDK &&
+  typeof window.BoomRoomSDK.getUser === "function";
+
+let user = {
+
+  id:
+    "local_" +
+    Math.random()
+      .toString(36)
+      .slice(2,10),
+
+  username:"示範玩家",
+
+  avatar:""
+
+};
+
+if(SDK_AVAILABLE){
+
+  try{
+
+    const sdkUser =
+      window.BoomRoomSDK.getUser();
+
+    if(sdkUser){
+
+      user.id =
+        String(
+          sdkUser.id ||
+          user.id
+        );
+
+      user.username =
+        String(
+          sdkUser.username ||
+          "玩家"
+        );
+
+      user.avatar =
+        String(
+          sdkUser.avatar ||
+          ""
+        );
+    }
+
+  }catch(error){
+
+    console.warn(
+      "BoomRoomSDK.getUser() failed",
+      error
+    );
+
+  }
+}
+
+const ME = String(user.id);
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+const app =
+  $("app");
+
+const gameStage =
+  $("gameStage");
+
+const phaseLabel =
+  $("phaseLabel");
+
+const roundLabel =
+  $("roundLabel");
+
+const multiplier =
+  $("multiplier");
+
+const multiplierCaption =
+  $("multiplierCaption");
+
+const elevator =
+  $("elevator");
+
+const stageMessage =
+  $("stageMessage");
+
+const stageMessageBig =
+  $("stageMessageBig");
+
+const stageMessageSmall =
+  $("stageMessageSmall");
+
+const crashFlash =
+  $("crashFlash");
+
+const particleLayer =
+  $("particleLayer");
+
+const playerList =
+  $("playerList");
+
+const playerInfo =
+  $("playerInfo");
+
+const myStatus =
+  $("myStatus");
+
+const mainAction =
+  $("mainAction");
+
+const toastLayer =
+  $("toastLayer");
+
+const soundBtn =
+  $("soundBtn");
+
+const helpBtn =
+  $("helpBtn");
+
+const closeHelp =
+  $("closeHelp");
+
+const helpPanel =
+  $("helpPanel");
+
+const resultModal =
+  $("resultModal");
+
+const resultIcon =
+  $("resultIcon");
+
+const resultTitle =
+  $("resultTitle");
+
+const resultSubtitle =
+  $("resultSubtitle");
+
+const highlightName =
+  $("highlightName");
+
+const highlightPayout =
+  $("highlightPayout");
+
+const resultList =
+  $("resultList");
+
+const resultClose =
+  $("resultClose");
+
+const starLayer =
+  $("starLayer");
+
+
+/* =========================================================
+   ROUND STATE
+   ========================================================= */
+
+let roundId = 1;
+
+let stateVersion = 0;
+
+let bettingDeadline = 0;
+
+let roundStartTime = 0;
+
+let crashDeadline = 0;
+
+let currentMultiplier = 1;
+
+let publicCrashPoint = null;
+
+let selectedBet = null;
+
+let isPurchasing = false;
+
+let purchaseRequest = null;
+
+let resultData = null;
+
+let resultModalShown = false;
+
+
+/* =========================================================
+   PLAYER REGISTRY
+   ========================================================= */
+
+const players = {};
+
+
+players[ME] = {
+
+  id:ME,
+
+  username:
+    user.username ||
+
+    "玩家",
+
+  avatar:
+    user.avatar ||
+
+    "",
+
+  joinedAt:
+    Date.now(),
+
+  lastSeen:
+    Date.now(),
+
+  bet:0,
+
+  status:"waiting",
+
+  cashoutMultiplier:0,
+
+  payout:0
+
+};
+
+
+/* =========================================================
+   HOST STATE
+   ========================================================= */
+
+let hostId = null;
+
+let hostGeneration = 0;
+
+let hostLocked = false;
+
+let isHost = false;
+
+let hostElectionInProgress = false;
+
+const hostSecret = {
+
+  crashPoint:null,
+
+  startTime:0,
+
+  settled:false
+
+};
+
+
+/* =========================================================
+   LOCAL REWARD STATE
+   ========================================================= */
+
+const rewardClaimedRounds =
+  new Set();
+
+const localCashoutLock = {
+
+  locked:false,
+
+  multiplier:0,
+
+  payout:0,
+
+  time:0
+
+};
+
+
+/* =========================================================
+   EVENT SAFETY
+   ========================================================= */
+
+const seenEventIds =
+  new Set();
+
+
+const VALID_EVENTS = new Set([
+
+  "PLAYER_HELLO",
+
+  "PLAYER_HEARTBEAT",
+
+  "PLAYER_END",
+
+  "ROOM_REQUEST",
+
+  "ROOM_STATE",
+
+  "BET_PLACED",
+
+  "BETTING_START",
+
+  "ROUND_START",
+
+  "PLAYER_CASHOUT",
+
+  "CASHOUT_RESULT",
+
+  "ROUND_END",
+
+  "NEW_ROUND",
+
+  "HOST_TAKEOVER"
+
+]);
+
+
+function createEventId(){
+
+  return (
+    ME +
+    "_" +
+    Date.now().toString(36) +
+    "_" +
+    Math.random()
+      .toString(36)
+      .slice(2,8)
+  );
+
+}
+
+
+function rememberEvent(eventId){
+
+  if(!eventId){
+    return true;
+  }
+
+  if(
+    typeof eventId !== "string" ||
+    eventId.length > 160
+  ){
+    return false;
+  }
+
+  if(seenEventIds.has(eventId)){
+
+    return false;
+
+  }
+
+  seenEventIds.add(eventId);
+
+  if(
+    seenEventIds.size >
+    CONFIG.MAX_EVENT_CACHE
+  ){
+
+    const first =
+      seenEventIds
+        .values()
+        .next()
+        .value;
+
+    seenEventIds.delete(first);
+
+  }
+
+  return true;
+
+}
+
+
+/* =========================================================
+   UTILS
+   ========================================================= */
+
+function finiteNumber(
+  value,
+  fallback = 0
+){
+
+  const n =
+    Number(value);
+
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+
+}
+
+
+function clamp(
+  value,
+  min,
+  max
+){
+
+  const n =
+    finiteNumber(
+      value,
+      min
+    );
+
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      n
+    )
+  );
+
+}
+
+
+function clampInt(
+  value,
+  min,
+  max
+){
+
+  return Math.floor(
+    clamp(
+      value,
+      min,
+      max
+    )
+  );
+
+}
+
+
+function money(value){
+
+  return clampInt(
+    value,
+    0,
+    CONFIG.MAX_PAYOUT
+  ).toLocaleString(
+    "zh-TW"
+  );
+
+}
+
+
+function safeName(name){
+
+  const value =
+    String(name || "玩家")
+      .trim();
+
+  if(value.length <= 11){
+    return value;
+  }
+
+  return (
+    value.slice(0,10) +
+    "…"
+  );
+
+}
+
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function playerName(id){
+
+  return (
+    players[id]?.username ||
+    "玩家"
+  );
+
+}
+
+
+function vibration(pattern){
+
+  if(
+    navigator.vibrate
+  ){
+
+    try{
+
+      navigator.vibrate(
+        pattern
+      );
+
+    }catch(_){}
+
+  }
+
+}
+
+
+/* =========================================================
+   TOAST / FEEDBACK
+   ========================================================= */
+
+function toast(
+  message,
+  duration=3000
+){
+
+  const el =
+    document.createElement(
+      "div"
+    );
+
+  el.className =
+    "toast";
+
+  el.textContent =
+    String(message);
+
+  toastLayer.appendChild(el);
+
+  setTimeout(() => {
+
+    try{
+      el.remove();
+    }catch(_){}
+
+  }, duration);
+
+}
+
+
+let messageTimer = null;
+
+
+function showStageMessage(
+  big,
+  small="",
+  duration=900
+){
+
+  stageMessageBig.textContent =
+    big;
+
+  stageMessageSmall.textContent =
+    small;
+
+  stageMessage.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    messageTimer
+  );
+
+  messageTimer =
+    setTimeout(() => {
+
+      stageMessage.classList.remove(
+        "show"
+      );
+
+    }, duration);
+
+}
+
+
+/* =========================================================
+   WEB AUDIO
+   ========================================================= */
+
+let audioContext = null;
+
+let soundEnabled = true;
+
+
+function ensureAudio(){
+
+  if(!soundEnabled){
+    return;
+  }
+
+  try{
+
+    if(!audioContext){
+
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+    }
+
+    if(
+      audioContext.state ===
+      "suspended"
+    ){
+
+      audioContext.resume();
+
+    }
+
+  }catch(_){}
+
+}
+
+
+function playTone(
+  frequency,
+  duration,
+  type="sine",
+  volume=.03,
+  delay=0
+){
+
+  if(!soundEnabled){
+    return;
+  }
+
+  ensureAudio();
+
+  if(!audioContext){
+    return;
+  }
+
+  try{
+
+    const now =
+      audioContext.currentTime +
+      delay;
+
+    const osc =
+      audioContext.createOscillator();
+
+    const gain =
+      audioContext.createGain();
+
+    osc.type =
+      type;
+
+    osc.frequency.setValueAtTime(
+      frequency,
+      now
+    );
+
+    gain.gain.setValueAtTime(
+      .0001,
+      now
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      volume,
+      now + .01
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      .0001,
+      now + duration
+    );
+
+    osc.connect(gain);
+    gain.connect(
+      audioContext.destination
+    );
+
+    osc.start(now);
+
+    osc.stop(
+      now +
+      duration +
+      .02
+    );
+
+  }catch(_){}
+
+}
+
+
+function soundClick(){
+
+  playTone(
+    680,
+    .055,
+    "triangle",
+    .028
+  );
+
+}
+
+
+function soundBet(){
+
+  playTone(
+    420,
+    .075,
+    "triangle",
+    .035
+  );
+
+  playTone(
+    620,
+    .08,
+    "triangle",
+    .028,
+    .065
+  );
+
+}
+
+
+function soundStart(){
+
+  playTone(
+    360,
+    .07,
+    "triangle",
+    .028
+  );
+
+  playTone(
+    520,
+    .08,
+    "triangle",
+    .03,
+    .07
+  );
+
+  playTone(
+    780,
+    .13,
+    "triangle",
+    .038,
+    .15
+  );
+
+}
+
+
+function soundWarning(){
+
+  playTone(
+    540,
+    .055,
+    "square",
+    .022
+  );
+
+}
+
+
+function soundCashout(){
+
+  playTone(
+    620,
+    .075,
+    "triangle",
+    .04
+  );
+
+  playTone(
+    830,
+    .09,
+    "triangle",
+    .036,
+    .065
+  );
+
+  playTone(
+    1100,
+    .13,
+    "triangle",
+    .03,
+    .145
+  );
+
+}
+
+
+function soundCrash(){
+
+  playTone(
+    110,
+    .24,
+    "sawtooth",
+    .055
+  );
+
+  playTone(
+    62,
+    .35,
+    "square",
+    .032,
+    .035
+  );
+
+  playTone(
+    180,
+    .11,
+    "sawtooth",
+    .024,
+    .10
+  );
+
+  vibration([
+    80,
+    40,
+    140
+  ]);
+
+}
+
+
+function soundVictory(){
+
+  [
+    523.25,
+    659.25,
+    783.99,
+    1046.50
+  ].forEach(
+    (freq,index) => {
+
+      playTone(
+        freq,
+        .14,
+        "triangle",
+        .04,
+        index*.10
+      );
+
+    }
+  );
+
+}
+
+
+soundBtn.addEventListener(
+  "pointerdown",
+  () => {
+
+    soundEnabled =
+      !soundEnabled;
+
+    soundBtn.textContent =
+      soundEnabled
+        ? "🔊"
+        : "🔇";
+
+    if(soundEnabled){
+
+      ensureAudio();
+      soundClick();
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "pointerdown",
+  ensureAudio,
+  {
+    passive:true
+  }
+);
+
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+let particleLevel =
+  CONFIG.MAX_PARTICLES;
+
+
+function spawnParticles(
+  amount = particleLevel
+){
+
+  const count =
+    Math.min(
+      particleLevel,
+      Math.max(
+        0,
+        amount
+      )
+    );
+
+  const rect =
+    gameStage.getBoundingClientRect();
+
+  const cx =
+    rect.width / 2;
+
+  const cy =
+    rect.height * .47;
+
+  const palette = [
+
+    "#ff2995",
+    "#895cff",
+    "#25e7ff",
+    "#ffd85a",
+    "#ffffff",
+    "#ff4c68"
+
+  ];
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const p =
+      document.createElement(
+        "div"
+      );
+
+    p.className =
+      "star";
+
+    p.style.width =
+      (
+        3 +
+        Math.random()*4
+      ) +
+      "px";
+
+    p.style.height =
+      p.style.width;
+
+    p.style.left =
+      cx +
+      "px";
+
+    p.style.top =
+      cy +
+      "px";
+
+    p.style.background =
+      palette[
+        Math.floor(
+          Math.random() *
+          palette.length
+        )
+      ];
+
+    p.style.opacity =
+      "0.95";
+
+    p.style.animation =
+      "none";
+
+    const angle =
+      Math.random() *
+      Math.PI *
+      2;
+
+    const distance =
+      50 +
+      Math.random()*180;
+
+    p.animate(
+      [
+        {
+          opacity:1,
+          transform:"translate(0,0) scale(1)"
+        },
+        {
+          opacity:0,
+          transform:
+            "translate(" +
+            (
+              Math.cos(angle) *
+              distance
+            ) +
+            "px," +
+            (
+              Math.sin(angle) *
+              distance
+            ) +
+            "px) scale(.15)"
+        }
+      ],
+      {
+        duration:
+          500 +
+          Math.random()*450,
+
+        easing:
+          "cubic-bezier(.15,.75,.25,1)"
+      }
+    );
+
+    particleLayer.appendChild(p);
+
+    setTimeout(
+      () => {
+        p.remove();
+      },
+      1000
+    );
+
+  }
+
+}
+
+
+function crashVisuals(){
+
+  crashFlash.classList.remove(
+    "play"
+  );
+
+  void crashFlash.offsetWidth;
+
+  crashFlash.classList.add(
+    "play"
+  );
+
+  app.classList.remove(
+    "shake"
+  );
+
+  void app.offsetWidth;
+
+  app.classList.add(
+    "shake"
+  );
+
+  elevator.classList.add(
+    "crashed"
+  );
+
+  spawnParticles(
+    particleLevel
+  );
+
+  soundCrash();
+
+}
+
+
+/* =========================================================
+   BACKGROUND STARS
+   ========================================================= */
+
+function createStars(){
+
+  starLayer.innerHTML = "";
+
+  for(
+    let i=0;
+    i<34;
+    i++
+  ){
+
+    const star =
+      document.createElement(
+        "div"
+      );
+
+    star.className =
+      "star";
+
+    star.style.left =
+      (
+        Math.random()*100
+      ) +
+      "%";
+
+    star.style.top =
+      (
+        Math.random()*100
+      ) +
+      "%";
+
+    const size =
+      .6 +
+      Math.random()*1.7;
+
+    star.style.width =
+      size +
+      "px";
+
+    star.style.height =
+      size +
+      "px";
+
+    star.style.animationDuration =
+      (
+        2.8 +
+        Math.random()*4
+      ) +
+      "s";
+
+    star.style.animationDelay =
+      (
+        -Math.random()*5
+      ) +
+      "s";
+
+    starLayer.appendChild(
+      star
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PLAYER DATA
+   ========================================================= */
+
+function touchPlayer(id){
+
+  if(
+    players[id]
+  ){
+
+    players[id].lastSeen =
+      Date.now();
+
+  }
+
+}
+
+
+function addPlayer(data){
+
+  if(
+    !data ||
+    data.id == null
+  ){
+
+    return;
+
+  }
+
+  const id =
+    String(data.id);
+
+  if(
+    id.length < 1 ||
+    id.length > 128
+  ){
+
+    return;
+
+  }
+
+  const joinedAt =
+    clampInt(
+      data.joinedAt,
+      0,
+      Date.now() + 60000
+    );
+
+  if(
+    !players[id]
+  ){
+
+    players[id] = {
+
+      id,
+
+      username:
+        String(
+          data.username ||
+          "玩家"
+        ).slice(0,32),
+
+      avatar:
+        String(
+          data.avatar ||
+          ""
+        ).slice(0,1000),
+
+      joinedAt:
+        joinedAt ||
+        Date.now(),
+
+      lastSeen:
+        Date.now(),
+
+      bet:0,
+
+      status:"waiting",
+
+      cashoutMultiplier:0,
+
+      payout:0
+
+    };
+
+  }else{
+
+    players[id].username =
+      String(
+        data.username ||
+        players[id].username ||
+        "玩家"
+      ).slice(0,32);
+
+    players[id].avatar =
+      String(
+        data.avatar ||
+        players[id].avatar ||
+        ""
+      ).slice(0,1000);
+
+    players[id].lastSeen =
+      Date.now();
+
+  }
+
+}
+
+
+function activePlayers(){
+
+  const now =
+    Date.now();
+
+  return Object.values(
+    players
+  ).filter(
+    p =>
+      now -
+      p.lastSeen <=
+      CONFIG.PLAYER_TIMEOUT
+  );
+
+}
+
+
+function bettingPlayers(){
+
+  return Object.values(
+    players
+  ).filter(
+    p =>
+      p.bet > 0 &&
+      p.status !== "watching"
+  );
+
+}
+
+
+function participantIds(){
+
+  return Object.values(
+    players
+  )
+  .filter(
+    p =>
+      p.bet > 0
+  )
+  .slice(
+    0,
+    CONFIG.MAX_PLAYERS
+  )
+  .map(
+    p => p.id
+  );
+
+}
+
+
+/* =========================================================
+   HOST ELECTION
+   ========================================================= */
+
+function electHost(){
+
+  if(
+    hostElectionInProgress ||
+    hostLocked
+  ){
+
+    return;
+
+  }
+
+  hostElectionInProgress =
+    true;
+
+  const list =
+    activePlayers()
+      .slice()
+      .sort(
+        (a,b) => {
+
+          const ta =
+            Number(a.joinedAt);
+
+          const tb =
+            Number(b.joinedAt);
+
+          if(
+            ta !== tb
+          ){
+
+            return ta - tb;
+
+          }
+
+          return a.id.localeCompare(
+            b.id
+          );
+
+        }
+      );
+
+  if(
+    list.length === 0
+  ){
+
+    hostElectionInProgress =
+      false;
+
+    return;
+
+  }
+
+  hostId =
+    list[0].id;
+
+  isHost =
+    hostId === ME;
+
+  hostElectionInProgress =
+    false;
+
+  if(
+    isHost
+  ){
+
+    toast(
+      "👑 你是本房房主"
+    );
+
+  }
+
+  renderAll();
+
+}
+
+
+function hostIsAlive(){
+
+  if(
+    !hostId
+  ){
+
+    return false;
+
+  }
+
+  if(
+    hostId === ME
+  ){
+
+    return true;
+
+  }
+
+  const host =
+    players[hostId];
+
+  if(!host){
+    return false;
+  }
+
+  return (
+    Date.now() -
+    host.lastSeen
+  ) <=
+  CONFIG.HOST_TIMEOUT;
+
+}
+
+
+function tryHostTakeover(){
+
+  if(
+    !hostId ||
+    hostIsAlive()
+  ){
+
+    return;
+
+  }
+
+  const candidates =
+    activePlayers()
+      .slice()
+      .sort(
+        (a,b) => {
+
+          const ta =
+            Number(a.joinedAt);
+
+          const tb =
+            Number(b.joinedAt);
+
+          if(
+            ta !== tb
+          ){
+
+            return ta - tb;
+
+          }
+
+          return a.id.localeCompare(
+            b.id
+          );
+
+        }
+      );
+
+  if(
+    candidates.length === 0
+  ){
+
+    return;
+
+  }
+
+  const candidate =
+    candidates[0];
+
+  if(
+    candidate.id !== ME
+  ){
+
+    return;
+
+  }
+
+  hostGeneration += 1;
+
+  hostId =
+    ME;
+
+  isHost =
+    true;
+
+  sendEvent(
+    "HOST_TAKEOVER",
+    {
+
+      roundId,
+
+      hostId:ME,
+
+      generation:
+        hostGeneration
+
+    }
+  );
+
+  toast(
+    "👑 房主已切換"
+  );
+
+}
+
+
+/* =========================================================
+   BOOMROOM SEND
+   ========================================================= */
+
+function sendEvent(
+  eventName,
+  payload={}
+){
+
+  if(
+    !VALID_EVENTS.has(
+      eventName
+    )
+  ){
+
+    return;
+
+  }
+
+  const safePayload = {
+
+    eventId:
+      createEventId(),
+
+    roundId,
+
+    from:ME,
+
+    sentAt:Date.now(),
+
+    ...payload
+
+  };
+
+  markAndDispatchLocal(
+    eventName,
+    safePayload,
+    true
+  );
+
+  if(
+    !SDK_AVAILABLE ||
+    typeof
+      window.BoomRoomSDK
+        .sendGameEvent !==
+        "function"
+  ){
+
+    return;
+
+  }
+
+  try{
+
+    window.BoomRoomSDK.sendGameEvent(
+      eventName,
+      safePayload
+    );
+
+  }catch(error){
+
+    console.warn(
+      "sendGameEvent failed",
+      error
+    );
+
+  }
+
+}
+
+
+function sendHostEvent(
+  eventName,
+  payload={}
+){
+
+  if(!isHost){
+    return;
+  }
+
+  sendEvent(
+    eventName,
+    payload
+  );
+
+}
+
+
+/* =========================================================
+   EVENT RECEIVE
+   ========================================================= */
+
+function isValidEventPayload(
+  eventName,
+  payload,
+  userId
+){
+
+  if(
+    !VALID_EVENTS.has(
+      eventName
+    )
+  ){
+
+    return false;
+
+  }
+
+  if(
+    !payload ||
+    typeof payload !==
+      "object"
+  ){
+
+    return false;
+
+  }
+
+  if(
+    userId &&
+    String(userId).length >
+      128
+  ){
+
+    return false;
+
+  }
+
+  const eventsWithoutRound =
+    new Set([
+      "PLAYER_HELLO"
+    ]);
+
+  if(
+    !eventsWithoutRound.has(
+      eventName
+    )
+  ){
+
+    const incomingRound =
+      Number(
+        payload.roundId
+      );
+
+    if(
+      !Number.isFinite(
+        incomingRound
+      )
+    ){
+
+      return false;
+
+    }
+
+  }
+
+  return true;
+
+}
+
+
+function markAndDispatchLocal(
+  eventName,
+  payload,
+  local=false
+){
+
+  if(
+    !rememberEvent(
+      payload.eventId
+    )
+  ){
+
+    return;
+
+  }
+
+  handleEvent(
+    eventName,
+    payload,
+    ME,
+    local
+  );
+
+}
+
+
+window.addEventListener(
+  "message",
+  event => {
+
+    let data =
+      event.data;
+
+    if(
+      typeof data ===
+      "string"
+    ){
+
+      try{
+
+        data =
+          JSON.parse(
+            data
+          );
+
+      }catch(_){
+
+        return;
+
+      }
+
+    }
+
+    if(
+      !data ||
+      data.action !==
+        "gameEventReceived"
+    ){
+
+      return;
+
+    }
+
+    const eventName =
+      String(
+        data.eventName ||
+        ""
+      );
+
+    const payload =
+      data.payload ||
+      {};
+
+    const userId =
+      String(
+        data.userId ||
+        payload.from ||
+        ""
+      );
+
+    if(
+      !isValidEventPayload(
+        eventName,
+        payload,
+        userId
+      )
+    ){
+
+      return;
+
+    }
+
+    if(
+      !rememberEvent(
+        payload.eventId
+      )
+    ){
+
+      return;
+
+    }
+
+    handleEvent(
+      eventName,
+      payload,
+      userId,
+      false
+    );
+
+  }
+);
+
+
+/* =========================================================
+   GAME EVENT HANDLER
+   ========================================================= */
+
+function handleEvent(
+  eventName,
+  payload,
+  senderId,
+  local=false
+){
+
+  switch(eventName){
+
+    /* -----------------------------------------------
+       PLAYER_HELLO
+       ----------------------------------------------- */
+
+    case "PLAYER_HELLO":{
+
+      const p =
+        payload.user;
+
+      if(
+        !p ||
+        !p.id
+      ){
+
+        return;
+
+      }
+
+      addPlayer({
+
+        id:String(p.id),
+
+        username:
+          p.username,
+
+        avatar:
+          p.avatar,
+
+        joinedAt:
+          finiteNumber(
+            p.joinedAt,
+            Date.now()
+          )
+
+      });
+
+      if(
+        !hostLocked
+      ){
+
+        setTimeout(
+          electHost,
+          50
+        );
+
+      }
+
+      if(
+        isHost &&
+        String(p.id) !== ME
+      ){
+
+        setTimeout(
+          () => {
+
+            sendEvent(
+              "ROOM_REQUEST",
+              {
+                requesterId:
+                  String(p.id)
+              }
+            );
+
+          },
+          80
+        );
+
+      }
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       PLAYER_HEARTBEAT
+       ----------------------------------------------- */
+
+    case "PLAYER_HEARTBEAT":{
+
+      const id =
+        String(
+          payload.playerId ||
+          senderId ||
+          ""
+        );
+
+      if(!id){
+        return;
+      }
+
+      if(
+        players[id]
+      ){
+
+        players[id].lastSeen =
+          Date.now();
+
+      }
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       PLAYER_END
+       ----------------------------------------------- */
+
+    case "PLAYER_END":{
+
+      const id =
+        String(
+          payload.playerId ||
+          senderId ||
+          ""
+        );
+
+      if(
+        !players[id]
+      ){
+
+        return;
+
+      }
+
+      players[id].lastSeen =
+        0;
+
+      if(
+        gameState ===
+          STATES.PLAYING &&
+        players[id].status ===
+          "running"
+      ){
+
+        players[id].status =
+          "crashed";
+
+        players[id].payout =
+          0;
+
+      }
+
+      if(
+        id === hostId
+      ){
+
+        setTimeout(
+          tryHostTakeover,
+          200
+        );
+
+      }
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       ROOM_REQUEST
+       ----------------------------------------------- */
+
+    case "ROOM_REQUEST":{
+
+      if(!isHost){
+        return;
+      }
+
+      const targetId =
+        String(
+          payload.requesterId ||
+          senderId ||
+          ""
+        );
+
+      if(!targetId){
+        return;
+      }
+
+      sendHostEvent(
+        "ROOM_STATE",
+        {
+
+          targetId,
+
+          hostId,
+
+          hostGeneration,
+
+          state:gameState,
+
+          roundId,
+
+          bettingDeadline,
+
+          roundStartTime,
+
+          crashDeadline,
+
+          currentMultiplier,
+
+          crashPoint:
+            gameState ===
+            STATES.PLAYING
+              ? hostState.crashPoint
+              : null,
+
+          players:
+            Object.values(
+              players
+            )
+            .slice(
+              0,
+              CONFIG.MAX_PLAYERS
+            )
+            .map(
+              p => ({
+
+                id:p.id,
+
+                username:p.username,
+
+                avatar:p.avatar,
+
+                joinedAt:p.joinedAt,
+
+                lastSeen:p.lastSeen,
+
+                bet:p.bet,
+
+                status:p.status,
+
+                cashoutMultiplier:
+                  p.cashoutMultiplier,
+
+                payout:p.payout
+
+              })
+            )
+
+        }
+      );
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       ROOM_STATE
+       ----------------------------------------------- */
+
+    case "ROOM_STATE":{
+
+      if(
+        payload.targetId &&
+        String(
+          payload.targetId
+        ) !== ME
+      ){
+
+        return;
+
+      }
+
+      if(
+        payload.hostId
+      ){
+
+        hostId =
+          String(
+            payload.hostId
+          );
+
+        isHost =
+          hostId === ME;
+
+        hostLocked =
+          true;
+
+      }
+
+      if(
+        Number.isFinite(
+          Number(
+            payload.hostGeneration
+          )
+        )
+      ){
+
+        hostGeneration =
+          Math.max(
+            hostGeneration,
+            Number(
+              payload.hostGeneration
+            )
+          );
+
+      }
+
+      if(
+        Array.isArray(
+          payload.players
+        )
+      ){
+
+        payload.players.forEach(
+          p => {
+
+            if(
+              p &&
+              p.id
+            ){
+
+              addPlayer(p);
+
+              if(
+                players[
+                  String(p.id)
+                ]
+              ){
+
+                players[
+                  String(p.id)
+                ].bet =
+                  clampInt(
+                    p.bet,
+                    0,
+                    1000
+                  );
+
+                players[
+                  String(p.id)
+                ].status =
+                  String(
+                    p.status ||
+                    "waiting"
+                  ).slice(
+                    0,
+                    20
+                  );
+
+                players[
+                  String(p.id)
+                ].cashoutMultiplier =
+                  clamp(
+                    p.cashoutMultiplier,
+                    0,
+                    CONFIG.MAX_CRASH_MULTIPLIER
+                  );
+
+                players[
+                  String(p.id)
+                ].payout =
+                  clampInt(
+                    p.payout,
+                    0,
+                    CONFIG.MAX_PAYOUT
+                  );
+
+              }
+
+            }
+
+          }
+        );
+
+      }
+
+      if(
+        payload.roundId <
+        roundId
+      ){
+
+        return;
+
+      }
+
+      roundId =
+        clampInt(
+          payload.roundId,
+          1,
+          999999999
+        );
+
+      gameState =
+        Object.values(
+          STATES
+        ).includes(
+          payload.state
+        )
+          ? payload.state
+          : gameState;
+
+      bettingDeadline =
+        finiteNumber(
+          payload.bettingDeadline,
+          0
+        );
+
+      roundStartTime =
+        finiteNumber(
+          payload.roundStartTime,
+          0
+        );
+
+      crashDeadline =
+        finiteNumber(
+          payload.crashDeadline,
+          0
+        );
+
+      currentMultiplier =
+        clamp(
+          payload.currentMultiplier,
+          1,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+
+      if(
+        gameState ===
+        STATES.PLAYING &&
+        payload.crashPoint != null
+      ){
+
+        publicCrashPoint =
+          clamp(
+            payload.crashPoint,
+            CONFIG.MIN_CRASH_MULTIPLIER,
+            CONFIG.MAX_CRASH_MULTIPLIER
+          );
+
+      }
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       BET_PLACED
+       ----------------------------------------------- */
+
+    case "BET_PLACED":{
+
+      if(
+        payload.roundId !==
+        roundId
+      ){
+
+        return;
+
+      }
+
+      if(
+        gameState !==
+        STATES.BETTING &&
+        gameState !==
+        STATES.LOBBY
+      ){
+
+        return;
+
+      }
+
+      const id =
+        String(
+          payload.playerId ||
+          senderId ||
+          ""
+        );
+
+      if(!id){
+        return;
+      }
+
+      addPlayer({
+
+        id,
+
+        username:
+          payload.username ||
+
+          "玩家",
+
+        avatar:
+          payload.avatar ||
+
+          "",
+
+        joinedAt:
+          finiteNumber(
+            payload.joinedAt,
+            Date.now()
+          )
+
+      });
+
+      const amount =
+        clampInt(
+          payload.amount,
+          0,
+          1000
+        );
+
+      if(
+        !CONFIG.BET_OPTIONS.includes(
+          amount
+        )
+      ){
+
+        return;
+
+      }
+
+      if(
+        bettingPlayers().some(
+          p =>
+            p.id === id
+        )
+      ){
+
+        return;
+
+      }
+
+      players[id].bet =
+        amount;
+
+      players[id].status =
+        "ready";
+
+      players[id].cashoutMultiplier =
+        0;
+
+      players[id].payout =
+        0;
+
+      touchPlayer(id);
+
+      if(
+        gameState ===
+        STATES.LOBBY
+      ){
+
+        gameState =
+          STATES.BETTING;
+
+      }
+
+      renderAll();
+
+      if(
+        isHost
+      ){
+
+        maybeStartCountdown();
+
+      }
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       BETTING_START
+       ----------------------------------------------- */
+
+    case "BETTING_START":{
+
+      if(
+        Number(
+          payload.roundId
+        ) !==
+        roundId
+      ){
+
+        return;
+
+      }
+
+      if(
+        gameState !==
+          STATES.BETTING &&
+        gameState !==
+          STATES.COUNTDOWN
+      ){
+
+        return;
+
+      }
+
+      bettingDeadline =
+        finiteNumber(
+          payload.deadline,
+          0
+        );
+
+      gameState =
+        STATES.COUNTDOWN;
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       ROUND_START
+       ----------------------------------------------- */
+
+    case "ROUND_START":{
+
+      const incomingRound =
+        Number(
+          payload.roundId
+        );
+
+      if(
+        !Number.isFinite(
+          incomingRound
+        )
+      ){
+
+        return;
+
+      }
+
+      if(
+        incomingRound <
+        roundId
+      ){
+
+        return;
+
+      }
+
+      roundId =
+        incomingRound;
+
+      hostLocked =
+        true;
+
+      if(
+        payload.hostId
+      ){
+
+        hostId =
+          String(
+            payload.hostId
+          );
+
+        isHost =
+          hostId === ME;
+
+      }
+
+      if(
+        Array.isArray(
+          payload.participants
+        )
+      ){
+
+        const ids =
+          new Set(
+            payload.participants
+              .map(
+                p =>
+                  String(
+                    p.id
+                  )
+              )
+          );
+
+        Object.values(
+          players
+        ).forEach(
+          p => {
+
+            if(
+              !ids.has(
+                p.id
+              )
+            ){
+
+              p.status =
+                "watching";
+
+              p.bet = 0;
+
+            }
+
+          }
+        );
+
+        payload.participants
+          .forEach(
+            p => {
+
+              addPlayer({
+
+                id:String(p.id),
+
+                username:p.username,
+
+                avatar:p.avatar,
+
+                joinedAt:
+                  finiteNumber(
+                    p.joinedAt,
+                    Date.now()
+                  )
+
+              });
+
+              players[
+                String(p.id)
+              ].bet =
+                clampInt(
+                  p.bet,
+                  0,
+                  1000
+                );
+
+              players[
+                String(p.id)
+              ].status =
+                "running";
+
+              players[
+                String(p.id)
+              ].cashoutMultiplier =
+                0;
+
+              players[
+                String(p.id)
+              ].payout =
+                0;
+
+            }
+          );
+
+      }
+
+      gameState =
+        STATES.PLAYING;
+
+      roundStartTime =
+        finiteNumber(
+          payload.startTime,
+          Date.now()
+        );
+
+      crashDeadline =
+        finiteNumber(
+          payload.crashDeadline,
+          0
+        );
+
+      publicCrashPoint =
+        clamp(
+          payload.crashPoint,
+          CONFIG.MIN_CRASH_MULTIPLIER,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+
+      currentMultiplier =
+        1;
+
+      bettingDeadline =
+        0;
+
+      localCashoutLock.locked =
+        false;
+
+      localCashoutLock.multiplier =
+        0;
+
+      localCashoutLock.payout =
+        0;
+
+      elevator.classList.remove(
+        "crashed"
+      );
+
+      elevator.classList.add(
+        "active"
+      );
+
+      showStageMessage(
+        "🚀 起飛！",
+        "10 秒後開放有效收錢",
+        1050
+      );
+
+      soundStart();
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       PLAYER_CASHOUT
+       ----------------------------------------------- */
+
+    case "PLAYER_CASHOUT":{
+
+      if(!isHost){
+        return;
+      }
+
+      if(
+        Number(
+          payload.roundId
+        ) !==
+        roundId
+      ){
+
+        return;
+
+      }
+
+      if(
+        gameState !==
+        STATES.PLAYING
+      ){
+
+        return;
+
+      }
+
+      const id =
+        String(
+          payload.playerId ||
+          senderId ||
+          ""
+        );
+
+      const p =
+        players[id];
+
+      if(!p){
+        return;
+      }
+
+      if(
+        p.bet <= 0 ||
+        p.status !==
+          "running"
+      ){
+
+        return;
+
+      }
+
+      const now =
+        Date.now();
+
+      const elapsed =
+        Math.max(
+          0,
+          now -
+          roundStartTime
+        );
+
+      const qualified =
+        elapsed >=
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+        1000;
+
+      /*
+        Host authoritative multiplier.
+      */
+      const liveMultiplier =
+        currentMultiplierAt(
+          now
+        );
+
+      if(
+        !qualified
+      ){
+
+        sendHostEvent(
+          "CASHOUT_RESULT",
+          {
+
+            playerId:id,
+
+            multiplier:0,
+
+            payout:0,
+
+            qualified:false,
+
+            reason:
+              "REWARD_NOT_UNLOCKED"
+
+          }
+        );
+
+        return;
+
+      }
+
+      if(
+        hostState.crashPoint != null &&
+        liveMultiplier >=
+        hostState.crashPoint
+      ){
+
+        return;
+
+      }
+
+      const payout =
+        calculatePayout(
+          p.bet,
+          liveMultiplier
+        );
+
+      /*
+        Cash-out Freeze:
+        reward is calculated,
+        then immediately locked.
+      */
+      p.status =
+        "cashed";
+
+      p.cashoutMultiplier =
+        liveMultiplier;
+
+      p.payout =
+        payout;
+
+      sendHostEvent(
+        "CASHOUT_RESULT",
+        {
+
+          playerId:id,
+
+          multiplier:
+            liveMultiplier,
+
+          payout,
+
+          qualified:true
+
+        }
+      );
+
+      renderAll();
+
+      if(
+        id === ME
+      ){
+
+        soundCashout();
+
+      }
+
+      toast(
+        "💰 " +
+        safeName(
+          p.username
+        ) +
+        " 收錢 " +
+        liveMultiplier.toFixed(2) +
+        "x"
+      );
+
+      checkHostAllCashed();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       CASHOUT_RESULT
+       ----------------------------------------------- */
+
+    case "CASHOUT_RESULT":{
+
+      if(
+        Number(
+          payload.roundId
+        ) !==
+        roundId
+      ){
+
+        return;
+
+      }
+
+      const id =
+        String(
+          payload.playerId ||
+          senderId ||
+          ""
+        );
+
+      if(
+        !players[id]
+      ){
+
+        return;
+
+      }
+
+      const qualified =
+        payload.qualified !==
+        false;
+
+      const safeMultiplier =
+        qualified
+          ? clamp(
+              payload.multiplier,
+              1,
+              CONFIG.MAX_CRASH_MULTIPLIER
+            )
+          : 0;
+
+      const safePayout =
+        qualified
+          ? clampInt(
+              payload.payout,
+              0,
+              CONFIG.MAX_PAYOUT
+            )
+          : 0;
+
+      /*
+        Once cashout result arrives,
+        it is frozen forever.
+      */
+
+      players[id].status =
+        qualified
+          ? "cashed"
+          : "crashed";
+
+      players[id].cashoutMultiplier =
+        safeMultiplier;
+
+      players[id].payout =
+        safePayout;
+
+      if(
+        id === ME
+      ){
+
+        localCashoutLock.locked =
+          qualified;
+
+        localCashoutLock.multiplier =
+          safeMultiplier;
+
+        localCashoutLock.payout =
+          safePayout;
+
+        localCashoutLock.time =
+          Date.now();
+
+        /*
+          gameOver exactly once
+          for this round.
+        */
+
+        requestGameOverOnce(
+          roundId,
+          safePayout
+        );
+
+        if(
+          qualified
+        ){
+
+          soundCashout();
+
+        }
+
+      }
+
+      renderAll();
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       ROUND_END
+       ----------------------------------------------- */
+
+    case "ROUND_END":{
+
+      if(
+        Number(
+          payload.roundId
+        ) !==
+        roundId
+      ){
+
+        return;
+
+      }
+
+      if(
+        gameState ===
+        STATES.RESULT
+      ){
+
+        return;
+
+      }
+
+      gameState =
+        STATES.RESULT;
+
+      publicCrashPoint =
+        clamp(
+          payload.crashPoint,
+          CONFIG.MIN_CRASH_MULTIPLIER,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+
+      currentMultiplier =
+        publicCrashPoint;
+
+      resultData =
+        payload.result || null;
+
+      renderAll();
+
+      showResult();
+
+      setTimeout(
+        beginNextRound,
+        CONFIG.ROUND_END_DELAY
+      );
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       NEW_ROUND
+       ----------------------------------------------- */
+
+    case "NEW_ROUND":{
+
+      const nextRound =
+        Number(
+          payload.nextRoundId ||
+          payload.roundId
+        );
+
+      if(
+        !Number.isFinite(
+          nextRound
+        ) ||
+        nextRound <=
+        roundId
+      ){
+
+        return;
+
+      }
+
+      resetRound(
+        nextRound
+      );
+
+      break;
+
+    }
+
+
+    /* -----------------------------------------------
+       HOST_TAKEOVER
+       ----------------------------------------------- */
+
+    case "HOST_TAKEOVER":{
+
+      const generation =
+        clampInt(
+          payload.generation,
+          0,
+          999999
+        );
+
+      const incomingHost =
+        String(
+          payload.hostId ||
+          senderId ||
+          ""
+        );
+
+      if(
+        !incomingHost
+      ){
+
+        return;
+
+      }
+
+      /*
+        Higher generation wins.
+        Same generation uses deterministic ID tie-break.
+      */
+
+      if(
+        generation >
+        hostGeneration ||
+        (
+          generation ===
+          hostGeneration &&
+          (
+            !hostId ||
+            incomingHost <
+            hostId
+          )
+        )
+      ){
+
+        hostGeneration =
+          generation;
+
+        hostId =
+          incomingHost;
+
+        isHost =
+          hostId === ME;
+
+        hostLocked =
+          true;
+
+        if(
+          isHost &&
+          gameState ===
+            STATES.PLAYING
+        ){
+
+          hostState.crashPoint =
+            clamp(
+              publicCrashPoint,
+              CONFIG.MIN_CRASH_MULTIPLIER,
+              CONFIG.MAX_CRASH_MULTIPLIER
+            );
+
+          hostState.startTime =
+            roundStartTime;
+
+          hostState.settled =
+            false;
+
+        }
+
+        renderAll();
+
+      }
+
+      break;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PURCHASE
+   ========================================================= */
+
+window.onPurchaseSuccess =
+function(itemId){
+
+  if(
+    !purchaseRequest ||
+    !isPurchasing
+  ){
+
+    return;
+
+  }
+
+  if(
+    String(itemId) !==
+    purchaseRequest.itemId
+  ){
+
+    return;
+
+  }
+
+  const request =
+    purchaseRequest;
+
+  isPurchasing =
+    false;
+
+  purchaseRequest =
+    null;
+
+  if(
+    request.roundId !==
+    roundId
+  ){
+
+    toast(
+      "下注回合已改變"
+    );
+
+    renderAll();
+
+    return;
+
+  }
+
+  if(
+    gameState !==
+    STATES.BETTING &&
+    gameState !==
+    STATES.LOBBY
+  ){
+
+    toast(
+      "本局下注時間已結束"
+    );
+
+    renderAll();
+
+    return;
+
+  }
+
+  if(
+    players[ME].bet > 0
+  ){
+
+    renderAll();
+
+    return;
+
+  }
+
+  players[ME].bet =
+    request.amount;
+
+  players[ME].status =
+    "ready";
+
+  players[ME].cashoutMultiplier =
+    0;
+
+  players[ME].payout =
+    0;
+
+  selectedBet =
+    request.amount;
+
+  if(
+    gameState ===
+    STATES.LOBBY
+  ){
+
+    gameState =
+      STATES.BETTING;
+
+  }
+
+  sendEvent(
+    "BET_PLACED",
+    {
+
+      playerId:ME,
+
+      username:
+        user.username,
+
+      avatar:
+        user.avatar,
+
+      joinedAt:
+        players[ME].joinedAt,
+
+      amount:
+        request.amount,
+
+      itemId:
+        request.itemId
+
+    }
+  );
+
+  soundBet();
+
+  toast(
+    "✅ Entry 成功：" +
+    money(
+      request.amount
+    ) +
+    " 銀幣"
+  );
+
+  renderAll();
+
+  if(
+    isHost
+  ){
+
+    maybeStartCountdown();
+
+  }
+
+};
+
+
+window.onPurchaseFailed =
+function(itemId){
+
+  if(
+    !purchaseRequest ||
+    String(itemId) !==
+    purchaseRequest.itemId
+  ){
+
+    return;
+
+  }
+
+  isPurchasing =
+    false;
+
+  purchaseRequest =
+    null;
+
+  toast(
+    "❌ Entry 沒有成功"
+  );
+
+  renderAll();
+
+};
+
+
+/* =========================================================
+   REQUEST PURCHASE
+   ========================================================= */
+
+function requestBet(
+  amount
+){
+
+  ensureAudio();
+  soundClick();
+
+  if(
+    isPurchasing
+  ){
+
+    return;
+
+  }
+
+  if(
+    gameState !==
+      STATES.LOBBY &&
+    gameState !==
+      STATES.BETTING
+  ){
+
+    toast(
+      "現在不是下注階段"
+    );
+
+    return;
+
+  }
+
+  if(
+    players[ME].bet > 0
+  ){
+
+    toast(
+      "本局你已經下注"
+    );
+
+    return;
+
+  }
+
+  if(
+    !CONFIG.BET_OPTIONS.includes(
+      amount
+    )
+  ){
+
+    return;
+
+  }
+
+  const itemId =
+    "crash_lift_entry_" +
+    amount;
+
+  isPurchasing =
+    true;
+
+  purchaseRequest = {
+
+    itemId,
+
+    amount,
+
+    roundId
+
+  };
+
+  renderAll();
+
+  if(
+    SDK_AVAILABLE &&
+    typeof
+      window.BoomRoomSDK
+        .requestPurchase ===
+      "function"
+  ){
+
+    try{
+
+      window.BoomRoomSDK.requestPurchase(
+        itemId,
+        amount
+      );
+
+    }catch(error){
+
+      isPurchasing =
+        false;
+
+      purchaseRequest =
+        null;
+
+      toast(
+        "無法發起 Entry"
+      );
+
+      renderAll();
+
+    }
+
+  }else{
+
+    /*
+      明確 Dev Mode。
+      不偽裝成真實交易。
+    */
+
+    setTimeout(
+      () => {
+
+        if(
+          purchaseRequest &&
+          purchaseRequest.itemId ===
+            itemId
+        ){
+
+          window.onPurchaseSuccess(
+            itemId
+          );
+
+        }
+
+      },
+      250
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   BET BUTTONS
+   ========================================================= */
+
+document
+  .querySelectorAll(
+    ".bet-button"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "pointerdown",
+        () => {
+
+          requestBet(
+            Number(
+              button.dataset.bet
+            )
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   COUNTDOWN
+   ========================================================= */
+
+let countdownStarted =
+  false;
+
+
+function maybeStartCountdown(){
+
+  if(!isHost){
+    return;
+  }
+
+  if(
+    gameState !==
+      STATES.BETTING &&
+    gameState !==
+      STATES.LOBBY
+  ){
+
+    return;
+
+  }
+
+  const bettors =
+    bettingPlayers();
+
+  if(
+    bettors.length < 2
+  ){
+
+    return;
+
+  }
+
+  if(
+    countdownStarted
+  ){
+
+    return;
+
+  }
+
+  countdownStarted =
+    true;
+
+  gameState =
+    STATES.COUNTDOWN;
+
+  bettingDeadline =
+    Date.now() +
+    CONFIG.BETTING_SECONDS *
+    1000;
+
+  sendHostEvent(
+    "BETTING_START",
+    {
+
+      deadline:
+        bettingDeadline
+
+    }
+  );
+
+  showStageMessage(
+    "⏱️ 倒數開始",
+    "還有 " +
+      CONFIG.BETTING_SECONDS +
+      " 秒",
+    900
+  );
+
+  renderAll();
+
+}
+
+
+/* =========================================================
+   MULTIPLIER CURVE
+   ========================================================= */
+
+/*
+  前 10 秒採比較平滑的成長曲線，
+  讓玩家有時間觀察。
+  10 秒後再逐漸加速。
+*/
+
+function multiplierFromElapsed(
+  milliseconds
+){
+
+  const seconds =
+    Math.max(
+      0,
+      milliseconds / 1000
+    );
+
+  let value;
+
+  if(
+    seconds <=
+    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS
+  ){
+
+    value =
+      1 +
+      seconds * .035 +
+      seconds *
+      seconds *
+      .0009;
+
+  }else{
+
+    const base =
+      1 +
+      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+      .035 +
+      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+      .0009;
+
+    value =
+      base *
+      Math.exp(
+        (seconds -
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) *
+        .115
+      );
+
+  }
+
+  return clamp(
+    Math.floor(
+      value * 100
+    ) / 100,
+    1,
+    CONFIG.MAX_CRASH_MULTIPLIER
+  );
+
+}
+
+
+function secondsForMultiplier(
+  target
+){
+
+  const m =
+    clamp(
+      target,
+      CONFIG.MIN_CRASH_MULTIPLIER,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  const qualification =
+    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS;
+
+  const base =
+    1 +
+    qualification * .035 +
+    qualification *
+    qualification *
+    .0009;
+
+  const earlyAt =
+    1 +
+    qualification * .035 +
+    qualification *
+    qualification *
+    .0009;
+
+  if(
+    m <= earlyAt
+  ){
+
+    let low = 0;
+    let high = qualification;
+
+    for(
+      let i=0;
+      i<28;
+      i++
+    ){
+
+      const mid =
+        (low + high) / 2;
+
+      if(
+        multiplierFromElapsed(
+          mid*1000
+        ) < m
+      ){
+
+        low = mid;
+
+      }else{
+
+        high = mid;
+
+      }
+
+    }
+
+    return high;
+
+  }
+
+  return (
+    qualification +
+    Math.log(
+      m / base
+    ) / .115
+  );
+
+}
+
+
+/* =========================================================
+   CRASH POINT
+   ========================================================= */
+
+function randomCrashPoint(){
+
+  const r =
+    Math.random();
+
+  let value;
+
+  if(
+    r < .34
+  ){
+
+    value =
+      1.45 +
+      Math.random() *
+      .40;
+
+  }else if(
+    r < .67
+  ){
+
+    value =
+      1.85 +
+      Math.random() *
+      .90;
+
+  }else if(
+    r < .87
+  ){
+
+    value =
+      2.75 +
+      Math.random() *
+      1.70;
+
+  }else if(
+    r < .97
+  ){
+
+    value =
+      4.45 +
+      Math.random() *
+      3.55;
+
+  }else{
+
+    value =
+      8 +
+      Math.random() *
+      7;
+
+  }
+
+  return clamp(
+    Math.floor(
+      value * 100
+    ) / 100,
+    CONFIG.MIN_CRASH_MULTIPLIER,
+    CONFIG.MAX_CRASH_MULTIPLIER
+  );
+
+}
+
+
+/* =========================================================
+   PAYOUT
+   ========================================================= */
+
+function calculatePayout(
+  bet,
+  multiplierValue
+){
+
+  const safeBet =
+    clampInt(
+      bet,
+      0,
+      1000
+    );
+
+  const safeMultiplier =
+    clamp(
+      multiplierValue,
+      1,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  const reward =
+    Math.floor(
+      safeBet *
+      safeMultiplier
+    );
+
+  return clampInt(
+    reward,
+    0,
+    CONFIG.MAX_PAYOUT
+  );
+
+}
+
+
+/* =========================================================
+   HOST START ROUND
+   ========================================================= */
+
+function startRoundAsHost(){
+
+  if(!isHost){
+    return;
+  }
+
+  if(
+    gameState !==
+      STATES.COUNTDOWN &&
+    gameState !==
+      STATES.BETTING
+  ){
+
+    return;
+
+  }
+
+  const participants =
+    bettingPlayers()
+      .slice(
+        0,
+        CONFIG.MAX_PLAYERS
+      );
+
+  if(
+    participants.length < 2
+  ){
+
+    gameState =
+      STATES.BETTING;
+
+    countdownStarted =
+      false;
+
+    return;
+
+  }
+
+  hostLocked =
+    true;
+
+  gameState =
+    STATES.PLAYING;
+
+  hostState.crashPoint =
+    randomCrashPoint();
+
+  hostState.startTime =
+    Date.now();
+
+  hostState.settled =
+    false;
+
+  roundStartTime =
+    hostState.startTime;
+
+  currentMultiplier =
+    1;
+
+  publicCrashPoint =
+    hostState.crashPoint;
+
+  const crashSeconds =
+    secondsForMultiplier(
+      hostState.crashPoint
+    );
+
+  crashDeadline =
+    roundStartTime +
+    Math.max(
+      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+      1000 +
+      50,
+      crashSeconds *
+      1000
+    );
+
+  participants.forEach(
+    p => {
+
+      p.status =
+        "running";
+
+      p.cashoutMultiplier =
+        0;
+
+      p.payout =
+        0;
+
+    }
+  );
+
+  sendHostEvent(
+    "ROUND_START",
+    {
+
+      hostId,
+
+      participants:
+        participants.map(
+          p => ({
+
+            id:p.id,
+
+            username:p.username,
+
+            avatar:p.avatar,
+
+            joinedAt:p.joinedAt,
+
+            bet:p.bet
+
+          })
+        ),
+
+      startTime:
+        roundStartTime,
+
+      crashDeadline,
+
+      crashPoint:
+        hostState.crashPoint
+
+    }
+  );
+
+  soundStart();
+
+  renderAll();
+
+}
+
+
+/* =========================================================
+   CURRENT HOST MULTIPLIER
+   ========================================================= */
+
+function currentMultiplierAt(
+  timestamp
+){
+
+  if(
+    !roundStartTime
+  ){
+
+    return 1;
+
+  }
+
+  return multiplierFromElapsed(
+    timestamp -
+    roundStartTime
+  );
+
+}
+
+
+/* =========================================================
+   HOST CASHOUT ALL
+   ========================================================= */
+
+function checkHostAllCashed(){
+
+  if(!isHost){
+    return;
+  }
+
+  if(
+    gameState !==
+    STATES.PLAYING
+  ){
+
+    return;
+
+  }
+
+  const stillRunning =
+    hostParticipants()
+      .filter(
+        p =>
+          p.status ===
+          "running"
+      );
+
+  if(
+    stillRunning.length === 0
+  ){
+
+    /*
+      All players already locked
+      their rewards.
+      We can end the round
+      without waiting for CRASH.
+    */
+
+    hostState.crashPoint =
+      clamp(
+        currentMultiplier,
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS >
+        0 ? 1 : 1,
+        CONFIG.MAX_CRASH_MULTIPLIER
+      );
+
+    hostCrash(
+      true
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   HOST PARTICIPANTS
+   ========================================================= */
+
+function hostParticipants(){
+
+  return hostState
+    .participants
+    ? hostState
+        .participants
+        .map(
+          id =>
+            players[id]
+        )
+        .filter(Boolean)
+    : bettingPlayers();
+
+}
+
+
+/* =========================================================
+   BUILD RESULT
+   ========================================================= */
+
+function buildRoundResult(){
+
+  const rows =
+    hostParticipants()
+      .map(
+        p => ({
+
+          id:p.id,
+
+          username:p.username,
+
+          avatar:p.avatar,
+
+          bet:clampInt(
+            p.bet,
+            0,
+            1000
+          ),
+
+          status:
+            p.status,
+
+          multiplier:
+            clamp(
+              p.cashoutMultiplier,
+              0,
+              CONFIG.MAX_CRASH_MULTIPLIER
+            ),
+
+          payout:
+            clampInt(
+              p.payout,
+              0,
+              CONFIG.MAX_PAYOUT
+            )
+
+        })
+      );
+
+  rows.sort(
+    (a,b) => {
+
+      if(
+        b.payout !==
+        a.payout
+      ){
+
+        return (
+          b.payout -
+          a.payout
+        );
+
+      }
+
+      return (
+        b.multiplier -
+        a.multiplier
+      );
+
+    }
+  );
+
+  return {
+
+    rows,
+
+    crashPoint:
+      clamp(
+        hostState.crashPoint,
+        CONFIG.MIN_CRASH_MULTIPLIER,
+        CONFIG.MAX_CRASH_MULTIPLIER
+      )
+
+  };
+
+}
+
+
+/* =========================================================
+   HOST CRASH
+   ========================================================= */
+
+function hostCrash(
+  allCashed=false
+){
+
+  if(!isHost){
+    return;
+  }
+
+  if(
+    gameState !==
+    STATES.PLAYING
+  ){
+
+    return;
+
+  }
+
+  if(
+    hostState.settled
+  ){
+
+    return;
+
+  }
+
+  hostState.settled =
+    true;
+
+  if(
+    allCashed
+  ){
+
+    hostState.crashPoint =
+      clamp(
+        currentMultiplier,
+        CONFIG.MIN_CRASH_MULTIPLIER,
+        CONFIG.MAX_CRASH_MULTIPLIER
+      );
+
+  }
+
+  currentMultiplier =
+    clamp(
+      hostState.crashPoint,
+      CONFIG.MIN_CRASH_MULTIPLIER,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  /*
+    Everyone still running
+    loses the round.
+  */
+
+  hostParticipants()
+    .forEach(
+      p => {
+
+        if(
+          p.status ===
+          "running"
+        ){
+
+          p.status =
+            "crashed";
+
+          p.cashoutMultiplier =
+            0;
+
+          p.payout =
+            0;
+
+        }
+
+      }
+    );
+
+  const result =
+    buildRoundResult();
+
+  sendHostEvent(
+    "ROUND_END",
+    {
+
+      crashPoint:
+        hostState.crashPoint,
+
+      result
+
+    }
+  );
+
+  /*
+    Local handling.
+  */
+
+  handleEvent(
+    "ROUND_END",
+    {
+
+      roundId,
+
+      eventId:
+        createEventId(),
+
+      crashPoint:
+        hostState.crashPoint,
+
+      result
+
+    },
+
+    ME,
+
+    true
+  );
+
+}
+
+
+/* =========================================================
+   GAME OVER
+   ========================================================= */
+
+function requestGameOverOnce(
+  rid,
+  reward
+){
+
+  if(
+    rewardClaimedRounds.has(
+      rid
+    )
+  ){
+
+    return;
+
+  }
+
+  rewardClaimedRounds.add(
+    rid
+  );
+
+  const safeReward =
+    clampInt(
+      reward,
+      0,
+      CONFIG.MAX_PAYOUT
+    );
+
+  if(
+    !SDK_AVAILABLE ||
+    typeof
+      window.BoomRoomSDK
+        .gameOver !==
+      "function"
+  ){
+
+    return;
+
+  }
+
+  try{
+
+    window.BoomRoomSDK.gameOver(
+      safeReward
+    );
+
+  }catch(error){
+
+    console.warn(
+      "BoomRoomSDK.gameOver() failed",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   LOCAL PLAYER CASHOUT
+   ========================================================= */
+
+function cashout(){
+
+  ensureAudio();
+
+  if(
+    localCashoutLock.locked
+  ){
+
+    return;
+
+  }
+
+  if(
+    gameState !==
+    STATES.PLAYING
+  ){
+
+    return;
+
+  }
+
+  const me =
+    players[ME];
+
+  if(
+    !me ||
+    me.bet <= 0 ||
+    me.status !==
+      "running"
+  ){
+
+    return;
+
+  }
+
+  const elapsed =
+    Date.now() -
+    roundStartTime;
+
+  if(
+    elapsed <
+    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+    1000
+  ){
+
+    toast(
+      "⏱️ 還要等到 10 秒才能有效收錢"
+    );
+
+    return;
+
+  }
+
+  /*
+    Local freeze:
+    after button press, the visible
+    potential reward for the player
+    is locked while waiting for
+    Host authoritative result.
+  */
+
+  const lockedMultiplier =
+    clamp(
+      currentMultiplierAt(
+        Date.now()
+      ),
+      1,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  const lockedPayout =
+    calculatePayout(
+      me.bet,
+      lockedMultiplier
+    );
+
+  localCashoutLock.locked =
+    true;
+
+  localCashoutLock.multiplier =
+    lockedMultiplier;
+
+  localCashoutLock.payout =
+    lockedPayout;
+
+  me.status =
+    "cashoutPending";
+
+  me.cashoutMultiplier =
+    lockedMultiplier;
+
+  me.payout =
+    lockedPayout;
+
+  soundClick();
+
+  sendEvent(
+    "PLAYER_CASHOUT",
+    {
+
+      playerId:ME,
+
+      lockedMultiplier,
+
+      lockedPayout
+
+    }
+  );
+
+  toast(
+    "💰 已送出收錢，等待房主確認"
+  );
+
+  renderAll();
+
+}
+
+
+/* =========================================================
+   MAIN ACTION
+   ========================================================= */
+
+mainAction.addEventListener(
+  "pointerdown",
+  () => {
+
+    if(
+      gameState ===
+      STATES.PLAYING
+    ){
+
+      cashout();
+
+      return;
+
+    }
+
+    if(
+      gameState ===
+        STATES.BETTING ||
+      gameState ===
+        STATES.COUNTDOWN
+    ){
+
+      if(
+        !players[ME].bet
+      ){
+
+        toast(
+          "請先選擇 Entry"
+        );
+
+        return;
+
+      }
+
+      if(
+        isHost &&
+        bettingPlayers().length >=
+          2
+      ){
+
+        startRoundAsHost();
+
+      }else{
+
+        toast(
+          "等待房主開始本局"
+        );
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   NEXT ROUND
+   ========================================================= */
+
+function beginNextRound(){
+
+  if(
+    !isHost
+  ){
+
+    return;
+
+  }
+
+  const nextRound =
+    roundId + 1;
+
+  sendHostEvent(
+    "NEW_ROUND",
+    {
+
+      nextRoundId:
+        nextRound
+
+    }
+  );
+
+  resetRound(
+    nextRound
+  );
+
+}
+
+
+function resetRound(
+  newRoundId
+){
+
+  gameState =
+    STATES.BETTING;
+
+  roundId =
+    clampInt(
+      newRoundId,
+      1,
+      999999999
+    );
+
+  bettingDeadline =
+    0;
+
+  roundStartTime =
+    0;
+
+  crashDeadline =
+    0;
+
+  currentMultiplier =
+    1;
+
+  publicCrashPoint =
+    null;
+
+  selectedBet =
+    null;
+
+  isPurchasing =
+    false;
+
+  purchaseRequest =
+    null;
+
+  resultData =
+    null;
+
+  resultModalShown =
+    false;
+
+  countdownStarted =
+    false;
+
+  localCashoutLock.locked =
+    false;
+
+  localCashoutLock.multiplier =
+    0;
+
+  localCashoutLock.payout =
+    0;
+
+  hostState.crashPoint =
+    null;
+
+  hostState.startTime =
+    0;
+
+  hostState.settled =
+    false;
+
+  hostState.participants =
+    [];
+
+  elevator.classList.remove(
+    "active",
+    "crashed"
+  );
+
+  multiplier.className =
+    "multiplier";
+
+  multiplier.textContent =
+    "1.00x";
+
+  multiplierCaption.textContent =
+    "等待玩家下注";
+
+  Object.values(
+    players
+  ).forEach(
+    p => {
+
+      p.bet = 0;
+
+      p.status =
+        "waiting";
+
+      p.cashoutMultiplier =
+        0;
+
+      p.payout =
+        0;
+
+    }
+  );
+
+  resultModal.classList.remove(
+    "show"
+  );
+
+  renderAll();
+
+  showStageMessage(
+    "✨ 新的一局",
+    "選擇 Entry 準備起飛",
+    850
+  );
+
+}
+
+
+/* =========================================================
+   PRESENCE / HELLO
+   ========================================================= */
+
+function sendHello(){
+
+  sendEvent(
+    "PLAYER_HELLO",
+    {
+
+      user:{
+
+        id:ME,
+
+        username:
+          user.username,
+
+        avatar:
+          user.avatar,
+
+        joinedAt:
+          players[ME].joinedAt
+
+      }
+
+    }
+  );
+
+}
+
+
+function sendHeartbeat(){
+
+  sendEvent(
+    "PLAYER_HEARTBEAT",
+    {
+
+      playerId:ME,
+
+      status:
+        gameState,
+
+      timestamp:
+        Date.now()
+
+    }
+  );
+
+}
+
+
+const heartbeatTimer =
+  setInterval(
+    () => {
+
+      touchPlayer(
+        ME
+      );
+
+      sendHeartbeat();
+
+      if(
+        !hostIsAlive()
+      ){
+
+        tryHostTakeover();
+
+      }
+
+      cleanupInactivePlayers();
+
+    },
+    CONFIG.HEARTBEAT_INTERVAL
+  );
+
+
+/* =========================================================
+   CLEANUP PRESENCE
+   ========================================================= */
+
+function cleanupInactivePlayers(){
+
+  const now =
+    Date.now();
+
+  Object.values(
+    players
+  ).forEach(
+    p => {
+
+      if(
+        p.id === ME
+      ){
+
+        return;
+
+      }
+
+      if(
+        now -
+        p.lastSeen >
+        CONFIG.PLAYER_TIMEOUT
+      ){
+
+        if(
+          gameState ===
+            STATES.BETTING ||
+          gameState ===
+            STATES.COUNTDOWN
+        ){
+
+          p.status =
+            "watching";
+
+          p.bet = 0;
+
+        }else if(
+          gameState ===
+          STATES.PLAYING &&
+          p.status ===
+          "running"
+        ){
+
+          p.status =
+            "crashed";
+
+          p.payout =
+            0;
+
+        }
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   PAGE EXIT
+   ========================================================= */
+
+window.addEventListener(
+  "pagehide",
+  () => {
+
+    try{
+
+      sendEvent(
+        "PLAYER_END",
+        {
+          playerId:ME,
+
+          status:
+            gameState
+
+        }
+      );
+
+    }catch(_){}
+
+  }
+);
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function renderAll(){
+
+  renderPhase();
+
+  renderPlayers();
+
+  renderControls();
+
+}
+
+
+function renderPhase(){
+
+  roundLabel.textContent =
+    "第 " +
+    roundId +
+    " 局";
+
+  phaseLabel.className =
+    "phase";
+
+  if(
+    gameState ===
+    STATES.LOBBY
+  ){
+
+    phaseLabel.textContent =
+      "🏠 等待玩家";
+
+  }
+  else if(
+    gameState ===
+    STATES.BETTING
+  ){
+
+    phaseLabel.textContent =
+      "💰 等待下注";
+
+  }
+  else if(
+    gameState ===
+    STATES.COUNTDOWN
+  ){
+
+    phaseLabel.textContent =
+      "⏱️ 即將起飛";
+
+  }
+  else if(
+    gameState ===
+    STATES.PLAYING
+  ){
+
+    phaseLabel.classList.add(
+      "running"
+    );
+
+    phaseLabel.textContent =
+      "🚀 電梯上升中";
+
+  }
+  else if(
+    gameState ===
+    STATES.RESULT
+  ){
+
+    phaseLabel.classList.add(
+      "crashed"
+    );
+
+    phaseLabel.textContent =
+      "💥 本局結算";
+
+  }
+
+}
+
+
+function avatarHtml(player){
+
+  if(
+    player.avatar
+  ){
+
+    return `
+      <img
+        src="${escapeHtml(player.avatar)}"
+        alt=""
+      >
+    `;
+
+  }
+
+  return escapeHtml(
+    (
+      player.username ||
+      "?"
+    ).charAt(0)
+  );
+
+}
+
+
+function renderPlayers(){
+
+  const list =
+    Object.values(
+      players
+    )
+    .sort(
+      (a,b) => {
+
+        const order = {
+
+          running:0,
+
+          cashoutPending:1,
+
+          cashed:2,
+
+          ready:3,
+
+          crashed:4,
+
+          waiting:5,
+
+          watching:6
+
+        };
+
+        const oa =
+          order[a.status] ??
+          9;
+
+        const ob =
+          order[b.status] ??
+          9;
+
+        if(
+          oa !== ob
+        ){
+
+          return oa - ob;
+
+        }
+
+        return (
+          a.joinedAt -
+          b.joinedAt
+        );
+
+      }
+    )
+    .slice(
+      0,
+      CONFIG.MAX_PLAYERS
+    );
+
+  playerInfo.textContent =
+    list.length +
+    " / " +
+    CONFIG.MAX_PLAYERS +
+    " 人";
+
+  playerList.innerHTML =
+    "";
+
+  if(
+    !list.length
+  ){
+
+    playerList.innerHTML = `
+      <div style="
+        padding:18px;
+        text-align:center;
+        color:#70758a;
+        font-size:10px;
+      ">
+        等待玩家加入……
+      </div>
+    `;
+
+    return;
+
+  }
+
+  list.forEach(
+    p => {
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "player-row";
+
+      if(
+        p.id === ME
+      ){
+
+        row.classList.add(
+          "self"
+        );
+
+      }
+
+      if(
+        p.status ===
+        "running"
+      ){
+
+        row.classList.add(
+          "running"
+        );
+
+      }
+
+      if(
+        p.status ===
+        "cashed"
+      ){
+
+        row.classList.add(
+          "cashed"
+        );
+
+      }
+
+      if(
+        p.status ===
+        "crashed"
+      ){
+
+        row.classList.add(
+          "crashed"
+        );
+
+      }
+
+      let statusText =
+        "等待下注";
+
+      if(
+        p.status ===
+        "ready"
+      ){
+
+        statusText =
+          "已下注 · 等待起飛";
+
+      }
+      else if(
+        p.status ===
+        "running"
+      ){
+
+        statusText =
+          "🚀 上升中";
+
+      }
+      else if(
+        p.status ===
+        "cashoutPending"
+      ){
+
+        statusText =
+          "💰 收錢確認中";
+
+      }
+      else if(
+        p.status ===
+        "cashed"
+      ){
+
+        statusText =
+          "✅ 已收錢 · " +
+          p.cashoutMultiplier.toFixed(2) +
+          "x";
+
+      }
+      else if(
+        p.status ===
+        "crashed"
+      ){
+
+        statusText =
+          "💥 CRASH";
+
+      }
+      else if(
+        p.status ===
+        "watching"
+      ){
+
+        statusText =
+          "觀戰 · 下一局可加入";
+
+      }
+
+      let payoutHtml =
+        "";
+
+      if(
+        p.status ===
+        "cashed"
+      ){
+
+        payoutHtml =
+          `
+            <div
+              class="player-payout win">
+              +${money(p.payout)} 🪙
+            </div>
+          `;
+
+      }
+      else if(
+        p.status ===
+        "crashed"
+      ){
+
+        payoutHtml =
+          `
+            <div
+              class="player-payout loss">
+              0 🪙
+            </div>
+          `;
+
+      }
+
+      row.innerHTML = `
+
+        <div class="avatar">
+          ${avatarHtml(p)}
+        </div>
+
+        <div
+          class="player-main">
+
+          <div class="player-name">
+
+            <div class="name-text">
+              ${escapeHtml(
+                safeName(
+                  p.username
+                )
+              )}
+            </div>
+
+            ${
+              p.id === ME
+              ? `
+                <span class="badge">
+                  你
+                </span>
+              `
+              : ""
+            }
+
+            ${
+              p.id === hostId
+              ? `
+                <span class="badge">
+                  房主
+                </span>
+              `
+              : ""
+            }
+
+          </div>
+
+          <div class="player-meta">
+            ${escapeHtml(
+              statusText
+            )}
+          </div>
+
+          ${payoutHtml}
+
+        </div>
+
+        <div
+          class="player-right">
+
+          ${
+            p.bet > 0
+            ? `
+              <div class="player-bet">
+                ${money(p.bet)} 🪙
+              </div>
+            `
+            : `
+              <div
+                class="player-bet"
+                style="color:#555b70">
+                —
+              </div>
+            `
+          }
+
+        </div>
+
+      `;
+
+      playerList.appendChild(
+        row
+      );
+
+    }
+  );
+
+}
+
+
+function renderControls(){
+
+  const me =
+    players[ME];
+
+  const bet =
+    me?.bet || 0;
+
+  myStatus.textContent =
+    bet
+      ? "Entry " +
+        money(bet) +
+        " 🪙"
+      : "尚未下注";
+
+  document
+    .querySelectorAll(
+      ".bet-button"
+    )
+    .forEach(
+      button => {
+
+        const amount =
+          Number(
+            button.dataset.bet
+          );
+
+        button.classList.toggle(
+          "selected",
+          selectedBet === amount
+        );
+
+        button.disabled =
+          isPurchasing ||
+          !!bet ||
+          !(
+            gameState ===
+              STATES.LOBBY ||
+            gameState ===
+              STATES.BETTING
+          );
+
+      }
+    );
+
+
+  mainAction.className =
+    "main-action";
+
+  let label =
+    "請先選擇 Entry";
+
+  let disabled =
+    true;
+
+
+  if(
+    isPurchasing
+  ){
+
+    label =
+      "正在確認 Entry…";
+
+  }
+  else if(
+    gameState ===
+      STATES.LOBBY ||
+    gameState ===
+      STATES.BETTING ||
+    gameState ===
+      STATES.COUNTDOWN
+  ){
+
+    if(!bet){
+
+      label =
+        "請選擇下注";
+
+      disabled =
+        true;
+
+    }
+    else if(
+      isHost &&
+      bettingPlayers().length >= 2
+    ){
+
+      label =
+        gameState ===
+        STATES.COUNTDOWN
+          ? "🚀 立即起飛"
+          : "🚀 開始本局";
+
+      disabled =
+        false;
+
+    }
+    else{
+
+      label =
+        "等待其他玩家／房主…";
+
+      disabled =
+        true;
+
+    }
+
+  }
+  else if(
+    gameState ===
+    STATES.PLAYING
+  ){
+
+    if(
+      localCashoutLock.locked ||
+      me.status ===
+        "cashed"
+    ){
+
+      mainAction.classList.add(
+        "frozen"
+      );
+
+      label =
+        "✅ 已收錢 · " +
+        money(
+          localCashoutLock.payout ||
+          me.payout
+        ) +
+        " 🪙";
+
+      disabled =
+        true;
+
+    }
+    else if(
+      me.bet > 0 &&
+      me.status ===
+        "running"
+    ){
+
+      const elapsed =
+        Date.now() -
+        roundStartTime;
+
+      const qualified =
+        elapsed >=
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+        1000;
+
+      if(!qualified){
+
+        const remain =
+          Math.max(
+            0,
+            CONFIG.MIN_REWARD_QUALIFICATION_SECONDS -
+            Math.floor(
+              elapsed/1000
+            )
+          );
+
+        label =
+          "⏱️ " +
+          remain +
+          " 秒後開放收錢";
+
+        disabled =
+          true;
+
+      }
+      else{
+
+        mainAction.classList.add(
+          "cashout"
+        );
+
+        const potential =
+          calculatePayout(
+            me.bet,
+            currentMultiplier
+          );
+
+        label =
+          "💰 收錢 · " +
+          money(
+            potential
+          ) +
+          " 🪙";
+
+        disabled =
+          false;
+
+      }
+
+    }
+    else{
+
+      label =
+        "觀戰中";
+
+      disabled =
+        true;
+
+    }
+
+  }
+  else if(
+    gameState ===
+    STATES.RESULT
+  ){
+
+    mainAction.classList.add(
+      "crashed"
+    );
+
+    label =
+      "本局已結束";
+
+    disabled =
+      true;
+
+  }
+
+
+  mainAction.querySelector(
+    "span"
+  ).textContent =
+    label;
+
+  mainAction.disabled =
+    disabled;
+
+}
+
+
+/* =========================================================
+   GAME RENDER LOOP
+   ========================================================= */
+
+let lastFrame =
+  performance.now();
+
+let fpsTimer =
+  performance.now();
+
+let frameCounter =
+  0;
+
+let measuredFPS =
+  60;
+
+
+function gameFrame(
+  timestamp
+){
+
+  const rawDt =
+    (
+      timestamp -
+      lastFrame
+    ) / 1000;
+
+  const dt =
+    Math.min(
+      Math.max(
+        rawDt,
+        0
+      ),
+      .033
+    );
+
+  lastFrame =
+    timestamp;
+
+  frameCounter++;
+
+  if(
+    timestamp -
+    fpsTimer >=
+    1000
+  ){
+
+    measuredFPS =
+      frameCounter;
+
+    frameCounter =
+      0;
+
+    fpsTimer =
+      timestamp;
+
+    /*
+      Adaptive visual effects.
+      Gameplay logic remains unchanged.
+    */
+
+    if(
+      measuredFPS < 40
+    ){
+
+      particleLevel =
+        12;
+
+    }
+    else if(
+      measuredFPS < 50
+    ){
+
+      particleLevel =
+        24;
+
+    }
+    else{
+
+      particleLevel =
+        CONFIG.MAX_PARTICLES;
+
+    }
+
+  }
+
+  updateGame(
+    timestamp,
+    dt
+  );
+
+  requestAnimationFrame(
+    gameFrame
+  );
+
+}
+
+
+function updateGame(
+  timestamp,
+  dt
+){
+
+  const now =
+    Date.now();
+
+  if(
+    gameState ===
+      STATES.COUNTDOWN ||
+    gameState ===
+      STATES.BETTING
+  ){
+
+    if(
+      bettingDeadline &&
+      now >=
+        bettingDeadline
+    ){
+
+      bettingDeadline =
+        0;
+
+      if(
+        isHost &&
+        bettingPlayers().length >= 2
+      ){
+
+        countdownStarted =
+          false;
+
+        startRoundAsHost();
+
+      }else{
+
+        countdownStarted =
+          false;
+
+        gameState =
+          STATES.BETTING;
+
+      }
+
+    }
+
+  }
+
+
+  if(
+    gameState ===
+    STATES.PLAYING
+  ){
+
+    /*
+      Host authoritative time check.
+      This still works after FPS drops
+      because it uses Date.now().
+    */
+
+    currentMultiplier =
+      currentMultiplierAt(
+        now
+      );
+
+    if(
+      isHost &&
+      hostState.crashPoint != null &&
+      !hostState.settled
+    ){
+
+      if(
+        currentMultiplier >=
+        hostState.crashPoint
+      ){
+
+        hostCrash();
+
+      }
+      else if(
+        crashDeadline &&
+        now >=
+          crashDeadline
+      ){
+
+        hostCrash();
+
+      }
+
+    }
+
+    updateMultiplierUI();
+
+  }
+
+
+  cleanupInactivePlayersLight();
+
+}
+
+
+let cleanupCounter =
+  0;
+
+
+function cleanupInactivePlayersLight(){
+
+  cleanupCounter++;
+
+  if(
+    cleanupCounter <
+    45
+  ){
+
+    return;
+
+  }
+
+  cleanupCounter =
+    0;
+
+  cleanupInactivePlayers();
+
+}
+
+
+/* =========================================================
+   MULTIPLIER UI
+   ========================================================= */
+
+let lastWarningSecond =
+  -1;
+
+
+function updateMultiplierUI(){
+
+  if(
+    gameState !==
+    STATES.PLAYING
+  ){
+
+    return;
+
+  }
+
+  const value =
+    clamp(
+      currentMultiplier,
+      1,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  multiplier.textContent =
+    value.toFixed(2) +
+    "x";
+
+  multiplier.className =
+    "multiplier";
+
+  if(
+    value >= 5
+  ){
+
+    multiplier.classList.add(
+      "danger"
+    );
+
+  }
+  else if(
+    value >= 2.5
+  ){
+
+    multiplier.classList.add(
+      "warning"
+    );
+
+  }
+
+  const elapsed =
+    Math.max(
+      0,
+      Date.now() -
+      roundStartTime
+    );
+
+  const qualified =
+    elapsed >=
+    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+    1000;
+
+  if(
+    !qualified
+  ){
+
+    const remaining =
+      Math.max(
+        0,
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS -
+        Math.floor(
+          elapsed / 1000
+        )
+      );
+
+    multiplierCaption.textContent =
+      "⏱️ " +
+      remaining +
+      " 秒後開放收錢";
+
+    if(
+      remaining !==
+      lastWarningSecond
+    ){
+
+      lastWarningSecond =
+        remaining;
+
+      if(
+        remaining <= 3 &&
+        remaining >= 1
+      ){
+
+        soundWarning();
+
+      }
+
+    }
+
+  }
+  else{
+
+    multiplierCaption.textContent =
+      players[ME]?.status ===
+      "running"
+
+        ? "現在可以收錢"
+
+        : "電梯正在升空";
+
+  }
+
+
+  /*
+    Cosmetic elevator movement.
+  */
+
+  const seconds =
+    elapsed / 1000;
+
+  const progress =
+    Math.min(
+      84,
+      8 +
+      seconds * 6.2
+    );
+
+  elevator.style.bottom =
+    progress +
+    "%";
+
+}
+
+
+/* =========================================================
+   RESULT SCREEN
+   ========================================================= */
+
+function showResult(){
+
+  if(
+    resultModalShown
+  ){
+
+    return;
+
+  }
+
+  resultModalShown =
+    true;
+
+  const result =
+    resultData || {
+      rows:[],
+      crashPoint:
+        publicCrashPoint || 1
+    };
+
+  const rows =
+    Array.isArray(
+      result.rows
+    )
+      ? result.rows
+      : [];
+
+  const me =
+    rows.find(
+      r =>
+        String(r.id) ===
+        ME
+    );
+
+  const winner =
+    rows.find(
+      r =>
+        Number(r.payout) > 0
+    );
+
+  const crash =
+    clamp(
+      result.crashPoint,
+      CONFIG.MIN_CRASH_MULTIPLIER,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+  if(
+    me &&
+    me.payout > 0
+  ){
+
+    resultIcon.textContent =
+      "🏆";
+
+    resultTitle.textContent =
+      "你成功收錢！";
+
+    resultSubtitle.textContent =
+      "本局爆在 " +
+      crash.toFixed(2) +
+      "x";
+
+    highlightName.textContent =
+      "🎉 " +
+      safeName(
+        me.username
+      );
+
+    highlightPayout.textContent =
+      "+" +
+      money(me.payout) +
+      " 🪙";
+
+    soundVictory();
+
+    spawnParticles(
+      particleLevel
+    );
+
+  }else{
+
+    resultIcon.textContent =
+      "💥";
+
+    resultTitle.textContent =
+      "電梯 CRASH！";
+
+    resultSubtitle.textContent =
+      "本局爆在 " +
+      crash.toFixed(2) +
+      "x";
+
+    if(
+      winner
+    ){
+
+      highlightName.textContent =
+        "🏆 " +
+        safeName(
+          winner.username
+        );
+
+      highlightPayout.textContent =
+        "+" +
+        money(
+          winner.payout
+        ) +
+        " 🪙";
+
+    }else{
+
+      highlightName.textContent =
+        "本局沒有成功收錢";
+
+      highlightPayout.textContent =
+        "0 🪙";
+
+    }
+
+  }
+
+  resultList.innerHTML =
+    "";
+
+  rows.forEach(
+    (r,index) => {
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "result-row";
+
+      let rank;
+
+      if(index === 0){
+        rank = "🥇";
+      }else if(index === 1){
+        rank = "🥈";
+      }else if(index === 2){
+        rank = "🥉";
+      }else{
+        rank =
+          String(index + 1);
+      }
+
+      const payout =
+        clampInt(
+          r.payout,
+          0,
+          CONFIG.MAX_PAYOUT
+        );
+
+      const cashout =
+        clamp(
+          r.multiplier,
+          0,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+
+      const payoutText =
+        payout > 0
+          ? "+" +
+            money(payout) +
+            " 🪙"
+          : "0 🪙";
+
+      const payoutClass =
+        payout > 0
+          ? "win"
+          : "zero";
+
+      row.innerHTML = `
+
+        <div class="result-rank">
+          ${rank}
+        </div>
+
+        <div class="avatar">
+
+          ${
+            r.avatar
+            ? `
+              <img
+                src="${escapeHtml(r.avatar)}"
+                alt="">
+            `
+            : escapeHtml(
+                String(
+                  r.username ||
+                  "?"
+                ).charAt(0)
+              )
+          }
+
+        </div>
+
+        <div
+          style="min-width:0">
+
+          <div class="result-name">
+            ${escapeHtml(
+              safeName(
+                r.username
+              )
+            )}
+          </div>
+
+          <div class="result-detail">
+            Entry ${money(r.bet)} 🪙
+            ${
+              cashout > 0
+                ? " · 收在 " +
+                  cashout.toFixed(2) +
+                  "x"
+                : " · CRASH"
+            }
+          </div>
+
+        </div>
+
+        <div
+          class="result-money ${payoutClass}">
+          ${payoutText}
+        </div>
+
+      `;
+
+      resultList.appendChild(
+        row
+      );
+
+    }
+  );
+
+  resultModal.classList.add(
+    "show"
+  );
+
+}
+
+
+/* =========================================================
+   RESULT CLOSE
+   ========================================================= */
+
+resultClose.addEventListener(
+  "pointerdown",
+  () => {
+
+    ensureAudio();
+
+    soundClick();
+
+    resultModal.classList.remove(
+      "show"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   HELP
+   ========================================================= */
+
+helpBtn.addEventListener(
+  "pointerdown",
+  () => {
+
+    ensureAudio();
+
+    soundClick();
+
+    helpPanel.classList.add(
+      "show"
+    );
+
+  }
+);
+
+
+closeHelp.addEventListener(
+  "pointerdown",
+  () => {
+
+    soundClick();
+
+    helpPanel.classList.remove(
+      "show"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   DEBUG
+   ========================================================= */
+
+function debugInfo(){
+
+  if(!CONFIG.DEBUG){
+
+    return;
+
+  }
+
+  console.log({
+    GAME_INFO,
+
+    gameState,
+
+    roundId,
+
+    hostId,
+
+    isHost,
+
+    playerCount:
+      Object.keys(players).length,
+
+    multiplier:
+      currentMultiplier,
+
+    crashPoint:
+      publicCrashPoint,
+
+    fps:
+      measuredFPS
+
+  });
+
+}
+
+
+setInterval(
+  debugInfo,
+  3000
+);
+
+
+/* =========================================================
+   VISIBILITY
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if(
+      !document.hidden
+    ){
+
+      /*
+        Catch up immediately
+        after background throttling.
+      */
+
+      if(
+        isHost &&
+        gameState ===
+          STATES.PLAYING
+      ){
+
+        const now =
+          Date.now();
+
+        currentMultiplier =
+          currentMultiplierAt(
+            now
+          );
+
+        if(
+          hostState.crashPoint != null &&
+          currentMultiplier >=
+            hostState.crashPoint
+        ){
+
+          hostCrash();
+
+        }
+
+      }
+
+      renderAll();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   DEV MODE
+   ========================================================= */
+
+const DEV_MODE =
+  !SDK_AVAILABLE;
+
+if(
+  DEV_MODE
+){
+
+  app.classList.add(
+    "dev-mode"
+  );
+
+}
+
+
+/*
+  明確的開發測試機器人。
+  不冒充真人，不顯示假玩家身份。
+*/
+
+function createDevBots(){
+
+  if(
+    !DEV_MODE
+  ){
+
+    return;
+
+  }
+
+  setTimeout(
+    () => {
+
+      addPlayer({
+
+        id:
+          "BOT_TEST_1",
+
+        username:
+          "測試機器人 A",
+
+        avatar:"",
+
+        joinedAt:
+          players[ME].joinedAt + 1
+
+      });
+
+      addPlayer({
+
+        id:
+          "BOT_TEST_2",
+
+        username:
+          "測試機器人 B",
+
+        avatar:"",
+
+        joinedAt:
+          players[ME].joinedAt + 2
+
+      });
+
+      renderAll();
+
+    },
+    600
+  );
+
+}
+
+
+function devBotBet(){
+
+  if(
+    !DEV_MODE
+  ){
+
+    return;
+
+  }
+
+  if(
+    gameState !==
+      STATES.BETTING &&
+    gameState !==
+      STATES.LOBBY
+  ){
+
+    return;
+
+  }
+
+  const botA =
+    players.BOT_TEST_1;
+
+  const botB =
+    players.BOT_TEST_2;
+
+  if(
+    botA &&
+    botA.bet <= 0
+  ){
+
+    botA.bet =
+      500;
+
+    botA.status =
+      "ready";
+
+    sendDevLocalBet(
+      botA,
+      500
+    );
+
+  }
+
+  if(
+    botB &&
+    botB.bet <= 0
+  ){
+
+    botB.bet =
+      1000;
+
+    botB.status =
+      "ready";
+
+    sendDevLocalBet(
+      botB,
+      1000
+    );
+
+  }
+
+  renderAll();
+
+  if(
+    isHost
+  ){
+
+    maybeStartCountdown();
+
+  }
+
+}
+
+
+function sendDevLocalBet(
+  bot,
+  amount
+){
+
+  handleEvent(
+    "BET_PLACED",
+    {
+
+      eventId:
+        createEventId(),
+
+      roundId,
+
+      playerId:
+        bot.id,
+
+      username:
+        bot.username,
+
+      avatar:"",
+
+      joinedAt:
+        bot.joinedAt,
+
+      amount
+
+    },
+    bot.id,
+    true
+  );
+
+}
+
+
+/* =========================================================
+   DEV BOT CASHOUT
+   ========================================================= */
+
+let devBotActionAt =
+  0;
+
+
+function updateDevBots(){
+
+  if(
+    !DEV_MODE ||
+    !isHost ||
+    gameState !==
+    STATES.PLAYING
+  ){
+
+    return;
+
+  }
+
+  const now =
+    Date.now();
+
+  if(
+    now -
+    devBotActionAt <
+    600
+  ){
+
+    return;
+
+  }
+
+  devBotActionAt =
+    now;
+
+  [
+    "BOT_TEST_1",
+    "BOT_TEST_2"
+
+  ].forEach(
+    id => {
+
+      const bot =
+        players[id];
+
+      if(
+        !bot ||
+        bot.status !==
+          "running"
+      ){
+
+        return;
+
+      }
+
+      const elapsed =
+        now -
+        roundStartTime;
+
+      if(
+        elapsed <
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
+        1000
+      ){
+
+        return;
+
+      }
+
+      /*
+        Development-only behavior.
+      */
+
+      let chance =
+        .015;
+
+      if(
+        currentMultiplier >
+        2
+      ){
+
+        chance =
+          .05;
+
+      }
+
+      if(
+        currentMultiplier >
+        4
+      ){
+
+        chance =
+          .12;
+
+      }
+
+      if(
+        Math.random() <
+        chance
+      ){
+
+        handleEvent(
+          "PLAYER_CASHOUT",
+          {
+
+            eventId:
+              createEventId(),
+
+            roundId,
+
+            playerId:id
+
+          },
+          id,
+          true
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   MAIN FRAME
+   ========================================================= */
+
+function wrappedFrame(
+  timestamp
+){
+
+  if(
+    !document.hidden
+  ){
+
+    updateDevBots();
+
+  }
+
+  gameFrame(
+    timestamp
+  );
+
+}
+
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+
+function boot(){
+
+  createStars();
+
+  if(
+    DEV_MODE
+  ){
+
+    gameState =
+      STATES.BETTING;
+
+    toast(
+      "🧪 開發測試模式：未連接 BoomRoom SDK",
+      3600
+    );
+
+  }else{
+
+    gameState =
+      STATES.LOBBY;
+
+    toast(
+      "🟢 BoomRoom 已連線",
+      2400
+    );
+
+  }
+
+  renderAll();
+
+  showStageMessage(
+    "🚀 霓虹電梯",
+    "觀察倍率 · 10 秒後收錢",
+    1200
+  );
+
+  sendHello();
+
+  /*
+    讓自己參與房主候選。
+  */
+
+  setTimeout(
+    () => {
+
+      if(
+        !hostLocked
+      ){
+
+        electHost();
+
+      }
+
+    },
+    900
+  );
+
+  if(
+    DEV_MODE
+  ){
+
+    createDevBots();
+
+    setTimeout(
+      devBotBet,
+      1600
+    );
+
+  }
+
+  /*
+    Host may need countdown after
+    development bots appear.
+  */
+
+  setTimeout(
+    () => {
+
+      if(
+        isHost
+      ){
+
+        maybeStartCountdown();
+
+      }
+
+    },
+    2500
+  );
+
+  requestAnimationFrame(
+    wrappedFrame
+  );
+
+}
+
+
+/* =========================================================
+   INITIAL USER REGISTRATION
+   ========================================================= */
+
+addPlayer({
+
+  id:ME,
+
+  username:
+    user.username,
+
+  avatar:
+    user.avatar,
+
+  joinedAt:
+    players[ME].joinedAt
+
+});
+
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+
+boot();
+
+</script>
+
+</body>
+</html>

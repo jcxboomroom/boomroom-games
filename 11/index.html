@@ -3,563 +3,1960 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#070810">
-<title>Hot Potato Bomb 2｜霓虹燙手炸彈</title>
+<meta name="theme-color" content="#05060b">
+<meta name="color-scheme" content="dark">
+<title>Hot Potato Bomb 3｜霓虹燙手炸彈</title>
 <style>
 :root{
-  --bg:#06070c;--panel:rgba(14,17,29,.84);--panel2:rgba(20,23,39,.9);
-  --line:rgba(103,255,238,.16);--cyan:#63fff0;--pink:#ff4fd8;--purple:#9d63ff;
-  --red:#ff526b;--yellow:#ffd166;--green:#63ff9a;--blue:#69a8ff;
-  --text:#f7f8ff;--muted:#9ba4bf;--shadow:0 18px 60px rgba(0,0,0,.48);
-  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)
+  --bg:#05060b;
+  --panel:rgba(13,16,28,.9);
+  --panel2:rgba(19,22,37,.94);
+  --line:rgba(100,255,239,.16);
+  --cyan:#63fff0;
+  --pink:#ff4fd8;
+  --purple:#a56cff;
+  --red:#ff526b;
+  --yellow:#ffd166;
+  --green:#63ff9a;
+  --blue:#6ba8ff;
+  --orange:#ff9e64;
+  --text:#f7f8ff;
+  --muted:#99a3bd;
+  --shadow:0 18px 60px rgba(0,0,0,.52);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
-body{touch-action:manipulation}button{font:inherit}
-#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.68}
-.app{position:relative;z-index:1;width:100%;height:100%;display:flex;justify-content:center;padding:calc(7px + var(--safe-top)) 9px calc(8px + var(--safe-bottom))}
-.shell{width:min(780px,100%);height:100%;display:flex;flex-direction:column;gap:7px}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 9px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(20,24,41,.9),rgba(9,11,19,.84));backdrop-filter:blur(15px);border-radius:18px;box-shadow:var(--shadow)}
-.brand{display:flex;align-items:center;gap:9px;min-width:0}.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:radial-gradient(circle at 35% 27%,#fff 0 3px,#ffd166 4px 8px,#ff4f7a 20%,#7b2dff 70%);box-shadow:0 0 30px rgba(255,79,216,.42),inset 0 0 18px rgba(255,255,255,.18);font-size:20px}.brand h1{margin:0;font-size:15px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{display:block;color:var(--muted);font-size:9px;margin-top:1px}
-.user-chip{display:flex;align-items:center;gap:8px;min-width:0}.user-text{max-width:126px;text-align:right;min-width:0}.user-text strong{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.user-text span{display:block;color:var(--muted);font-size:8px;margin-top:2px}.avatar{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2f2c59,#152a3f);border:1px solid rgba(255,255,255,.15);overflow:hidden;font-size:11px;font-weight:900;flex:0 0 auto}.avatar img{width:100%;height:100%;object-fit:cover}
-.panel{border:1px solid var(--line);background:linear-gradient(180deg,rgba(15,18,30,.89),rgba(9,11,19,.84));border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(14px)}
-.hero{position:relative;overflow:hidden;padding:11px 13px 9px}.hero:before{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 50% 28%,rgba(255,79,216,.13),transparent 33%),radial-gradient(circle at 18% 70%,rgba(99,255,240,.09),transparent 35%);pointer-events:none}
-.phase-row{position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px}.pill{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:10px;color:#e0e5ff}.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}.dot.live{background:var(--red);box-shadow:0 0 14px var(--red)}.dot.result{background:var(--yellow);box-shadow:0 0 14px var(--yellow)}.round-label{font-size:9px;color:var(--muted);letter-spacing:.08em}
-.timer-wrap{position:relative;text-align:center;padding:5px 0 0}.timer-title{font-size:10px;color:var(--muted);letter-spacing:.15em}.timer{font-variant-numeric:tabular-nums;font-size:clamp(34px,10vw,56px);font-weight:950;line-height:1;margin-top:2px;text-shadow:0 0 22px rgba(255,79,216,.36)}.timer.safe{color:var(--cyan)}.timer.hot{color:#ff7a86;text-shadow:0 0 24px rgba(255,82,107,.75)}.timer.result{color:var(--yellow)}.substatus{min-height:15px;color:var(--muted);font-size:9px;text-align:center;margin-top:4px}
-.chaos-chip{position:relative;display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:5px 9px;border-radius:999px;border:1px solid rgba(157,99,255,.28);background:rgba(157,99,255,.09);font-size:8px;color:#d8ccff}.chaos-chip b{color:#fff}
-.bomb-stage{position:relative;min-height:225px;padding:6px 0 1px;display:grid;place-items:center}.bomb-glow{position:absolute;width:min(288px,67vw);height:min(288px,67vw);border-radius:50%;background:radial-gradient(circle,rgba(255,79,216,.13),rgba(108,45,255,.06) 42%,transparent 72%);filter:blur(7px);transition:transform .22s ease}.bomb{position:relative;width:min(174px,44vw);height:min(174px,44vw);border-radius:50%;background:radial-gradient(circle at 36% 26%,#52546b 0 6%,#1c1e2a 24%,#0f1219 62%,#07080d 100%);border:1px solid rgba(255,255,255,.1);box-shadow:inset -16px -18px 30px rgba(0,0,0,.7),inset 14px 8px 24px rgba(255,255,255,.06),0 0 0 8px rgba(255,79,216,.06),0 0 50px rgba(255,79,216,.24);transition:box-shadow .2s ease}
-.bomb:before{content:"";position:absolute;inset:14%;border-radius:50%;border:1px dashed rgba(255,255,255,.08)}.bomb-core{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:42%;height:42%;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff 0 4%,#ff90b8 8%,#ff416b 38%,#8d1638 70%,#310616 100%);box-shadow:0 0 18px rgba(255,64,107,.9),0 0 55px rgba(255,64,107,.46),inset -8px -10px 15px rgba(0,0,0,.4)}.bomb-core:after{content:"";position:absolute;inset:23%;border-radius:50%;background:#0a0a0e;box-shadow:0 0 12px rgba(255,209,102,.8)}
-.fuse{position:absolute;left:74%;top:10%;width:24%;height:45px;transform:rotate(22deg);transform-origin:bottom center}.fuse:before{content:"";position:absolute;bottom:0;left:50%;width:5px;height:39px;background:linear-gradient(#3b3c45,#0d0e12);border-radius:4px;transform:translateX(-50%)}.spark{position:absolute;top:-1px;left:50%;width:12px;height:12px;border-radius:50%;background:#ffd166;box-shadow:0 0 7px #ffd166,0 0 20px #ff4fd8;transform:translateX(-50%);opacity:.92}
-.holder-badge{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:7px 11px;border:1px solid rgba(255,79,216,.3);background:rgba(10,9,18,.86);border-radius:999px;font-size:10px;box-shadow:0 0 22px rgba(255,79,216,.16);white-space:nowrap}.holder-badge b{color:#ff9bb1}.shield-mark{color:var(--cyan)}
-.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:5px}.stat{padding:7px 7px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.022);text-align:center}.stat b{display:block;font-size:11px}.stat span{display:block;color:var(--muted);font-size:7px;margin-top:2px}
-.sections{display:grid;grid-template-columns:1.05fr .95fr;gap:7px;min-height:0;flex:1;overflow:hidden}.compact{padding:9px;min-height:0}.controls{padding:9px;min-height:0;display:flex;flex-direction:column;gap:7px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.section-title strong{font-size:11px;letter-spacing:.06em}.section-title span{color:var(--muted);font-size:8px}
-.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:100%;overflow:auto;padding-right:1px}.player{position:relative;min-width:0;padding:7px;border:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.025);border-radius:13px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;transition:.15s}.player.me{border-color:rgba(99,255,240,.28)}.player.holder{border-color:rgba(255,82,107,.55);background:rgba(255,82,107,.08);box-shadow:0 0 18px rgba(255,82,107,.11)}.player.out{opacity:.56}.player .name{min-width:0}.player .name strong{display:block;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player .name span{display:block;font-size:7px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bet{font-size:9px;font-weight:850;color:var(--yellow);white-space:nowrap}.badge-small{position:absolute;right:6px;top:4px;font-size:6px;color:var(--muted);letter-spacing:.05em}.mini{position:absolute;left:7px;bottom:4px;font-size:7px;color:#d7ddff}.mini.combo{color:#ffaf43}.mini.item{color:var(--cyan)}
-.bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.btn{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:var(--text);border-radius:12px;padding:10px 7px;font-weight:850;font-size:9px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease,opacity .12s ease}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.33;cursor:default}.btn.bet{background:linear-gradient(180deg,rgba(255,209,102,.16),rgba(255,255,255,.035));border-color:rgba(255,209,102,.28)}.btn.start{background:linear-gradient(90deg,rgba(255,79,216,.25),rgba(157,99,255,.22));border-color:rgba(255,79,216,.4);box-shadow:0 0 22px rgba(255,79,216,.13)}.btn.pass{background:linear-gradient(90deg,rgba(255,82,107,.2),rgba(255,79,216,.15));border-color:rgba(255,82,107,.38)}.btn.cyan{background:rgba(99,255,240,.07);border-color:rgba(99,255,240,.23)}
-.items-title{display:flex;align-items:center;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:1px}.item-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.item-btn{min-height:56px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px}.item-btn .ico{font-size:18px;line-height:1}.item-btn b{font-size:8px}.item-btn span{font-size:7px;color:var(--muted)}
-.taunts{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.taunt{padding:8px 4px;font-size:8px;background:rgba(255,255,255,.035)}
-.pass-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:125px;overflow:auto}.pass-target{display:flex;align-items:center;gap:6px;text-align:left}.pass-target .target-meta{min-width:0;flex:1}.pass-target .target-meta strong{display:block;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pass-target .target-meta span{display:block;font-size:7px;color:var(--muted);margin-top:1px}
-.notice{font-size:8px;color:var(--muted);text-align:center;line-height:1.4;min-height:11px}
-.result-mini{display:flex;flex-direction:column;gap:5px;max-height:205px;overflow:auto}.result-row{display:grid;grid-template-columns:27px 1fr auto;align-items:center;gap:6px;padding:7px;border:1px solid rgba(255,255,255,.065);background:rgba(255,255,255,.022);border-radius:11px}.rank{font-size:14px;text-align:center}.result-name strong{display:block;font-size:9px}.result-name span{display:block;font-size:7px;color:var(--muted);margin-top:1px}.result-amount{text-align:right;font-size:9px;font-weight:900}.result-amount.win{color:var(--green)}.result-amount.lose{color:#ff7689}.result-amount.score{display:block;color:#cbd1ea;font-size:7px;margin-top:2px}
-.footer{font-size:7px;color:rgba(194,199,222,.46);text-align:center;padding:1px 4px}.toast{position:fixed;left:50%;top:calc(64px + var(--safe-top));transform:translate(-50%,-10px);z-index:20;opacity:0;pointer-events:none;padding:9px 13px;border-radius:999px;background:rgba(10,11,19,.94);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 32px rgba(0,0,0,.45);font-size:9px;white-space:nowrap;transition:opacity .17s ease,transform .17s ease}.toast.show{opacity:1;transform:translate(-50%,0)}
-.pop{position:fixed;inset:0;z-index:18;display:none;place-items:center;background:rgba(0,0,0,.54);backdrop-filter:blur(7px)}.pop.show{display:grid}.pop-card{width:min(92vw,430px);padding:21px;border-radius:23px;border:1px solid rgba(255,255,255,.13);background:linear-gradient(180deg,rgba(25,28,45,.97),rgba(8,10,16,.985));box-shadow:0 24px 80px rgba(0,0,0,.62);text-align:center}.pop-card h2{margin:0;font-size:21px}.pop-card p{margin:8px 0 13px;color:var(--muted);font-size:10px;line-height:1.55}.pop-card .big{font-size:40px;font-weight:1000;text-shadow:0 0 25px rgba(99,255,154,.45)}.pop-rank{display:grid;gap:4px;margin:11px 0 15px;text-align:left}.pop-rank div{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.035);font-size:8px}.pop-rank div strong{font-size:9px}.pop-rank div em{font-style:normal;color:var(--muted)}
-.shake{animation:shake .18s linear infinite}.pulse{animation:pulse .42s ease-in-out infinite alternate}.flash{animation:flash .5s ease}.screen-chaos{animation:chaosFlash .7s ease}.lockmark{color:#ffab64}.shielded{box-shadow:0 0 28px rgba(99,255,240,.28),0 0 0 2px rgba(99,255,240,.1)}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;
+  background:var(--bg);color:var(--text);
+  font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;
+  -webkit-text-size-adjust:100%;
+}
+body{touch-action:manipulation}
+button{font:inherit;-webkit-user-select:none;user-select:none}
+.utility-btn{position:fixed;top:calc(8px + var(--safe-top));z-index:60;width:42px;height:42px;min-width:42px;min-height:42px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);border-radius:14px;color:var(--text);background:linear-gradient(180deg,rgba(23,27,45,.95),rgba(8,10,17,.94));box-shadow:0 10px 30px rgba(0,0,0,.42),0 0 18px rgba(99,255,240,.08);backdrop-filter:blur(12px);cursor:pointer;font-size:20px;line-height:1}
+.utility-btn:active{transform:scale(.94)}
+.utility-btn.sound{left:max(9px,env(safe-area-inset-left,0px) + 9px)}
+.utility-btn.help{right:max(9px,env(safe-area-inset-right,0px) + 9px);font-size:18px;font-weight:1000}
+.utility-btn.muted{color:#8f98ae;border-color:rgba(255,255,255,.08)}
+.utility-btn.help::after{content:"";position:absolute;inset:-4px;border-radius:17px;border:1px solid rgba(165,108,255,.08);pointer-events:none}
+.help-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:calc(62px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));background:rgba(0,0,0,.62);backdrop-filter:blur(9px)}
+.help-overlay.show{display:flex}
+.help-card{width:min(94vw,460px);max-height:min(82dvh,680px);overflow:auto;padding:18px 17px 15px;border:1px solid rgba(99,255,240,.18);border-radius:22px;background:linear-gradient(180deg,rgba(24,28,45,.98),rgba(8,10,17,.99));box-shadow:0 28px 100px rgba(0,0,0,.7)}
+.help-card h2{margin:0;font-size:20px;letter-spacing:.03em}
+.help-card .help-sub{margin:4px 0 12px;color:var(--muted);font-size:9px;line-height:1.5}
+.help-section{padding:10px 0;border-top:1px solid rgba(255,255,255,.07)}
+.help-section:first-of-type{border-top:0;padding-top:0}
+.help-section h3{margin:0 0 5px;font-size:11px}
+.help-section p{margin:0;color:#d1d6e8;font-size:9px;line-height:1.65}
+.help-section b{color:#fff}
+.help-close{margin-top:10px;width:100%}
+.demo-badge{position:fixed;left:50%;top:calc(56px + var(--safe-top));transform:translateX(-50%);z-index:55;padding:6px 9px;border-radius:999px;border:1px solid rgba(255,209,102,.25);background:rgba(42,34,13,.88);color:#ffe29a;font-size:8px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.35);pointer-events:none}
+@media (max-width:360px){.utility-btn{width:38px;height:38px;min-width:38px;min-height:38px;font-size:18px}.utility-btn.help{font-size:17px}.demo-badge{font-size:7px}}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.app{
+  position:relative;z-index:1;width:100%;height:100dvh;min-height:100vh;
+  display:flex;justify-content:center;
+  padding:calc(7px + var(--safe-top)) 9px calc(8px + var(--safe-bottom));
+}
+.shell{width:min(780px,100%);height:100%;display:flex;flex-direction:column;gap:7px;min-height:0}
+.topbar{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 9px;border:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(20,24,41,.94),rgba(8,10,17,.9));
+  backdrop-filter:blur(14px);border-radius:18px;box-shadow:var(--shadow)
+}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}.logo{width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto;border-radius:13px;background:radial-gradient(circle at 35% 27%,#fff 0 3px,#ffd166 4px 8px,#ff4f7a 20%,#7b2dff 70%);box-shadow:0 0 28px rgba(255,79,216,.42),inset 0 0 18px rgba(255,255,255,.16);font-size:20px}.brand h1{margin:0;font-size:14px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{display:block;color:var(--muted);font-size:8px;margin-top:1px}.user-chip{display:flex;align-items:center;gap:7px;min-width:0}.user-text{max-width:125px;text-align:right;min-width:0}.user-text strong{display:block;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.user-text span{display:block;color:var(--muted);font-size:7px;margin-top:2px}.avatar{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2f2c59,#152a3f);border:1px solid rgba(255,255,255,.15);overflow:hidden;font-size:10px;font-weight:900;flex:0 0 auto}.avatar img{width:100%;height:100%;object-fit:cover}
+.panel{border:1px solid var(--line);background:linear-gradient(180deg,rgba(15,18,30,.92),rgba(8,10,17,.88));border-radius:20px;box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+.hero{position:relative;overflow:hidden;padding:10px 12px 8px;flex:0 0 auto}.hero:before{content:"";position:absolute;inset:-30%;background:radial-gradient(circle at 50% 28%,rgba(255,79,216,.12),transparent 33%),radial-gradient(circle at 18% 70%,rgba(99,255,240,.075),transparent 34%);pointer-events:none}
+.phase-row{position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px}.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);font-size:9px;color:#e5e9ff}.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}.dot.live{background:var(--red);box-shadow:0 0 14px var(--red)}.dot.result{background:var(--yellow);box-shadow:0 0 14px var(--yellow)}.round-label{font-size:8px;color:var(--muted);letter-spacing:.1em}
+.timer-wrap{position:relative;text-align:center;padding:4px 0 0}.timer-title{font-size:9px;color:var(--muted);letter-spacing:.14em}.timer{font-variant-numeric:tabular-nums;font-size:clamp(30px,9.5vw,52px);font-weight:950;line-height:1;margin-top:2px;text-shadow:0 0 22px rgba(255,79,216,.35)}.timer.safe{color:var(--cyan)}.timer.hot{color:#ff7888;text-shadow:0 0 24px rgba(255,82,107,.72)}.timer.result{color:var(--yellow)}.substatus{min-height:14px;color:var(--muted);font-size:8px;text-align:center;margin-top:3px}
+.event-chip{position:relative;display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:5px 8px;border-radius:999px;border:1px solid rgba(165,108,255,.3);background:rgba(165,108,255,.09);font-size:7px;color:#dcd2ff}.event-chip b{color:#fff}
+.bomb-stage{position:relative;min-height:205px;padding:5px 0 1px;display:grid;place-items:center}.bomb-glow{position:absolute;width:min(280px,66vw);height:min(280px,66vw);border-radius:50%;background:radial-gradient(circle,rgba(255,79,216,.12),rgba(108,45,255,.05) 42%,transparent 72%);filter:blur(7px);transform:scale(.94)}.bomb{position:relative;width:min(164px,42vw);height:min(164px,42vw);border-radius:50%;background:radial-gradient(circle at 36% 26%,#52546b 0 6%,#1c1e2a 24%,#0f1219 62%,#07080d 100%);border:1px solid rgba(255,255,255,.1);box-shadow:inset -16px -18px 30px rgba(0,0,0,.7),inset 14px 8px 24px rgba(255,255,255,.06),0 0 0 8px rgba(255,79,216,.05),0 0 50px rgba(255,79,216,.23)}.bomb:before{content:"";position:absolute;inset:14%;border-radius:50%;border:1px dashed rgba(255,255,255,.08)}.bomb-core{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:42%;height:42%;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fff 0 4%,#ff90b8 8%,#ff416b 38%,#8d1638 70%,#310616 100%);box-shadow:0 0 18px rgba(255,64,107,.9),0 0 55px rgba(255,64,107,.42),inset -8px -10px 15px rgba(0,0,0,.4)}.bomb-core:after{content:"";position:absolute;inset:23%;border-radius:50%;background:#0a0a0e;box-shadow:0 0 12px rgba(255,209,102,.82)}.fuse{position:absolute;left:74%;top:10%;width:24%;height:43px;transform:rotate(22deg);transform-origin:bottom center}.fuse:before{content:"";position:absolute;bottom:0;left:50%;width:5px;height:38px;background:linear-gradient(#3b3c45,#0d0e12);border-radius:4px;transform:translateX(-50%)}.spark{position:absolute;top:-1px;left:50%;width:12px;height:12px;border-radius:50%;background:#ffd166;box-shadow:0 0 7px #ffd166,0 0 20px #ff4fd8;transform:translateX(-50%)}.holder-badge{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid rgba(255,79,216,.29);background:rgba(9,8,17,.88);border-radius:999px;font-size:9px;box-shadow:0 0 20px rgba(255,79,216,.13);white-space:nowrap}.holder-badge b{color:#ff9bb1}.shield-mark{color:var(--cyan)}
+.stats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding-top:4px}.stat{padding:6px 6px;border-radius:11px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.022);text-align:center}.stat b{display:block;font-size:10px;line-height:1.1}.stat span{display:block;color:var(--muted);font-size:6px;margin-top:2px}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;min-height:0;flex:1;overflow:hidden}.players-panel,.control-panel{min-height:0;display:flex;flex-direction:column}.players-panel{padding:9px}.control-panel{padding:9px;gap:7px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex:0 0 auto}.section-title strong{font-size:10px;letter-spacing:.06em}.section-title span{color:var(--muted);font-size:7px}
+.players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;overflow:auto;min-height:0;align-content:start}.player{position:relative;min-width:0;padding:6px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);border-radius:12px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:5px;min-height:47px;transition:.14s}.player.me{border-color:rgba(99,255,240,.28)}.player.holder{border-color:rgba(255,82,107,.56);background:rgba(255,82,107,.075);box-shadow:0 0 18px rgba(255,82,107,.1)}.player.out{opacity:.55}.player .name{min-width:0}.player .name strong{display:block;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player .name span{display:block;font-size:6px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player .bet{font-size:8px;font-weight:850;color:var(--yellow);white-space:nowrap}.mini{position:absolute;left:7px;bottom:3px;font-size:6px;color:var(--cyan)}.mini.combo{color:var(--orange)}.badge-small{position:absolute;right:6px;top:3px;font-size:5px;color:var(--muted);letter-spacing:.05em}.online-mark{position:absolute;left:7px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green)}.offline-mark{position:absolute;left:7px;top:4px;width:5px;height:5px;border-radius:50%;background:#667084}
+.bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.btn{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:var(--text);border-radius:11px;padding:9px 6px;font-weight:850;font-size:8px;cursor:pointer;transition:transform .1s ease,box-shadow .1s ease,border-color .1s ease,opacity .1s ease}.btn:active{transform:scale(.97)}.btn:disabled{opacity:.3;cursor:default}.btn.bet{background:linear-gradient(180deg,rgba(255,209,102,.16),rgba(255,255,255,.035));border-color:rgba(255,209,102,.28)}.btn.start{background:linear-gradient(90deg,rgba(255,79,216,.25),rgba(165,108,255,.22));border-color:rgba(255,79,216,.4);box-shadow:0 0 20px rgba(255,79,216,.12)}.btn.pass{background:linear-gradient(90deg,rgba(255,82,107,.2),rgba(255,79,216,.14));border-color:rgba(255,82,107,.38)}.btn.cyan{background:rgba(99,255,240,.065);border-color:rgba(99,255,240,.22)}.btn.orange{background:rgba(255,158,100,.08);border-color:rgba(255,158,100,.25)}
+.items-title{display:flex;align-items:center;justify-content:space-between;font-size:7px;color:var(--muted);margin-top:1px}.item-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.item-btn{min-height:54px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px}.item-btn .ico{font-size:16px;line-height:1}.item-btn b{font-size:7px}.item-btn span:last-child{font-size:6px;color:var(--muted)}.item-btn.used{border-style:dashed}.item-btn.active-target{border-color:rgba(255,82,107,.45);box-shadow:0 0 14px rgba(255,82,107,.11)}
+.pass-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:120px;overflow:auto}.pass-target{display:flex;align-items:center;gap:6px;text-align:left;padding:7px}.target-meta{min-width:0;flex:1}.target-meta strong{display:block;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.target-meta span{display:block;font-size:6px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pass-target .avatar{width:25px;height:25px;font-size:8px}.quick-row{display:grid;grid-template-columns:1fr 1fr;gap:5px}.taunts{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.taunt{padding:7px 3px;font-size:7px}.hint{font-size:7px;color:var(--muted);line-height:1.45;text-align:center;min-height:22px}
+.result-panel{position:fixed;inset:0;z-index:20;display:none;place-items:center;padding:16px;background:rgba(0,0,0,.58);backdrop-filter:blur(7px)}.result-panel.show{display:grid}.result-card{width:min(93vw,430px);max-height:min(86dvh,620px);overflow:hidden;padding:17px;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(26,29,46,.97),rgba(8,10,16,.99));box-shadow:0 24px 80px rgba(0,0,0,.65)}.result-head{text-align:center}.result-head h2{margin:0;font-size:22px}.result-head .amount{margin-top:4px;font-size:36px;font-weight:1000;color:var(--green);text-shadow:0 0 24px rgba(99,255,154,.4)}.result-head p{margin:5px 0 12px;color:var(--muted);font-size:9px;line-height:1.5}.rank-list{display:flex;flex-direction:column;gap:5px;max-height:250px;overflow:auto}.rank-row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:6px;padding:7px 8px;border-radius:10px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.05)}.rank{font-size:14px;text-align:center}.rank-name strong{display:block;font-size:8px}.rank-name span{display:block;font-size:6px;color:var(--muted);margin-top:2px}.rank-right{text-align:right}.rank-right strong{display:block;font-size:9px}.rank-right span{display:block;color:var(--green);font-size:7px;margin-top:1px}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.toast{position:fixed;left:50%;top:calc(58px + var(--safe-top));transform:translate(-50%,-10px);z-index:30;opacity:0;pointer-events:none;max-width:90vw;padding:9px 12px;border-radius:999px;background:rgba(9,10,17,.95);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 32px rgba(0,0,0,.45);font-size:9px;white-space:nowrap;transition:opacity .16s ease,transform .16s ease}.toast.show{opacity:1;transform:translate(-50%,0)}.taunt-bubble{position:fixed;left:50%;top:calc(92px + var(--safe-top));transform:translate(-50%,-6px) scale(.96);z-index:25;opacity:0;pointer-events:none;padding:8px 12px;border-radius:14px;background:linear-gradient(180deg,rgba(22,24,39,.97),rgba(10,12,20,.97));border:1px solid rgba(99,255,240,.2);box-shadow:0 12px 34px rgba(0,0,0,.48);font-size:10px;transition:.16s}.taunt-bubble.show{opacity:1;transform:translate(-50%,0) scale(1)}.tutorial{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;padding:14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.46));pointer-events:none}.tutorial.show{display:flex}.tutorial-card{width:min(93vw,420px);padding:12px 14px;border:1px solid rgba(99,255,240,.2);border-radius:17px;background:rgba(10,12,20,.94);box-shadow:0 14px 40px rgba(0,0,0,.45);text-align:center}.tutorial-card b{display:block;font-size:10px}.tutorial-card span{display:block;color:var(--muted);font-size:8px;margin-top:3px;line-height:1.45}
+.debug{position:fixed;left:6px;bottom:6px;z-index:50;display:none;padding:6px;border-radius:8px;background:rgba(0,0,0,.7);color:#fff;font:10px ui-monospace,monospace;white-space:pre-line}.demo-badge{position:fixed;right:7px;bottom:calc(7px + var(--safe-bottom));z-index:8;padding:5px 8px;border-radius:999px;background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.22);color:#ffd987;font-size:6px}
+.shake{animation:shake .17s linear infinite}.pulse{animation:pulse .4s ease-in-out infinite alternate}.flash{animation:flash .5s ease}.boom-flash{animation:boomFlash .55s ease}.danger-border{animation:dangerBorder .5s ease-in-out infinite alternate}
 @keyframes shake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(2px,-1px) rotate(.5deg)}50%{transform:translate(-2px,1px) rotate(-.5deg)}75%{transform:translate(1px,1px) rotate(.35deg)}100%{transform:translate(-1px,-1px) rotate(-.35deg)}}
-@keyframes pulse{from{filter:drop-shadow(0 0 2px rgba(255,82,107,.4))}to{filter:drop-shadow(0 0 11px rgba(255,82,107,.95))}}@keyframes flash{0%{box-shadow:0 0 0 rgba(255,255,255,0)}40%{box-shadow:0 0 80px rgba(255,79,216,.72)}100%{box-shadow:0 0 0 rgba(255,255,255,0)}}@keyframes chaosFlash{0%{filter:none}50%{filter:brightness(1.5)}100%{filter:none}}
-@media(max-width:680px){.sections{grid-template-columns:1fr 1fr}.players{grid-template-columns:1fr 1fr}.item-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-height:720px){.hero{padding:9px 11px 6px}.bomb-stage{min-height:190px}.bomb{width:145px;height:145px}.fuse{height:38px}.info-grid{padding-top:3px}.player{padding:6px}.pass-grid{max-height:100px}.result-mini{max-height:145px}.item-btn{min-height:47px}.taunts .btn{padding:6px 3px}}
-@media(max-width:430px){.sections{grid-template-columns:1fr}.players{max-height:165px}.controls{max-height:280px}.bomb-stage{min-height:185px}.item-grid{grid-template-columns:repeat(3,1fr)}.taunts{grid-template-columns:repeat(4,1fr)}}
+@keyframes pulse{from{filter:drop-shadow(0 0 2px rgba(255,82,107,.4))}to{filter:drop-shadow(0 0 12px rgba(255,82,107,.95))}}
+@keyframes flash{0%{box-shadow:0 0 0 rgba(255,255,255,0)}40%{box-shadow:0 0 75px rgba(255,79,216,.7)}100%{box-shadow:0 0 0 rgba(255,255,255,0)}}
+@keyframes boomFlash{0%{filter:brightness(1)}35%{filter:brightness(1.8)}100%{filter:brightness(1)}}
+@keyframes dangerBorder{from{box-shadow:0 0 18px rgba(255,82,107,.08)}to{box-shadow:0 0 28px rgba(255,82,107,.22)}}
+@media(max-width:680px){.main-grid{grid-template-columns:1fr}.players-panel{flex:0 0 40%;max-height:40%}.control-panel{flex:1;overflow:auto}.players{grid-template-columns:repeat(2,minmax(0,1fr));max-height:100%}}
+@media(min-width:681px){.main-grid{grid-template-columns:1.02fr .98fr}.players{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-height:700px){.hero{padding:7px 10px 5px}.bomb-stage{min-height:171px}.bomb{width:135px;height:135px}.fuse{height:38px}.stats{padding-top:2px}.item-btn{min-height:45px}.pass-grid{max-height:95px}.players-panel{padding:7px}.control-panel{padding:7px;gap:5px}}
+@media(max-width:360px){.brand h1{font-size:12px}.brand small{font-size:7px}.logo{width:38px;height:38px}.bomb-stage{min-height:160px}.bomb{width:125px;height:125px}.stats .stat:nth-child(4){display:none}.stats{grid-template-columns:repeat(3,1fr)}.players-panel{flex-basis:37%;max-height:37%}.item-btn{min-height:43px}.taunts{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<canvas id="fx"></canvas>
-<div class="app">
-<main class="shell">
-<header class="topbar">
-  <div class="brand">
-    <div class="logo">💣</div>
-    <div><h1>HOT POTATO BOMB 2</h1><small>特殊事件 · 道具 · Combo · 互動嘲諷</small></div>
+<button class="utility-btn sound" id="soundBtn" type="button" aria-label="音效：開啟" aria-pressed="false" title="音效開關">🔊</button>
+<button class="utility-btn help" id="helpBtn" type="button" aria-label="遊戲玩法規則" title="遊戲玩法規則">?</button>
+<div class="help-overlay" id="helpOverlay" aria-hidden="true">
+  <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">💣 遊戲玩法規則</h2>
+    <div class="help-sub">5 秒學會：下注 → 接炸彈 → 想辦法丟出去 → 活到爆炸時刻。</div>
+    <div class="help-section"><h3>① 一局怎麼開始？</h3><p>房主按「開始下注」後，所有玩家有 <b>8 秒</b>選擇 Entry。每局只能下注一次。開發測試模式會模擬購買成功，不會真的扣除銀幣。</p></div>
+    <div class="help-section"><h3>② 拿到炸彈怎麼辦？</h3><p>炸彈會落在本局玩家之一手上。倒數期間，持有者可以選擇其他玩家把炸彈丟過去，也可以搭配戰術道具改變局勢。</p></div>
+    <div class="help-section"><h3>③ 三種戰術道具</h3><p><b>🛡️ 護盾</b>：300 銀幣，爆炸時保你一次。<br><b>🔒 鎖定</b>：350 銀幣，短時間封鎖炸彈持有者的傳遞。<br><b>🧲 磁吸</b>：450 銀幣，把炸彈拉到自己身上。<br>每種道具每局最多使用一次。</p></div>
+    <div class="help-section"><h3>④ 特殊事件</h3><p>每局由房主隨機抽取一種特殊事件，例如暴走倒數、Combo 連鎖、空間交換或開局禁傳。所有玩家看到的結果相同。</p></div>
+    <div class="help-section"><h3>⑤ Combo 與嘲諷</h3><p>成功傳遞炸彈會累積你的 Combo 與房間積分。快速嘲諷可直接在遊戲畫面上喊話，免費但有冷卻。</p></div>
+    <div class="help-section"><h3>⑥ 怎麼贏？</h3><p>炸彈倒數結束時，最後持有者會 <b>💥 BOOM</b>。有護盾則會消耗護盾並繼續。存活玩家依本局規則取得有限、固定的娛樂銀幣獎勵；結果鎖定後不會繼續增加。</p></div>
+    <button class="btn start help-close" id="helpClose" type="button">知道了，開始玩</button>
   </div>
-  <div class="user-chip">
-    <div class="user-text"><strong id="meName">玩家</strong><span id="roleText">連線中</span></div>
-    <div class="avatar" id="meAvatar">P</div>
-  </div>
-</header>
-
-<section class="panel hero" id="hero">
-  <div class="phase-row">
-    <div class="pill"><span class="dot" id="phaseDot"></span><span id="phaseText">準備中</span></div>
-    <div class="round-label" id="roundText">ROUND 01</div>
-  </div>
-  <div class="timer-wrap">
-    <div class="timer-title" id="timerTitle">等待房間玩家</div>
-    <div class="timer" id="timer">READY</div>
-    <div class="substatus" id="substatus">先下注，再把炸彈丟給別人。</div>
-    <div class="chaos-chip" id="chaosChip">⚡ 特殊事件：<b id="chaosText">尚未抽取</b></div>
-  </div>
-  <div class="bomb-stage">
-    <div class="bomb-glow" id="bombGlow"></div>
-    <div class="bomb" id="bomb">
-      <div class="fuse"><div class="spark" id="spark"></div></div>
-      <div class="bomb-core"></div>
-    </div>
-    <div class="holder-badge">💥 現在持有：<b id="holderName">—</b><span class="shield-mark" id="holderShield"></span></div>
-  </div>
-  <div class="info-grid">
-    <div class="stat"><b id="potText">0 🪙</b><span>本局總下注</span></div>
-    <div class="stat"><b id="comboText">🔥 0</b><span>我的 Combo</span></div>
-    <div class="stat"><b id="scoreText">0</b><span>房間積分</span></div>
-  </div>
-</section>
-
-<div class="sections">
-<section class="panel compact">
-  <div class="section-title"><strong id="playersTitle">房間玩家</strong><span id="playerCount">0 / 6</span></div>
-  <div class="players" id="players"></div>
-  <div class="notice" id="playerNotice" style="margin-top:6px">看到大家的下注、Combo 與炸彈狀態。</div>
-</section>
-
-<section class="panel controls">
-  <div class="section-title"><strong id="controlTitle">下注區</strong><span id="myBetText">尚未下注</span></div>
-  <div class="bet-grid" id="betGrid">
-    <button class="btn bet" data-bet="100">下注 100 🪙</button>
-    <button class="btn bet" data-bet="500">下注 500 🪙</button>
-    <button class="btn bet" data-bet="1000">下注 1000 🪙</button>
-  </div>
-  <button class="btn start" id="startBtn">開始本局（房主）</button>
-
-  <div class="items-title"><span>🎒 戰術道具 · 成功購買後立即生效</span><span>由房主判定</span></div>
-  <div class="item-grid" id="itemGrid">
-    <button class="btn item-btn cyan" data-item="shield" data-cost="300"><span class="ico">🛡️</span><b>護盾 300</b><span>保命一次</span></button>
-    <button class="btn item-btn" data-item="jam" data-cost="350"><span class="ico">🔒</span><b>鎖定 350</b><span>禁傳 2.5 秒</span></button>
-    <button class="btn item-btn" data-item="magnet" data-cost="450"><span class="ico">🧲</span><b>磁吸 450</b><span>把炸彈拉來</span></button>
-  </div>
-
-  <div class="items-title"><span>💬 快速嘲諷</span><span>不扣銀幣</span></div>
-  <div class="taunts" id="taunts">
-    <button class="btn taunt" data-taunt="接好！💣">接好！💣</button>
-    <button class="btn taunt" data-taunt="哈哈哈 😂">哈哈哈 😂</button>
-    <button class="btn taunt" data-taunt="救命啊！😱">救命啊！😱</button>
-    <button class="btn taunt" data-taunt="看我表演 😎">看我表演 😎</button>
-  </div>
-
-  <div class="pass-grid" id="passGrid" style="display:none"></div>
-  <button class="btn pass" id="randomPassBtn" style="display:none">🎯 隨機丟給一人</button>
-  <div class="notice" id="notice">每人一局只能下注一次。存活玩家依下注額獲得 2× 結算。</div>
-</section>
 </div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="app">
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">💣</div>
+        <div>
+          <h1>HOT POTATO BOMB 3</h1>
+          <small>派對競技 · 道具 · Combo · 特殊事件</small>
+        </div>
+      </div>
+      <div class="user-chip">
+        <div class="user-text"><strong id="meName">玩家</strong><span id="roleText">連線中</span></div>
+        <div class="avatar" id="meAvatar">P</div>
+      </div>
+    </header>
 
-<div class="footer">娛樂銀幣僅供房內遊戲使用 · 本遊戲不提供現金兌換或提領功能</div>
-</main>
+    <section class="panel hero" id="hero">
+      <div class="phase-row">
+        <div class="pill"><span class="dot" id="phaseDot"></span><span id="phaseText">準備中</span></div>
+        <div class="round-label" id="roundText">ROUND 01</div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-title" id="timerTitle">房主開始後下注</div>
+        <div class="timer" id="timer">READY</div>
+        <div class="substatus" id="substatus">炸彈在誰手上，誰就要想辦法把它丟出去。</div>
+        <div class="event-chip">⚡ 特殊事件：<b id="eventText">待抽取</b></div>
+      </div>
+      <div class="bomb-stage">
+        <div class="bomb-glow" id="bombGlow"></div>
+        <div class="bomb" id="bomb">
+          <div class="fuse"><div class="spark" id="spark"></div></div>
+          <div class="bomb-core"></div>
+        </div>
+        <div class="holder-badge">💥 持有者：<b id="holderName">—</b><span class="shield-mark" id="holderShield"></span></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="potText">0 🪙</b><span>本局獎池</span></div>
+        <div class="stat"><b id="passText">0</b><span>本局傳遞</span></div>
+        <div class="stat"><b id="comboText">🔥 0</b><span>我的 Combo</span></div>
+        <div class="stat"><b id="scoreText">0</b><span>房間積分</span></div>
+      </div>
+    </section>
+
+    <div class="main-grid">
+      <section class="panel players-panel">
+        <div class="section-title"><strong>房間玩家</strong><span id="playerCount">1 / 6</span></div>
+        <div class="players" id="players"></div>
+        <div class="hint" id="playerHint">只顯示目前透過 BoomRoom Game Event 觀察到的玩家。</div>
+      </section>
+
+      <section class="panel control-panel">
+        <div class="section-title"><strong id="controlTitle">下注區</strong><span id="myBetText">Entry 尚未支付</span></div>
+        <div class="bet-grid" id="betGrid">
+          <button class="btn bet" data-bet="100">Entry 100 🪙</button>
+          <button class="btn bet" data-bet="500">Entry 500 🪙</button>
+          <button class="btn bet" data-bet="1000">Entry 1000 🪙</button>
+        </div>
+        <button class="btn start" id="startBtn">開始下注（房主）</button>
+
+        <div class="items-title"><span>🎒 戰術道具</span><span>每種每局 1 次</span></div>
+        <div class="item-grid" id="itemGrid">
+          <button class="btn item-btn cyan" data-item="shield"><span class="ico">🛡️</span><b>護盾 300</b><span>爆炸時救你</span></button>
+          <button class="btn item-btn" data-item="jam"><span class="ico">🔒</span><b>鎖定 350</b><span>封鎖持有者</span></button>
+          <button class="btn item-btn orange" data-item="magnet"><span class="ico">🧲</span><b>磁吸 450</b><span>把炸彈拉來</span></button>
+        </div>
+
+        <div class="pass-grid" id="passGrid" style="display:none"></div>
+        <div class="quick-row">
+          <button class="btn pass" id="randomPassBtn" style="display:none">🎯 隨機丟</button>
+          <button class="btn cyan" id="requestHelpBtn">📢 喊人接炸彈</button>
+        </div>
+
+        <div class="items-title"><span>💬 快速嘲諷</span><span>免費 · 有冷卻</span></div>
+        <div class="taunts" id="taunts">
+          <button class="btn taunt" data-taunt="接好！💣">接好！💣</button>
+          <button class="btn taunt" data-taunt="哈哈哈 😂">哈哈哈 😂</button>
+          <button class="btn taunt" data-taunt="救命啊！😱">救命啊！😱</button>
+          <button class="btn taunt" data-taunt="看我表演 😎">看我表演 😎</button>
+        </div>
+        <div class="hint" id="notice">先由房主開始 8 秒下注，再進入炸彈回合。存活者按獎池規則分配獎勵。</div>
+      </section>
+    </div>
+  </main>
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="pop" id="pop">
-  <div class="pop-card">
-    <h2 id="popTitle">ROUND RESULT</h2>
-    <div class="big" id="popAmount">+0 🪙</div>
-    <p id="popText">本局結算完成</p>
-    <div class="pop-rank" id="popRank"></div>
-    <button class="btn start" id="popClose">繼續玩</button>
+<div class="taunt-bubble" id="tauntBubble">💬 玩家：你好！</div>
+
+<div class="result-panel" id="resultPanel">
+  <div class="result-card">
+    <div class="result-head">
+      <h2 id="resultTitle">本局結算</h2>
+      <div class="amount" id="resultAmount">+0 🪙</div>
+      <p id="resultReason">結果已鎖定，獎勵不會再變動。</p>
+    </div>
+    <div class="rank-list" id="rankList"></div>
+    <div class="result-actions">
+      <button class="btn start" id="resultAgain">下一局</button>
+      <button class="btn" id="resultClose">關閉</button>
+    </div>
   </div>
 </div>
 
+<div class="tutorial" id="tutorial">
+  <div class="tutorial-card">
+    <b>💣 5 秒學會</b>
+    <span>下注後，炸彈會隨機落在一名玩家手上。拿到炸彈時，選玩家把它丟走；也能用護盾、鎖定、磁吸改變戰局。</span>
+  </div>
+</div>
+
+<div class="debug" id="debug"></div>
 <script>
-(()=>{
-'use strict';
+(() => {
+  'use strict';
 
-/* ==============================
-   BoomRoom SDK / User
-   ============================== */
-const SDK=window.BoomRoomSDK||null;
-let user;
-try{
-  user=SDK&&typeof SDK.getUser==='function'?SDK.getUser():{id:'demo-'+Math.random().toString(36).slice(2),username:'體驗玩家',avatar:''};
-}catch(e){user={id:'demo-'+Math.random().toString(36).slice(2),username:'體驗玩家',avatar:''};}
-const ME={id:String(user?.id||('demo-'+Math.random().toString(36).slice(2))),username:String(user?.username||'玩家').slice(0,24),avatar:String(user?.avatar||''),joinedAt:Date.now(),nonce:Math.random().toString(36).slice(2,10)};
-const DEMO=!SDK;
-
-/* ==============================
-   Constants
-   ============================== */
-const BETS=[100,500,1000];
-const MAX_PLAYERS=6;
-const BETTING_MS=8000;
-const BOMB_MIN_MS=15000;
-const BOMB_MAX_MS=23000;
-const RESULT_MS=5500;
-const PASS_COOLDOWN_MS=1150;
-const HOST_TIMEOUT_MS=5200;
-const STATE_MS=650;
-const JAM_MS=2500;
-const SHIELD_COST=300;
-const ITEM_COSTS={shield:300,jam:350,magnet:450};
-const TAUNT_LIMIT=8;
-
-const CHAOS=[
-  {id:'RUSH',name:'⚡ 暴走倒數',desc:'最後 5 秒倒數速度提高',duration:5000},
-  {id:'LOCK',name:'🔒 禁傳警報',desc:'開局前段隨機鎖定 2 秒',duration:2500},
-  {id:'SWAP',name:'🌀 空間交換',desc:'中段會自動換一次持有者',duration:0},
-  {id:'CALM',name:'💎 假安全',desc:'前 4 秒看似平靜，之後加速',duration:0}
-];
-
-const $=id=>document.getElementById(id);
-const els={
-  hero:$('hero'),meName:$('meName'),roleText:$('roleText'),meAvatar:$('meAvatar'),phaseDot:$('phaseDot'),phaseText:$('phaseText'),roundText:$('roundText'),timerTitle:$('timerTitle'),timer:$('timer'),substatus:$('substatus'),chaosText:$('chaosText'),bomb:$('bomb'),bombGlow:$('bombGlow'),spark:$('spark'),holderName:$('holderName'),holderShield:$('holderShield'),potText:$('potText'),comboText:$('comboText'),scoreText:$('scoreText'),players:$('players'),playerCount:$('playerCount'),playersTitle:$('playersTitle'),playerNotice:$('playerNotice'),controlTitle:$('controlTitle'),myBetText:$('myBetText'),betGrid:$('betGrid'),startBtn:$('startBtn'),itemGrid:$('itemGrid'),taunts:$('taunts'),passGrid:$('passGrid'),randomPassBtn:$('randomPassBtn'),notice:$('notice'),toast:$('toast'),pop:$('pop'),popTitle:$('popTitle'),popAmount:$('popAmount'),popText:$('popText'),popRank:$('popRank'),popClose:$('popClose'),fx:$('fx')
-};
-
-/* ==============================
-   Audio
-   ============================== */
-let audioCtx=null,masterGain=null;
-function initAudio(){
-  if(audioCtx){if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});return;}
-  try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();masterGain.gain.value=.045;masterGain.connect(audioCtx.destination);}catch(e){}
-}
-function tone(freq,duration=.08,type='sine',volume=.4,delay=0){
-  if(!audioCtx||!masterGain)return;const now=audioCtx.currentTime+delay,osc=audioCtx.createOscillator(),g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(Math.max(.001,volume),now+.008);g.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(g);g.connect(masterGain);osc.start(now);osc.stop(now+duration+.02);
-}
-function sfx(name){
-  initAudio();if(!audioCtx)return;
-  if(name==='tap')tone(530,.045,'triangle',.25);
-  if(name==='bet'){tone(620,.06,'triangle',.32);tone(920,.08,'sine',.22,.055);}
-  if(name==='pass'){tone(310,.06,'square',.3);tone(690,.12,'sawtooth',.22,.06);}
-  if(name==='tick')tone(920,.035,'square',.17);
-  if(name==='item'){tone(440,.06,'triangle',.25);tone(880,.1,'sine',.25,.06);}
-  if(name==='taunt'){tone(760,.055,'square',.2);tone(980,.06,'triangle',.18,.05);}
-  if(name==='danger'){tone(180,.1,'sawtooth',.3);tone(125,.12,'sawtooth',.23,.12);}
-  if(name==='boom'){tone(72,.4,'sawtooth',.62);tone(40,.55,'triangle',.45,.08);tone(170,.14,'square',.16,.02);}
-  if(name==='win'){tone(620,.1,'triangle',.28);tone(840,.11,'triangle',.28,.08);tone(1120,.17,'sine',.3,.17);}
-  if(name==='lose'){tone(300,.13,'sine',.27);tone(185,.2,'sawtooth',.2,.12);}
-}
-
-/* ==============================
-   Room state
-   ============================== */
-const players=new Map();
-players.set(ME.id,{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,nonce:ME.nonce,bet:0,combo:0,score:0,shield:0,jamUntil:0,online:true,lastSeen:Date.now()});
-let hostId=null,initialElectionDone=false;
-let localMyBet=0,purchasePending=false,purchaseItem=null,resultShownForRound=null;
-const settledRounds=new Set();
-const state={
-  roundSeq:0,phase:'LOBBY',phaseEndsAt:0,bombExplodesAt:0,holderId:null,startedAt:0,lastPassAt:0,
-  participants:[],loserId:null,result:[],chaosId:null,chaosStartedAt:0,chaosSwapDone:false,rushApplied:false,jamUntil:0,taunts:[]
-};
-
-function rankKey(p){return Number(p.joinedAt)||0;}
-function secureRandomInt(max){const m=Math.max(1,Math.floor(max));try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%m;}catch(e){return Math.floor(Math.random()*m);}}
-function isHost(){return hostId===ME.id;}
-function currentHostOnline(){const p=players.get(hostId);return !!(p&&p.online&&Date.now()-p.lastSeen<HOST_TIMEOUT_MS);}
-function onlinePlayers(){return[...players.values()].filter(p=>p.online&&Date.now()-p.lastSeen<HOST_TIMEOUT_MS).sort((a,b)=>rankKey(a)-rankKey(b)||a.id.localeCompare(b.id));}
-function electInitialHost(){if(initialElectionDone)return;const a=onlinePlayers();if(!a.length)return;hostId=a[0].id;initialElectionDone=true;updateRoleText();if(isHost())broadcastState(true);}
-function maybeTakeoverHost(){if(!initialElectionDone||currentHostOnline())return;const a=onlinePlayers();if(!a.length)return;const next=a[0].id;if(next!==hostId){hostId=next;showToast('房主離開，已自動接管房間');updateRoleText();broadcast('NDB_HOST',{hostId});broadcastState(true);}}
-function addOrUpdatePlayer(raw,seen=true){
-  if(!raw||raw.id==null)return null;const id=String(raw.id);let p=players.get(id);
-  if(!p){p={id,username:String(raw.username||'玩家').slice(0,24),avatar:String(raw.avatar||''),joinedAt:Number(raw.joinedAt)||Date.now(),nonce:String(raw.nonce||''),bet:Number(raw.bet)||0,combo:Number(raw.combo)||0,score:Number(raw.score)||0,shield:Number(raw.shield)||0,jamUntil:Number(raw.jamUntil)||0,online:true,lastSeen:Date.now()};players.set(id,p);}
-  else{if(raw.username!=null)p.username=String(raw.username).slice(0,24);if(raw.avatar!=null)p.avatar=String(raw.avatar);if(raw.joinedAt!=null&&Number(raw.joinedAt))p.joinedAt=Number(raw.joinedAt);if(raw.nonce!=null)p.nonce=String(raw.nonce);if(seen)p.lastSeen=Date.now();p.online=true;}
-  return p;
-}
-function broadcast(name,payload){try{if(SDK&&typeof SDK.sendGameEvent==='function')SDK.sendGameEvent(name,payload||{});}catch(e){}}
-function publicPlayer(p){return{id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,nonce:p.nonce,bet:p.bet,combo:p.combo,score:p.score,shield:p.shield,jamUntil:p.jamUntil,online:p.online,lastSeen:p.lastSeen};}
-function snapshotState(){return{version:2,hostId,roundSeq:state.roundSeq,phase:state.phase,phaseEndsAt:state.phaseEndsAt,bombExplodesAt:state.bombExplodesAt,holderId:state.holderId,startedAt:state.startedAt,lastPassAt:state.lastPassAt,participants:state.participants.slice(),loserId:state.loserId,result:state.result.slice(),chaosId:state.chaosId,chaosStartedAt:state.chaosStartedAt,chaosSwapDone:state.chaosSwapDone,rushApplied:state.rushApplied,jamUntil:state.jamUntil,taunts:state.taunts.slice(-TAUNT_LIMIT),players:[...players.values()].map(publicPlayer)};}
-function broadcastState(force=false){if(!isHost())return;const now=Date.now();if(!force&&now-lastStateBroadcast<STATE_MS)return;lastStateBroadcast=now;broadcast('NDB_STATE',snapshotState());}
-let lastStateBroadcast=0;
-function applySnapshot(s){
-  if(!s||typeof s!=='object')return;
-  if(s.hostId!=null){hostId=String(s.hostId);initialElectionDone=true;}
-  if(Array.isArray(s.players))for(const raw of s.players)addOrUpdatePlayer(raw,false);
-  if(Number.isFinite(s.roundSeq)&&s.roundSeq>=state.roundSeq){
-    state.roundSeq=Number(s.roundSeq);state.phase=typeof s.phase==='string'?s.phase:state.phase;state.phaseEndsAt=Number(s.phaseEndsAt)||0;state.bombExplodesAt=Number(s.bombExplodesAt)||0;state.holderId=s.holderId==null?null:String(s.holderId);state.startedAt=Number(s.startedAt)||0;state.lastPassAt=Number(s.lastPassAt)||0;state.participants=Array.isArray(s.participants)?s.participants.map(String).slice(0,MAX_PLAYERS):[];state.loserId=s.loserId==null?null:String(s.loserId);state.result=Array.isArray(s.result)?s.result:[];state.chaosId=s.chaosId==null?null:String(s.chaosId);state.chaosStartedAt=Number(s.chaosStartedAt)||0;state.chaosSwapDone=!!s.chaosSwapDone;state.rushApplied=!!s.rushApplied;state.jamUntil=Number(s.jamUntil)||0;state.taunts=Array.isArray(s.taunts)?s.taunts.slice(-TAUNT_LIMIT):[];
-    const me=players.get(ME.id);localMyBet=Number(me?.bet)||0;updateRoleText();render();maybeSettleOwnRound();
-  }
-}
-
-/* ==============================
-   Economy
-   ============================== */
-function requestBet(amount){
-  initAudio();if(!['LOBBY','BETTING'].includes(state.phase)||localMyBet>0||purchasePending)return;amount=Number(amount);if(!BETS.includes(amount))return;
-  purchasePending=true;purchaseItem='hotpotato_bet_'+amount;setAllButtons();
-  if(DEMO){setTimeout(()=>window.onPurchaseSuccess(purchaseItem),200);return;}
-  try{window.BoomRoomSDK.requestPurchase('hotpotato_bet_'+amount,amount);}catch(e){purchasePending=false;purchaseItem=null;setAllButtons();showToast('下注請求失敗，請再試一次');}
-}
-window.onPurchaseSuccess=function(itemId){
-  if(!itemId||itemId!==purchaseItem)return;
-  const id=String(itemId);
-
-  /* Bet purchase */
-  if(id.startsWith('hotpotato_bet_')){
-    const amount=Number(id.replace('hotpotato_bet_',''));
-    if(!BETS.includes(amount)){purchasePending=false;purchaseItem=null;setAllButtons();return;}
-    purchasePending=false;purchaseItem=null;localMyBet=amount;
-    const me=players.get(ME.id);
-    if(me){me.bet=amount;me.lastSeen=Date.now();me.online=true;}
-    setAllButtons();sfx('bet');showToast('下注成功：'+formatCoins(amount)+' 🪙');
-    broadcast('NDB_BET',{playerId:ME.id,username:ME.username,amount,roundSeq:state.roundSeq});
-    if(isHost())broadcastState(true);
-    render();
-    return;
-  }
-
-  /* Item purchase */
-  if(id.startsWith('hotpotato_item_')){
-    const type=id.replace('hotpotato_item_','');
-    if(!ITEM_COSTS[type]){purchasePending=false;purchaseItem=null;setAllButtons();return;}
-    purchasePending=false;purchaseItem=null;setAllButtons();
-    broadcast('NDB_ITEM_REQUEST',{playerId:ME.id,itemType:type,roundSeq:state.roundSeq});
-    showToast('道具啟動：'+itemLabel(type));sfx('item');
-    return;
-  }
-};
-
-function itemLabel(type){return type==='shield'?'護盾':type==='jam'?'鎖定':'磁吸';}
-function setAllButtons(){
-  const betDisabled=!['LOBBY','BETTING'].includes(state.phase)||localMyBet>0||purchasePending;
-  [...els.betGrid.querySelectorAll('button')].forEach(b=>b.disabled=betDisabled);
-  [...els.itemGrid.querySelectorAll('button')].forEach(b=>b.disabled=state.phase!=='LIVE'||purchasePending);
-}
-
-/* ==============================
-   Host round logic
-   ============================== */
-function hostStartRound(){
-  if(!isHost()||!['LOBBY','RESULT'].includes(state.phase))return;
-  state.roundSeq++;state.phase='BETTING';state.phaseEndsAt=Date.now()+BETTING_MS;state.bombExplodesAt=0;state.holderId=null;state.startedAt=Date.now();state.lastPassAt=0;state.participants=[];state.loserId=null;state.result=[];state.chaosId=null;state.chaosStartedAt=0;state.chaosSwapDone=false;state.rushApplied=false;state.jamUntil=0;state.taunts=[];
-  for(const p of players.values()){p.bet=0;p.shield=0;p.jamUntil=0;}
-  localMyBet=0;purchasePending=false;purchaseItem=null;resultShownForRound=null;
-  showToast('開戰！8 秒內下注');sfx('tap');broadcastState(true);
-}
-function pickChaos(){return CHAOS[secureRandomInt(CHAOS.length)];}
-function hostLockBets(){
-  if(!isHost()||state.phase!=='BETTING')return;
-  const parts=[...players.values()].filter(p=>p.online&&p.bet>0).sort((a,b)=>a.joinedAt-b.joinedAt||a.id.localeCompare(b.id)).slice(0,MAX_PLAYERS);
-  if(!parts.length){state.phase='LOBBY';state.phaseEndsAt=0;state.roundSeq=Math.max(0,state.roundSeq-1);broadcastState(true);showToast('這局沒有人下注，回到大廳');return;}
-  state.participants=parts.map(p=>p.id);state.chaosId=pickChaos().id;state.chaosStartedAt=Date.now();state.chaosSwapDone=false;state.jamUntil=0;
-  state.holderId=parts[secureRandomInt(parts.length)].id;
-  let fuse=BOMB_MIN_MS+secureRandomInt(BOMB_MAX_MS-BOMB_MIN_MS+1);
-  const chaos=CHAOS.find(c=>c.id===state.chaosId);
-  if(state.chaosId==='CALM')fuse=Math.max(fuse,18500);
-  if(state.chaosId==='LOCK'){state.jamUntil=Date.now()+JAM_MS;const hp=players.get(state.holderId);if(hp)hp.jamUntil=state.jamUntil;}
-  state.bombExplodesAt=Date.now()+fuse;state.phase='LIVE';state.phaseEndsAt=0;state.lastPassAt=0;state.loserId=null;state.result=[];
-  broadcastState(true);sfx('danger');showToast(chaos.name+'：'+chaos.desc);
-}
-function hostHandleBet(payload,senderId){
-  if(!isHost()||!['LOBBY','BETTING'].includes(state.phase))return;const pid=String(payload?.playerId||senderId||'');const amount=Math.floor(Number(payload?.amount)||0);if(!pid||!BETS.includes(amount))return;const p=players.get(pid);if(!p||p.bet>0)return;p.bet=amount;p.lastSeen=Date.now();p.online=true;showToast(p.username+' 下注 '+formatCoins(amount)+' 🪙');sfx('bet');broadcastState(true);
-}
-function activeTargets(){return state.participants.filter(id=>id!==state.holderId).map(id=>players.get(id)).filter(p=>p&&p.online);}
-function passAllowed(){return state.phase==='LIVE'&&Date.now()>=state.jamUntil&&Date.now()>=state.lastPassAt+PASS_COOLDOWN_MS&&Date.now()<state.bombExplodesAt;}
-function hostHandlePass(payload,senderId){
-  if(!isHost())return;const from=String(senderId||payload?.playerId||'');const target=String(payload?.targetId||'');if(from!==state.holderId||!passAllowed()||!state.participants.includes(target)||target===from)return;const tp=players.get(target);if(!tp||!tp.online)return;
-  state.holderId=target;state.lastPassAt=Date.now();broadcast('NDB_FLASH',{kind:'pass',fromId:from,targetId:target,roundSeq:state.roundSeq});broadcastState(true);sfx('pass');
-}
-function hostHandleItem(payload,senderId){
-  if(!isHost()||state.phase!=='LIVE')return;const pid=String(payload?.playerId||senderId||'');const type=String(payload?.itemType||'');if(!ITEM_COSTS[type]||!state.participants.includes(pid))return;const p=players.get(pid);if(!p)return;
-  const now=Date.now();
-  if(type==='shield'){
-    if(p.shield>0)return;p.shield=1;showToast(p.username+' 啟動護盾 🛡️');broadcast('NDB_FLASH',{kind:'shield',playerId:pid,roundSeq:state.roundSeq});broadcastState(true);return;
-  }
-  if(type==='jam'){
-    if(now<state.jamUntil)return;state.jamUntil=now+JAM_MS;const hp=players.get(state.holderId);if(hp)hp.jamUntil=state.jamUntil;showToast(p.username+' 啟動鎖定 🔒');broadcast('NDB_FLASH',{kind:'jam',playerId:pid,roundSeq:state.roundSeq});broadcastState(true);return;
-  }
-  if(type==='magnet'){
-    if(state.holderId===pid||now>=state.bombExplodesAt)return;
-    const hp=players.get(state.holderId);if(!hp||!p.online)return;
-    state.holderId=pid;state.lastPassAt=now;showToast(p.username+' 用磁吸把炸彈拉走 🧲');broadcast('NDB_FLASH',{kind:'magnet',playerId:pid,roundSeq:state.roundSeq});broadcastState(true);sfx('pass');return;
-  }
-}
-function hostHandleTaunt(payload,senderId){
-  const pid=String(payload?.playerId||senderId||'');const p=players.get(pid);if(!p||!state.participants.includes(pid))return;const text=String(payload?.text||'').slice(0,28);if(!text)return;state.taunts.push({id:pid,username:p.username,text,at:Date.now()});state.taunts=state.taunts.slice(-TAUNT_LIMIT);broadcast('NDB_TAUNT_SHOW',{playerId:pid,username:p.username,text,at:Date.now(),roundSeq:state.roundSeq});if(isHost())broadcastState(false);
-}
-function hostMaybeSpecialChaos(){
-  if(!isHost()||state.phase!=='LIVE')return;const now=Date.now();
-  if(state.chaosId==='RUSH'&&!state.rushApplied&&state.bombExplodesAt-now<=5000){
-    const remain=Math.max(1000,state.bombExplodesAt-now);
-    state.bombExplodesAt=now+Math.max(1000,Math.floor(remain*.68));
-    state.rushApplied=true;
-    showToast('⚡ 暴走！倒數加速！');
-    broadcast('NDB_FLASH',{kind:'rush',roundSeq:state.roundSeq});
-    broadcastState(true);
-    sfx('danger');
-  }
-  if(state.chaosId==='SWAP'&&!state.chaosSwapDone&&now-state.startedAt>Math.max(4500,(state.bombExplodesAt-state.startedAt)*.42)){
-    const candidates=activeTargets();if(candidates.length){state.holderId=candidates[secureRandomInt(candidates.length)].id;state.lastPassAt=now;state.chaosSwapDone=true;showToast('🌀 空間交換！炸彈自動換手！');broadcast('NDB_FLASH',{kind:'swap',targetId:state.holderId,roundSeq:state.roundSeq});broadcastState(true);sfx('pass');}
-    else state.chaosSwapDone=true;
-  }
-}
-function resolveScoreAndPayout(){
-  if(!isHost()||state.phase!=='LIVE')return;
-  const now=Date.now();
-  const current=players.get(state.holderId);
-
-  /* Shield is checked by the host before any payout/Combo mutation. */
-  if(current&&current.shield>0){
-    current.shield=0;
-    const choices=state.participants.filter(id=>id!==current.id&&players.get(id)?.online);
-    if(choices.length){
-      state.holderId=choices[secureRandomInt(choices.length)].id;
-      state.lastPassAt=now;
-      state.bombExplodesAt=now+4500;
-      state.jamUntil=0;
-      broadcast('NDB_FLASH',{kind:'shield_save',playerId:current.id,targetId:state.holderId,roundSeq:state.roundSeq});
-      broadcastState(true);
-      showToast('🛡️ 護盾擋住爆炸！炸彈轉移！');
-      sfx('win');
-      return;
-    }
-    /* Single-player fallback: the shield buys one final 4.5-second window. */
-    state.bombExplodesAt=now+4500;
-    broadcast('NDB_FLASH',{kind:'shield_save',playerId:current.id,roundSeq:state.roundSeq});
-    broadcastState(true);
-    showToast('🛡️ 護盾啟動！');
-    sfx('win');
-    return;
-  }
-
-  const loserId=state.holderId;
-  state.loserId=loserId;
-  state.phase='RESULT';
-  state.phaseEndsAt=now+RESULT_MS;
-  const totalPot=state.participants.reduce((sum,id)=>sum+Math.max(0,Number(players.get(id)?.bet)||0),0);
-
-  state.result=state.participants.map(id=>{
-    const p=players.get(id)||{id,username:'玩家',avatar:'',bet:0,combo:0,score:0,shield:0};
-    const bet=Math.max(0,Math.floor(Number(p.bet)||0));
-    const survived=id!==loserId;
-    const winAmount=survived?Math.min(bet*2,bet*2):0;
-    p.combo=survived?p.combo+1:0;
-    p.score=Math.max(0,p.score+(survived?(100+p.combo*25):0));
-    return{id,username:p.username,avatar:p.avatar,bet,survived,prevented:false,winAmount,combo:p.combo,score:p.score};
+  /* =========================================================
+     CONFIG / GAME INFO
+     ========================================================= */
+  const DEBUG = false;
+  const GAME_INFO = Object.freeze({
+    id:'hot_potato_bomb',
+    category:'派對競技',
+    name:'霓虹燙手炸彈',
+    description:'下注、接炸彈、把它丟出去；最後持有者爆炸。',
+    version:'3.0.0',
+    entryCost:100,
+    entryOptions:[100,500,1000],
+    maxPlayers:6,
+    controlModes:['Pointer','Touch'],
+    duration:'30～55 秒',
+    multiplayer:true,
+    rewardEnabled:true
   });
 
-  /* Coin payout is strictly bounded at 2× the player's own bet. */
-  broadcastState(true);
-  sfx('boom');
-  showToast('💥 BOOM！'+formatCoins(totalPot)+' 🪙 進入本局結算');
-}
-function hostPrepareLobby(){
-  if(!isHost()||state.phase!=='RESULT'||Date.now()<state.phaseEndsAt)return;
-  state.phase='LOBBY';state.phaseEndsAt=0;state.bombExplodesAt=0;state.holderId=null;state.startedAt=0;state.lastPassAt=0;state.participants=[];state.loserId=null;state.result=[];state.chaosId=null;state.chaosStartedAt=0;state.chaosSwapDone=false;state.rushApplied=false;state.jamUntil=0;state.taunts=[];
-  for(const p of players.values()){p.bet=0;p.shield=0;p.jamUntil=0;}
-  localMyBet=0;purchasePending=false;purchaseItem=null;resultShownForRound=null;broadcastState(true);
-}
+  const SDK = window.BoomRoomSDK || null;
+  const IS_DEMO = !(
+    SDK &&
+    typeof SDK.getUser === 'function' &&
+    typeof SDK.requestPurchase === 'function' &&
+    typeof SDK.gameOver === 'function' &&
+    typeof SDK.sendGameEvent === 'function'
+  );
 
-/* ==============================
-   Incoming room relay
-   ============================== */
-function handleIncoming(data){
-  if(!data||data.action!=='gameEventReceived')return;const eventName=data.eventName,payload=data.payload||{},senderId=data.userId!=null?String(data.userId):null;
-  if(eventName==='NDB_HELLO'){if(payload.player)addOrUpdatePlayer(payload.player,true);if(isHost())broadcastState(true);return;}
-  if(eventName==='NDB_PING'){if(payload.player)addOrUpdatePlayer(payload.player,true);if(isHost()&&payload.requestState)broadcastState(true);return;}
-  if(eventName==='NDB_BET'){hostHandleBet(payload,senderId);return;}
-  if(eventName==='NDB_PASS_REQUEST'){if(isHost())hostHandlePass(payload,senderId);return;}
-  if(eventName==='NDB_ITEM_REQUEST'){if(isHost())hostHandleItem(payload,senderId);return;}
-  if(eventName==='NDB_TAUNT'){if(isHost())hostHandleTaunt(payload,senderId);return;}
-  if(eventName==='NDB_STATE'){applySnapshot(payload);return;}
-  if(eventName==='NDB_HOST'){if(payload.hostId!=null){hostId=String(payload.hostId);initialElectionDone=true;updateRoleText();render();}return;}
-  if(eventName==='NDB_FLASH'){handleFlash(payload);return;}
-  if(eventName==='NDB_TAUNT_SHOW'){showTaunt(payload);return;}
-}
-window.addEventListener('message',e=>{try{const d=typeof e.data==='string'?JSON.parse(e.data):e.data;handleIncoming(d);}catch(err){}});
-function handleFlash(p){
-  if(!p)return;sfx(p.kind==='shield'||p.kind==='shield_save'?'win':p.kind==='pass'||p.kind==='magnet'||p.kind==='swap'?'pass':'danger');els.hero.classList.remove('flash');void els.hero.offsetWidth;els.hero.classList.add('flash');
-  if(p.kind==='shield')showToast('🛡️ '+(players.get(String(p.playerId))?.username||'玩家')+' 開啟護盾');
-  if(p.kind==='jam')showToast('🔒 鎖定！暫時不能傳炸彈');
-  if(p.kind==='magnet')showToast('🧲 炸彈被磁吸走了');
-  if(p.kind==='swap')showToast('🌀 特殊事件：炸彈換手');
-  if(p.kind==='shield_save')showToast('🛡️ 護盾救命！炸彈轉移');
-  if(p.kind==='rush')showToast('⚡ 暴走倒數！時間加速');
-  render();
-}
-
-/* ==============================
-   UI helpers
-   ============================== */
-function initials(name){return String(name||'玩家').trim().slice(0,2).toUpperCase();}
-function renderAvatar(el,p){el.innerHTML='';if(p?.avatar){const img=new Image();img.alt='';img.referrerPolicy='no-referrer';img.onload=()=>{el.innerHTML='';el.appendChild(img)};img.onerror=()=>el.textContent=initials(p.username);img.src=p.avatar;}else el.textContent=initials(p?.username);}
-function formatCoins(n){return Math.max(0,Math.floor(Number(n)||0)).toLocaleString('zh-TW');}
-function updateRoleText(){els.roleText.textContent=isHost()?'👑 房主 · 主持炸彈':'玩家 · 觀戰中';}
-function phaseLabel(){return state.phase==='LOBBY'?'準備中':state.phase==='BETTING'?'下注倒數':state.phase==='LIVE'?'炸彈已啟動':state.phase==='RESULT'?'結算排行榜':'連線中';}
-function remainingMs(){if(state.phase==='BETTING')return Math.max(0,state.phaseEndsAt-Date.now());if(state.phase==='LIVE')return Math.max(0,state.bombExplodesAt-Date.now());if(state.phase==='RESULT')return Math.max(0,state.phaseEndsAt-Date.now());return 0;}
-function chaosInfo(){return CHAOS.find(c=>c.id===state.chaosId)||null;}
-function showToast(msg){els.toast.textContent=msg;els.toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1450);}
-function taunt(text){initAudio();if(state.phase!=='LIVE'&&state.phase!=='RESULT')return;sfx('taunt');broadcast('NDB_TAUNT',{playerId:ME.id,text,roundSeq:state.roundSeq});if(isHost())hostHandleTaunt({playerId:ME.id,text},ME.id);}
-function showTaunt(p){const who=p?.username||players.get(String(p?.playerId))?.username||'玩家';showToast('💬 '+who+'：'+String(p?.text||''));}
-function requestPass(id){initAudio();if(!passAllowed()||state.holderId!==ME.id)return;broadcast('NDB_PASS_REQUEST',{playerId:ME.id,targetId:String(id),roundSeq:state.roundSeq});}
-function requestRandomPass(){const a=state.participants.filter(id=>id!==ME.id&&players.get(id)?.online);if(a.length)requestPass(a[secureRandomInt(a.length)]);}
-
-/* ==============================
-   Rendering
-   ============================== */
-function renderPlayers(){
-  const arr=[...players.values()].sort((a,b)=>{const ai=state.participants.indexOf(a.id),bi=state.participants.indexOf(b.id);if(ai>=0&&bi>=0)return ai-bi;if(ai>=0)return-1;if(bi>=0)return 1;return a.joinedAt-b.joinedAt}).slice(0,MAX_PLAYERS);
-  els.players.innerHTML='';els.playerCount.textContent=arr.length+' / '+MAX_PLAYERS;els.playerNotice.textContent=state.phase==='LIVE'?'誰拿炸彈、誰有護盾、誰連勝，全都會即時顯示。':'看到大家下注，開局後就知道誰手上拿炸彈。';
-  for(const p of arr){
-    const row=document.createElement('div');row.className='player'+(p.id===ME.id?' me':'')+(state.holderId===p.id&&state.phase==='LIVE'?' holder':'')+(state.loserId===p.id?' out':'')+(p.shield?' shielded':'');
-    const av=document.createElement('div');av.className='avatar';renderAvatar(av,p);const name=document.createElement('div');name.className='name';const st=document.createElement('strong');st.textContent=p.username;const sp=document.createElement('span');
-    if(p.id===state.holderId&&state.phase==='LIVE')sp.textContent='💣 正持有炸彈';else if(state.loserId===p.id)sp.textContent='💥 炸彈爆炸';else if(p.jamUntil>Date.now())sp.textContent='🔒 禁傳中';else if(p.id===hostId)sp.textContent='👑 房主';else sp.textContent=p.online?'在線':'暫離';
-    name.append(st,sp);const bet=document.createElement('div');bet.className='bet';bet.textContent=p.bet?formatCoins(p.bet)+' 🪙':'—';row.append(av,name,bet);
-    if(p.id===ME.id){const b=document.createElement('div');b.className='badge-small';b.textContent='YOU';row.appendChild(b)}
-    if(p.combo>0){const c=document.createElement('div');c.className='mini combo';c.textContent='🔥 Combo '+p.combo;row.appendChild(c)}
-    if(p.shield>0){const i=document.createElement('div');i.className='mini item';i.textContent='🛡️ 護盾';row.appendChild(i)}
-    els.players.appendChild(row);
+  let user;
+  try {
+    user = SDK && typeof SDK.getUser === 'function'
+      ? SDK.getUser()
+      : {id:'demo-'+Math.random().toString(36).slice(2),username:'體驗玩家',avatar:''};
+  } catch(e) {
+    user = {id:'demo-'+Math.random().toString(36).slice(2),username:'體驗玩家',avatar:''};
   }
-}
-function renderPassButtons(){
-  const can=passAllowed()&&state.holderId===ME.id&&state.participants.length>1;els.passGrid.style.display=can?'grid':'none';els.randomPassBtn.style.display=can?'block':'none';if(!can)return;
-  els.passGrid.innerHTML='';const a=state.participants.filter(id=>id!==ME.id).map(id=>players.get(id)).filter(Boolean);const cooldown=Math.max(0,state.lastPassAt+PASS_COOLDOWN_MS-Date.now());
-  for(const p of a){const b=document.createElement('button');b.className='btn pass pass-target';b.disabled=cooldown>0||!p.online;const av=document.createElement('div');av.className='avatar';renderAvatar(av,p);const m=document.createElement('div');m.className='target-meta';const n=document.createElement('strong');n.textContent=p.username;const s=document.createElement('span');s.textContent=p.shield?'🛡️ 有護盾':'把炸彈給他';m.append(n,s);b.append(av,m);b.onclick=()=>requestPass(p.id);els.passGrid.appendChild(b)}
-  els.randomPassBtn.disabled=cooldown>0||a.every(p=>!p.online);
-}
-function renderResult(){
-  if(state.phase!=='RESULT'||!state.result.length)return;
-  els.popRank.innerHTML='';const list=[...state.result].sort((a,b)=>(b.score||0)-(a.score||0));list.slice(0,5).forEach((r,i)=>{const d=document.createElement('div');const left=document.createElement('strong');left.textContent=['🥇','🥈','🥉','4️⃣','5️⃣'][i]+' '+r.username;const right=document.createElement('em');right.textContent=(r.survived?'存活 · ':'爆炸 · ')+(r.score||0)+' 分';d.append(left,right);els.popRank.appendChild(d);});
-}
-function maybeSettleOwnRound(){
-  if(state.phase!=='RESULT'||!state.result.length||settledRounds.has(state.roundSeq))return;const r=state.result.find(x=>String(x.id)===ME.id);if(!r||localMyBet<=0)return;const bet=Math.max(0,Math.floor(localMyBet));const win=Math.max(0,Math.min(Math.floor(Number(r.winAmount)||0),bet*2));settledRounds.add(state.roundSeq);try{if(SDK&&typeof SDK.gameOver==='function')window.BoomRoomSDK.gameOver(win);}catch(e){}
-  els.popTitle.textContent=r.survived?'🎉 你活下來了！':'💥 BOOM！你中了！';els.popAmount.textContent=(r.survived?'+':'')+formatCoins(win)+' 🪙';els.popAmount.style.color=r.survived?'var(--green)':'#ff7486';els.popText.textContent=r.prevented?'🛡️ 護盾保住你一次，炸彈已被轉移。':r.survived?'存活結算：下注額 × 2。':'最後持有炸彈的人，本局獎勵為 0。';renderResult();els.pop.classList.add('show');sfx(r.survived?'win':'lose');
-}
-function render(){
-  updateRoleText();els.phaseText.textContent=phaseLabel();els.roundText.textContent='ROUND '+String(Math.max(1,state.roundSeq)).padStart(2,'0');els.phaseDot.className='dot'+(state.phase==='LIVE'?' live':'')+(state.phase==='RESULT'?' result':'');
-  const holder=state.holderId?players.get(state.holderId):null;els.holderName.textContent=holder?holder.username:'—';els.holderShield.textContent=holder?.shield?'🛡️':'';
-  const totalPot=state.participants.length?state.participants.reduce((s,id)=>s+Math.max(0,Number(players.get(id)?.bet)||0),0):[...players.values()].reduce((s,p)=>s+Math.max(0,Number(p.bet)||0),0);els.potText.textContent=formatCoins(totalPot)+' 🪙';const me=players.get(ME.id);els.comboText.textContent='🔥 '+(me?.combo||0);els.scoreText.textContent=String(me?.score||0);
-  const rem=remainingMs();
-  if(state.phase==='BETTING'){els.timerTitle.textContent='下注剩餘時間';els.timer.textContent=(rem/1000).toFixed(1)+'s';els.timer.className='timer safe';els.substatus.textContent=localMyBet?'你的下注：'+formatCoins(localMyBet)+' 🪙 · 等待開戰':'選下注額，準備把炸彈丟給別人。';}
-  else if(state.phase==='LIVE'){els.timerTitle.textContent='炸彈剩餘時間';els.timer.textContent=(rem/1000).toFixed(2)+'s';els.timer.className='timer '+(rem<4500?'hot':'');els.substatus.textContent=state.holderId===ME.id?'💣 炸彈在你手上：選人、磁吸或護盾！':'盯住炸彈，下一秒可能到你。';}
-  else if(state.phase==='RESULT'){els.timerTitle.textContent='下一局即將開始';els.timer.textContent=Math.ceil(rem/1000)+'s';els.timer.className='timer result';els.substatus.textContent='本局結果已結算，Combo 已更新。';}
-  else{els.timerTitle.textContent='準備下一局';els.timer.textContent='READY';els.timer.className='timer safe';els.substatus.textContent=isHost()?'按下開始，房間進入 8 秒下注倒數。':'等待房主開始本局。';}
-  const ci=chaosInfo();els.chaosText.textContent=ci?ci.name:'尚未抽取';
-  els.myBetText.textContent=localMyBet?'我的下注 '+formatCoins(localMyBet)+' 🪙':'尚未下注';
-  els.startBtn.style.display=isHost()?'block':'none';els.startBtn.disabled=!isHost()||!['LOBBY','RESULT'].includes(state.phase);els.startBtn.textContent=state.phase==='RESULT'?'下一局（房主）':'開始本局（房主）';
-  els.controlTitle.textContent=state.phase==='LIVE'?'戰術道具 / 炸彈操作':state.phase==='RESULT'?'本局結算':'下注區';
-  els.notice.textContent=state.phase==='LIVE'?(state.holderId===ME.id?(Date.now()<state.jamUntil?'🔒 目前被鎖定，暫時不能傳。':'挑玩家丟炸彈，或用道具改變戰局。'):'⚡ 用鎖定阻止持有者傳炸彈，或用磁吸把炸彈拉來。'):'每人一局只能下注一次。存活玩家按 2× 結算；Combo 只增加房間積分，不突破獎勵上限。';
-  setAllButtons();renderPlayers();renderPassButtons();
-}
 
-/* ==============================
-   Main animation loop
-   ============================== */
-let lastWholeSecond=-1;
-function raf(now){
-  const rem=remainingMs();
-  if(state.phase==='LIVE'){
-    const urgency=Math.max(0,Math.min(1,1-rem/6000));let scale=1+.022*Math.sin(now/75)*(0.55+urgency);if(state.chaosId==='RUSH')scale+=.018*Math.sin(now/50);
-    els.bomb.style.transform='scale('+scale.toFixed(4)+')';els.bombGlow.style.transform='scale('+(0.92+urgency*.2+.04*Math.sin(now/140)).toFixed(4)+')';els.spark.style.transform='translateX(-50%) translate('+(Math.sin(now/35)*2).toFixed(1)+'px,'+(Math.cos(now/47)*2).toFixed(1)+'px)';
-    if(rem<4500){els.bomb.classList.add('shake','pulse');const sec=Math.ceil(rem/1000);if(sec!==lastWholeSecond&&sec>0){lastWholeSecond=sec;sfx('tick');}}else{els.bomb.classList.remove('shake','pulse');lastWholeSecond=-1;}
-  }else{els.bomb.style.transform='scale('+(1+.014*Math.sin(now/700)).toFixed(4)+')';els.bombGlow.style.transform='scale('+(0.94+.03*Math.sin(now/400)).toFixed(4)+')';els.bomb.classList.remove('shake','pulse');lastWholeSecond=-1;}
-  if(isHost()){
-    if(state.phase==='BETTING'&&Date.now()>=state.phaseEndsAt)hostLockBets();
-    if(state.phase==='LIVE'){hostMaybeSpecialChaos();if(Date.now()>=state.bombExplodesAt)resolveScoreAndPayout();}
-    if(state.phase==='RESULT'&&Date.now()>=state.phaseEndsAt)hostPrepareLobby();
-    broadcastState(false);
-  }else maybeTakeoverHost();
-  render();requestAnimationFrame(raf);
-}
-requestAnimationFrame(raf);
+  function safeString(v,max=64){
+    return String(v == null ? '' : v).replace(/[<>]/g,'').slice(0,max);
+  }
+  function safeId(v){
+    const s = safeString(v,96);
+    return s && s.length <= 96 ? s : '';
+  }
+  function intFinite(v,min,max,fallback=0){
+    const n = Number(v);
+    if(!Number.isFinite(n)) return fallback;
+    return Math.min(max,Math.max(min,Math.floor(n)));
+  }
+  function finite(v,fallback=0){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  }
 
-/* ==============================
-   Buttons
-   ============================== */
-[...els.betGrid.querySelectorAll('[data-bet]')].forEach(b=>b.onclick=()=>requestBet(Number(b.dataset.bet)));
-[...els.itemGrid.querySelectorAll('[data-item]')].forEach(b=>b.onclick=()=>requestItem(String(b.dataset.item)));
-[...els.taunts.querySelectorAll('[data-taunt]')].forEach(b=>b.onclick=()=>taunt(String(b.dataset.taunt)));
-els.startBtn.onclick=()=>{initAudio();if(isHost())state.phase==='RESULT'?hostPrepareLobby():hostStartRound();};
-els.randomPassBtn.onclick=requestRandomPass;
-els.popClose.onclick=()=>{initAudio();els.pop.classList.remove('show');sfx('tap');};
-document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
+  const ME = Object.freeze({
+    id:safeId(user && user.id) || ('demo-'+Math.random().toString(36).slice(2)),
+    username:safeString(user && user.username || '玩家',24) || '玩家',
+    avatar:safeString(user && user.avatar || '',512),
+    joinedAt:Date.now(),
+    nonce:Math.random().toString(36).slice(2,10)
+  });
 
-/* ==============================
-   Join / heartbeat
-   ============================== */
-function announceHello(){broadcast('NDB_HELLO',{player:{...ME}});broadcast('NDB_PING',{player:{...ME},requestState:true});}
-announceHello();setTimeout(electInitialHost,850);
-setInterval(()=>{const me=players.get(ME.id);if(me){me.online=true;me.lastSeen=Date.now();}broadcast('NDB_PING',{player:{...ME}});if(isHost())broadcastState(true);},1800);
-setInterval(()=>{const now=Date.now();for(const p of players.values())if(now-p.lastSeen>HOST_TIMEOUT_MS)p.online=false;maybeTakeoverHost();},1000);
-if(DEMO)showToast('預覽模式：未偵測到 BoomRoom SDK');
-render();
+  const BETS = GAME_INFO.entryOptions.slice();
+  const MAX_PLAYERS = GAME_INFO.maxPlayers;
 
-/* ==============================
-   Extra safety: clean local state on page hide
-   ============================== */
-window.addEventListener('visibilitychange',()=>{if(!document.hidden){const p=players.get(ME.id);if(p){p.lastSeen=Date.now();p.online=true;}announceHello();}});
+  const TIMING = Object.freeze({
+    BETTING_MS:8000,
+    BOMB_MIN_MS:17000,
+    BOMB_MAX_MS:23000,
+    RESULT_MS:5200,
+    PASS_COOLDOWN_MS:1000,
+    JAM_MS:2500,
+    SHIELD_COST:300,
+    JAM_COST:350,
+    MAGNET_COST:450,
+    HOST_TIMEOUT_MS:5600,
+    HOST_INITIAL_WAIT_MS:1500,
+    PRESENCE_MS:2500,
+    OFFLINE_CHECK_MS:1000,
+    STATE_MS:700,
+    TAUNT_COOLDOWN_MS:1200,
+    TAUNT_MAX:10
+  });
+
+  const ITEM_COSTS = Object.freeze({shield:TIMING.SHIELD_COST,jam:TIMING.JAM_COST,magnet:TIMING.MAGNET_COST});
+  const ITEM_NAMES = Object.freeze({shield:'護盾',jam:'鎖定',magnet:'磁吸'});
+
+  const SPECIALS = Object.freeze([
+    {id:'OVERDRIVE',name:'⚡ 暴走倒數',desc:'最後 5 秒，倒數會再壓縮一段。'},
+    {id:'CHAIN',name:'🔥 Combo 連鎖',desc:'同一玩家連續傳炸彈會觸發額外時間壓力。'},
+    {id:'SWAP',name:'🌀 空間交換',desc:'回合中段會自動換一次持有者。'},
+    {id:'LOCKFIELD',name:'🔒 禁傳場',desc:'開局短暫不能傳，先看清楚誰拿到。'}
+  ]);
+
+  const $ = id => document.getElementById(id);
+  const els = {
+    fx:$('fx'),hero:$('hero'),meName:$('meName'),roleText:$('roleText'),meAvatar:$('meAvatar'),
+    phaseDot:$('phaseDot'),phaseText:$('phaseText'),roundText:$('roundText'),timerTitle:$('timerTitle'),timer:$('timer'),substatus:$('substatus'),eventText:$('eventText'),
+    bomb:$('bomb'),bombGlow:$('bombGlow'),spark:$('spark'),holderName:$('holderName'),holderShield:$('holderShield'),potText:$('potText'),passText:$('passText'),comboText:$('comboText'),scoreText:$('scoreText'),
+    players:$('players'),playerCount:$('playerCount'),playerHint:$('playerHint'),controlTitle:$('controlTitle'),myBetText:$('myBetText'),betGrid:$('betGrid'),startBtn:$('startBtn'),itemGrid:$('itemGrid'),passGrid:$('passGrid'),randomPassBtn:$('randomPassBtn'),requestHelpBtn:$('requestHelpBtn'),taunts:$('taunts'),notice:$('notice'),
+    toast:$('toast'),tauntBubble:$('tauntBubble'),resultPanel:$('resultPanel'),resultTitle:$('resultTitle'),resultAmount:$('resultAmount'),resultReason:$('resultReason'),rankList:$('rankList'),resultAgain:$('resultAgain'),resultClose:$('resultClose'),tutorial:$('tutorial'),debug:$('debug'),soundBtn:$('soundBtn'),helpBtn:$('helpBtn'),helpOverlay:$('helpOverlay'),helpClose:$('helpClose')
+  };
+
+  els.meName.textContent = ME.username;
+  renderAvatar(els.meAvatar,ME);
+
+  /* =========================================================
+     Explicit State Machine
+     ========================================================= */
+  const state = {
+    phase:'LOBBY',
+    roundSeq:0,
+    roundId:'',
+    seed:0,
+    phaseEndsAt:0,
+    bombExplodesAt:0,
+    startedAt:0,
+    holderId:null,
+    lastPassAt:0,
+    jamUntil:0,
+    participants:[],
+    loserId:null,
+    result:[],
+    specialId:null,
+    specialStartedAt:0,
+    specialDone:false,
+    passCount:0,
+    comboOwnerId:null,
+    comboOwnerCount:0,
+    swapTargetId:null,
+    taunts:[],
+    lastEventSeq:0,
+    resultLocked:false
+  };
+
+  const players = new Map();
+  players.set(ME.id,makePlayer(ME));
+
+  let hostId = null;
+  let initialElectionDone = false;
+  let hostEpoch = 0;
+  let localMyBet = 0;
+  let purchasing = false;
+  let purchaseItemId = '';
+  let purchaseRoundId = '';
+  let lastPresenceAt = 0;
+  let lastStateAt = 0;
+  let lastOfflineCheck = 0;
+  let lastUiRender = 0;
+  let toastTimer = 0;
+  let tauntTimer = 0;
+  let tutorialTimer = 0;
+  let tutorialShown = false;
+  let lastWholeSecond = -1;
+  let tauntLastAt = 0;
+  let lastIncomingEventKey = '';
+  let lastEventAt = 0;
+  let resultPopupRoundId = '';
+  const settledRounds = new Set();
+  const hostProcessedRequests = new Set();
+  const uiTimeouts = new Set();
+
+  function makePlayer(raw){
+    return {
+      id:safeId(raw.id),
+      username:safeString(raw.username || '玩家',24) || '玩家',
+      avatar:safeString(raw.avatar || '',512),
+      joinedAt:finite(raw.joinedAt,Date.now()),
+      nonce:safeString(raw.nonce || '',24),
+      bet:0,
+      score:0,
+      combo:0,
+      roundPasses:0,
+      shield:0,
+      itemUses:{shield:0,jam:0,magnet:0},
+      jamUntil:0,
+      online:true,
+      lastSeen:Date.now()
+    };
+  }
+
+  function resetRoundLocalFields(){
+    for(const p of players.values()){
+      p.bet=0;
+      p.combo=0;
+      p.roundPasses=0;
+      p.shield=0;
+      p.itemUses={shield:0,jam:0,magnet:0};
+      p.jamUntil=0;
+    }
+    localMyBet=0;
+    purchasing=false;
+    purchaseItemId='';
+    purchaseRoundId='';
+  }
+
+  function resetTransientState(){
+    state.phase='LOBBY';
+    state.roundSeq=0;
+    state.roundId='';
+    state.seed=0;
+    state.phaseEndsAt=0;
+    state.bombExplodesAt=0;
+    state.startedAt=0;
+    state.holderId=null;
+    state.lastPassAt=0;
+    state.jamUntil=0;
+    state.participants=[];
+    state.loserId=null;
+    state.result=[];
+    state.specialId=null;
+    state.specialStartedAt=0;
+    state.specialDone=false;
+    state.passCount=0;
+    state.comboOwnerId=null;
+    state.comboOwnerCount=0;
+    state.swapTargetId=null;
+    state.taunts=[];
+    state.lastEventSeq=0;
+    state.resultLocked=false;
+    hostProcessedRequests.clear();
+    clearUiTimeouts();
+    hideResult();
+  }
+
+  /* =========================================================
+     Host Election / Presence
+     ========================================================= */
+  function hostKey(p){
+    return [finite(p.joinedAt,Number.MAX_SAFE_INTEGER),String(p.id)].join(':');
+  }
+  function sortedOnlinePlayers(){
+    const now=Date.now();
+    return [...players.values()]
+      .filter(p=>p.online && now-p.lastSeen<TIMING.HOST_TIMEOUT_MS)
+      .sort((a,b)=>hostKey(a).localeCompare(hostKey(b)));
+  }
+  function isHost(){return hostId===ME.id;}
+  function currentHostOnline(){
+    const p=players.get(hostId);
+    return !!(p && p.online && Date.now()-p.lastSeen<TIMING.HOST_TIMEOUT_MS);
+  }
+  function electInitialHost(force=false){
+    if(initialElectionDone && !force)return;
+    const list=sortedOnlinePlayers();
+    if(!list.length)return;
+    const next=list[0].id;
+    if(!hostId || force || !currentHostOnline()){
+      hostId=next;
+      initialElectionDone=true;
+      hostEpoch++;
+      updateRoleText();
+      broadcast('HOST_CLAIM',{hostId,hostKey:hostKey(players.get(hostId)||ME),hostEpoch,at:Date.now()});
+      if(isHost())broadcastState(true);
+    }
+  }
+  function maybeTakeoverHost(){
+    if(!initialElectionDone)return;
+    if(currentHostOnline())return;
+    const list=sortedOnlinePlayers();
+    if(!list.length)return;
+    const next=list[0].id;
+    if(hostId===next)return;
+    hostId=next;
+    hostEpoch++;
+    showToast('👑 房主離開，已由下一位已知玩家接管');
+    updateRoleText();
+    broadcast('HOST_CLAIM',{hostId,hostKey:hostKey(players.get(hostId)||ME),hostEpoch,at:Date.now()});
+    if(isHost())broadcastState(true);
+  }
+
+  function addOrUpdatePlayer(raw,seen=true){
+    if(!raw || raw.id==null)return null;
+    const id=safeId(raw.id);
+    if(!id || id.length>96)return null;
+    let p=players.get(id);
+    if(!p){
+      p=makePlayer({id,username:raw.username,avatar:raw.avatar,joinedAt:raw.joinedAt,nonce:raw.nonce});
+      players.set(id,p);
+    }else{
+      if(raw.username!=null)p.username=safeString(raw.username,24) || p.username;
+      if(raw.avatar!=null)p.avatar=safeString(raw.avatar,512);
+      if(raw.joinedAt!=null && Number.isFinite(Number(raw.joinedAt)))p.joinedAt=Number(raw.joinedAt);
+      if(raw.nonce!=null)p.nonce=safeString(raw.nonce,24);
+      if(seen)p.lastSeen=Date.now();
+      p.online=true;
+    }
+    return p;
+  }
+
+  function publicPlayer(p){
+    return {
+      id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,nonce:p.nonce,
+      bet:intFinite(p.bet,0,1000000),score:intFinite(p.score,0,100000000),combo:intFinite(p.combo,0,99),
+      roundPasses:intFinite(p.roundPasses,0,99),shield:p.shield?1:0,
+      itemUses:{shield:p.itemUses.shield?1:0,jam:p.itemUses.jam?1:0,magnet:p.itemUses.magnet?1:0},
+      jamUntil:Math.max(0,finite(p.jamUntil,0)),online:!!p.online,lastSeen:finite(p.lastSeen,0)
+    };
+  }
+
+  /* =========================================================
+     Random / Deterministic helpers
+     ========================================================= */
+  function secureRandomUint32(){
+    try{
+      const a=new Uint32Array(1);
+      crypto.getRandomValues(a);
+      return a[0]>>>0;
+    }catch(e){
+      return (Math.random()*0x100000000)>>>0;
+    }
+  }
+  function secureRandomInt(maxExclusive){
+    const max=intFinite(maxExclusive,1,0x7fffffff,1);
+    if(max<=1)return 0;
+    return secureRandomUint32()%max;
+  }
+  function hash32(input){
+    let h=2166136261>>>0;
+    const s=String(input);
+    for(let i=0;i<s.length;i++){
+      h^=s.charCodeAt(i);
+      h=Math.imul(h,16777619)>>>0;
+    }
+    h^=h>>>13;h=Math.imul(h,0x5bd1e995)>>>0;h^=h>>>15;
+    return h>>>0;
+  }
+  function deterministicIndex(key,length){
+    if(length<=1)return 0;
+    return hash32(key)%length;
+  }
+
+  /* =========================================================
+     SDK / Relay
+     ========================================================= */
+  function broadcast(eventName,payload={}){
+    if(!SDK || typeof SDK.sendGameEvent!=='function')return;
+    try{SDK.sendGameEvent(eventName,payload);}catch(e){}
+  }
+  function getRoundId(){return state.roundId || '';}
+  function validRound(payload,allowLobby=false){
+    const rid=safeString(payload?.roundId||'',120);
+    if(allowLobby && (state.phase==='LOBBY' || state.phase==='BETTING') && !rid)return true;
+    return !!rid && rid===getRoundId();
+  }
+  function eventKey(name,payload,senderId){
+    const req=safeString(payload?.requestId||'',64);
+    const seq=String(finite(payload?.eventSeq,0));
+    return [name,senderId||'',req,seq,payload?.roundId||''].join('|');
+  }
+  function rememberIncoming(key){
+    const now=Date.now();
+    if(key && key===lastIncomingEventKey && now-lastEventAt<1200)return false;
+    lastIncomingEventKey=key;lastEventAt=now;return true;
+  }
+
+  function snapshotState(){
+    return {
+      version:3,
+      gameId:GAME_INFO.id,
+      versionName:GAME_INFO.version,
+      hostId,
+      hostEpoch,
+      roundSeq:intFinite(state.roundSeq,0,1000000),
+      roundId:safeString(state.roundId,120),
+      seed:intFinite(state.seed,0,0xffffffff),
+      phase:state.phase,
+      phaseEndsAt:finite(state.phaseEndsAt,0),
+      bombExplodesAt:finite(state.bombExplodesAt,0),
+      startedAt:finite(state.startedAt,0),
+      holderId:state.holderId?safeId(state.holderId):null,
+      lastPassAt:finite(state.lastPassAt,0),
+      jamUntil:finite(state.jamUntil,0),
+      participants:state.participants.map(String).slice(0,MAX_PLAYERS),
+      loserId:state.loserId?safeId(state.loserId):null,
+      result:Array.isArray(state.result)?state.result.slice(0,MAX_PLAYERS):[],
+      specialId:state.specialId?safeString(state.specialId,32):null,
+      specialStartedAt:finite(state.specialStartedAt,0),
+      specialDone:!!state.specialDone,
+      passCount:intFinite(state.passCount,0,999),
+      comboOwnerId:state.comboOwnerId?safeId(state.comboOwnerId):null,
+      comboOwnerCount:intFinite(state.comboOwnerCount,0,9),
+      swapTargetId:state.swapTargetId?safeId(state.swapTargetId):null,
+      taunts:state.taunts.slice(-TIMING.TAUNT_MAX),
+      players:[...players.values()].slice(0,MAX_PLAYERS+3).map(publicPlayer)
+    };
+  }
+
+  function broadcastState(force=false){
+    if(!isHost())return;
+    const now=Date.now();
+    if(!force && now-lastStateAt<TIMING.STATE_MS)return;
+    lastStateAt=now;
+    broadcast('GAME_STATE',snapshotState());
+  }
+
+  function applySnapshot(s){
+    if(!s || typeof s!=='object')return;
+    if(String(s.gameId||'')!==GAME_INFO.id)return;
+    if(Number(s.version)!==3)return;
+
+    const incomingHostId=safeId(s.hostId||'');
+    if(incomingHostId){
+      const incomingHost=players.get(incomingHostId);
+      const knownCurrent=players.get(hostId);
+      const incomingEpoch=intFinite(s.hostEpoch,0,1000000);
+      if(
+        !hostId ||
+        incomingEpoch>hostEpoch ||
+        (incomingEpoch===hostEpoch && (!knownCurrent || !currentHostOnline()))
+      ){
+        hostId=incomingHostId;
+        hostEpoch=incomingEpoch;
+        initialElectionDone=true;
+      }
+    }
+
+    if(Array.isArray(s.players)){
+      for(const raw of s.players)validAndAddSnapshotPlayer(raw);
+    }
+
+    const seq=intFinite(s.roundSeq,0,1000000);
+    const incomingRoundId=safeString(s.roundId||'',120);
+    if(seq < state.roundSeq)return;
+    if(seq===state.roundSeq && state.roundId && incomingRoundId && incomingRoundId!==state.roundId){
+      return;
+    }
+
+    state.roundSeq=seq;
+    state.roundId=incomingRoundId;
+    state.seed=intFinite(s.seed,0,0xffffffff);
+    state.phase=['LOBBY','BETTING','LIVE','RESULT'].includes(s.phase)?s.phase:'LOBBY';
+    state.phaseEndsAt=finite(s.phaseEndsAt,0);
+    state.bombExplodesAt=finite(s.bombExplodesAt,0);
+    state.startedAt=finite(s.startedAt,0);
+    state.holderId=safeId(s.holderId||'')||null;
+    state.lastPassAt=finite(s.lastPassAt,0);
+    state.jamUntil=finite(s.jamUntil,0);
+    state.participants=Array.isArray(s.participants)?s.participants.map(safeId).filter(Boolean).slice(0,MAX_PLAYERS):[];
+    state.loserId=safeId(s.loserId||'')||null;
+    state.result=Array.isArray(s.result)?validateResultArray(s.result):[];
+    state.specialId=safeString(s.specialId||'',32)||null;
+    state.specialStartedAt=finite(s.specialStartedAt,0);
+    state.specialDone=!!s.specialDone;
+    state.passCount=intFinite(s.passCount,0,999);
+    state.comboOwnerId=safeId(s.comboOwnerId||'')||null;
+    state.comboOwnerCount=intFinite(s.comboOwnerCount,0,9);
+    state.swapTargetId=safeId(s.swapTargetId||'')||null;
+    state.taunts=Array.isArray(s.taunts)?s.taunts.slice(-TIMING.TAUNT_MAX):[];
+
+    const me=players.get(ME.id);
+    localMyBet=intFinite(me?.bet,0,1000000,0);
+    updateRoleText();
+    render(true);
+    settleOwnRoundOnce();
+  }
+
+  function validAndAddSnapshotPlayer(raw){
+    if(!raw||raw.id==null)return;
+    const p=addOrUpdatePlayer({
+      id:raw.id,username:raw.username,avatar:raw.avatar,joinedAt:raw.joinedAt,nonce:raw.nonce
+    },false);
+    if(!p)return;
+    p.bet=intFinite(raw.bet,0,1000000,0);
+    p.score=intFinite(raw.score,0,100000000,0);
+    p.combo=intFinite(raw.combo,0,9,0);
+    p.roundPasses=intFinite(raw.roundPasses,0,99,0);
+    p.shield=raw.shield?1:0;
+    if(raw.itemUses && typeof raw.itemUses==='object'){
+      p.itemUses={
+        shield:raw.itemUses.shield?1:0,
+        jam:raw.itemUses.jam?1:0,
+        magnet:raw.itemUses.magnet?1:0
+      };
+    }
+    p.jamUntil=finite(raw.jamUntil,0);
+    p.online=!!raw.online;
+    p.lastSeen=finite(raw.lastSeen,p.lastSeen);
+  }
+
+  function validateResultArray(arr){
+    return arr.slice(0,MAX_PLAYERS).map(r=>({
+      id:safeId(r?.id||''),username:safeString(r?.username||'玩家',24)||'玩家',avatar:safeString(r?.avatar||'',512),
+      bet:intFinite(r?.bet,0,1000000,0),survived:!!r?.survived,winAmount:intFinite(r?.winAmount,0,2000000,0),
+      combo:intFinite(r?.combo,0,9,0),passes:intFinite(r?.passes,0,99,0),score:intFinite(r?.score,0,100000000,0),reason:safeString(r?.reason||'',64)
+    }));
+  }
+
+  /* =========================================================
+     Economy / Purchase
+     ========================================================= */
+  function requestBet(amount){
+    initAudio();
+    if(state.phase!=='BETTING'){
+      showToast('請等待房主開啟下注');
+      return;
+    }
+    amount=intFinite(amount,0,1000000,0);
+    if(!BETS.includes(amount) || localMyBet>0 || purchasing)return;
+
+    const roundId=getRoundId();
+    if(!roundId){showToast('回合尚未同步');return;}
+
+    purchasing=true;
+    purchaseItemId='hotpotato_bet_'+amount;
+    purchaseRoundId=roundId;
+    setButtons();
+
+    if(IS_DEMO){
+      showToast('開發測試模式：模擬 Entry');
+      scheduleUiTimeout(()=>window.onPurchaseSuccess(purchaseItemId),260);
+      return;
+    }
+
+    try{
+      window.BoomRoomSDK.requestPurchase(purchaseItemId,amount);
+    }catch(e){
+      purchasing=false;purchaseItemId='';purchaseRoundId='';setButtons();
+      showToast('Entry 請求失敗，請再試一次');
+    }
+  }
+
+  window.onPurchaseSuccess=function(itemId){
+    if(!purchasing || !itemId || itemId!==purchaseItemId)return;
+    const id=String(itemId);
+    purchasing=false;purchaseItemId='';
+
+    if(id.startsWith('hotpotato_bet_')){
+      const amount=intFinite(id.replace('hotpotato_bet_',''),0,1000000,0);
+      if(!BETS.includes(amount)){
+        purchaseRoundId='';setButtons();return;
+      }
+      if(state.phase!=='BETTING' || purchaseRoundId!==getRoundId()){
+        purchaseRoundId='';setButtons();
+        showToast('本局下注時間已結束');
+        return;
+      }
+      const me=players.get(ME.id);
+      if(!me || me.bet>0){purchaseRoundId='';setButtons();return;}
+      localMyBet=amount;me.bet=amount;me.lastSeen=Date.now();me.online=true;
+      const rid=purchaseRoundId;purchaseRoundId='';
+      sfx('bet');haptic(12);
+      showToast((IS_DEMO?'開發測試 Entry：':'Entry 成功：')+formatCoins(amount)+' 🪙');
+      sendPlayerBet(amount,rid);
+      if(isHost())hostAcceptBet({playerId:ME.id,amount,roundId:rid,requestId:makeRequestId()},{local:true,senderId:ME.id});
+      setButtons();render(true);
+      return;
+    }
+
+    if(id.startsWith('hotpotato_item_')){
+      const type=safeString(id.replace('hotpotato_item_',''),24);
+      if(!ITEM_COSTS[type]){purchaseRoundId='';setButtons();return;}
+      const rid=purchaseRoundId;
+      purchaseRoundId='';
+      if(state.phase!=='LIVE' || rid!==getRoundId()){
+        setButtons();showToast('道具使用時間已結束');return;
+      }
+      const me=players.get(ME.id);
+      if(!me || me.itemUses[type]){setButtons();showToast('本局這個道具已使用');return;}
+      const requestId=makeRequestId();
+      broadcast('ITEM_USE_REQUEST',{playerId:ME.id,itemType:type,roundId:rid,requestId});
+      if(isHost())hostHandleItem({playerId:ME.id,itemType:type,roundId:rid,requestId},{senderId:ME.id});
+      showToast((IS_DEMO?'開發測試：':'')+'啟動 '+ITEM_NAMES[type]);
+      sfx('item');haptic(14);
+      setButtons();
+      return;
+    }
+  };
+
+  window.onPurchaseFailed=function(itemId){
+    if(!purchasing || !itemId || String(itemId)!==purchaseItemId)return;
+    purchasing=false;purchaseItemId='';purchaseRoundId='';setButtons();sfx('tap');
+    showToast('Entry 未完成：餘額不足或已取消');
+  };
+
+  function requestItem(type){
+    initAudio();
+    if(state.phase!=='LIVE' || !ITEM_COSTS[type] || purchasing)return;
+    const me=players.get(ME.id);
+    if(!me || me.itemUses[type]){showToast('本局這個道具已用過');return;}
+    if(type==='shield' && me.shield){showToast('你已經有護盾');return;}
+    if(type==='jam' && state.holderId===ME.id){showToast('炸彈在你手上，不能鎖定自己');return;}
+    if(type==='magnet' && state.holderId===ME.id){showToast('炸彈已在你手上，不需要磁吸');return;}
+    purchasing=true;
+    purchaseItemId='hotpotato_item_'+type;
+    purchaseRoundId=getRoundId();
+    setButtons();
+
+    if(IS_DEMO){
+      showToast('開發測試模式：模擬道具購買');
+      scheduleUiTimeout(()=>window.onPurchaseSuccess(purchaseItemId),220);
+      return;
+    }
+    try{
+      window.BoomRoomSDK.requestPurchase(purchaseItemId,ITEM_COSTS[type]);
+    }catch(e){
+      purchasing=false;purchaseItemId='';purchaseRoundId='';setButtons();showToast('道具請求失敗');
+    }
+  }
+
+  function sendPlayerBet(amount,roundId){
+    const requestId=makeRequestId();
+    broadcast('PLAYER_BET',{playerId:ME.id,amount,roundId,requestId});
+  }
+
+  function makeRequestId(){return ME.id+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);}
+
+  /* =========================================================
+     Host: Round Lifecycle
+     ========================================================= */
+  function hostStartBetting(){
+    if(!isHost() || !['LOBBY','RESULT'].includes(state.phase))return;
+    const online=sortedOnlinePlayers().slice(0,MAX_PLAYERS);
+    if(!online.length)return;
+
+    resetRoundLocalFields();
+    state.roundSeq=Math.max(0,state.roundSeq)+1;
+    state.seed=secureRandomUint32();
+    state.roundId='r'+state.roundSeq+'_'+String(hostId)+'_'+String(state.seed>>>0);
+    state.phase='BETTING';
+    state.phaseEndsAt=Date.now()+TIMING.BETTING_MS;
+    state.bombExplodesAt=0;
+    state.startedAt=Date.now();
+    state.holderId=null;
+    state.lastPassAt=0;
+    state.jamUntil=0;
+    state.participants=[];
+    state.loserId=null;
+    state.result=[];
+    state.specialId=null;
+    state.specialStartedAt=0;
+    state.specialDone=false;
+    state.passCount=0;
+    state.comboOwnerId=null;
+    state.comboOwnerCount=0;
+    state.swapTargetId=null;
+    state.taunts=[];
+    state.resultLocked=false;
+
+    broadcast('ROUND_START',{
+      roundId:state.roundId,
+      roundSeq:state.roundSeq,
+      seed:state.seed>>>0,
+      startTime:state.startedAt,
+      bettingEndsAt:state.phaseEndsAt,
+      maxDuration:TIMING.BOMB_MAX_MS,
+      entryOptions:BETS
+    });
+    broadcastState(true);
+    sfx('start');haptic([15,25,15]);
+    showToast('🚨 開始下注！8 秒後炸彈啟動');
+  }
+
+  function chooseSpecial(){
+    return SPECIALS[secureRandomInt(SPECIALS.length)].id;
+  }
+
+  function hostLockBets(){
+    if(!isHost() || state.phase!=='BETTING')return;
+    const parts=[...players.values()]
+      .filter(p=>p.online && BETS.includes(intFinite(p.bet,0,1000000,0)) && p.bet>0)
+      .sort((a,b)=>hostKey(a).localeCompare(hostKey(b)))
+      .slice(0,MAX_PLAYERS);
+
+    if(!parts.length){
+      state.phase='LOBBY';state.phaseEndsAt=0;state.roundId='';state.seed=0;
+      broadcastState(true);showToast('本局沒有人支付 Entry');
+      return;
+    }
+
+    state.participants=parts.map(p=>p.id);
+    state.specialId=chooseSpecial();
+    state.specialStartedAt=Date.now();
+    state.specialDone=false;
+    state.passCount=0;
+    state.comboOwnerId=null;
+    state.comboOwnerCount=0;
+    state.swapTargetId=null;
+    state.jamUntil=state.specialId==='LOCKFIELD' ? Date.now()+TIMING.JAM_MS : 0;
+
+    const holderIndex=deterministicIndex(state.seed+':holder',parts.length);
+    state.holderId=parts[holderIndex].id;
+
+    let fuse=TIMING.BOMB_MIN_MS+secureRandomInt(TIMING.BOMB_MAX_MS-TIMING.BOMB_MIN_MS+1);
+    if(state.specialId==='LOCKFIELD')fuse=Math.max(fuse,19500);
+    if(state.specialId==='SWAP')fuse=Math.max(fuse,18500);
+    state.bombExplodesAt=Date.now()+fuse;
+    state.phase='LIVE';
+    state.phaseEndsAt=0;
+    state.lastPassAt=0;
+
+    const special=SPECIALS.find(x=>x.id===state.specialId);
+    broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:state.specialId,at:state.specialStartedAt});
+    broadcastState(true);
+    sfx('danger');haptic(24);
+    showToast(special.name+'：'+special.desc);
+  }
+
+  function hostAcceptBet(payload,meta={}){
+    if(!isHost() || state.phase!=='BETTING')return false;
+    if(!validRound(payload))return false;
+    const pid=safeId(payload?.playerId||meta.senderId||'');
+    if(meta.senderId && pid!==meta.senderId)return false;
+    const amount=intFinite(payload?.amount,0,1000000,0);
+    const req=safeString(payload?.requestId||'',64);
+    if(!pid || !BETS.includes(amount))return false;
+    if(req && hostProcessedRequests.has('bet:'+req))return false;
+    if(req)hostProcessedRequests.add('bet:'+req);
+    const p=players.get(pid);
+    if(!p || !p.online || p.bet>0)return false;
+    p.bet=amount;p.lastSeen=Date.now();p.online=true;
+    showToast(p.username+' Entry '+formatCoins(amount)+' 🪙');
+    sfx('bet');
+    broadcastState(true);
+    return true;
+  }
+
+  function activeTargets(){
+    return state.participants
+      .filter(id=>id!==state.holderId)
+      .map(id=>players.get(id))
+      .filter(p=>p && p.online);
+  }
+
+  function passAllowed(){
+    return state.phase==='LIVE' &&
+      Date.now()>=state.jamUntil &&
+      Date.now()>=state.lastPassAt+TIMING.PASS_COOLDOWN_MS &&
+      Date.now()<state.bombExplodesAt;
+  }
+
+  function hostHandlePass(payload,meta={}){
+    if(!isHost() || state.phase!=='LIVE')return false;
+    if(!validRound(payload))return false;
+    const from=safeId(payload?.playerId||meta.senderId||'');
+    if(meta.senderId && from!==meta.senderId)return false;
+    const target=safeId(payload?.targetId||'');
+    const req=safeString(payload?.requestId||'',64);
+    if(!from || !target || from!==state.holderId || target===from)return false;
+    if(req && hostProcessedRequests.has('pass:'+req))return false;
+    if(req)hostProcessedRequests.add('pass:'+req);
+    if(!passAllowed())return false;
+    if(!state.participants.includes(target))return false;
+    const targetPlayer=players.get(target);
+    const fromPlayer=players.get(from);
+    if(!targetPlayer || !fromPlayer || !targetPlayer.online)return false;
+
+    state.holderId=target;
+    state.lastPassAt=Date.now();
+    state.passCount=intFinite(state.passCount+1,0,999);
+
+    if(state.comboOwnerId===from){
+      state.comboOwnerCount=intFinite(state.comboOwnerCount+1,0,9);
+    }else{
+      state.comboOwnerId=from;
+      state.comboOwnerCount=1;
+    }
+    fromPlayer.combo=intFinite(state.comboOwnerCount,0,9);
+    fromPlayer.roundPasses=intFinite(fromPlayer.roundPasses+1,0,99);
+    fromPlayer.score=intFinite(fromPlayer.score+(10+fromPlayer.combo*5),0,100000000);
+
+    if(state.specialId==='CHAIN' && !state.specialDone && state.comboOwnerCount>=3){
+      state.specialDone=true;
+      state.bombExplodesAt=Math.max(Date.now()+2500,state.bombExplodesAt-1200);
+      broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'CHAIN_BREAK',byPlayerId:from,combo:state.comboOwnerCount,at:Date.now()});
+      showToast('🔥 Combo 3！倒數再壓縮 1.2 秒');
+      sfx('danger');haptic([12,18,12]);
+    }
+
+    broadcast('PLAYER_ACTION',{
+      roundId:state.roundId,
+      actionType:'PASS_BOMB',
+      playerId:from,
+      targetId:target,
+      combo:state.comboOwnerCount,
+      passCount:state.passCount,
+      eventSeq:++state.lastEventSeq
+    });
+    broadcastState(true);
+    sfx('pass');haptic(15);
+    return true;
+  }
+
+  function hostHandleItem(payload,meta={}){
+    if(!isHost() || state.phase!=='LIVE')return false;
+    if(!validRound(payload))return false;
+    const pid=safeId(payload?.playerId||meta.senderId||'');
+    if(meta.senderId && pid!==meta.senderId)return false;
+    const type=safeString(payload?.itemType||'',24);
+    const req=safeString(payload?.requestId||'',64);
+    if(!pid || !ITEM_COSTS[type])return false;
+    if(req && hostProcessedRequests.has('item:'+req))return false;
+    if(req)hostProcessedRequests.add('item:'+req);
+
+    const p=players.get(pid);
+    if(!p || !state.participants.includes(pid) || !p.online)return false;
+    if(p.itemUses[type])return false;
+
+    const now=Date.now();
+    if(type==='shield'){
+      if(p.shield)return false;
+      p.shield=1;p.itemUses.shield=1;
+      broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'SHIELD_ARMED',playerId:pid,at:now});
+      broadcastState(true);sfx('item');return true;
+    }
+    if(type==='jam'){
+      if(state.holderId===pid || now<state.jamUntil)return false;
+      const holder=players.get(state.holderId);
+      if(!holder || !holder.online)return false;
+      state.jamUntil=now+TIMING.JAM_MS;
+      holder.jamUntil=state.jamUntil;
+      p.itemUses.jam=1;
+      broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'JAM_TARGET',playerId:pid,targetId:holder.id,until:state.jamUntil,at:now});
+      broadcastState(true);showToast(p.username+' 🔒 鎖定了持有者');sfx('item');haptic([10,20,10]);return true;
+    }
+    if(type==='magnet'){
+      if(state.holderId===pid || now>=state.bombExplodesAt)return false;
+      const holder=players.get(state.holderId);
+      if(!holder || !holder.online)return false;
+      state.holderId=pid;
+      state.lastPassAt=now;
+      p.itemUses.magnet=1;
+      p.roundPasses=intFinite(p.roundPasses+1,0,99);
+      p.score=intFinite(p.score+15,0,100000000);
+      state.comboOwnerId=pid;
+      state.comboOwnerCount=1;
+      p.combo=1;
+      broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'MAGNET_PULL',playerId:pid,targetId:pid,at:now});
+      broadcastState(true);showToast(p.username+' 🧲 把炸彈拉到自己手上！');sfx('pass');haptic(20);return true;
+    }
+    return false;
+  }
+
+  function chooseDeterministicTarget(excludeId){
+    const available=state.participants
+      .filter(id=>id!==excludeId)
+      .map(id=>players.get(id))
+      .filter(p=>p && p.online);
+    if(!available.length)return null;
+    const index=deterministicIndex(state.seed+':'+state.passCount+':'+available.map(p=>p.id).join(','),available.length);
+    return available[index];
+  }
+
+  function hostMaybeSpecial(){
+    if(!isHost() || state.phase!=='LIVE')return;
+    const now=Date.now();
+
+    if(state.specialId==='OVERDRIVE' && !state.specialDone && state.bombExplodesAt-now<=5000){
+      state.specialDone=true;
+      state.bombExplodesAt=Math.max(now+1800,now+Math.floor((state.bombExplodesAt-now)*0.68));
+      broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'OVERDRIVE_TRIGGER',at:now,lockedExplodesAt:state.bombExplodesAt});
+      broadcastState(true);showToast('⚡ 暴走！倒數加速！');sfx('danger');haptic([10,25,10]);return;
+    }
+
+    if(state.specialId==='SWAP' && !state.specialDone && now-state.startedAt>=Math.max(6000,(state.bombExplodesAt-state.startedAt)*0.5)){
+      const target=chooseDeterministicTarget(state.holderId);
+      state.specialDone=true;
+      if(target){
+        state.holderId=target.id;state.lastPassAt=now;state.swapTargetId=target.id;
+        broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'AUTO_SWAP',targetId:target.id,at:now});
+        broadcastState(true);showToast('🌀 空間交換！炸彈自動換手');sfx('pass');haptic(18);
+      }else broadcastState(true);
+    }
+  }
+
+  function hostResolveRound(){
+    if(!isHost() || state.phase!=='LIVE' || state.resultLocked)return;
+    const now=Date.now();
+    if(now<state.bombExplodesAt)return;
+
+    const holder=players.get(state.holderId);
+    if(holder && holder.shield>0){
+      holder.shield=0;
+      holder.itemUses.shield=1;
+      const target=chooseDeterministicTarget(holder.id);
+      if(target){
+        state.holderId=target.id;
+        state.lastPassAt=now;
+        state.bombExplodesAt=now+4200;
+        state.jamUntil=0;
+        broadcast('SPECIAL_EVENT',{roundId:state.roundId,specialId:'SHIELD_SAVE',playerId:holder.id,targetId:target.id,at:now,lockedExplodesAt:state.bombExplodesAt});
+        broadcastState(true);showToast('🛡️ 護盾擋住爆炸！炸彈轉移！');sfx('win');haptic([15,30,15]);return;
+      }
+      state.bombExplodesAt=now+4200;
+      broadcastState(true);showToast('🛡️ 護盾啟動！再撐 4.2 秒');sfx('win');haptic(18);return;
+    }
+
+    const loserId=state.holderId;
+    const participants=state.participants.slice(0,MAX_PLAYERS);
+    const loser=players.get(loserId);
+    const loserStake=intFinite(loser?.bet,0,1000000,0);
+    const survivors=participants
+      .filter(id=>id!==loserId)
+      .map(id=>players.get(id))
+      .filter(p=>p);
+
+    const survivorStake=safelySum(survivors.map(p=>p.bet));
+    const totalPot=safelySum(participants.map(id=>players.get(id)?.bet||0));
+
+    /*
+      Bounded reward model:
+      - The bomb holder gets 0.
+      - Survivors get their own Entry back plus a proportional share of
+        the bomb holder's stake.
+      - Total rewards never exceed the actual total pot.
+      This avoids creating arbitrary reward multipliers.
+    */
+    let remainingLoserStake=loserStake;
+    const result=[];
+
+    const sortedSurvivors=survivors.slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+    for(const p of sortedSurvivors){
+      const base=intFinite(p.bet,0,1000000,0);
+      let share=0;
+      if(survivorStake>0 && remainingLoserStake>0){
+        share=Math.floor(loserStake*base/survivorStake);
+      }
+      const winAmount=intFinite(Math.min(base+share,base*2),0,2000000,0);
+      remainingLoserStake=Math.max(0,remainingLoserStake-share);
+      p.combo=intFinite(p.combo,0,9,0);
+      p.score=intFinite(p.score+100+p.combo*25+p.roundPasses*10,0,100000000,0);
+      result.push({
+        id:p.id,username:p.username,avatar:p.avatar,bet:base,survived:true,winAmount,
+        combo:p.combo,passes:p.roundPasses,score:p.score,reason:'存活並按獎池比例分配'
+      });
+    }
+    if(loser){
+      loser.combo=0;
+      result.push({
+        id:loser.id,username:loser.username,avatar:loser.avatar,bet:loserStake,survived:false,winAmount:0,
+        combo:0,passes:loser.roundPasses,score:loser.score,reason:'最後持有炸彈'
+      });
+    }
+
+    /* Rounding remainder, if any, is retained by the platform/risk system by omission. */
+    state.result=validateResultArray(result);
+    state.resultLocked=true;
+    state.loserId=loserId;
+    state.phase='RESULT';
+    state.phaseEndsAt=now+TIMING.RESULT_MS;
+    state.bombExplodesAt=0;
+
+    broadcast('ROUND_END',{
+      roundId:state.roundId,
+      loserId,
+      totalPot,
+      payoutCap:totalPot,
+      result:state.result
+    });
+    broadcastState(true);
+    sfx('boom');haptic([25,35,25,40]);
+    showToast('💥 BOOM！本局結果已鎖定');
+  }
+
+  function safelySum(values){
+    return values.reduce((sum,v)=>sum+intFinite(v,0,1000000,0),0);
+  }
+
+  function hostPrepareLobby(){
+    if(!isHost() || state.phase!=='RESULT' || Date.now()<state.phaseEndsAt)return;
+    resetRoundLocalFields();
+    state.phase='LOBBY';
+    state.phaseEndsAt=0;
+    state.bombExplodesAt=0;
+    state.startedAt=0;
+    state.holderId=null;
+    state.lastPassAt=0;
+    state.jamUntil=0;
+    state.participants=[];
+    state.loserId=null;
+    state.result=[];
+    state.specialId=null;
+    state.specialStartedAt=0;
+    state.specialDone=false;
+    state.passCount=0;
+    state.comboOwnerId=null;
+    state.comboOwnerCount=0;
+    state.swapTargetId=null;
+    state.taunts=[];
+    state.resultLocked=false;
+    hostProcessedRequests.clear();
+    broadcastState(true);
+  }
+
+  /* =========================================================
+     Player Actions
+     ========================================================= */
+  function requestPass(targetId){
+    initAudio();
+    if(!passAllowed() || state.holderId!==ME.id)return;
+    targetId=safeId(targetId);
+    if(!targetId || targetId===ME.id || !state.participants.includes(targetId))return;
+    const target=players.get(targetId);
+    if(!target || !target.online)return;
+    const requestId=makeRequestId();
+    const payload={playerId:ME.id,targetId,roundId:getRoundId(),requestId};
+    broadcast('PLAYER_ACTION_REQUEST',payload);
+    if(isHost())hostHandlePass(payload,{senderId:ME.id});
+  }
+
+  function requestRandomPass(){
+    if(!passAllowed() || state.holderId!==ME.id)return;
+    const targets=activeTargets();
+    if(!targets.length)return;
+    requestPass(targets[deterministicIndex(Date.now()+':'+ME.id,targets.length)].id);
+  }
+
+  function requestHelp(){
+    if(!['BETTING','LIVE'].includes(state.phase))return;
+    const text=state.phase==='LIVE' && state.holderId===ME.id ? '💣 我手上有炸彈，快接！' : '👀 注意炸彈！';
+    sendTaunt(text);
+  }
+
+  function sendTaunt(text){
+    initAudio();
+    if(!['LIVE','RESULT'].includes(state.phase))return;
+    const now=Date.now();
+    if(now-tauntLastAt<TIMING.TAUNT_COOLDOWN_MS){showToast('嘲諷冷卻中');return;}
+    text=safeString(text,28);
+    if(!text)return;
+    tauntLastAt=now;
+    const payload={playerId:ME.id,text,roundId:getRoundId(),requestId:makeRequestId()};
+    broadcast('TAUNT_REQUEST',payload);
+    if(isHost())hostHandleTaunt(payload,{senderId:ME.id});
+  }
+
+  function hostHandleTaunt(payload,meta={}){
+    if(!isHost() || !['LIVE','RESULT'].includes(state.phase))return false;
+    if(!validRound(payload))return false;
+    const pid=safeId(payload?.playerId||meta.senderId||'');
+    if(meta.senderId && pid!==meta.senderId)return false;
+    const text=safeString(payload?.text||'',28);
+    const req=safeString(payload?.requestId||'',64);
+    if(!pid || !text)return false;
+    if(req && hostProcessedRequests.has('taunt:'+req))return false;
+    if(req)hostProcessedRequests.add('taunt:'+req);
+    const p=players.get(pid);
+    if(!p || !state.participants.includes(pid))return false;
+    const last=Number(p.lastTauntAt)||0;
+    if(Date.now()-last<TIMING.TAUNT_COOLDOWN_MS)return false;
+    p.lastTauntAt=Date.now();
+    const item={playerId:pid,username:p.username,text,at:Date.now()};
+    state.taunts.push(item);state.taunts=state.taunts.slice(-TIMING.TAUNT_MAX);
+    broadcast('TAUNT_SHOW',{...item,roundId:state.roundId});
+    broadcastState(true);
+    showTaunt(item);
+    return true;
+  }
+
+  /* =========================================================
+     Incoming multiplayer events
+     ========================================================= */
+  window.addEventListener('message',(event)=>{
+    let data;
+    try{
+      data=typeof event.data==='string' ? JSON.parse(event.data) : event.data;
+    }catch(e){return;}
+    if(!data || data.action!=='gameEventReceived')return;
+
+    const eventName=safeString(data.eventName||'',64);
+    const payload=data.payload && typeof data.payload==='object' ? data.payload : {};
+    const senderId=safeId(data.userId||'');
+
+    if(eventName==='PLAYER_HELLO'){
+      const pid=safeId(payload?.player?.id||'');
+      if(senderId && pid && senderId!==pid)return;
+      if(payload.player)addOrUpdatePlayer(payload.player,true);
+      if(isHost())broadcastState(true);
+      return;
+    }
+    if(eventName==='PLAYER_HEARTBEAT'){
+      const pid=safeId(payload?.player?.id||'');
+      if(senderId && pid && senderId!==pid)return;
+      if(payload.player)addOrUpdatePlayer(payload.player,true);
+      return;
+    }
+    if(eventName==='HOST_CLAIM'){
+      const candidate=safeId(payload.hostId||senderId||'');
+      if(!candidate || !senderId || candidate!==senderId)return;
+      const candidatePlayer=players.get(candidate);
+      const candidateKey=payload.hostKey || (candidatePlayer ? hostKey(candidatePlayer) : '');
+      const currentPlayer=players.get(hostId);
+      const currentKey=currentPlayer ? hostKey(currentPlayer) : '';
+      const incomingEpoch=intFinite(payload.hostEpoch,0,1000000);
+      if(candidate && candidatePlayer && (
+        !hostId ||
+        incomingEpoch>hostEpoch ||
+        (incomingEpoch===hostEpoch && (!currentKey || candidateKey<currentKey))
+      )){
+        hostId=candidate;hostEpoch=incomingEpoch;initialElectionDone=true;updateRoleText();render(true);
+      }
+      return;
+    }
+    if(eventName==='GAME_STATE'){
+      const announcedHost=safeId(payload.hostId||'');
+      if(!senderId || !announcedHost || senderId!==announcedHost)return;
+      applySnapshot(payload);
+      return;
+    }
+    if(eventName==='ROUND_START'){
+      const announcedHost=safeId(payload.hostId||hostId||'');
+      if(!senderId || !announcedHost || senderId!==announcedHost)return;
+      const rid=safeString(payload.roundId||'',120);
+      const seq=intFinite(payload.roundSeq,0,1000000,0);
+      if(!rid || seq<state.roundSeq)return;
+      if(seq===state.roundSeq && state.roundId && rid!==state.roundId)return;
+      state.roundSeq=seq;state.roundId=rid;state.seed=intFinite(payload.seed,0,0xffffffff,0);
+      state.phase='BETTING';state.phaseEndsAt=finite(payload.bettingEndsAt,Date.now()+TIMING.BETTING_MS);state.startedAt=finite(payload.startTime,Date.now());
+      state.holderId=null;state.bombExplodesAt=0;state.participants=[];state.result=[];state.loserId=null;state.specialId=null;state.passCount=0;state.comboOwnerId=null;state.comboOwnerCount=0;state.specialDone=false;state.resultLocked=false;
+      resetRoundLocalFields();hideResult();showToast('🚨 新回合開始');render(true);return;
+    }
+    if(eventName==='PLAYER_BET'){
+      if(isHost()){
+        if(!rememberIncoming(eventKey(eventName,payload,senderId)))return;
+        hostAcceptBet(payload,{senderId});
+      }
+      return;
+    }
+    if(eventName==='PLAYER_ACTION_REQUEST'){
+      if(isHost()){
+        if(!rememberIncoming(eventKey(eventName,payload,senderId)))return;
+        hostHandlePass(payload,{senderId});
+      }
+      return;
+    }
+    if(eventName==='ITEM_USE_REQUEST'){
+      if(isHost()){
+        if(!rememberIncoming(eventKey(eventName,payload,senderId)))return;
+        hostHandleItem(payload,{senderId});
+      }
+      return;
+    }
+    if(eventName==='TAUNT_REQUEST'){
+      if(isHost()){
+        if(!rememberIncoming(eventKey(eventName,payload,senderId)))return;
+        hostHandleTaunt(payload,{senderId});
+      }
+      return;
+    }
+    if(eventName==='TAUNT_SHOW'){
+      if(!senderId || senderId!==hostId)return;
+      if(!validRound(payload))return;
+      showTaunt({playerId:safeId(payload.playerId||senderId),username:safeString(payload.username||players.get(String(payload.playerId||senderId))?.username||'玩家',24),text:safeString(payload.text||'',28),at:finite(payload.at,Date.now())});
+      return;
+    }
+    if(eventName==='SPECIAL_EVENT'){
+      if(!senderId || senderId!==hostId)return;
+      if(!validRound(payload))return;
+      const specialId=safeString(payload.specialId||'',64);
+      if(specialId==='OVERDRIVE_TRIGGER' || specialId==='SHIELD_SAVE' || specialId==='AUTO_SWAP' || specialId==='MAGNET_PULL' || specialId==='CHAIN_BREAK' || specialId==='JAM_TARGET'){
+        showToast(specialDescription(specialId,payload));
+        if(['OVERDRIVE_TRIGGER','CHAIN_BREAK'].includes(specialId))sfx('danger');else if(specialId==='SHIELD_SAVE')sfx('win');else sfx('pass');
+      }
+      return;
+    }
+    if(eventName==='ROUND_END'){
+      if(!senderId || senderId!==hostId)return;
+      if(!validRound(payload))return;
+      state.phase='RESULT';state.resultLocked=true;state.loserId=safeId(payload.loserId||'')||null;state.result=validateResultArray(payload.result||[]);state.phaseEndsAt=Date.now()+TIMING.RESULT_MS;state.bombExplodesAt=0;render(true);settleOwnRoundOnce();return;
+    }
+  });
+
+  function specialDescription(id,payload){
+    const p=players.get(safeId(payload?.playerId||payload?.targetId||''));
+    if(id==='OVERDRIVE_TRIGGER')return '⚡ 暴走倒數啟動！';
+    if(id==='SHIELD_SAVE')return '🛡️ 護盾救下 '+(p?.username||'玩家')+'！';
+    if(id==='AUTO_SWAP')return '🌀 炸彈換手給 '+(p?.username||'玩家')+'！';
+    if(id==='MAGNET_PULL')return '🧲 磁吸改變炸彈持有者！';
+    if(id==='CHAIN_BREAK')return '🔥 Combo 連鎖觸發！';
+    if(id==='JAM_TARGET')return '🔒 持有者被鎖定！';
+    return '⚡ 特殊事件！';
+  }
+
+  /* =========================================================
+     Result / GameOver
+     ========================================================= */
+  function settleOwnRoundOnce(){
+    if(state.phase!=='RESULT' || !state.resultLocked || !state.result.length)return;
+    const rid=getRoundId();
+    if(!rid || settledRounds.has(rid))return;
+    const r=state.result.find(x=>String(x.id)===ME.id);
+    if(!r || localMyBet<=0)return;
+
+    const bet=intFinite(localMyBet,0,1000000,0);
+    const reward=intFinite(r.winAmount,0,Math.max(0,bet*2+1000000),0);
+    const boundedReward=Math.min(reward,bet*2,state.result.reduce((sum,x)=>sum+intFinite(x.winAmount,0,2000000,0),0));
+
+    settledRounds.add(rid);
+    while(settledRounds.size>64)settledRounds.delete(settledRounds.values().next().value);
+
+    try{
+      if(!IS_DEMO && window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+        window.BoomRoomSDK.gameOver(boundedReward);
+      }
+    }catch(e){}
+
+    showResult(r,boundedReward);
+  }
+
+  function showResult(own,boundedReward){
+    if(resultPopupRoundId===getRoundId())return;
+    resultPopupRoundId=getRoundId();
+    const survived=!!own.survived;
+    els.resultTitle.textContent=survived?'🎉 你活下來了！':'💥 BOOM！你中了！';
+    els.resultAmount.textContent=(survived?'+':'')+formatCoins(boundedReward)+' 🪙';
+    els.resultAmount.style.color=survived?'var(--green)':'#ff7789';
+    els.resultReason.textContent=survived
+      ? '獎勵已鎖定：你的 Entry 加上本局炸彈持有者 Entry 的比例分配。'
+      : '獎勵已鎖定：最後持有炸彈者，本局獎勵為 0。';
+    renderRankList();
+    els.resultAgain.textContent=isHost()?'下一局':'等待房主';
+    els.resultAgain.disabled=!isHost();
+    els.resultPanel.classList.add('show');
+    sfx(survived?'win':'lose');
+  }
+
+  function renderRankList(){
+    els.rankList.innerHTML='';
+    const list=state.result.slice().sort((a,b)=>{
+      if(a.survived!==b.survived)return a.survived?-1:1;
+      if(b.score!==a.score)return b.score-a.score;
+      if(b.combo!==a.combo)return b.combo-a.combo;
+      return String(a.id).localeCompare(String(b.id));
+    });
+    list.forEach((r,i)=>{
+      const row=document.createElement('div');row.className='rank-row';
+      const rank=document.createElement('div');rank.className='rank';rank.textContent=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]||String(i+1);
+      const left=document.createElement('div');left.className='rank-name';
+      const strong=document.createElement('strong');strong.textContent=r.username;
+      const span=document.createElement('span');span.textContent=(r.survived?'存活':'爆炸')+' · 傳遞 '+r.passes+' 次 · Combo '+r.combo;
+      left.append(strong,span);
+      const right=document.createElement('div');right.className='rank-right';
+      const rs=document.createElement('strong');rs.textContent=(r.winAmount>0?'+':'')+formatCoins(r.winAmount)+' 🪙';
+      const rr=document.createElement('span');rr.textContent=r.score+' 分';
+      right.append(rs,rr);row.append(rank,left,right);els.rankList.appendChild(row);
+    });
+  }
+
+  function hideResult(){els.resultPanel.classList.remove('show');}
+
+  /* =========================================================
+     UI / Rendering
+     ========================================================= */
+  function renderAvatar(el,p){
+    if(!el)return;
+    el.innerHTML='';
+    if(p && p.avatar){
+      const img=new Image();img.alt='';img.referrerPolicy='no-referrer';
+      img.onload=()=>{el.innerHTML='';el.appendChild(img);};
+      img.onerror=()=>{el.textContent=initials(p.username);};
+      img.src=p.avatar;
+    }else el.textContent=initials(p?.username);
+  }
+  function initials(name){
+    return safeString(name||'玩家',4).trim().slice(0,2).toUpperCase();
+  }
+  function formatCoins(n){return intFinite(n,0,2000000000,0).toLocaleString('zh-TW');}
+  function showToast(message){
+    els.toast.textContent=safeString(message,80);els.toast.classList.add('show');
+    if(toastTimer)clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>els.toast.classList.remove('show'),1450);
+  }
+  function scheduleUiTimeout(fn,delay){
+    const id=setTimeout(()=>{uiTimeouts.delete(id);fn();},Math.max(0,delay));uiTimeouts.add(id);return id;
+  }
+  function clearUiTimeouts(){
+    for(const id of uiTimeouts)clearTimeout(id);
+    uiTimeouts.clear();
+    if(tutorialTimer){clearTimeout(tutorialTimer);tutorialTimer=0;}
+  }
+  function showTaunt(data){
+    const name=safeString(data?.username||players.get(safeId(data?.playerId||''))?.username||'玩家',24);
+    const text=safeString(data?.text||'',28);
+    if(!text)return;
+    els.tauntBubble.textContent='💬 '+name+'：'+text;
+    els.tauntBubble.classList.add('show');
+    if(tauntTimer)clearTimeout(tauntTimer);
+    tauntTimer=setTimeout(()=>els.tauntBubble.classList.remove('show'),1700);
+    sfx('taunt');
+  }
+  function updateRoleText(){
+    els.roleText.textContent=isHost()?'👑 房主 · 權威判定':'玩家 · 即時同步';
+  }
+  function phaseLabel(){
+    return ({LOBBY:'準備中',BETTING:'下注倒數',LIVE:'炸彈啟動',RESULT:'結算排行'})[state.phase] || '連線中';
+  }
+  function remainingMs(){
+    const now=Date.now();
+    if(state.phase==='BETTING')return Math.max(0,state.phaseEndsAt-now);
+    if(state.phase==='LIVE')return Math.max(0,state.bombExplodesAt-now);
+    if(state.phase==='RESULT')return Math.max(0,state.phaseEndsAt-now);
+    return 0;
+  }
+  function specialInfo(){return SPECIALS.find(s=>s.id===state.specialId)||null;}
+  function totalPot(){
+    const ids=state.phase==='LOBBY'||state.phase==='BETTING' ? [...players.keys()] : state.participants;
+    return safelySum(ids.map(id=>players.get(id)?.bet||0));
+  }
+  function currentMe(){return players.get(ME.id)||null;}
+
+  function setButtons(){
+    const canBet=state.phase==='BETTING' && !purchasing && localMyBet===0;
+    [...els.betGrid.querySelectorAll('button')].forEach(b=>b.disabled=!canBet);
+    const me=currentMe();
+    const canItem=state.phase==='LIVE' && !purchasing;
+    [...els.itemGrid.querySelectorAll('button')].forEach(btn=>{
+      const type=btn.dataset.item;
+      const used=!!(me?.itemUses?.[type]);
+      const selfBlocked=(type==='shield' && !!me?.shield) || (type!=='shield' && state.holderId===ME.id);
+      btn.disabled=!canItem || used || selfBlocked;
+      btn.classList.toggle('used',used);
+    });
+    els.startBtn.disabled=!isHost() || !['LOBBY','RESULT'].includes(state.phase);
+  }
+
+  function renderPlayers(){
+    const arr=[...players.values()]
+      .sort((a,b)=>{
+        const ai=state.participants.indexOf(a.id),bi=state.participants.indexOf(b.id);
+        if(ai>=0 && bi>=0)return ai-bi;
+        if(ai>=0)return -1;if(bi>=0)return 1;
+        return hostKey(a).localeCompare(hostKey(b));
+      })
+      .slice(0,MAX_PLAYERS);
+
+    els.players.innerHTML='';
+    els.playerCount.textContent=arr.length+' / '+MAX_PLAYERS;
+
+    if(!arr.length){
+      const empty=document.createElement('div');empty.className='hint';empty.textContent='尚未觀察到玩家。';els.players.appendChild(empty);return;
+    }
+
+    for(const p of arr){
+      const row=document.createElement('div');
+      row.className='player'+(p.id===ME.id?' me':'')+(state.phase==='LIVE'&&state.holderId===p.id?' holder':'')+(state.loserId===p.id?' out':'');
+      const av=document.createElement('div');av.className='avatar';renderAvatar(av,p);
+      const name=document.createElement('div');name.className='name';
+      const strong=document.createElement('strong');strong.textContent=p.username;
+      const span=document.createElement('span');
+      if(state.loserId===p.id)span.textContent='💥 炸彈爆炸';
+      else if(state.phase==='LIVE' && state.holderId===p.id)span.textContent='💣 正持有炸彈';
+      else if(p.jamUntil>Date.now())span.textContent='🔒 禁傳中';
+      else if(p.id===hostId)span.textContent='👑 房主';
+      else span.textContent=p.online?'在線':'暫離';
+      name.append(strong,span);
+      const bet=document.createElement('div');bet.className='bet';bet.textContent=p.bet?formatCoins(p.bet)+' 🪙':'—';
+      const dot=document.createElement('span');dot.className=p.online?'online-mark':'offline-mark';
+      row.append(dot,av,name,bet);
+      if(p.id===ME.id){const badge=document.createElement('div');badge.className='badge-small';badge.textContent='YOU';row.appendChild(badge);}
+      if(p.combo>0){const c=document.createElement('div');c.className='mini combo';c.textContent='🔥 Combo '+p.combo;row.appendChild(c);}
+      if(p.shield>0){const i=document.createElement('div');i.className='mini';i.textContent='🛡️ 已裝備';row.appendChild(i);}
+      els.players.appendChild(row);
+    }
+  }
+
+  function renderPassButtons(){
+    const can=passAllowed() && state.holderId===ME.id && state.participants.length>1;
+    els.passGrid.style.display=can?'grid':'none';
+    els.randomPassBtn.style.display=can?'block':'none';
+    if(!can){els.passGrid.innerHTML='';return;}
+    const cooldown=Math.max(0,state.lastPassAt+TIMING.PASS_COOLDOWN_MS-Date.now());
+    const targets=activeTargets();
+    els.passGrid.innerHTML='';
+    for(const p of targets){
+      const b=document.createElement('button');b.className='btn pass pass-target';b.disabled=cooldown>0;
+      const av=document.createElement('div');av.className='avatar';renderAvatar(av,p);
+      const meta=document.createElement('div');meta.className='target-meta';
+      const n=document.createElement('strong');n.textContent=p.username;
+      const s=document.createElement('span');s.textContent='🫳 丟給他'+(p.shield?' · 有護盾':'');
+      meta.append(n,s);b.append(av,meta);b.onclick=()=>requestPass(p.id);els.passGrid.appendChild(b);
+    }
+    els.randomPassBtn.disabled=cooldown>0 || !targets.length;
+  }
+
+  function render(force=false){
+    const now=Date.now();
+    if(!force && now-lastUiRender<65)return;
+    lastUiRender=now;
+
+    updateRoleText();
+    els.phaseText.textContent=phaseLabel();
+    els.roundText.textContent='ROUND '+String(Math.max(1,state.roundSeq)).padStart(2,'0');
+    els.phaseDot.className='dot'+(state.phase==='LIVE'?' live':'')+(state.phase==='RESULT'?' result':'');
+
+    const holder=state.holderId ? players.get(state.holderId) : null;
+    els.holderName.textContent=holder?.username || '—';
+    els.holderShield.textContent=holder?.shield ? '🛡️' : '';
+
+    const me=currentMe();
+    els.potText.textContent=formatCoins(totalPot())+' 🪙';
+    els.passText.textContent=String(state.passCount);
+    els.comboText.textContent='🔥 '+String(me?.combo||0);
+    els.scoreText.textContent=formatCoins(me?.score||0);
+    els.myBetText.textContent=localMyBet ? '我的 Entry '+formatCoins(localMyBet)+' 🪙' : 'Entry 尚未支付';
+
+    const rem=remainingMs();
+    if(state.phase==='BETTING'){
+      els.timerTitle.textContent='下注剩餘時間';els.timer.textContent=(rem/1000).toFixed(1)+'s';els.timer.className='timer safe';
+      els.substatus.textContent=localMyBet?'你的 Entry 已鎖定，等炸彈啟動。':'選一個 Entry；8 秒後停止下注。';
+    }else if(state.phase==='LIVE'){
+      els.timerTitle.textContent='炸彈剩餘時間';els.timer.textContent=(rem/1000).toFixed(2)+'s';els.timer.className='timer '+(rem<5000?'hot':'');
+      els.substatus.textContent=state.holderId===ME.id?'💣 炸彈在你手上：丟人、磁吸，或把握最後時機！':'盯住炸彈，下一秒可能到你。';
+    }else if(state.phase==='RESULT'){
+      els.timerTitle.textContent='下一局即將開始';els.timer.textContent=Math.ceil(rem/1000)+'s';els.timer.className='timer result';
+      els.substatus.textContent='結果已鎖定；獎勵不會繼續增加。';
+    }else{
+      els.timerTitle.textContent='準備開始';els.timer.textContent='READY';els.timer.className='timer safe';
+      els.substatus.textContent=isHost()?'按開始後，房間進入 8 秒 Entry 倒數。':'等待房主開始本局。';
+    }
+
+    const si=specialInfo();
+    els.eventText.textContent=si ? si.name : '待抽取';
+    if(si && state.specialId==='LOCKFIELD' && !state.specialDone){
+      els.eventText.textContent=si.name+' · 開局禁傳';
+    }
+
+    els.startBtn.textContent=state.phase==='RESULT'?'下一局（房主）':'開始下注（房主）';
+    els.startBtn.style.display=isHost()?'block':'none';
+    els.controlTitle.textContent=state.phase==='LIVE'?'炸彈操作 / 道具':state.phase==='RESULT'?'本局結算':'下注區';
+    els.notice.textContent=state.phase==='LIVE'
+      ? (state.holderId===ME.id?'拿到炸彈時要快速做決策：把它丟出去，或用道具改變局勢。':'你可以嘲諷、觀察誰拿炸彈，也能在適當時機使用戰術道具。')
+      : '存活玩家拿回自己的 Entry，再按比例分配炸彈持有者的 Entry；獎勵總額不超過本局獎池。';
+    els.playerHint.textContent='目前房內 '+arrivePlayerCount()+' 位可觀察玩家；不額外偽造 Bot。';
+
+    setButtons();
+    renderPlayers();
+    renderPassButtons();
+    renderDebug();
+  }
+
+  function arrivePlayerCount(){return [...players.values()].filter(p=>p.online && Date.now()-p.lastSeen<TIMING.HOST_TIMEOUT_MS).length;}
+
+  /* =========================================================
+     Audio / Haptic
+     ========================================================= */
+  let audioCtx=null,masterGain=null;
+  let audioMuted=false;
+  try{audioMuted=localStorage.getItem('hpb_audio_muted_v3')==='1';}catch(e){}
+  function updateSoundButton(){
+    if(!els.soundBtn)return;
+    els.soundBtn.textContent=audioMuted?'🔇':'🔊';
+    els.soundBtn.classList.toggle('muted',audioMuted);
+    els.soundBtn.setAttribute('aria-pressed',audioMuted?'true':'false');
+    els.soundBtn.setAttribute('aria-label',audioMuted?'音效：靜音中':'音效：開啟');
+    els.soundBtn.title=audioMuted?'開啟音效':'關閉音效';
+  }
+  function setAudioMuted(muted){
+    audioMuted=!!muted;
+    try{localStorage.setItem('hpb_audio_muted_v3',audioMuted?'1':'0');}catch(e){}
+    if(masterGain && audioCtx){
+      try{masterGain.gain.setTargetAtTime(audioMuted?0:.045,audioCtx.currentTime,.02);}catch(e){}
+    }
+    updateSoundButton();
+  }
+  function initAudio(){
+    if(audioMuted)return;
+    if(audioCtx){if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});return;}
+    try{
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      masterGain=audioCtx.createGain();masterGain.gain.value=.045;masterGain.connect(audioCtx.destination);
+    }catch(e){}
+  }
+  function tone(freq,duration=.08,type='sine',volume=.3,delay=0){
+    if(audioMuted || !audioCtx||!masterGain || document.hidden)return;
+    const now=audioCtx.currentTime+delay;const osc=audioCtx.createOscillator();const g=audioCtx.createGain();
+    osc.type=type;osc.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(Math.max(.001,volume),now+.008);g.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(g);g.connect(masterGain);osc.start(now);osc.stop(now+duration+.02);
+  }
+  function sfx(name){
+    initAudio();
+    if(name==='tap')tone(530,.045,'triangle',.25);
+    if(name==='start'){tone(540,.07,'triangle',.28);tone(760,.09,'triangle',.26,.06);tone(980,.12,'sine',.27,.13)}
+    if(name==='bet'){tone(620,.06,'triangle',.32);tone(920,.08,'sine',.22,.055)}
+    if(name==='pass'){tone(310,.06,'square',.29);tone(690,.12,'sawtooth',.22,.06)}
+    if(name==='item'){tone(440,.06,'triangle',.25);tone(880,.1,'sine',.25,.06)}
+    if(name==='taunt'){tone(760,.05,'square',.18);tone(980,.06,'triangle',.16,.05)}
+    if(name==='tick')tone(920,.035,'square',.16);
+    if(name==='danger'){tone(180,.1,'sawtooth',.3);tone(125,.12,'sawtooth',.23,.12)}
+    if(name==='boom'){tone(72,.4,'sawtooth',.62);tone(40,.55,'triangle',.45,.08);tone(170,.14,'square',.16,.02)}
+    if(name==='win'){tone(620,.1,'triangle',.28);tone(840,.11,'triangle',.28,.08);tone(1120,.17,'sine',.3,.17)}
+    if(name==='lose'){tone(300,.13,'sine',.27);tone(185,.2,'sawtooth',.2,.12)}
+  }
+  function haptic(pattern){
+    try{
+      if(!('vibrate' in navigator))return;
+      navigator.vibrate(pattern);
+    }catch(e){}
+  }
+
+  /* =========================================================
+     Particle FX — adaptive, pooled, non-game-critical
+     ========================================================= */
+  const fxCtx=els.fx.getContext('2d',{alpha:true});
+  const particles=[];
+  let fxQuality=1;
+  let fpsAccum=0,fpsFrames=0,lastQualityCheck=performance.now();
+
+  function resizeFX(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    els.fx.width=Math.floor(innerWidth*dpr);els.fx.height=Math.floor(innerHeight*dpr);els.fx.style.width=innerWidth+'px';els.fx.style.height=innerHeight+'px';fxCtx.setTransform(dpr,0,0,dpr,0,0);
+    while(particles.length<Math.floor(28*fxQuality))particles.push(newFxParticle(true));
+    if(particles.length>Math.ceil(60*fxQuality))particles.splice(Math.ceil(60*fxQuality));
+  }
+  function newFxParticle(resetRandom=false){
+    return {x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()*1.5+.35,vx:(Math.random()-.5)*.1,vy:(Math.random()-.5)*.14,a:Math.random()*.25+.04,life:resetRandom?Math.random()*2:0};
+  }
+  function adjustFxQuality(avgFps){
+    if(avgFps<40)fxQuality=.45;else if(avgFps<50)fxQuality=.7;else fxQuality=1;
+    const target=Math.floor(30*fxQuality);
+    while(particles.length<target)particles.push(newFxParticle(true));
+    if(particles.length>target+5)particles.splice(target);
+  }
+  window.addEventListener('resize',resizeFX,{passive:true});resizeFX();
+
+  /* =========================================================
+     Frame Loop — rAF + clamped deltaTime
+     ========================================================= */
+  let lastFrame=performance.now();
+  let logicAccumulator=0;
+  let lastPresenceRender=0;
+
+  function frame(timestamp){
+    const rawDt=Math.max(0,(timestamp-lastFrame)/1000);
+    const dt=Math.min(rawDt,0.033);
+    lastFrame=timestamp;
+
+    fpsAccum+=rawDt;fpsFrames++;
+    if(timestamp-lastQualityCheck>2000){
+      const fps=fpsFrames/Math.max(.001,fpsAccum);
+      adjustFxQuality(fps);fpsAccum=0;fpsFrames=0;lastQualityCheck=timestamp;
+    }
+
+    updateFX(dt,timestamp);
+    if(!document.hidden){
+      logicAccumulator+=dt;
+      if(logicAccumulator>=0.016){
+        logicAccumulator=0;
+        hostTick();
+        presenceTick(timestamp);
+        render();
+      }
+    }else{
+      logicAccumulator=0;
+      hostTick();
+      presenceTick(timestamp);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  function hostTick(){
+    const now=Date.now();
+    if(isHost()){
+      if(state.phase==='BETTING' && now>=state.phaseEndsAt)hostLockBets();
+      if(state.phase==='LIVE'){
+        hostMaybeSpecial();
+        if(now>=state.bombExplodesAt)hostResolveRound();
+      }
+      if(state.phase==='RESULT' && now>=state.phaseEndsAt)hostPrepareLobby();
+      broadcastState(false);
+    }else{
+      if(initialElectionDone && !currentHostOnline())maybeTakeoverHost();
+    }
+
+    if(now-lastOfflineCheck>=TIMING.OFFLINE_CHECK_MS){
+      lastOfflineCheck=now;
+      for(const p of players.values()){
+        if(now-p.lastSeen>TIMING.HOST_TIMEOUT_MS)p.online=false;
+      }
+    }
+  }
+
+  function presenceTick(timestamp){
+    if(timestamp-lastPresenceAt<TIMING.PRESENCE_MS)return;
+    lastPresenceAt=timestamp;
+    const me=players.get(ME.id);
+    if(me){me.online=true;me.lastSeen=Date.now();}
+    broadcast('PLAYER_HEARTBEAT',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,nonce:ME.nonce},roundId:getRoundId()});
+  }
+
+  function updateFX(dt,now){
+    fxCtx.clearRect(0,0,innerWidth,innerHeight);
+    const count=particles.length;
+    if(!count || document.hidden)return;
+    for(let i=0;i<count;i++){
+      const p=particles[i];p.x+=p.vx*(dt*60);p.y+=p.vy*(dt*60);p.life+=dt;
+      if(p.x<-10)p.x=innerWidth+10;if(p.x>innerWidth+10)p.x=-10;if(p.y<-10)p.y=innerHeight+10;if(p.y>innerHeight+10)p.y=-10;
+      fxCtx.beginPath();fxCtx.arc(p.x,p.y,p.r,0,Math.PI*2);fxCtx.fillStyle='rgba(99,255,240,'+p.a.toFixed(3)+')';fxCtx.fill();
+    }
+
+    const rem=remainingMs();
+    if(state.phase==='LIVE'){
+      const urgency=Math.max(0,Math.min(1,1-rem/6000));
+      const scale=1+0.018*Math.sin(now/80)*(0.5+urgency)+(state.specialId==='OVERDRIVE'?.008:0);
+      els.bomb.style.transform='scale('+scale.toFixed(4)+')';
+      els.bombGlow.style.transform='scale('+(0.93+urgency*.17+0.03*Math.sin(now/150)).toFixed(4)+')';
+      els.spark.style.transform='translateX(-50%) translate('+(Math.sin(now/38)*2).toFixed(1)+'px,'+(Math.cos(now/48)*2).toFixed(1)+'px)';
+      if(rem<5000){
+        els.bomb.classList.add('shake','pulse');
+        const sec=Math.ceil(rem/1000);
+        if(sec!==lastWholeSecond && sec>0){lastWholeSecond=sec;sfx('tick');if(sec<=3)haptic(12);}
+      }else{
+        els.bomb.classList.remove('shake','pulse');lastWholeSecond=-1;
+      }
+    }else{
+      els.bomb.style.transform='scale('+(1+0.012*Math.sin(now/700)).toFixed(4)+')';
+      els.bombGlow.style.transform='scale('+(0.94+0.025*Math.sin(now/450)).toFixed(4)+')';
+      els.bomb.classList.remove('shake','pulse');lastWholeSecond=-1;
+    }
+  }
+  requestAnimationFrame(frame);
+
+  /* =========================================================
+     Tutorial / Debug
+     ========================================================= */
+  function maybeShowTutorial(){
+    try{
+      const key='hpb_tutorial_v3';
+      if(localStorage.getItem(key)==='1')return;
+      localStorage.setItem(key,'1');
+      tutorialShown=true;els.tutorial.classList.add('show');
+      tutorialTimer=setTimeout(()=>els.tutorial.classList.remove('show'),4200);
+    }catch(e){}
+  }
+  function renderDebug(){
+    if(!DEBUG){els.debug.style.display='none';return;}
+    els.debug.style.display='block';
+    els.debug.textContent=[
+      'GAME '+GAME_INFO.id+' '+GAME_INFO.version,
+      'FPS adaptive: '+fxQuality,
+      'Player: '+ME.id,
+      'Round: '+state.roundId,
+      'Host: '+hostId,
+      'Phase: '+state.phase,
+      'Holder: '+state.holderId,
+      'Players: '+players.size,
+      'Reward locked: '+state.resultLocked
+    ].join('\n');
+  }
+
+  /* =========================================================
+     Button bindings
+     ========================================================= */
+  [...els.betGrid.querySelectorAll('[data-bet]')].forEach(btn=>{
+    btn.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
+    btn.addEventListener('click',()=>requestBet(Number(btn.dataset.bet)));
+  });
+  [...els.itemGrid.querySelectorAll('[data-item]')].forEach(btn=>{
+    btn.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
+    btn.addEventListener('click',()=>requestItem(String(btn.dataset.item)));
+  });
+  [...els.taunts.querySelectorAll('[data-taunt]')].forEach(btn=>{
+    btn.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')e.preventDefault();});
+    btn.addEventListener('click',()=>sendTaunt(String(btn.dataset.taunt)));
+  });
+  els.soundBtn.addEventListener('click',()=>{
+    if(audioMuted){setAudioMuted(false);initAudio();sfx('tap');}
+    else{setAudioMuted(true);} 
+  });
+  els.helpBtn.addEventListener('click',()=>{
+    els.helpOverlay.classList.add('show');
+    els.helpOverlay.setAttribute('aria-hidden','false');
+  });
+  els.helpClose.addEventListener('click',()=>{
+    els.helpOverlay.classList.remove('show');
+    els.helpOverlay.setAttribute('aria-hidden','true');
+  });
+  els.helpOverlay.addEventListener('click',e=>{
+    if(e.target===els.helpOverlay){
+      els.helpOverlay.classList.remove('show');
+      els.helpOverlay.setAttribute('aria-hidden','true');
+    }
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape' && els.helpOverlay.classList.contains('show')){
+      els.helpOverlay.classList.remove('show');
+      els.helpOverlay.setAttribute('aria-hidden','true');
+    }
+  });
+  els.startBtn.addEventListener('click',()=>{initAudio();if(isHost()){hostStartBetting();}});
+  els.randomPassBtn.addEventListener('click',requestRandomPass);
+  els.requestHelpBtn.addEventListener('click',requestHelp);
+  els.resultAgain.addEventListener('click',()=>{initAudio();if(isHost()&&state.phase==='RESULT'){hideResult();hostStartBetting();}});
+  els.resultClose.addEventListener('click',()=>{initAudio();hideResult();sfx('tap');});
+  document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
+
+  /* =========================================================
+     Safe timeout-based presence scheduling
+     ========================================================= */
+  let heartbeatTimer=0;
+  function scheduleHeartbeat(){
+    if(heartbeatTimer)clearTimeout(heartbeatTimer);
+    const delay=document.hidden ? TIMING.PRESENCE_MS*2 : TIMING.PRESENCE_MS;
+    heartbeatTimer=setTimeout(()=>{heartbeatTimer=0;presenceTick(performance.now()+TIMING.PRESENCE_MS);scheduleHeartbeat();},delay);
+  }
+
+  function announceHello(){
+    broadcast('PLAYER_HELLO',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,nonce:ME.nonce},roundId:getRoundId()});
+    broadcast('PLAYER_HEARTBEAT',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,nonce:ME.nonce},roundId:getRoundId()});
+  }
+
+  document.addEventListener('visibilitychange',()=>{
+    initAudio();
+    if(!document.hidden){
+      announceHello();
+      if(!initialElectionDone)setTimeout(()=>electInitialHost(),100);
+      render(true);
+    }
+    scheduleHeartbeat();
+  });
+
+  /* =========================================================
+     Initialization
+     ========================================================= */
+  function initialize(){
+    updateSoundButton();
+    updateRoleText();
+    announceHello();
+    scheduleHeartbeat();
+    if(IS_DEMO){
+      // 本機開發測試直接成為 Host，打開 HTML 後即可看到並操作完整遊戲。
+      electInitialHost(true);
+      const badge=document.createElement('div');badge.className='demo-badge';badge.textContent='開發測試模式 · 未連接 BoomRoom SDK';document.body.appendChild(badge);
+      showToast('開發測試模式已啟用 · 不會真的扣除銀幣');
+    }else{
+      setTimeout(()=>electInitialHost(),TIMING.HOST_INITIAL_WAIT_MS);
+    }
+    maybeShowTutorial();
+    render(true);
+  }
+  initialize();
 })();
 </script>
 </body>
