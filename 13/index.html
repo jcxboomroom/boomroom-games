@@ -20,43 +20,29 @@
 
 <style>
 
-/* =========================================================
-   ROOT
-========================================================= */
-
 :root{
     --bg:#02040a;
 
-    --cyan:#22e5ff;
-    --cyan-deep:#087cff;
+    --cyan:#20e6ff;
+    --cyan2:#087cff;
 
-    --pink:#ff38d1;
-    --violet:#7f32ff;
+    --pink:#ff39d2;
+    --pink2:#8232ff;
 
     --gold:#ffd85a;
-    --green:#28ffb2;
+    --green:#27ffb2;
 
-    --danger:#ff4057;
-    --orange:#ff8b35;
+    --danger:#ff4058;
 
     --white:#f7faff;
     --muted:#7d879f;
 
-    --glass:
-        rgba(5,9,22,.72);
-
-    --glass-strong:
-        rgba(4,8,19,.86);
+    --glass:rgba(4,8,19,.70);
+    --glass2:rgba(4,8,19,.86);
 }
-
-
-/* =========================================================
-   RESET
-========================================================= */
 
 *{
     box-sizing:border-box;
-
     -webkit-tap-highlight-color:transparent;
 }
 
@@ -64,14 +50,10 @@ html,
 body{
     width:100%;
     height:100%;
-
     margin:0;
-
     overflow:hidden;
 
-    background:
-        #02040a;
-
+    background:#02040a;
     color:#fff;
 
     font-family:
@@ -81,38 +63,25 @@ body{
         sans-serif;
 
     user-select:none;
-
     touch-action:none;
 }
 
 body{
     position:fixed;
-
     inset:0;
 }
 
 button{
-    font:inherit;
-
     border:0;
-
     outline:none;
-
+    font:inherit;
     cursor:pointer;
-
     -webkit-appearance:none;
-
     appearance:none;
 }
 
-
-/* =========================================================
-   CANVAS
-========================================================= */
-
 #gameCanvas{
     position:fixed;
-
     inset:0;
 
     width:100%;
@@ -121,8 +90,6 @@ button{
     z-index:1;
 
     display:block;
-
-    touch-action:none;
 }
 
 
@@ -132,32 +99,25 @@ button{
 
 #lobby{
     position:fixed;
-
     inset:0;
-
     z-index:50;
 
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
 
     padding:
         max(10px,env(safe-area-inset-top))
         12px
-        calc(
-            84px +
-            env(safe-area-inset-bottom)
-        );
+        calc(84px + env(safe-area-inset-bottom));
 
     overflow:hidden;
 
     background:
         radial-gradient(
-            circle at 50% 12%,
-            rgba(41,60,145,.36),
-            rgba(3,6,16,.95) 66%
+            circle at 50% 9%,
+            rgba(42,63,155,.36),
+            rgba(2,5,14,.97) 69%
         );
 
     transition:
@@ -167,77 +127,53 @@ button{
 
 body.playing #lobby{
     opacity:0;
-
     visibility:hidden;
-
     pointer-events:none;
 }
 
-
-/* =========================================================
-   LOBBY HEADER
-========================================================= */
-
 .lobby-header{
     width:100%;
-
-    max-width:650px;
-
-    flex-shrink:0;
+    max-width:660px;
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
 
     margin-bottom:9px;
+
+    flex-shrink:0;
 }
 
 .logo{
     font-size:17px;
-
     font-weight:1000;
-
-    letter-spacing:.2px;
 }
 
 .logo small{
     display:block;
-
     margin-top:3px;
 
-    color:
-        #68738d;
+    color:#66718b;
 
     font-size:8px;
-
     font-weight:700;
 }
 
 .roomCount{
-    padding:
-        7px
-        10px;
+    padding:7px 10px;
 
     border-radius:12px;
 
-    background:
-        rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.09);
 
-    border:
-        1px solid
-        rgba(255,255,255,.09);
+    background:rgba(255,255,255,.045);
 
-    color:
-        #aeb7cc;
+    color:#aeb7cc;
 
     font-size:9px;
+    font-weight:900;
 
-    font-weight:800;
-
-    backdrop-filter:
-        blur(10px);
+    backdrop-filter:blur(10px);
 }
 
 
@@ -247,14 +183,10 @@ body.playing #lobby{
 
 #rocketChoices{
     width:100%;
-
-    max-width:650px;
+    max-width:660px;
 
     display:grid;
-
-    grid-template-columns:
-        1fr
-        1fr;
+    grid-template-columns:1fr 1fr;
 
     gap:8px;
 
@@ -267,23 +199,21 @@ body.playing #lobby{
 
     position:relative;
 
-    min-height:194px;
-
-    overflow:hidden;
+    min-height:195px;
 
     padding:13px;
 
+    overflow:hidden;
+
     border-radius:21px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.09);
 
     background:
         linear-gradient(
             155deg,
-            rgba(15,22,49,.97),
-            rgba(5,8,21,.96)
+            rgba(15,22,49,.98),
+            rgba(5,8,21,.97)
         );
 
     color:#fff;
@@ -291,33 +221,28 @@ body.playing #lobby{
     text-align:left;
 
     transition:
-        transform .14s,
-        border-color .14s,
-        box-shadow .14s;
+        transform .13s,
+        border-color .13s,
+        box-shadow .13s;
 }
 
 .rocket-card.a{
-    --accent:
-        var(--cyan);
-
-    --accent2:
-        var(--cyan-deep);
+    --accent:var(--cyan);
+    --accent2:var(--cyan2);
 }
 
 .rocket-card.b{
-    --accent:
-        var(--pink);
-
-    --accent2:
-        var(--violet);
+    --accent:var(--pink);
+    --accent2:var(--pink2);
 }
 
 .rocket-card.selected{
+    transform:translateY(-2px);
+
     border-color:
         color-mix(
             in srgb,
-            var(--accent)
-            72%,
+            var(--accent) 72%,
             transparent
         );
 
@@ -325,215 +250,133 @@ body.playing #lobby{
         0 0 35px
         color-mix(
             in srgb,
-            var(--accent)
-            12%,
+            var(--accent) 12%,
             transparent
         ),
-        inset 0 0 32px
+        inset 0 0 28px
         color-mix(
             in srgb,
-            var(--accent)
-            5%,
+            var(--accent) 5%,
             transparent
         );
-
-    transform:
-        translateY(-2px);
 }
 
 .rocket-card:active{
-    transform:
-        scale(.99);
+    transform:scale(.99);
 }
 
 .rocket-badge{
     position:absolute;
-
     top:9px;
     right:9px;
 
-    padding:
-        4px
-        8px;
+    padding:4px 8px;
 
     border-radius:999px;
 
-    background:
-        rgba(255,255,255,.05);
+    background:rgba(255,255,255,.05);
 
-    color:
-        #77819a;
+    color:#78829b;
 
     font-size:8px;
-
     font-weight:1000;
 }
 
-.rocket-card.selected
-.rocket-badge{
-    color:
-        var(--accent);
+.rocket-card.selected .rocket-badge{
+    color:var(--accent);
 
     background:
         color-mix(
             in srgb,
-            var(--accent)
-            12%,
+            var(--accent) 12%,
             transparent
         );
 }
 
 .rocket-title{
     position:relative;
-
     z-index:4;
 
     font-size:16px;
-
     font-weight:1000;
 }
 
 .rocket-sub{
     position:relative;
-
     z-index:4;
 
     margin-top:3px;
 
-    color:
-        #7f8aa5;
+    width:72%;
+
+    color:#7e89a3;
 
     font-size:8px;
-
     font-weight:700;
+
+    line-height:1.4;
 }
 
 .rocket-stats{
     position:relative;
-
     z-index:4;
 
-    margin-top:10px;
+    margin-top:9px;
 
-    width:
-        65%;
+    width:66%;
 
     display:grid;
-
     gap:5px;
 }
 
 .rocket-stat{
     display:flex;
-
+    align-items:center;
     justify-content:space-between;
 
-    align-items:center;
-
-    padding:
-        6px
-        7px;
+    padding:6px 7px;
 
     border-radius:8px;
 
-    background:
-        rgba(255,255,255,.035);
+    background:rgba(255,255,255,.035);
 
-    color:
-        #808aa3;
+    color:#7e899f;
 
     font-size:8px;
 }
 
 .rocket-stat strong{
-    color:
-        #e9edf7;
+    color:#e9edf7;
 }
-
-.rocket-card.a::after{
-    content:"";
-
-    position:absolute;
-
-    width:170px;
-    height:170px;
-
-    right:-40px;
-    bottom:-65px;
-
-    border-radius:50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(34,229,255,.18),
-            transparent 67%
-        );
-
-    filter:
-        blur(5px);
-}
-
-.rocket-card.b::after{
-    content:"";
-
-    position:absolute;
-
-    width:185px;
-    height:185px;
-
-    right:-50px;
-    bottom:-70px;
-
-    border-radius:50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,56,209,.18),
-            transparent 67%
-        );
-
-    filter:
-        blur(5px);
-}
-
-
-/* =========================================================
-   MINI ROCKET
-========================================================= */
 
 .mini-rocket{
     position:absolute;
 
-    right:19px;
+    right:16px;
+    bottom:-4px;
 
-    bottom:-3px;
+    width:82px;
+    height:124px;
 
-    width:78px;
+    transform:rotate(-8deg);
+}
 
-    height:120px;
-
+.rocket-card.b .mini-rocket{
     transform:
-        rotate(-8deg);
-
-    transform-origin:
-        center bottom;
+        rotate(8deg)
+        scale(1.06);
 }
 
 .mini-body{
     position:absolute;
 
     left:50%;
-
     top:5px;
 
-    transform:
-        translateX(-50%);
+    transform:translateX(-50%);
 
-    width:38px;
-
-    height:72px;
+    width:39px;
+    height:74px;
 
     border-radius:
         55%
@@ -544,52 +387,43 @@ body.playing #lobby{
     background:
         linear-gradient(
             95deg,
-            #8592a7,
-            #ffffff 45%,
-            #d7dfeb
+            #8490a7,
+            #fff 45%,
+            #d6dfeb
         );
 
     box-shadow:
-        0 0 25px
-        var(--accent);
+        0 0 26px var(--accent);
 }
 
 .mini-window{
     position:absolute;
 
     left:50%;
-
     top:25px;
 
-    transform:
-        translateX(-50%);
+    transform:translateX(-50%);
 
     width:12px;
-
     height:12px;
 
     border-radius:50%;
 
-    border:
-        2px solid
-        white;
+    border:2px solid #fff;
 
-    background:
-        var(--accent);
+    background:var(--accent);
 }
 
 .mini-fin-left,
 .mini-fin-right{
     position:absolute;
 
-    top:46px;
+    top:47px;
 
-    width:29px;
-
+    width:30px;
     height:28px;
 
-    background:
-        #909bad;
+    background:#909bad;
 }
 
 .mini-fin-left{
@@ -618,22 +452,19 @@ body.playing #lobby{
     position:absolute;
 
     left:50%;
-
     bottom:-2px;
 
-    transform:
-        translateX(-50%);
+    transform:translateX(-50%);
 
     width:24px;
-
     height:42px;
 
     background:
         linear-gradient(
             to bottom,
             #fff,
-            #ffd84e 25%,
-            #ff702c 62%,
+            #ffd94f 25%,
+            #ff742c 62%,
             transparent
         );
 
@@ -645,53 +476,16 @@ body.playing #lobby{
         );
 
     animation:
-        flameMove
-        .11s
-        infinite
-        alternate;
+        flame .12s infinite alternate;
 }
 
-.rocket-card.b .mini-rocket{
-    transform:
-        rotate(8deg)
-        scale(1.05);
-}
-
-.rocket-card.b .mini-body{
-    background:
-        linear-gradient(
-            90deg,
-            #272d42,
-            #f5e9ff 46%,
-            #cfc0df
-        );
-}
-
-.rocket-card.b .mini-fin-left,
-.rocket-card.b .mini-fin-right{
-    background:
-        #464b64;
-}
-
-.rocket-card.b .mini-flame{
-    width:28px;
-
-    height:48px;
-
-    filter:
-        drop-shadow(
-            0 0 9px
-            rgba(255,55,209,.65)
-        );
-}
-
-@keyframes flameMove{
+@keyframes flame{
     from{
-        height:30px;
+        height:29px;
     }
 
     to{
-        height:45px;
+        height:44px;
     }
 }
 
@@ -702,32 +496,25 @@ body.playing #lobby{
 
 #controlArea{
     width:100%;
-
-    max-width:650px;
-
-    flex-shrink:0;
+    max-width:660px;
 
     margin-top:8px;
+
+    flex-shrink:0;
 }
 
 .control-title{
     margin-bottom:5px;
 
-    color:
-        #727d98;
+    color:#727d97;
 
     font-size:8px;
-
-    font-weight:800;
+    font-weight:900;
 }
 
 #controlChoices{
     display:grid;
-
-    grid-template-columns:
-        1fr
-        1fr;
-
+    grid-template-columns:1fr 1fr;
     gap:6px;
 }
 
@@ -736,18 +523,13 @@ body.playing #lobby{
 
     border-radius:11px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.09);
 
-    background:
-        rgba(255,255,255,.035);
+    background:rgba(255,255,255,.035);
 
-    color:
-        #aeb8ce;
+    color:#aeb8cd;
 
     font-size:10px;
-
     font-weight:1000;
 }
 
@@ -755,29 +537,27 @@ body.playing #lobby{
     color:#fff;
 
     border-color:
-        rgba(35,229,255,.6);
+        rgba(34,229,255,.6);
 
     background:
         linear-gradient(
             135deg,
-            rgba(35,229,255,.15),
-            rgba(0,130,255,.045)
+            rgba(34,229,255,.15),
+            rgba(0,130,255,.04)
         );
 
     box-shadow:
-        0 0 18px
-        rgba(35,229,255,.1);
+        0 0 18px rgba(34,229,255,.1);
 }
 
 #controlStatus{
-    min-height:11px;
+    min-height:12px;
 
     margin-top:4px;
 
     text-align:center;
 
-    color:
-        #606b83;
+    color:#606b83;
 
     font-size:8px;
 }
@@ -789,23 +569,20 @@ body.playing #lobby{
 
 #betArea{
     width:100%;
-
-    max-width:650px;
-
-    flex-shrink:0;
+    max-width:660px;
 
     margin-top:8px;
+
+    flex-shrink:0;
 }
 
 .bet-title{
     margin-bottom:5px;
 
-    color:
-        #727d98;
+    color:#727d97;
 
     font-size:8px;
-
-    font-weight:800;
+    font-weight:900;
 }
 
 #betButtons{
@@ -822,53 +599,41 @@ body.playing #lobby{
 
     border-radius:9px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
 
-    background:
-        rgba(255,255,255,.035);
+    background:rgba(255,255,255,.035);
 
-    color:
-        #aeb8ce;
+    color:#aeb7cc;
 
     font-size:9px;
-
     font-weight:1000;
 }
 
 .bet-button.active{
     color:#fff;
 
-    border-color:
-        rgba(171,90,255,.75);
+    border-color:rgba(168,90,255,.75);
 
     background:
         linear-gradient(
             135deg,
-            #642be2,
-            #9b25d5
+            #642ce0,
+            #9b25d4
         );
 }
 
-
-/* =========================================================
-   LOBBY BOTTOM
-========================================================= */
-
 #lobbyTip{
     width:100%;
-
-    max-width:650px;
+    max-width:660px;
 
     margin-top:6px;
 
-    color:
-        #59647c;
-
     text-align:center;
 
+    color:#58627b;
+
     font-size:8px;
+    line-height:1.4;
 }
 
 #joinButton{
@@ -883,7 +648,7 @@ body.playing #lobby{
     width:
         calc(100% - 24px);
 
-    max-width:650px;
+    max-width:660px;
 
     height:60px;
 
@@ -903,10 +668,8 @@ body.playing #lobby{
         );
 
     box-shadow:
-        0 14px 36px
-        rgba(0,0,0,.5),
-        inset 0 1px
-        rgba(255,255,255,.22);
+        0 14px 38px rgba(0,0,0,.5),
+        inset 0 1px rgba(255,255,255,.22);
 }
 
 #joinButton:disabled{
@@ -915,18 +678,16 @@ body.playing #lobby{
 
 
 /* =========================================================
-   TOP GAME HUD
+   GAME UI
 ========================================================= */
 
 #playUI{
     position:fixed;
-
     inset:0;
 
     z-index:20;
 
     opacity:0;
-
     visibility:hidden;
 
     pointer-events:none;
@@ -934,28 +695,26 @@ body.playing #lobby{
 
 body.playing #playUI{
     opacity:1;
-
     visibility:visible;
 }
 
 
 /* =========================================================
-   TOP SAFE AREA
+   TOP HUD
 ========================================================= */
 
 #topHud{
     position:absolute;
 
     top:
-        max(7px,env(safe-area-inset-top));
+        max(6px,env(safe-area-inset-top));
 
     left:8px;
-
     right:8px;
 
     z-index:30;
 
-    height:112px;
+    height:128px;
 
     pointer-events:none;
 }
@@ -967,10 +726,9 @@ body.playing #playUI{
 
     left:-8px;
     right:-8px;
-
     top:-8px;
 
-    height:142px;
+    height:150px;
 
     z-index:-1;
 
@@ -978,18 +736,17 @@ body.playing #playUI{
         linear-gradient(
             to bottom,
             rgba(1,4,12,.82),
-            rgba(1,4,12,.48) 46%,
+            rgba(1,4,12,.43) 53%,
             transparent
         );
 
-    backdrop-filter:
-        blur(6px);
+    backdrop-filter:blur(5px);
 
     mask-image:
         linear-gradient(
             to bottom,
-            black 0%,
-            black 55%,
+            #000 0%,
+            #000 52%,
             transparent 100%
         );
 }
@@ -1003,11 +760,9 @@ body.playing #playUI{
     position:absolute;
 
     left:0;
-
     top:0;
 
     display:flex;
-
     flex-direction:column;
 
     align-items:flex-start;
@@ -1017,7 +772,6 @@ body.playing #playUI{
 
 #healthPanel{
     display:flex;
-
     align-items:center;
 
     gap:7px;
@@ -1028,41 +782,32 @@ body.playing #playUI{
 
     border-radius:12px;
 
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
 
-    background:
-        var(--glass);
+    background:var(--glass);
 
-    backdrop-filter:
-        blur(12px);
+    backdrop-filter:blur(11px);
 
     box-shadow:
-        0 10px 25px
-        rgba(0,0,0,.22);
+        0 8px 22px rgba(0,0,0,.22);
 }
 
 .health-label{
-    color:
-        #7a859e;
+    color:#78839c;
 
     font-size:7px;
-
     font-weight:1000;
 
-    letter-spacing:.6px;
+    letter-spacing:.7px;
 }
 
 #healthBar{
     display:flex;
-
     gap:4px;
 }
 
 .heart{
     width:18px;
-
     height:14px;
 
     background:
@@ -1089,97 +834,54 @@ body.playing #playUI{
     filter:
         drop-shadow(
             0 0 7px
-            rgba(255,45,75,.4)
+            rgba(255,45,75,.38)
         );
-
-    transition:.16s;
 }
 
 .heart.empty{
-    background:
-        rgba(255,255,255,.09);
-
+    background:rgba(255,255,255,.08);
     filter:none;
-
-    opacity:.55;
-}
-
-.heart.damage{
-    animation:
-        heartDamage
-        .3s
-        1;
-}
-
-@keyframes heartDamage{
-    0%{
-        transform:scale(1);
-    }
-
-    40%{
-        transform:scale(1.34);
-    }
-
-    100%{
-        transform:scale(1);
-    }
 }
 
 #rocketBadge{
-    padding:
-        5px
-        8px;
+    padding:5px 8px;
 
     border-radius:9px;
 
-    background:
-        var(--glass);
+    background:var(--glass);
 
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
 
     font-size:7px;
-
     font-weight:1000;
 
-    backdrop-filter:
-        blur(10px);
+    backdrop-filter:blur(10px);
 }
 
 #rocketBadge.a{
-    color:
-        var(--cyan);
-
-    border-color:
-        rgba(34,229,255,.28);
+    color:var(--cyan);
+    border-color:rgba(34,229,255,.28);
 }
 
 #rocketBadge.b{
-    color:
-        var(--pink);
-
-    border-color:
-        rgba(255,56,209,.28);
+    color:var(--pink);
+    border-color:rgba(255,56,209,.28);
 }
 
 
 /* =========================================================
-   CENTER TOP
+   CENTER SCORE
 ========================================================= */
 
 #scoreZone{
     position:absolute;
 
     left:50%;
+    top:0;
 
-    top:-1px;
+    transform:translateX(-50%);
 
-    transform:
-        translateX(-50%);
-
-    width:
-        min(260px,58vw);
+    width:min(270px,58vw);
 
     text-align:center;
 }
@@ -1191,108 +893,85 @@ body.playing #playUI{
         sans-serif;
 
     font-size:
-        clamp(44px,13vw,75px);
+        clamp(44px,13vw,74px);
 
-    line-height:.88;
+    line-height:.86;
 
     letter-spacing:.8px;
 
     transition:
         color .08s,
-        transform .08s,
-        text-shadow .08s;
+        transform .08s;
 }
 
 #multiplier.a{
-    color:
-        var(--cyan);
+    color:var(--cyan);
 
     text-shadow:
-        0 0 18px
-        rgba(34,229,255,.54),
-        0 0 52px
-        rgba(0,124,255,.28);
+        0 0 18px rgba(34,229,255,.54),
+        0 0 52px rgba(0,124,255,.25);
 }
 
 #multiplier.b{
-    color:
-        var(--pink);
+    color:var(--pink);
 
     text-shadow:
-        0 0 18px
-        rgba(255,56,209,.5),
-        0 0 52px
-        rgba(127,50,255,.28);
+        0 0 18px rgba(255,56,209,.52),
+        0 0 52px rgba(127,50,255,.25);
 }
 
 #multiplier.warning{
-    color:
-        var(--gold);
+    color:var(--gold);
 
     text-shadow:
-        0 0 20px
-        rgba(255,216,90,.5);
+        0 0 20px rgba(255,216,90,.53);
 }
 
 #multiplier.danger{
-    color:
-        var(--danger);
+    color:var(--danger);
 
     text-shadow:
-        0 0 24px
-        rgba(255,64,87,.62);
+        0 0 25px rgba(255,64,87,.65);
 }
 
 #multiplier.win{
-    color:
-        var(--green);
+    color:var(--green);
 
-    transform:
-        scale(1.08);
+    transform:scale(1.08);
 
     text-shadow:
-        0 0 26px
-        rgba(40,255,178,.66);
+        0 0 26px rgba(40,255,178,.67);
 }
 
 #multiplier.crash{
-    color:
-        #ff394f;
+    color:#ff394f;
 
-    transform:
-        scale(1.1);
+    transform:scale(1.1);
 
     text-shadow:
-        0 0 30px
-        rgba(255,30,50,.8);
+        0 0 30px rgba(255,30,50,.8);
 }
 
 #flightStatus{
     margin-top:5px;
 
-    color:
-        #b3bdd1;
+    color:#b4bdd0;
 
     font-size:8px;
-
     font-weight:900;
 }
 
 #scoreText{
     margin-top:4px;
 
-    color:
-        #7c879f;
+    color:#7d879e;
 
     font-size:7px;
-
     font-weight:900;
 }
 
 #scoreText strong{
-    color:
-        #e4e9f6;
-
+    color:#e4e9f7;
     font-size:9px;
 }
 
@@ -1305,79 +984,58 @@ body.playing #playUI{
     position:absolute;
 
     right:0;
-
     top:0;
 
     display:flex;
-
     flex-direction:column;
 
     align-items:flex-end;
 
     gap:4px;
-
-    max-width:
-        48vw;
 }
 
 #roomPill{
-    padding:
-        7px
-        9px;
+    padding:7px 9px;
 
     border-radius:11px;
 
-    background:
-        var(--glass);
+    border:1px solid rgba(255,255,255,.08);
 
-    border:
-        1px solid
-        rgba(255,255,255,.08);
+    background:var(--glass);
 
-    color:
-        #bdc5d8;
+    color:#c0c8da;
 
     font-size:8px;
-
     font-weight:900;
 
-    backdrop-filter:
-        blur(11px);
+    backdrop-filter:blur(10px);
 }
 
 #opponentStrip{
     display:flex;
-
     justify-content:flex-end;
 
     gap:4px;
 
-    max-width:
-        48vw;
+    max-width:48vw;
 
     overflow:hidden;
 }
 
 .opponent{
     min-width:66px;
-
     max-width:88px;
 
-    padding:
-        5px
-        6px;
+    padding:5px 6px;
 
     border-radius:9px;
 
+    border:1px solid rgba(255,255,255,.07);
+
     background:
-        rgba(3,7,17,.68);
+        rgba(3,7,17,.67);
 
-    border:
-        1px solid
-        rgba(255,255,255,.07);
-
-    backdrop-filter:
-        blur(9px);
+    backdrop-filter:blur(8px);
 
     font-size:6px;
 }
@@ -1396,50 +1054,39 @@ body.playing #playUI{
 
 .opp-name{
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 
-    color:
-        #cbd2e4;
-
+    color:#cbd2e4;
     font-weight:1000;
 }
 
 .opp-info{
     display:flex;
-
     justify-content:space-between;
-
     gap:5px;
 
     margin-top:2px;
 
-    color:
-        #707c95;
+    color:#707b94;
 }
 
 .opp-score{
-    color:
-        #e4e9f5;
-
+    color:#e4e9f5;
     font-weight:1000;
 }
 
 .opp-health{
-    color:
-        #ff657e;
+    color:#ff657e;
 }
 
 
 /* =========================================================
-   HIT FLASH
+   HIT
 ========================================================= */
 
 #hitFlash{
     position:absolute;
-
     inset:0;
 
     z-index:35;
@@ -1449,40 +1096,86 @@ body.playing #playUI{
     opacity:0;
 
     background:
-        rgba(255,30,56,.17);
+        rgba(255,30,56,.16);
 }
 
 #hitFlash.active{
     animation:
         hitFlash
-        .3s
+        .28s
         1;
 }
 
 @keyframes hitFlash{
+
     0%{
         opacity:0;
     }
 
-    17%{
+    18%{
         opacity:1;
     }
 
     100%{
         opacity:0;
     }
+
 }
 
 
 /* =========================================================
-   MANUAL CONTROL
+   SENSOR FALLBACK
+========================================================= */
+
+#sensorFallback{
+    position:absolute;
+
+    left:50%;
+
+    top:138px;
+
+    transform:translateX(-50%);
+
+    z-index:31;
+
+    padding:6px 9px;
+
+    border-radius:999px;
+
+    background:
+        rgba(4,8,18,.78);
+
+    border:
+        1px solid rgba(255,255,255,.09);
+
+    color:#abb5c9;
+
+    font-size:7px;
+    font-weight:900;
+
+    white-space:nowrap;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:.15s;
+}
+
+#sensorFallback.show{
+    opacity:1;
+    visibility:visible;
+}
+
+
+/* =========================================================
+   MANUAL
 ========================================================= */
 
 #manualControls{
     position:absolute;
 
     left:10px;
-
     right:10px;
 
     bottom:
@@ -1494,84 +1187,63 @@ body.playing #playUI{
     z-index:29;
 
     display:flex;
-
     justify-content:space-between;
 
-    align-items:center;
-
     pointer-events:none;
 
-    opacity:1;
-
-    transition:
-        opacity .12s;
-}
-
-#manualControls.hidden{
     opacity:0;
 
-    pointer-events:none;
+    visibility:hidden;
+
+    transition:.12s;
+}
+
+#manualControls.visible{
+    opacity:1;
+    visibility:visible;
 }
 
 .moveButton{
-    pointer-events:auto;
-
     width:68px;
-
     height:68px;
 
     border-radius:50%;
 
     border:
-        1px solid
-        rgba(255,255,255,.14);
+        1px solid rgba(255,255,255,.14);
 
     background:
         rgba(4,8,18,.72);
 
-    backdrop-filter:
-        blur(11px);
+    backdrop-filter:blur(11px);
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.42);
 
     color:#fff;
 
     font-size:29px;
-
     font-weight:1000;
 
+    pointer-events:auto;
+
     display:flex;
-
-    justify-content:center;
-
     align-items:center;
-
-    box-shadow:
-        0 12px 30px
-        rgba(0,0,0,.42);
-
-    transition:
-        transform .08s,
-        background .08s;
+    justify-content:center;
 }
 
 .moveButton:active{
-    transform:
-        scale(.88);
+    transform:scale(.88);
 }
 
 #moveLeft{
-    color:
-        var(--cyan);
-
-    border-color:
-        rgba(34,229,255,.45);
+    color:var(--cyan);
+    border-color:rgba(34,229,255,.45);
 }
 
 #moveRight{
-    color:
-        var(--pink);
-
-    border-color:
-        rgba(255,56,209,.45);
+    color:var(--pink);
+    border-color:rgba(255,56,209,.45);
 }
 
 
@@ -1583,7 +1255,6 @@ body.playing #playUI{
     position:absolute;
 
     left:10px;
-
     right:10px;
 
     bottom:
@@ -1601,9 +1272,7 @@ body.playing #playUI{
         0 auto
         6px;
 
-    padding:
-        5px
-        10px;
+    padding:5px 10px;
 
     border-radius:999px;
 
@@ -1611,23 +1280,18 @@ body.playing #playUI{
         rgba(2,6,15,.68);
 
     border:
-        1px solid
-        rgba(255,255,255,.07);
+        1px solid rgba(255,255,255,.07);
 
-    color:
-        #929cb3;
+    color:#929cb3;
 
     font-size:7px;
-
     font-weight:900;
 
-    backdrop-filter:
-        blur(10px);
+    backdrop-filter:blur(10px);
 }
 
 #ejectButton{
     width:100%;
-
     height:60px;
 
     border-radius:31px;
@@ -1637,7 +1301,6 @@ body.playing #playUI{
     color:#fff;
 
     font-size:20px;
-
     font-weight:1000;
 
     background:
@@ -1648,10 +1311,8 @@ body.playing #playUI{
         );
 
     box-shadow:
-        0 15px 38px
-        rgba(0,0,0,.5),
-        0 0 27px
-        rgba(255,89,43,.18);
+        0 15px 38px rgba(0,0,0,.5),
+        0 0 27px rgba(255,89,43,.18);
 
     animation:
         ejectPulse
@@ -1662,11 +1323,11 @@ body.playing #playUI{
 
 #ejectButton:disabled{
     opacity:.43;
-
     animation:none;
 }
 
 @keyframes ejectPulse{
+
     from{
         transform:scale(1);
     }
@@ -1674,6 +1335,7 @@ body.playing #playUI{
     to{
         transform:scale(1.012);
     }
+
 }
 
 
@@ -1683,15 +1345,12 @@ body.playing #playUI{
 
 #resultOverlay{
     position:fixed;
-
     inset:0;
 
     z-index:80;
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
 
     padding:18px;
@@ -1699,13 +1358,10 @@ body.playing #playUI{
     background:
         rgba(0,0,0,.56);
 
-    backdrop-filter:
-        blur(10px);
+    backdrop-filter:blur(10px);
 
     opacity:0;
-
     visibility:hidden;
-
     pointer-events:none;
 
     transition:.18s;
@@ -1713,19 +1369,19 @@ body.playing #playUI{
 
 #resultOverlay.show{
     opacity:1;
-
     visibility:visible;
-
     pointer-events:auto;
 }
 
 .result-card{
-    width:
-        min(430px,100%);
+    width:min(430px,100%);
 
     padding:20px;
 
     border-radius:22px;
+
+    border:
+        1px solid rgba(255,255,255,.12);
 
     background:
         linear-gradient(
@@ -1734,23 +1390,16 @@ body.playing #playUI{
             rgba(4,7,17,.99)
         );
 
-    border:
-        1px solid
-        rgba(255,255,255,.12);
-
     box-shadow:
-        0 35px 100px
-        rgba(0,0,0,.75);
+        0 35px 100px rgba(0,0,0,.75);
 
     text-align:center;
 }
 
 .result-title{
-    color:
-        #8791aa;
+    color:#8791aa;
 
     font-size:10px;
-
     font-weight:800;
 }
 
@@ -1758,15 +1407,13 @@ body.playing #playUI{
     margin-top:6px;
 
     font-size:34px;
-
     font-weight:1000;
 }
 
 .result-sub{
     margin-top:5px;
 
-    color:
-        #7e88a1;
+    color:#7e88a1;
 
     font-size:10px;
 }
@@ -1775,7 +1422,6 @@ body.playing #playUI{
     margin-top:14px;
 
     display:grid;
-
     gap:5px;
 }
 
@@ -1791,14 +1437,11 @@ body.playing #playUI{
 
     align-items:center;
 
-    padding:
-        8px
-        9px;
+    padding:8px 9px;
 
     border-radius:10px;
 
-    background:
-        rgba(255,255,255,.035);
+    background:rgba(255,255,255,.035);
 
     text-align:left;
 
@@ -1807,24 +1450,19 @@ body.playing #playUI{
 
 .rank-name{
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 
     font-weight:900;
 }
 
 .rank-value{
-    color:
-        var(--green);
-
+    color:var(--green);
     font-weight:1000;
 }
 
 #nextRound{
     width:100%;
-
     height:44px;
 
     margin-top:12px;
@@ -1852,17 +1490,13 @@ body.playing #playUI{
     position:fixed;
 
     left:50%;
-
     top:48%;
 
-    transform:
-        translate(-50%,-50%);
+    transform:translate(-50%,-50%);
 
     z-index:100;
 
-    padding:
-        9px
-        14px;
+    padding:9px 14px;
 
     border-radius:999px;
 
@@ -1870,14 +1504,11 @@ body.playing #playUI{
         rgba(3,6,14,.92);
 
     border:
-        1px solid
-        rgba(255,255,255,.12);
+        1px solid rgba(255,255,255,.12);
 
-    color:
-        #e6ebf8;
+    color:#e6ebf8;
 
     font-size:9px;
-
     font-weight:900;
 
     white-space:nowrap;
@@ -1895,12 +1526,10 @@ body.playing #playUI{
 
 
 /* =========================================================
-   SMALL SCREEN
+   SMALL DEVICE
 ========================================================= */
 
-@media(
-    max-height:700px
-){
+@media(max-height:700px){
 
     .rocket-card{
         min-height:170px;
@@ -1919,11 +1548,15 @@ body.playing #playUI{
     .rocket-card.b .mini-rocket{
         transform:
             rotate(8deg)
-            scale(.82);
+            scale(.83);
     }
 
     #topHud{
-        height:103px;
+        height:116px;
+    }
+
+    #sensorFallback{
+        top:124px;
     }
 
     .moveButton{
@@ -1940,9 +1573,7 @@ body.playing #playUI{
 </style>
 </head>
 
-
 <body>
-
 
 <canvas id="gameCanvas"></canvas>
 
@@ -1966,16 +1597,12 @@ body.playing #playUI{
         </div>
 
         <div class="roomCount">
-
             👥 房間
             <span id="roomCountValue">1</span>
-
         </div>
 
     </div>
 
-
-    <!-- ROCKET -->
 
     <div id="rocketChoices">
 
@@ -1993,19 +1620,19 @@ body.playing #playUI{
             </div>
 
             <div class="rocket-sub">
-                操控穩定 · 小碰撞區 · 適合長時間生存
+                操控穩定、轉向快、煞車容易掌握
             </div>
 
             <div class="rocket-stats">
 
                 <div class="rocket-stat">
-                    <span>操控</span>
+                    <span>速度</span>
                     <strong>★★★★☆</strong>
                 </div>
 
                 <div class="rocket-stat">
-                    <span>速度</span>
-                    <strong>★★★★☆</strong>
+                    <span>操控</span>
+                    <strong>★★★★★</strong>
                 </div>
 
                 <div class="rocket-stat">
@@ -2014,7 +1641,6 @@ body.playing #playUI{
                 </div>
 
             </div>
-
 
             <div class="mini-rocket">
 
@@ -2046,19 +1672,19 @@ body.playing #playUI{
             </div>
 
             <div class="rocket-sub">
-                超快移動 · 慣性較強 · 高倍率高風險
+                極高速、慣性強、倍率成長更快
             </div>
 
             <div class="rocket-stats">
 
                 <div class="rocket-stat">
-                    <span>操控</span>
-                    <strong>★★★☆☆</strong>
+                    <span>速度</span>
+                    <strong>★★★★★</strong>
                 </div>
 
                 <div class="rocket-stat">
-                    <span>速度</span>
-                    <strong>★★★★★</strong>
+                    <span>操控</span>
+                    <strong>★★★☆☆</strong>
                 </div>
 
                 <div class="rocket-stat">
@@ -2067,7 +1693,6 @@ body.playing #playUI{
                 </div>
 
             </div>
-
 
             <div class="mini-rocket">
 
@@ -2087,12 +1712,10 @@ body.playing #playUI{
     </div>
 
 
-    <!-- CONTROL -->
-
     <div id="controlArea">
 
         <div class="control-title">
-            選擇控制方式
+            控制方式
         </div>
 
         <div id="controlChoices">
@@ -2108,19 +1731,17 @@ body.playing #playUI{
                 id="controlButtons"
                 class="control-button"
             >
-                ◀ ▶ 左右按鍵
+                ◀ ▶ 左右控制
             </button>
 
         </div>
 
         <div id="controlStatus">
-            左右輕微傾斜手機控制火箭
+            點擊後會校準感測器
         </div>
 
     </div>
 
-
-    <!-- BET -->
 
     <div id="betArea">
 
@@ -2130,38 +1751,23 @@ body.playing #playUI{
 
         <div id="betButtons">
 
-            <button
-                class="bet-button active"
-                data-bet="50"
-            >
+            <button class="bet-button active" data-bet="50">
                 50
             </button>
 
-            <button
-                class="bet-button"
-                data-bet="100"
-            >
+            <button class="bet-button" data-bet="100">
                 100
             </button>
 
-            <button
-                class="bet-button"
-                data-bet="250"
-            >
+            <button class="bet-button" data-bet="250">
                 250
             </button>
 
-            <button
-                class="bet-button"
-                data-bet="500"
-            >
+            <button class="bet-button" data-bet="500">
                 500
             </button>
 
-            <button
-                class="bet-button"
-                data-bet="1000"
-            >
+            <button class="bet-button" data-bet="1000">
                 1000
             </button>
 
@@ -2171,7 +1777,7 @@ body.playing #playUI{
 
 
     <div id="lobbyTip">
-        隕石會持續加速，血量歸零才出局；想拿高倍率就要敢飛，也要敢逃。
+        前 10 秒為保護期，10 秒後才可 EJECT 領取獎勵。
     </div>
 
 
@@ -2183,7 +1789,7 @@ body.playing #playUI{
 
 
 <!-- =======================================================
-     GAME UI
+     PLAY UI
 ======================================================= -->
 
 <section id="playUI">
@@ -2208,7 +1814,6 @@ body.playing #playUI{
 
             </div>
 
-
             <div id="rocketBadge" class="a">
                 🔵 穩定號
             </div>
@@ -2228,7 +1833,7 @@ body.playing #playUI{
 
             <div id="scoreText">
                 目前分數
-                <strong>50</strong>
+                <strong>0</strong>
             </div>
 
         </div>
@@ -2244,6 +1849,11 @@ body.playing #playUI{
 
         </div>
 
+    </div>
+
+
+    <div id="sensorFallback">
+        📱 體感訊號中斷 · 可使用左右控制
     </div>
 
 
@@ -2275,8 +1885,11 @@ body.playing #playUI{
             ⏳ 等待開局
         </div>
 
-        <button id="ejectButton">
-            🚀 EJECT 逃脫
+        <button
+            id="ejectButton"
+            disabled
+        >
+            🔒 10 秒後解鎖
         </button>
 
     </div>
@@ -2340,7 +1953,7 @@ body.playing #playUI{
 const GAME_META = {
 
     id:
-        "neon_escape_dual_rocket_v5",
+        "neon_escape_dual_rocket_v6",
 
     name:
         "霓虹逃脫：雙軌火箭",
@@ -2349,7 +1962,7 @@ const GAME_META = {
         "派對遊戲 / 競技遊戲 / 輕度博弈 / 休閒遊戲",
 
     description:
-        "選擇穩定號或狂暴號，駕駛火箭閃避隕石、收集能量並持續提升倍率，在護甲耗盡前按下 EJECT 逃脫。"
+        "選擇穩定號或狂暴號，駕駛火箭閃避隕石、收集能量並持續提升倍率，在護甲耗盡前逃脫。前 10 秒不能領取獎勵。"
 
 };
 
@@ -2449,6 +2062,20 @@ const ctx =
     canvas.getContext(
         "2d",
         {
+            alpha:false,
+            desynchronized:true
+        }
+    );
+
+const backgroundCanvas =
+    document.createElement(
+        "canvas"
+    );
+
+const backgroundCtx =
+    backgroundCanvas.getContext(
+        "2d",
+        {
             alpha:false
         }
     );
@@ -2531,6 +2158,11 @@ const hitFlash =
         "hitFlash"
     );
 
+const sensorFallback =
+    document.getElementById(
+        "sensorFallback"
+    );
+
 const manualControls =
     document.getElementById(
         "manualControls"
@@ -2593,13 +2225,37 @@ const toast =
 
 
 /* =========================================================
-   DISPLAY
+   PERFORMANCE
 ========================================================= */
 
 let width = 0;
 let height = 0;
 let dpr = 1;
 
+let performanceLow =
+    false;
+
+let avgFrameMs =
+    16.7;
+
+let performanceSampleTime =
+    performance.now();
+
+
+const STAR_COUNT =
+    (
+        navigator.hardwareConcurrency &&
+        navigator.hardwareConcurrency <= 4
+    )
+
+        ? 48
+
+        : 72;
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
 
 function resizeCanvas(){
 
@@ -2609,10 +2265,16 @@ function resizeCanvas(){
     height =
         window.innerHeight;
 
+    /*
+       不再使用 2x DPR。
+       手機高解析螢幕 2x / 3x
+       會直接把 Canvas 成本放大。
+    */
+
     dpr =
         Math.min(
             window.devicePixelRatio || 1,
-            2
+            1.5
         );
 
     canvas.width =
@@ -2625,11 +2287,15 @@ function resizeCanvas(){
             height * dpr
         );
 
-    canvas.style.width =
-        width + "px";
+    backgroundCanvas.width =
+        Math.floor(
+            width * dpr
+        );
 
-    canvas.style.height =
-        height + "px";
+    backgroundCanvas.height =
+        Math.floor(
+            height * dpr
+        );
 
     ctx.setTransform(
         dpr,
@@ -2640,13 +2306,28 @@ function resizeCanvas(){
         0
     );
 
+    backgroundCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
     createStars();
+
+    buildBackgroundCache();
 
 }
 
+
 window.addEventListener(
     "resize",
-    resizeCanvas
+    resizeCanvas,
+    {
+        passive:true
+    }
 );
 
 
@@ -2658,42 +2339,26 @@ const ROCKETS = {
 
     A:{
 
-        id:
-            "A",
-
         name:
             "穩定號",
 
         color:
-            "#22e5ff",
+            "#20e6ff",
 
         glow:
             "#087cff",
 
-        /*
-           移動更快，
-           但最好控制。
-        */
-
         maxSpeed:
-            1.28,
+            1.42,
 
         response:
-            10.5,
+            14,
 
         brake:
-            11.5,
-
-        /*
-           小碰撞區
-        */
+            15,
 
         hitRadius:
-            .158,
-
-        /*
-           倍率成長
-        */
+            .155,
 
         growth:
             1.047,
@@ -2706,46 +2371,26 @@ const ROCKETS = {
 
     B:{
 
-        id:
-            "B",
-
         name:
             "狂暴號",
 
         color:
-            "#ff38d1",
+            "#ff39d2",
 
         glow:
-            "#7f32ff",
-
-        /*
-           更快。
-        */
+            "#8232ff",
 
         maxSpeed:
-            1.62,
+            1.78,
 
         response:
-            13.5,
-
-        /*
-           慣性更強，
-           收手後比較不容易立刻停。
-        */
+            17,
 
         brake:
-            6.0,
-
-        /*
-           碰撞區稍大。
-        */
+            6.2,
 
         hitRadius:
-            .185,
-
-        /*
-           倍率快很多。
-        */
+            .183,
 
         growth:
             1.065,
@@ -2764,18 +2409,60 @@ const MAX_HEALTH =
 const MAX_PAYOUT =
     20;
 
+
+/*
+   核心修改：
+
+   10 秒保護期。
+*/
+
+const MIN_REWARD_MS =
+    10000;
+
+
+/*
+   保證兩種火箭都不會
+   在 10 秒前爆炸。
+*/
+
+const MIN_CRASH_MS =
+    11000;
+
+
 const START_DELAY =
     1600;
 
-const HIT_INVULN =
-    0.85;
+
+const HIT_INVULN_MS =
+    850;
+
 
 const ROUND_MAX_MS =
     42000;
 
 
+/*
+   世界同步：
+   不是每幀傳。
+
+   12fps 左右足夠同步，
+   畫面自己 60fps 補間。
+*/
+
+const NETWORK_TICK_MS =
+    85;
+
+
+/*
+   本地控制輸入約 20fps。
+*/
+
+const INPUT_TICK_MS =
+    45;
+
+
 /* =========================================================
-   STATE
+   GAME STATE
 ========================================================= */
 
 let selectedRocket =
@@ -2825,7 +2512,7 @@ let lastRoundStart =
 
 
 /* =========================================================
-   PLAYER
+   PLAYERS
 ========================================================= */
 
 const joinTime =
@@ -2833,6 +2520,10 @@ const joinTime =
 
 
 const players =
+    new Map();
+
+
+const hostCandidates =
     new Map();
 
 
@@ -2845,10 +2536,6 @@ players.set(
         joinTime
     )
 );
-
-
-const hostCandidates =
-    new Map();
 
 
 hostCandidates.set(
@@ -3000,7 +2687,7 @@ function electHost(){
 
 
 /* =========================================================
-   EVENT SEND
+   NETWORK
 ========================================================= */
 
 function sendEvent(
@@ -3027,10 +2714,6 @@ function sendEvent(
 
 }
 
-
-/* =========================================================
-   EVENT RECEIVE
-========================================================= */
 
 window.addEventListener(
     "message",
@@ -3183,6 +2866,13 @@ function handleEvent(
             );
             break;
 
+        case "CASHOUT_DENIED":
+            onCashoutDenied(
+                senderId,
+                payload
+            );
+            break;
+
         case "ROCKET_CRASHED":
             onRocketCrashed(
                 senderId,
@@ -3224,6 +2914,7 @@ function broadcastHello(){
 
                 avatar:
                     user.avatar
+
             },
 
             joinedAt:
@@ -3297,24 +2988,21 @@ function onPlayerHello(
         );
 
     }
-    else{
 
-        player.username =
-            String(
-                incoming.username ||
-                player.username
-            );
+    player.lastSeen =
+        Date.now();
 
-        player.avatar =
-            String(
-                incoming.avatar ||
-                player.avatar
-            );
+    player.username =
+        String(
+            incoming.username ||
+            player.username
+        );
 
-        player.lastSeen =
-            Date.now();
-
-    }
+    player.avatar =
+        String(
+            incoming.avatar ||
+            player.avatar
+        );
 
     electHost();
 
@@ -3324,7 +3012,14 @@ function onPlayerHello(
 
         sendHostAnnounce();
 
-        sendLobbyState();
+        if(
+            state ===
+            "LOBBY"
+        ){
+
+            sendLobbyState();
+
+        }
 
     }
 
@@ -3334,7 +3029,7 @@ function onPlayerHello(
 
 
 /* =========================================================
-   HOST ANNOUNCE
+   HOST
 ========================================================= */
 
 function sendHostAnnounce(){
@@ -3360,14 +3055,11 @@ function onHostAnnounce(
     payload
 ){
 
-    const announced =
+    hostId =
         String(
             payload.hostId ||
             senderId
         );
-
-    hostId =
-        announced;
 
     lastHostSeen =
         Date.now();
@@ -3376,7 +3068,7 @@ function onHostAnnounce(
 
 
 /* =========================================================
-   ROCKET SELECTION
+   ROCKET CHOICE
 ========================================================= */
 
 rocketA.addEventListener(
@@ -3395,6 +3087,8 @@ rocketA.addEventListener(
             "A";
 
         updateRocketChoice();
+
+        buildBackgroundCache();
 
         initAudio();
 
@@ -3418,6 +3112,8 @@ rocketB.addEventListener(
             "B";
 
         updateRocketChoice();
+
+        buildBackgroundCache();
 
         initAudio();
 
@@ -3444,11 +3140,8 @@ function updateRocketChoice(){
             ".rocket-badge"
         )
         .textContent =
-            selectedRocket ===
-            "A"
-
+            selectedRocket === "A"
                 ? "已選擇"
-
                 : "選擇";
 
     rocketB
@@ -3456,11 +3149,8 @@ function updateRocketChoice(){
             ".rocket-badge"
         )
         .textContent =
-            selectedRocket ===
-            "B"
-
+            selectedRocket === "B"
                 ? "已選擇"
-
                 : "選擇";
 
     joinButton.textContent =
@@ -3470,7 +3160,7 @@ function updateRocketChoice(){
 
 
 /* =========================================================
-   CONTROL SELECTION
+   CONTROL CHOICE
 ========================================================= */
 
 controlButtons.addEventListener(
@@ -3485,10 +3175,10 @@ controlButtons.addEventListener(
 
         }
 
+        stopSensors();
+
         controlMode =
             "buttons";
-
-        stopTilt();
 
         updateControlChoice();
 
@@ -3513,7 +3203,7 @@ controlTilt.addEventListener(
         initAudio();
 
         const ok =
-            await requestTilt();
+            await prepareSensors();
 
         if(
             ok
@@ -3529,7 +3219,7 @@ controlTilt.addEventListener(
                 "buttons";
 
             showToast(
-                "此裝置無法使用體感，改用左右控制"
+                "此裝置目前無法使用體感"
             );
 
         }
@@ -3554,13 +3244,25 @@ function updateControlChoice(){
         "buttons"
     );
 
-    controlStatus.textContent =
+    if(
         controlMode ===
         "tilt"
+    ){
 
-            ? "📱 輕微左右傾斜即可控制"
+        controlStatus.textContent =
+            sensorReady
 
-            : "◀ ▶ 長按左右按鍵快速移動";
+                ? "✅ 體感已準備"
+
+                : "📱 點擊後校準感測器";
+
+    }
+    else{
+
+        controlStatus.textContent =
+            "◀ ▶ 長按左右控制";
+
+    }
 
 }
 
@@ -3594,15 +3296,15 @@ document
                     );
 
                 document
-                    .querySelectorAll(
-                        ".bet-button"
-                    )
-                    .forEach(
-                        item =>
-                            item.classList.remove(
-                                "active"
-                            )
-                    );
+                .querySelectorAll(
+                    ".bet-button"
+                )
+                .forEach(
+                    item =>
+                        item.classList.remove(
+                            "active"
+                        )
+                );
 
                 button.classList.add(
                     "active"
@@ -3624,7 +3326,7 @@ document
 
 joinButton.addEventListener(
     "click",
-    () => {
+    async () => {
 
         initAudio();
 
@@ -3637,46 +3339,34 @@ joinButton.addEventListener(
         }
 
         /*
-           確保體感權限是由使用者操作取得。
+           這裡直接處理感測器權限，
+           確保 requestPermission()
+           發生在真正的使用者 click。
         */
 
         if(
             controlMode ===
             "tilt" &&
-            !tiltReady
+            !sensorReady
         ){
 
-            requestTilt()
-            .then(
-                ok => {
+            const ok =
+                await prepareSensors();
 
-                    if(
-                        ok
-                    ){
+            if(
+                !ok
+            ){
 
-                        beginPurchase();
+                controlMode =
+                    "buttons";
 
-                    }
-                    else{
+                updateControlChoice();
 
-                        controlMode =
-                            "buttons";
-
-                        updateControlChoice();
-
-                        beginPurchase();
-
-                    }
-
-                }
-            );
+            }
 
         }
-        else{
 
-            beginPurchase();
-
-        }
+        beginPurchase();
 
     }
 );
@@ -3826,10 +3516,10 @@ function handlePurchaseSuccess(
     me.roundId =
         null;
 
-    me.velocity =
+    me.x =
         0;
 
-    me.x =
+    me.velocity =
         0;
 
     localReady =
@@ -3887,8 +3577,11 @@ function enterGameplay(){
         selectedRocket;
 
     rocketBadge.textContent =
-        selectedRocket === "A"
+        selectedRocket ===
+        "A"
+
             ? "🔵 穩定號"
+
             : "🩷 狂暴號";
 
     multiplierEl.className =
@@ -3907,14 +3600,17 @@ function enterGameplay(){
         MAX_HEALTH
     );
 
-    manualControls.classList.toggle(
-        "hidden",
-        controlMode !==
-        "buttons"
+    sensorFallback.classList.remove(
+        "show"
     );
+
+    updateManualControls();
 
     ejectButton.disabled =
         true;
+
+    ejectButton.textContent =
+        "🔒 10 秒後解鎖";
 
     aliveText.textContent =
         "⏳ 等待開局";
@@ -3925,7 +3621,7 @@ function enterGameplay(){
 
 
 /* =========================================================
-   ROOM DATA
+   ROUND PLAYERS
 ========================================================= */
 
 function getRoundPlayers(){
@@ -3952,7 +3648,7 @@ function getRoundPlayers(){
 
 
 /* =========================================================
-   ROUND START
+   CRASH POINT
 ========================================================= */
 
 function generateCrashPoint(
@@ -3964,17 +3660,28 @@ function generateCrashPoint(
             rocket
         ];
 
+    /*
+       10 秒內不能爆。
+       再加一點緩衝。
+    */
+
+    const minAt10 =
+        Math.pow(
+            profile.growth,
+            MIN_CRASH_MS / 1000
+        );
+
+    const minimum =
+        minAt10 +
+        .08;
+
     const random =
         Math.random();
 
-    const minimum =
-        rocket === "A"
-            ? 1.20
-            : 1.14;
-
     const curve =
-        rocket === "A"
-            ? 1.72
+        rocket ===
+        "A"
+            ? 1.7
             : 2.25;
 
     return Number(
@@ -3996,6 +3703,10 @@ function generateCrashPoint(
 
 }
 
+
+/* =========================================================
+   ROUND START
+========================================================= */
 
 function maybeStartRound(){
 
@@ -4020,7 +3731,8 @@ function maybeStartRound(){
         );
 
     if(
-        !ready.length
+        ready.length ===
+        0
     ){
 
         return;
@@ -4201,11 +3913,14 @@ function applyRoundStart(
 
     nextMeteorAt =
         Date.now() +
-        350;
+        380;
 
     nextEnergyAt =
         Date.now() +
         900;
+
+    hostWorldAccumulator =
+        0;
 
     const list =
         Array.isArray(
@@ -4280,10 +3995,7 @@ function applyRoundStart(
                 currentRoundId;
 
             player.x =
-                player.rocket ===
-                "B"
-                    ? .08
-                    : -.08;
+                0;
 
             player.velocity =
                 0;
@@ -4305,7 +4017,7 @@ function applyRoundStart(
         "COUNTDOWN";
 
     aliveText.textContent =
-        "⏳ 起飛倒數";
+        "⏳ 引擎同步";
 
     setTimeout(
         () => {
@@ -4325,10 +4037,10 @@ function applyRoundStart(
                 "FLYING";
 
             ejectButton.disabled =
-                false;
+                true;
 
             ejectButton.textContent =
-                "🚀 EJECT 逃脫";
+                "🔒 10 秒後解鎖";
 
             aliveText.textContent =
                 "🚀 飛行中";
@@ -4354,7 +4066,7 @@ function applyRoundStart(
 
 function getBaseMultiplier(
     rocket,
-    now = Date.now()
+    now=Date.now()
 ){
 
     if(
@@ -4420,10 +4132,10 @@ function getPlayerMultiplier(
             player.rocket
         ) +
 
-        Math.max(
-            0,
-            Math.min(
-                1.5,
+        Math.min(
+            1.5,
+            Math.max(
+                0,
                 player.bonus
             )
         )
@@ -4469,6 +4181,12 @@ function getPlayerScore(
 
     }
 
+    /*
+       10 秒前畫面可以看到
+       潛在分數，
+       但實際不能 EJECT。
+    */
+
     return Math.floor(
         player.bet *
         getPlayerMultiplier(
@@ -4480,7 +4198,102 @@ function getPlayerScore(
 
 
 /* =========================================================
-   HUD UPDATE
+   10 SECOND GATE
+========================================================= */
+
+function getRewardElapsed(){
+
+    if(
+        !roundStartAt
+    ){
+
+        return 0;
+
+    }
+
+    return Math.max(
+        0,
+        Date.now() -
+        roundStartAt
+    );
+
+}
+
+
+function canCashout(){
+
+    return (
+        getRewardElapsed() >=
+        MIN_REWARD_MS
+    );
+
+}
+
+
+function updateCashoutButton(){
+
+    if(
+        state !==
+        "FLYING"
+    ){
+
+        return;
+
+    }
+
+    const me =
+        players.get(
+            user.id
+        );
+
+    if(
+        !me ||
+        me.status !==
+        "flying"
+    ){
+
+        return;
+
+    }
+
+    if(
+        canCashout()
+    ){
+
+        ejectButton.disabled =
+            false;
+
+        ejectButton.textContent =
+            "🚀 EJECT 逃脫";
+
+    }
+    else{
+
+        ejectButton.disabled =
+            true;
+
+        const remain =
+            Math.max(
+                0,
+                MIN_REWARD_MS -
+                getRewardElapsed()
+            );
+
+        const sec =
+            (
+                remain / 1000
+            ).toFixed(1);
+
+        ejectButton.textContent =
+            `🔒 ${sec} 秒後解鎖`;
+
+    }
+
+}
+
+
+/* =========================================================
+   HUD
 ========================================================= */
 
 function updateHUD(){
@@ -4519,16 +4332,16 @@ function updateHUD(){
         "COUNTDOWN"
     ){
 
-        const remain =
+        const remaining =
             Math.max(
                 0,
                 roundStartAt -
                 Date.now()
             );
 
-        const count =
+        const sec =
             Math.ceil(
-                remain /
+                remaining /
                 1000
             );
 
@@ -4536,14 +4349,14 @@ function updateHUD(){
             selectedRocket;
 
         multiplierEl.textContent =
-            count > 0
-                ? String(count)
+            sec > 0
+                ? String(
+                    sec
+                )
                 : "GO!";
 
         flightStatus.textContent =
-            count > 0
-                ? "雙軌引擎同步中"
-                : "🚀 起飛";
+            "雙軌引擎同步";
 
         scoreText.innerHTML =
             `目前分數 <strong>${selectedBet}</strong>`;
@@ -4597,7 +4410,7 @@ function updateHUD(){
             "💥 本局結束";
 
         scoreText.innerHTML =
-            `獲得 <strong>0</strong> 🪙`;
+            "獲得 <strong>0</strong> 🪙";
 
         aliveText.textContent =
             "💥 已出局";
@@ -4643,8 +4456,29 @@ function updateHUD(){
         multiplierEl.className =
             selectedRocket;
 
-        flightStatus.textContent =
-            "🚀 飛行中";
+        if(
+            canCashout()
+        ){
+
+            flightStatus.textContent =
+                "🚀 飛行中 · 可逃脫";
+
+        }
+        else{
+
+            const remain =
+                Math.max(
+                    0,
+                    MIN_REWARD_MS -
+                    getRewardElapsed()
+                );
+
+            flightStatus.textContent =
+                `🛡 保護期 ${(
+                    remain / 1000
+                ).toFixed(1)}s`;
+
+        }
 
     }
 
@@ -4653,11 +4487,18 @@ function updateHUD(){
             me
         ).toLocaleString()}</strong>`;
 
+    aliveText.textContent =
+        canCashout()
+            ? "🚀 已解除保護"
+            : "🛡 前 10 秒保護期";
+
+    updateCashoutButton();
+
 }
 
 
 /* =========================================================
-   HEALTH UI
+   HEALTH
 ========================================================= */
 
 function updateHealthUI(
@@ -4670,7 +4511,10 @@ function updateHealthUI(
         );
 
     hearts.forEach(
-        (heart,index) => {
+        (
+            heart,
+            index
+        ) => {
 
             heart.classList.toggle(
                 "empty",
@@ -4679,31 +4523,6 @@ function updateHealthUI(
 
         }
     );
-
-}
-
-
-/* =========================================================
-   DAMAGE VISUAL
-========================================================= */
-
-function damageVisual(){
-
-    hitFlash.classList.remove(
-        "active"
-    );
-
-    void hitFlash.offsetWidth;
-
-    hitFlash.classList.add(
-        "active"
-    );
-
-    screenShake(
-        10
-    );
-
-    soundHit();
 
 }
 
@@ -4725,8 +4544,18 @@ let nextEnergyAt =
     0;
 
 let lastWorldTick =
-    Date.now();
+    performance.now();
 
+let lastNetworkTick =
+    performance.now();
+
+let hostWorldAccumulator =
+    0;
+
+
+/* =========================================================
+   DIFFICULTY
+========================================================= */
 
 function getDifficulty(){
 
@@ -4737,17 +4566,18 @@ function getDifficulty(){
 
     const multiplier =
         me
+
             ? getPlayerMultiplier(
                 me
             )
+
             : 1;
 
     return clamp(
         (
             multiplier -
             1
-        ) /
-        7,
+        ) / 7,
         0,
         1
     );
@@ -4756,10 +4586,13 @@ function getDifficulty(){
 
 
 /* =========================================================
-   WORLD TICK
+   HOST SIM
 ========================================================= */
 
-function hostWorldTick(){
+function simulateHost(
+    dt,
+    now
+){
 
     if(
         !isHost() ||
@@ -4771,43 +4604,31 @@ function hostWorldTick(){
 
     }
 
-    const now =
-        Date.now();
-
-    const dt =
-        Math.min(
-            .075,
-            Math.max(
-                .001,
-                (
-                    now -
-                    lastWorldTick
-                ) /
-                1000
-            )
-        );
-
-    lastWorldTick =
-        now;
-
     const difficulty =
         getDifficulty();
 
-    /*
-       隕石越來越密。
-    */
-
     const meteorInterval =
-        570 -
+        575 -
         difficulty *
-        250;
+        245;
 
     if(
         now >=
         nextMeteorAt
     ){
 
-        spawnMeteor();
+        if(
+            worldItems.length <
+            (
+                performanceLow
+                    ? 7
+                    : 11
+            )
+        ){
+
+            spawnMeteor();
+
+        }
 
         nextMeteorAt =
             now +
@@ -4815,21 +4636,28 @@ function hostWorldTick(){
 
     }
 
-    /*
-       能量頻率稍微降低。
-    */
-
     const energyInterval =
         1150 -
         difficulty *
-        250;
+        240;
 
     if(
         now >=
         nextEnergyAt
     ){
 
-        spawnEnergy();
+        if(
+            worldItems.length <
+            (
+                performanceLow
+                    ? 8
+                    : 13
+            )
+        ){
+
+            spawnEnergy();
+
+        }
 
         nextEnergyAt =
             now +
@@ -4837,9 +4665,6 @@ function hostWorldTick(){
 
     }
 
-    /*
-       世界移動。
-    */
 
     worldItems.forEach(
         item => {
@@ -4848,29 +4673,28 @@ function hostWorldTick(){
                 item.speed *
                 dt;
 
-            item.life -=
-                dt;
-
             item.rotation +=
                 item.spin *
+                dt;
+
+            item.life -=
                 dt;
 
         }
     );
 
+
     processHostCollisions();
+
 
     worldItems =
         worldItems.filter(
             item =>
                 item.life > 0 &&
                 item.y <
-                1.1
+                1.08
         );
 
-    /*
-       火箭爆炸點。
-    */
 
     if(
         !crashedA
@@ -4895,6 +4719,7 @@ function hostWorldTick(){
 
     }
 
+
     if(
         !crashedB
     ){
@@ -4918,21 +4743,18 @@ function hostWorldTick(){
 
     }
 
-    /*
-       所有人都離場：
-       直接結束。
-    */
 
-    const remaining =
+    const alive =
         getRoundPlayers()
         .filter(
-            p =>
-                p.status ===
+            player =>
+                player.status ===
                 "flying"
         );
 
+
     if(
-        remaining.length ===
+        alive.length ===
         0
     ){
 
@@ -4942,11 +4764,6 @@ function hostWorldTick(){
 
     }
 
-    /*
-       超時：
-       存活中的玩家直接以當前倍率自動逃脫，
-       防止一局永遠不結束。
-    */
 
     if(
         now -
@@ -4954,7 +4771,7 @@ function hostWorldTick(){
         ROUND_MAX_MS
     ){
 
-        remaining.forEach(
+        alive.forEach(
             player => {
 
                 processCashout(
@@ -4966,13 +4783,159 @@ function hostWorldTick(){
 
     }
 
-    broadcastWorld();
+}
+
+
+/* =========================================================
+   WORLD BROADCAST
+========================================================= */
+
+function maybeBroadcastWorld(
+    now
+){
+
+    if(
+        !isHost() ||
+        state !==
+        "FLYING"
+    ){
+
+        return;
+
+    }
+
+    if(
+        now -
+        lastNetworkTick <
+        NETWORK_TICK_MS
+    ){
+
+        return;
+
+    }
+
+    lastNetworkTick =
+        now;
+
+    sendEvent(
+        "WORLD_STATE",
+        {
+
+            gameId:
+                GAME_META.id,
+
+            roundId:
+                currentRoundId,
+
+            hostId:
+                user.id,
+
+            roundStartAt:
+                roundStartAt,
+
+            crashedA:
+                crashedA,
+
+            crashedB:
+                crashedB,
+
+            crashPointA:
+                crashPointA,
+
+            crashPointB:
+                crashPointB,
+
+            items:
+                worldItems.map(
+                    item => ({
+
+                        id:
+                            item.id,
+
+                        type:
+                            item.type,
+
+                        rocket:
+                            item.rocket,
+
+                        x:
+                            item.x,
+
+                        y:
+                            item.y,
+
+                        size:
+                            item.size,
+
+                        speed:
+                            item.speed,
+
+                        spin:
+                            item.spin,
+
+                        rotation:
+                            item.rotation
+
+                    })
+                ),
+
+            players:
+                Array.from(
+                    players.values()
+                )
+                .map(
+                    player => ({
+
+                        id:
+                            player.id,
+
+                        username:
+                            player.username,
+
+                        avatar:
+                            player.avatar,
+
+                        bet:
+                            player.bet,
+
+                        rocket:
+                            player.rocket,
+
+                        status:
+                            player.status,
+
+                        x:
+                            player.x,
+
+                        bonus:
+                            player.bonus,
+
+                        health:
+                            player.health,
+
+                        reward:
+                            player.reward,
+
+                        cashoutAt:
+                            player.cashoutAt,
+
+                        cashoutTime:
+                            player.cashoutTime,
+
+                        roundId:
+                            player.roundId
+
+                    })
+                )
+
+        }
+    );
 
 }
 
 
 /* =========================================================
-   SPAWN METEOR
+   SPAWN
 ========================================================= */
 
 function spawnMeteor(){
@@ -4980,7 +4943,9 @@ function spawnMeteor(){
     const rocket =
         Math.random() <
         .5
+
             ? "A"
+
             : "B";
 
     const difficulty =
@@ -4989,7 +4954,7 @@ function spawnMeteor(){
     worldItems.push({
 
         id:
-            "meteor_" +
+            "m" +
             itemId++,
 
         type:
@@ -5016,18 +4981,17 @@ function spawnMeteor(){
         size:
             25 +
             Math.random() *
-            12,
+            11,
 
         rotation:
             Math.random() *
-            6.2,
+            6.28,
 
         spin:
             (
                 Math.random() -
                 .5
-            ) *
-            4,
+            ) * 4,
 
         life:
             5
@@ -5037,22 +5001,20 @@ function spawnMeteor(){
 }
 
 
-/* =========================================================
-   ENERGY
-========================================================= */
-
 function spawnEnergy(){
 
     const rocket =
         Math.random() <
         .5
+
             ? "A"
+
             : "B";
 
     worldItems.push({
 
         id:
-            "energy_" +
+            "e" +
             itemId++,
 
         type:
@@ -5133,10 +5095,6 @@ function processHostCollisions(){
 
                     }
 
-                    /*
-                       玩家火箭位於畫面下方。
-                    */
-
                     if(
                         item.y <
                         .69 ||
@@ -5180,6 +5138,7 @@ function processHostCollisions(){
                     item.life =
                         0;
 
+
                     if(
                         item.type ===
                         "meteor"
@@ -5194,14 +5153,13 @@ function processHostCollisions(){
 
                         player.invulnerableUntil =
                             now +
-                            HIT_INVULN *
-                            1000;
+                            HIT_INVULN_MS;
 
                         player.bonus =
                             Math.max(
                                 0,
                                 player.bonus -
-                                .10
+                                .1
                             );
 
                         sendEvent(
@@ -5223,6 +5181,7 @@ function processHostCollisions(){
                             }
                         );
 
+
                         if(
                             player.id ===
                             user.id
@@ -5232,11 +5191,14 @@ function processHostCollisions(){
 
                             showToast(
                                 player.health > 0
+
                                     ? `☄️ 撞擊！剩餘 ${player.health} 格護甲`
+
                                     : "💥 護甲歸零！"
                             );
 
                         }
+
 
                         if(
                             player.health <=
@@ -5271,6 +5233,7 @@ function processHostCollisions(){
                                 }
                             );
 
+
                             if(
                                 player.id ===
                                 user.id
@@ -5286,11 +5249,6 @@ function processHostCollisions(){
 
                     }
                     else{
-
-                        /*
-                           能量：
-                           狂暴號獲取稍高的倍率補正。
-                        */
 
                         const bonus =
                             player.rocket ===
@@ -5316,7 +5274,7 @@ function processHostCollisions(){
 
                             showToast(
                                 `⚡ 能量 +${bonus.toFixed(2)}x`,
-                                600
+                                550
                             );
 
                         }
@@ -5333,7 +5291,7 @@ function processHostCollisions(){
 
 
 /* =========================================================
-   PLAYER INPUT
+   LOCAL MOVEMENT
 ========================================================= */
 
 let inputDirection =
@@ -5386,13 +5344,6 @@ function updateLocalMovement(
             1
         );
 
-    /*
-       非線性輸入：
-
-       小角度比較細。
-       大角度迅速移動。
-    */
-
     const shaped =
         Math.sign(
             direction
@@ -5401,24 +5352,17 @@ function updateLocalMovement(
             Math.abs(
                 direction
             ),
-            .88
+            .78
         );
 
-    const targetVelocity =
+    const target =
         shaped *
         profile.maxSpeed;
 
-    /*
-       根據方向決定追蹤速度。
-       狂暴號速度高，但放手時
-       回正比較慢。
-    */
-
     const response =
         Math.abs(
-            targetVelocity
-        ) <
-        .01
+            target
+        ) < .01
 
             ? profile.brake
 
@@ -5426,7 +5370,7 @@ function updateLocalMovement(
 
     me.velocity +=
         (
-            targetVelocity -
+            target -
             me.velocity
         ) *
         Math.min(
@@ -5435,12 +5379,6 @@ function updateLocalMovement(
             dt
         );
 
-    /*
-       很重要：
-       x 不再使用 0.72 的慢速度。
-       現在 1 秒可以直接穿越非常明顯的距離。
-    */
-
     me.x +=
         me.velocity *
         dt;
@@ -5448,8 +5386,8 @@ function updateLocalMovement(
     me.x =
         clamp(
             me.x,
-            -.90,
-            .90
+            -.9,
+            .9
         );
 
     sendPlayerInput(
@@ -5468,12 +5406,12 @@ function sendPlayerInput(
 ){
 
     const now =
-        Date.now();
+        performance.now();
 
     if(
         now -
         lastInputSent <
-        45
+        INPUT_TICK_MS
     ){
 
         return;
@@ -5606,38 +5544,116 @@ function onPlayerInput(
 
 
 /* =========================================================
-   TILT
+   SENSOR SYSTEM
 ========================================================= */
 
-let tiltReady =
+let sensorReady =
     false;
 
-let tiltEnabled =
+let sensorRunning =
     false;
 
-let tiltZero =
+let sensorUsingOrientation =
+    false;
+
+let sensorUsingMotion =
+    false;
+
+let lastOrientationAt =
     0;
 
+let lastMotionAt =
+    0;
 
-async function requestTilt(){
+let orientationGamma =
+    null;
+
+let motionX =
+    null;
+
+let neutralGamma =
+    0;
+
+let neutralMotionX =
+    0;
+
+let filteredMotionX =
+    0;
+
+let sensorFallbackShown =
+    false;
+
+let recalibrationTimer =
+    null;
+
+
+/* =========================================================
+   PREPARE SENSOR
+========================================================= */
+
+async function prepareSensors(){
+
+    /*
+       已經正常運作就不用重來。
+    */
+
+    if(
+        sensorReady &&
+        sensorRunning
+    ){
+
+        return true;
+
+    }
+
+    stopSensors();
+
+    /*
+       Feature detect。
+    */
+
+    const hasOrientation =
+        typeof DeviceOrientationEvent !==
+        "undefined";
+
+    const hasMotion =
+        typeof DeviceMotionEvent !==
+        "undefined";
+
+    if(
+        !hasOrientation &&
+        !hasMotion
+    ){
+
+        return false;
+
+    }
+
 
     try{
 
-        if(
-            typeof DeviceOrientationEvent !==
-            "undefined" &&
+        /*
+           某些 iOS / WebKit 環境需要
+           orientation 與 motion
+           都先取得權限。
 
+           最重要的是：
+           這個函數由按鈕 click 直接呼叫。
+        */
+
+        if(
+            hasOrientation &&
             typeof DeviceOrientationEvent
                 .requestPermission ===
             "function"
         ){
 
-            const permission =
+            const orientationPermission =
                 await DeviceOrientationEvent
-                .requestPermission();
+                    .requestPermission();
 
             if(
-                permission !==
+                orientationPermission !==
                 "granted"
             ){
 
@@ -5647,177 +5663,510 @@ async function requestTilt(){
 
         }
 
-        const samples =
-            [];
-
-        const listener =
-            event => {
-
-                if(
-                    typeof event.gamma ===
-                    "number"
-                ){
-
-                    samples.push(
-                        event.gamma
-                    );
-
-                }
-
-            };
-
-        window.addEventListener(
-            "deviceorientation",
-            listener,
-            true
-        );
-
-        controlStatus.textContent =
-            "📱 正在校準目前手持角度…";
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    500
-                )
-        );
-
-        window.removeEventListener(
-            "deviceorientation",
-            listener,
-            true
-        );
 
         if(
-            !samples.length
+            hasMotion &&
+            typeof DeviceMotionEvent
+                .requestPermission ===
+            "function"
         ){
 
-            return false;
+            const motionPermission =
+                await DeviceMotionEvent
+                    .requestPermission();
+
+            /*
+               Motion 被拒絕不立即算失敗，
+               因為 orientation 可能還能工作。
+            */
+
+            if(
+                motionPermission !==
+                "granted" &&
+                !hasOrientation
+            ){
+
+                return false;
+
+            }
 
         }
 
-        tiltZero =
-            samples.reduce(
-                (
-                    sum,
-                    value
-                ) =>
-                    sum +
-                    value,
-                0
-            ) /
-            samples.length;
-
-        window.addEventListener(
-            "deviceorientation",
-            handleTilt,
-            true
-        );
-
-        tiltReady =
-            true;
-
-        tiltEnabled =
-            true;
-
-        inputDirection =
-            0;
-
-        controlStatus.textContent =
-            "✅ 體感已校準";
-
-        return true;
-
     }catch(e){
 
-        tiltReady =
-            false;
-
-        tiltEnabled =
-            false;
+        /*
+           Permission request 被拒絕。
+        */
 
         return false;
 
     }
 
+
+    /*
+       Listener。
+    */
+
+    window.addEventListener(
+        "deviceorientation",
+        onOrientation,
+        true
+    );
+
+    window.addEventListener(
+        "deviceorientationabsolute",
+        onOrientation,
+        true
+    );
+
+    window.addEventListener(
+        "devicemotion",
+        onMotion,
+        true
+    );
+
+    sensorRunning =
+        true;
+
+
+    /*
+       校準。
+    */
+
+    const calibrated =
+        await calibrateSensors();
+
+    if(
+        !calibrated
+    ){
+
+        stopSensors();
+
+        return false;
+
+    }
+
+    sensorReady =
+        true;
+
+    sensorFallbackShown =
+        false;
+
+    sensorFallback.classList.remove(
+        "show"
+    );
+
+    return true;
+
 }
 
 
-function handleTilt(
+/* =========================================================
+   SENSOR EVENTS
+========================================================= */
+
+function onOrientation(
     event
 ){
 
+    const gamma =
+        Number(
+            event.gamma
+        );
+
     if(
-        !tiltEnabled ||
-        typeof event.gamma !==
-        "number"
+        !Number.isFinite(
+            gamma
+        )
     ){
 
         return;
 
     }
 
-    let delta =
-        event.gamma -
-        tiltZero;
+    orientationGamma =
+        gamma;
 
-    /*
-       小死區。
-    */
-
-    if(
-        Math.abs(delta) <
-        2
-    ){
-
-        delta =
-            0;
-
-    }
-
-    /*
-       35 度就接近最大，
-       比舊版更快。
-    */
-
-    let value =
-        delta /
-        35;
-
-    value =
-        clamp(
-            value,
-            -1,
-            1
-        );
-
-    /*
-       讓前 20% 比較好細調。
-    */
-
-    inputDirection =
-        Math.sign(
-            value
-        ) *
-        Math.pow(
-            Math.abs(value),
-            .82
-        );
+    lastOrientationAt =
+        performance.now();
 
 }
 
 
-function stopTilt(){
+function onMotion(
+    event
+){
+
+    const a =
+        event.accelerationIncludingGravity;
+
+    if(
+        !a ||
+        !Number.isFinite(
+            a.x
+        )
+    ){
+
+        return;
+
+    }
+
+    /*
+       低通濾波。
+
+       把手機手持的小噪音削掉。
+    */
+
+    if(
+        motionX ===
+        null
+    ){
+
+        motionX =
+            a.x;
+
+    }
+    else{
+
+        motionX +=
+            (
+                a.x -
+                motionX
+            ) *
+            .18;
+
+    }
+
+    filteredMotionX =
+        motionX;
+
+    lastMotionAt =
+        performance.now();
+
+}
+
+
+/* =========================================================
+   CALIBRATE
+========================================================= */
+
+async function calibrateSensors(){
+
+    const gammaSamples =
+        [];
+
+    const motionSamples =
+        [];
+
+    const start =
+        performance.now();
+
+
+    return await new Promise(
+        resolve => {
+
+            const collect =
+                () => {
+
+                    if(
+                        Number.isFinite(
+                            orientationGamma
+                        )
+                    ){
+
+                        gammaSamples.push(
+                            orientationGamma
+                        );
+
+                    }
+
+                    if(
+                        Number.isFinite(
+                            filteredMotionX
+                        )
+                    ){
+
+                        motionSamples.push(
+                            filteredMotionX
+                        );
+
+                    }
+
+                    if(
+                        performance.now() -
+                        start <
+                        550
+                    ){
+
+                        requestAnimationFrame(
+                            collect
+                        );
+
+                    }
+                    else{
+
+                        /*
+                           優先 orientation。
+                        */
+
+                        if(
+                            gammaSamples.length >=
+                            4
+                        ){
+
+                            neutralGamma =
+                                average(
+                                    gammaSamples
+                                );
+
+                            sensorUsingOrientation =
+                                true;
+
+                            sensorUsingMotion =
+                                false;
+
+                            resolve(true);
+
+                            return;
+
+                        }
+
+
+                        /*
+                           orientation 沒資料，
+                           改用 motion。
+                        */
+
+                        if(
+                            motionSamples.length >=
+                            4
+                        ){
+
+                            neutralMotionX =
+                                average(
+                                    motionSamples
+                                );
+
+                            sensorUsingOrientation =
+                                false;
+
+                            sensorUsingMotion =
+                                true;
+
+                            resolve(true);
+
+                            return;
+
+                        }
+
+                        resolve(false);
+
+                    }
+
+                };
+
+            collect();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SENSOR INPUT
+========================================================= */
+
+function updateSensorInput(){
+
+    if(
+        controlMode !==
+        "tilt" ||
+        !sensorReady ||
+        !sensorRunning
+    ){
+
+        return;
+
+    }
+
+    const now =
+        performance.now();
+
+
+    /*
+       orientation 優先。
+    */
+
+    if(
+        sensorUsingOrientation &&
+        now -
+        lastOrientationAt <
+        500 &&
+        Number.isFinite(
+            orientationGamma
+        )
+    ){
+
+        let delta =
+            orientationGamma -
+            neutralGamma;
+
+        /*
+           1.7 度 deadzone。
+        */
+
+        if(
+            Math.abs(delta) <
+            1.7
+        ){
+
+            delta =
+                0;
+
+        }
+
+        let normalized =
+            delta /
+            29;
+
+        normalized =
+            clamp(
+                normalized,
+                -1,
+                1
+            );
+
+        inputDirection =
+            Math.sign(
+                normalized
+            ) *
+            Math.pow(
+                Math.abs(
+                    normalized
+                ),
+                .76
+            );
+
+        return;
+
+    }
+
+
+    /*
+       orientation 中斷，
+       使用 motion。
+    */
+
+    if(
+        now -
+        lastMotionAt <
+        800 &&
+        Number.isFinite(
+            filteredMotionX
+        )
+    ){
+
+        sensorUsingMotion =
+            true;
+
+        const delta =
+            filteredMotionX -
+            neutralMotionX;
+
+        let normalized =
+            delta /
+            3.0;
+
+        normalized =
+            clamp(
+                normalized,
+                -1,
+                1
+            );
+
+        inputDirection =
+            Math.sign(
+                normalized
+            ) *
+            Math.pow(
+                Math.abs(
+                    normalized
+                ),
+                .78
+            );
+
+        return;
+
+    }
+
+
+    /*
+       完全失去感測器。
+       自動切換到左右按鍵。
+    */
+
+    inputDirection =
+        0;
+
+    sensorFallbackShown =
+        true;
+
+    sensorFallback.classList.add(
+        "show"
+    );
+
+    manualControls.classList.add(
+        "visible"
+    );
+
+}
+
+
+/* =========================================================
+   STOP SENSOR
+========================================================= */
+
+function stopSensors(){
 
     window.removeEventListener(
         "deviceorientation",
-        handleTilt,
+        onOrientation,
         true
     );
 
-    tiltEnabled =
+    window.removeEventListener(
+        "deviceorientationabsolute",
+        onOrientation,
+        true
+    );
+
+    window.removeEventListener(
+        "devicemotion",
+        onMotion,
+        true
+    );
+
+    sensorRunning =
         false;
+
+    sensorReady =
+        false;
+
+    sensorUsingOrientation =
+        false;
+
+    sensorUsingMotion =
+        false;
+
+    orientationGamma =
+        null;
+
+    motionX =
+        null;
+
+    filteredMotionX =
+        0;
 
     inputDirection =
         0;
@@ -5826,7 +6175,60 @@ function stopTilt(){
 
 
 /* =========================================================
-   MANUAL BUTTONS
+   SENSOR RECALIBRATION
+========================================================= */
+
+function scheduleRecalibration(){
+
+    if(
+        controlMode !==
+        "tilt" ||
+        !sensorRunning
+    ){
+
+        return;
+
+    }
+
+    clearTimeout(
+        recalibrationTimer
+    );
+
+    recalibrationTimer =
+        setTimeout(
+            async () => {
+
+                const ok =
+                    await calibrateSensors();
+
+                if(
+                    ok
+                ){
+
+                    sensorFallback.classList.remove(
+                        "show"
+                    );
+
+                    sensorFallbackShown =
+                        false;
+
+                }
+
+            },
+            500
+        );
+
+}
+
+
+window.addEventListener(
+    "orientationchange",
+    scheduleRecalibration
+);
+
+
+/* =========================================================
+   MANUAL CONTROL
 ========================================================= */
 
 function setManualDirection(
@@ -5906,6 +6308,83 @@ window.addEventListener(
 );
 
 
+/*
+   即使選體感，
+   畫面兩側也可以用觸控
+   做 emergency fallback。
+*/
+
+canvas.addEventListener(
+    "pointerdown",
+    event => {
+
+        if(
+            state !==
+            "FLYING"
+        ){
+
+            return;
+
+        }
+
+        if(
+            controlMode !==
+            "tilt"
+        ){
+
+            return;
+
+        }
+
+        /*
+           感測器正常時，
+           不搶控制。
+        */
+
+        const now =
+            performance.now();
+
+        const sensorAlive =
+            sensorUsingOrientation &&
+            now -
+            lastOrientationAt <
+            500;
+
+        if(
+            sensorAlive
+        ){
+
+            return;
+
+        }
+
+        setManualDirection(
+            event.clientX <
+            width/2
+                ? -1
+                : 1
+        );
+
+    }
+);
+
+canvas.addEventListener(
+    "pointerup",
+    () => {
+
+        if(
+            controlMode ===
+            "tilt"
+        ){
+
+            clearManualDirection();
+
+        }
+
+    }
+);
+
+
 /* =========================================================
    KEYBOARD
 ========================================================= */
@@ -5940,9 +6419,7 @@ window.addEventListener(
 
         if(
             event.code ===
-            "Space" &&
-            state ===
-            "FLYING"
+            "Space"
         ){
 
             cashout();
@@ -5951,6 +6428,7 @@ window.addEventListener(
 
     }
 );
+
 
 window.addEventListener(
     "keyup",
@@ -5973,126 +6451,27 @@ window.addEventListener(
 
 
 /* =========================================================
-   WORLD RECEIVE
+   MANUAL UI
 ========================================================= */
 
-function broadcastWorld(){
+function updateManualControls(){
 
-    if(
-        !isHost()
-    ){
+    const show =
+        controlMode ===
+        "buttons" ||
+        sensorFallbackShown;
 
-        return;
-
-    }
-
-    sendEvent(
-        "WORLD_STATE",
-        {
-
-            gameId:
-                GAME_META.id,
-
-            roundId:
-                currentRoundId,
-
-            hostId:
-                user.id,
-
-            roundStartAt:
-                roundStartAt,
-
-            crashPointA:
-                crashPointA,
-
-            crashPointB:
-                crashPointB,
-
-            crashedA:
-                crashedA,
-
-            crashedB:
-                crashedB,
-
-            items:
-                worldItems.map(
-                    item => ({
-
-                        id:
-                            item.id,
-
-                        type:
-                            item.type,
-
-                        rocket:
-                            item.rocket,
-
-                        x:
-                            item.x,
-
-                        y:
-                            item.y,
-
-                        size:
-                            item.size,
-
-                        rotation:
-                            item.rotation
-
-                    })
-                ),
-
-            players:
-                Array.from(
-                    players.values()
-                )
-                .map(
-                    player => ({
-
-                        id:
-                            player.id,
-
-                        username:
-                            player.username,
-
-                        avatar:
-                            player.avatar,
-
-                        bet:
-                            player.bet,
-
-                        rocket:
-                            player.rocket,
-
-                        status:
-                            player.status,
-
-                        x:
-                            player.x,
-
-                        bonus:
-                            player.bonus,
-
-                        health:
-                            player.health,
-
-                        reward:
-                            player.reward,
-
-                        cashoutAt:
-                            player.cashoutAt,
-
-                        roundId:
-                            player.roundId
-
-                    })
-                )
-
-        }
+    manualControls.classList.toggle(
+        "visible",
+        show
     );
 
 }
 
+
+/* =========================================================
+   PLAYER INPUT
+========================================================= */
 
 function onWorldState(
     senderId,
@@ -6122,21 +6501,32 @@ function onWorldState(
 
     }
 
-    crashPointA =
-        Number(
-            payload.crashPointA
-        );
-
-    crashPointB =
-        Number(
-            payload.crashPointB
-        );
-
     crashedA =
         !!payload.crashedA;
 
     crashedB =
         !!payload.crashedB;
+
+    crashPointA =
+        Number(
+            payload.crashPointA ||
+            crashPointA
+        );
+
+    crashPointB =
+        Number(
+            payload.crashPointB ||
+            crashPointB
+        );
+
+
+    /*
+       不直接把畫面中的隕石
+       瞬間跳到 snapshot。
+
+       存入 target，
+       下一幀慢慢追。
+    */
 
     if(
         Array.isArray(
@@ -6144,56 +6534,150 @@ function onWorldState(
         )
     ){
 
-        worldItems =
-            payload.items.map(
-                item => ({
+        const incoming =
+            payload.items;
 
-                    id:
+        const byId =
+            new Map(
+                worldItems.map(
+                    item => [
                         item.id,
+                        item
+                    ]
+                )
+            );
 
-                    type:
-                        item.type,
+        incoming.forEach(
+            source => {
 
-                    rocket:
-                        item.rocket,
+                let local =
+                    byId.get(
+                        source.id
+                    );
 
-                    x:
+                if(
+                    !local
+                ){
+
+                    local = {
+
+                        id:
+                            source.id,
+
+                        type:
+                            source.type,
+
+                        rocket:
+                            source.rocket,
+
+                        x:
+                            Number(
+                                source.x ||
+                                0
+                            ),
+
+                        y:
+                            Number(
+                                source.y ||
+                                0
+                            ),
+
+                        targetY:
+                            Number(
+                                source.y ||
+                                0
+                            ),
+
+                        size:
+                            Number(
+                                source.size ||
+                                25
+                            ),
+
+                        speed:
+                            Number(
+                                source.speed ||
+                                .3
+                            ),
+
+                        spin:
+                            Number(
+                                source.spin ||
+                                0
+                            ),
+
+                        rotation:
+                            Number(
+                                source.rotation ||
+                                0
+                            ),
+
+                        life:
+                            3
+
+                    };
+
+                    worldItems.push(
+                        local
+                    );
+
+                }
+                else{
+
+                    local.targetY =
                         Number(
-                            item.x ||
+                            source.y ||
                             0
-                        ),
+                        );
 
-                    y:
+                    local.x =
                         Number(
-                            item.y ||
-                            0
-                        ),
+                            source.x ||
+                            local.x
+                        );
 
-                    size:
+                    local.speed =
                         Number(
-                            item.size ||
-                            25
-                        ),
+                            source.speed ||
+                            local.speed
+                        );
 
-                    rotation:
+                    local.rotation =
                         Number(
-                            item.rotation ||
-                            0
-                        ),
+                            source.rotation ||
+                            local.rotation
+                        );
 
-                    speed:
-                        0,
+                    local.targetRotation =
+                        local.rotation;
 
-                    spin:
-                        0,
+                }
 
-                    life:
-                        2
+            }
+        );
 
-                })
+        /*
+           清掉 Host 已消失的物件。
+        */
+
+        const ids =
+            new Set(
+                incoming.map(
+                    item =>
+                        item.id
+                )
+            );
+
+        worldItems =
+            worldItems.filter(
+                item =>
+                    ids.has(
+                        item.id
+                    )
             );
 
     }
+
 
     if(
         Array.isArray(
@@ -6300,6 +6784,12 @@ function onWorldState(
                         0
                     );
 
+                player.cashoutTime =
+                    Number(
+                        incoming.cashoutTime ||
+                        0
+                    );
+
                 player.roundId =
                     incoming.roundId ||
                     currentRoundId;
@@ -6321,7 +6811,7 @@ function onWorldState(
 
 
 /* =========================================================
-   DAMAGE RECEIVE
+   PLAYER DAMAGE
 ========================================================= */
 
 function onPlayerDamaged(
@@ -6470,10 +6960,10 @@ function crashRocket(
             player.status =
                 "crashed";
 
-            player.reward =
+            player.health =
                 0;
 
-            player.health =
+            player.reward =
                 0;
 
             sendEvent(
@@ -6539,10 +7029,6 @@ function crashRocket(
 
 }
 
-
-/* =========================================================
-   ROCKET CRASH RECEIVE
-========================================================= */
 
 function onRocketCrashed(
     senderId,
@@ -6636,6 +7122,22 @@ function cashout(){
 
     }
 
+    /*
+       前端第一道驗證。
+    */
+
+    if(
+        !canCashout()
+    ){
+
+        showToast(
+            "⏳ 前 10 秒不能領取獎勵"
+        );
+
+        return;
+
+    }
+
     const me =
         players.get(
             user.id
@@ -6651,14 +7153,14 @@ function cashout(){
 
     }
 
-    const crashed =
+    const rocketCrashed =
         me.rocket ===
         "A"
             ? crashedA
             : crashedB;
 
     if(
-        crashed
+        rocketCrashed
     ){
 
         return;
@@ -6698,7 +7200,7 @@ function cashout(){
 
 
 /* =========================================================
-   CASHOUT RECEIVE
+   CASHOUT REQUEST
 ========================================================= */
 
 function onPlayerCashout(
@@ -6737,6 +7239,10 @@ function onPlayerCashout(
 }
 
 
+/* =========================================================
+   CASHOUT PROCESS
+========================================================= */
+
 function processCashout(
     playerId
 ){
@@ -6749,6 +7255,61 @@ function processCashout(
         return;
 
     }
+
+    /*
+       Host 第二道安全驗證。
+
+       即使前端被修改，
+       10 秒以前也直接拒絕。
+    */
+
+    const elapsed =
+        Date.now() -
+        roundStartAt;
+
+    if(
+        elapsed <
+        MIN_REWARD_MS
+    ){
+
+        sendEvent(
+            "CASHOUT_DENIED",
+            {
+
+                gameId:
+                    GAME_META.id,
+
+                roundId:
+                    currentRoundId,
+
+                playerId:
+                    playerId,
+
+                remain:
+                    Math.max(
+                        0,
+                        MIN_REWARD_MS -
+                        elapsed
+                    )
+
+            }
+        );
+
+        if(
+            playerId ===
+            user.id
+        ){
+
+            showToast(
+                "⏳ 還沒滿 10 秒，不能領取獎勵"
+            );
+
+        }
+
+        return;
+
+    }
+
 
     const player =
         players.get(
@@ -6779,15 +7340,17 @@ function processCashout(
 
     }
 
+
     /*
-       只有這裡會計算獎勵。
-       計算完即永久凍結。
+       在這裡一次鎖定。
+
+       這是非常重要的：
+       reward 算完後永遠不再更新。
     */
 
     const multiplier =
         Math.min(
             MAX_PAYOUT,
-
             Math.max(
                 1.01,
                 getBaseMultiplier(
@@ -6795,7 +7358,10 @@ function processCashout(
                 ) +
                 Math.min(
                     1.5,
-                    player.bonus
+                    Math.max(
+                        0,
+                        player.bonus
+                    )
                 )
             )
         );
@@ -6805,6 +7371,7 @@ function processCashout(
             player.bet *
             multiplier
         );
+
 
     player.status =
         "cashed";
@@ -6817,6 +7384,7 @@ function processCashout(
 
     player.cashoutTime =
         Date.now();
+
 
     sendEvent(
         "CASHOUT_CONFIRMED",
@@ -6844,10 +7412,14 @@ function processCashout(
                 multiplier,
 
             reward:
-                reward
+                reward,
+
+            cashoutTime:
+                player.cashoutTime
 
         }
     );
+
 
     if(
         player.id ===
@@ -6908,7 +7480,11 @@ function onCashoutConfirmed(
         );
 
     player.cashoutTime =
-        Date.now();
+        Number(
+            payload.cashoutTime ||
+            Date.now()
+        );
+
 
     if(
         id ===
@@ -6921,6 +7497,45 @@ function onCashoutConfirmed(
         );
 
     }
+
+}
+
+
+/* =========================================================
+   CASHOUT DENIED
+========================================================= */
+
+function onCashoutDenied(
+    senderId,
+    payload
+){
+
+    const id =
+        String(
+            payload.playerId ||
+            senderId
+        );
+
+    if(
+        id !==
+        user.id
+    ){
+
+        return;
+
+    }
+
+    const remain =
+        Number(
+            payload.remain ||
+            0
+        );
+
+    showToast(
+        `⏳ 還需要 ${(
+            remain / 1000
+        ).toFixed(1)} 秒`
+    );
 
 }
 
@@ -6947,10 +7562,6 @@ function applyCashout(
 
     }
 
-    /*
-       永久鎖定。
-    */
-
     me.status =
         "cashed";
 
@@ -6960,17 +7571,16 @@ function applyCashout(
     me.reward =
         reward;
 
-    me.cashoutTime =
-        Date.now();
-
     roundRewardSent =
         true;
+
 
     ejectButton.disabled =
         true;
 
     ejectButton.textContent =
         "✅ 已成功逃脫";
+
 
     multiplierEl.className =
         "win";
@@ -6987,7 +7597,9 @@ function applyCashout(
     aliveText.textContent =
         `✅ +${reward.toLocaleString()} 銀幣`;
 
+
     soundCashout();
+
 
     if(
         SDK_READY
@@ -7008,9 +7620,10 @@ function applyCashout(
 
     }
 
+
     showToast(
         `成功逃脫 ${multiplier.toFixed(2)}x`,
-        1600
+        1700
     );
 
 }
@@ -7055,6 +7668,7 @@ function settleLoss(
 
     }
 
+
     ejectButton.disabled =
         true;
 
@@ -7073,12 +7687,14 @@ function settleLoss(
             : "💥 火箭爆炸";
 
     scoreText.innerHTML =
-        `獲得 <strong>0</strong> 🪙`;
+        "獲得 <strong>0</strong> 🪙";
 
     aliveText.textContent =
         "💥 本局結束";
 
+
     soundCrash();
+
 
     if(
         SDK_READY
@@ -7098,7 +7714,7 @@ function settleLoss(
 
 
 /* =========================================================
-   ROUND RESULT
+   RESULT
 ========================================================= */
 
 function finishRound(){
@@ -7144,11 +7760,13 @@ function finishRound(){
 
                 reward:
                     Math.floor(
-                        player.reward || 0
+                        player.reward ||
+                        0
                     ),
 
                 cashoutAt:
-                    player.cashoutAt || 0
+                    player.cashoutAt ||
+                    0
 
             })
         );
@@ -7233,10 +7851,6 @@ function onRoundResult(
 }
 
 
-/* =========================================================
-   RESULT UI
-========================================================= */
-
 function applyRoundResult(
     results
 ){
@@ -7256,7 +7870,8 @@ function applyRoundResult(
     const reward =
         me
             ? Number(
-                me.reward || 0
+                me.reward ||
+                0
             )
             : 0;
 
@@ -7275,7 +7890,8 @@ function applyRoundResult(
             ? `${rocketName(
                 me.rocket
             )} · ${Number(
-                me.cashoutAt || 0
+                me.cashoutAt ||
+                0
             ).toFixed(2)}x`
             : "—";
 
@@ -7312,6 +7928,9 @@ function applyRoundResult(
                                 index + 1
                             );
 
+            row.innerHTML =
+                `<div>${medal}</div>`;
+
             const name =
                 document.createElement(
                     "div"
@@ -7323,9 +7942,6 @@ function applyRoundResult(
             name.textContent =
                 player.username ||
                 "玩家";
-
-            row.innerHTML =
-                `<div>${medal}</div>`;
 
             row.appendChild(
                 name
@@ -7341,10 +7957,12 @@ function applyRoundResult(
 
             const net =
                 Number(
-                    player.reward || 0
+                    player.reward ||
+                    0
                 ) -
                 Number(
-                    player.bet || 0
+                    player.bet ||
+                    0
                 );
 
             value.textContent =
@@ -7365,19 +7983,11 @@ function applyRoundResult(
         "show"
     );
 
-    if(
-        reward > 0
-    ){
-
-        soundCashout();
-
-    }
-
 }
 
 
 /* =========================================================
-   NEXT ROUND
+   RESET
 ========================================================= */
 
 nextRound.addEventListener(
@@ -7422,7 +8032,7 @@ function resetRound(){
     roundRewardSent =
         false;
 
-    stopTilt();
+    stopSensors();
 
     inputDirection =
         0;
@@ -7445,6 +8055,9 @@ function resetRound(){
             player.cashoutAt =
                 0;
 
+            player.cashoutTime =
+                0;
+
             player.roundId =
                 null;
 
@@ -7462,20 +8075,6 @@ function resetRound(){
 
         }
     );
-
-    const me =
-        players.get(
-            user.id
-        );
-
-    if(
-        me
-    ){
-
-        me.lastSeen =
-            Date.now();
-
-    }
 
     joinButton.disabled =
         false;
@@ -7497,7 +8096,7 @@ function resetRound(){
 
 
 /* =========================================================
-   OPPONENT UI
+   OPPONENT HUD
 ========================================================= */
 
 function updateOpponentUI(){
@@ -7624,7 +8223,7 @@ function updateOpponentUI(){
 
 
 /* =========================================================
-   ROOM LOBBY STATE
+   LOBBY STATE
 ========================================================= */
 
 function sendLobbyState(){
@@ -7818,7 +8417,7 @@ function onLobbyState(
 
 
 /* =========================================================
-   READY EVENT
+   READY
 ========================================================= */
 
 function onPlayerReady(
@@ -7928,7 +8527,7 @@ function updateRoomCount(){
 
 
 /* =========================================================
-   PLAYER PRUNE
+   PRUNE
 ========================================================= */
 
 function prunePlayers(){
@@ -7950,10 +8549,6 @@ function prunePlayers(){
                 return;
 
             }
-
-            /*
-               本局玩家不因短暫延遲立即刪除。
-            */
 
             const timeout =
                 player.roundId
@@ -7981,8 +8576,12 @@ function prunePlayers(){
 
     if(
         !hostId ||
-        !players.has(
-            hostId
+        (
+            hostId !==
+            user.id &&
+            !players.has(
+                hostId
+            )
         )
     ){
 
@@ -7999,7 +8598,140 @@ function prunePlayers(){
 
 
 /* =========================================================
-   CANVAS
+   BACKGROUND CACHE
+========================================================= */
+
+function buildBackgroundCache(){
+
+    backgroundCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+    backgroundCtx.fillStyle =
+        "#02040a";
+
+    backgroundCtx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    const color =
+        selectedRocket ===
+        "A"
+
+            ? "34,229,255"
+
+            : "255,56,209";
+
+    /*
+       漸層只建立一次，
+       不再每幀建立。
+    */
+
+    const glow =
+        backgroundCtx.createRadialGradient(
+            width/2,
+            height*.55,
+            10,
+            width/2,
+            height*.55,
+            height*.8
+        );
+
+    glow.addColorStop(
+        0,
+        `rgba(${color},.12)`
+    );
+
+    glow.addColorStop(
+        .56,
+        `rgba(${color},.024)`
+    );
+
+    glow.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    backgroundCtx.fillStyle =
+        glow;
+
+    backgroundCtx.fillRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    /*
+       遊戲區淡色邊線。
+    */
+
+    const left =
+        width/2 -
+        Math.min(
+            width*.88,
+            500
+        )/2;
+
+    const right =
+        width/2 +
+        Math.min(
+            width*.88,
+            500
+        )/2;
+
+    const top =
+        Math.max(
+            120,
+            height*.16
+        );
+
+    const bottom =
+        height*.96;
+
+    backgroundCtx.strokeStyle =
+        `rgba(${color},.12)`;
+
+    backgroundCtx.lineWidth =
+        1;
+
+    backgroundCtx.beginPath();
+
+    backgroundCtx.moveTo(
+        left,
+        top
+    );
+
+    backgroundCtx.lineTo(
+        left,
+        bottom
+    );
+
+    backgroundCtx.moveTo(
+        right,
+        top
+    );
+
+    backgroundCtx.lineTo(
+        right,
+        bottom
+    );
+
+    backgroundCtx.stroke();
+
+}
+
+
+/* =========================================================
+   STARS
 ========================================================= */
 
 let stars =
@@ -8011,22 +8743,9 @@ function createStars(){
     stars =
         [];
 
-    const count =
-        Math.min(
-            170,
-            Math.max(
-                80,
-                Math.floor(
-                    width *
-                    height /
-                    9800
-                )
-            )
-        );
-
     for(
         let i=0;
-        i<count;
+        i<STAR_COUNT;
         i++
     ){
 
@@ -8042,18 +8761,18 @@ function createStars(){
 
             size:
                 Math.random() *
-                1.6 +
+                1.4 +
                 .35,
 
             alpha:
                 Math.random() *
-                .55 +
+                .52 +
                 .18,
 
             speed:
                 Math.random() *
-                .7 +
-                .2
+                .55 +
+                .15
 
         });
 
@@ -8062,114 +8781,56 @@ function createStars(){
 }
 
 
-function drawBackground(){
+function drawStars(
+    speed
+){
 
     ctx.fillStyle =
-        "#02040a";
+        "#fff";
 
-    ctx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
+    for(
+        let i=0;
+        i<stars.length;
+        i++
+    ){
 
-    const color =
-        selectedRocket ===
-        "A"
+        const star =
+            stars[i];
 
-            ? "34,229,255"
+        star.y +=
+            star.speed *
+            speed;
 
-            : "255,56,209";
+        if(
+            star.y >
+            height
+        ){
 
-    const glow =
-        ctx.createRadialGradient(
-            width/2,
-            height*.56,
-            10,
-            width/2,
-            height*.56,
-            height*.8
-        );
+            star.y =
+                -2;
 
-    glow.addColorStop(
-        0,
-        `rgba(${color},.13)`
-    );
-
-    glow.addColorStop(
-        .55,
-        `rgba(${color},.026)`
-    );
-
-    glow.addColorStop(
-        1,
-        "rgba(0,0,0,0)"
-    );
-
-    ctx.fillStyle =
-        glow;
-
-    ctx.fillRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-    const speed =
-        state ===
-        "FLYING"
-
-            ? clamp(
-                getMyVisualMultiplier(),
-                1,
-                8
-            )
-
-            : .7;
-
-    stars.forEach(
-        star => {
-
-            star.y +=
-                star.speed *
-                speed;
-
-            if(
-                star.y >
-                height
-            ){
-
-                star.y =
-                    -2;
-
-                star.x =
-                    Math.random() *
-                    width;
-
-            }
-
-            ctx.globalAlpha =
-                star.alpha;
-
-            ctx.fillStyle =
-                "#fff";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                star.x,
-                star.y,
-                star.size,
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
+            star.x =
+                Math.random() *
+                width;
 
         }
-    );
+
+        ctx.globalAlpha =
+            star.alpha;
+
+        /*
+           fillRect 比每顆 arc
+           更便宜。
+        */
+
+        ctx.fillRect(
+            star.x,
+            star.y,
+            star.size,
+            star.size
+        );
+
+    }
 
     ctx.globalAlpha =
         1;
@@ -8178,135 +8839,7 @@ function drawBackground(){
 
 
 /* =========================================================
-   LANE
-========================================================= */
-
-function getLane(){
-
-    return {
-
-        center:
-            width /
-            2,
-
-        width:
-            Math.min(
-                width *
-                .88,
-                500
-            ),
-
-        top:
-            Math.max(
-                120,
-                height *
-                .16
-            ),
-
-        bottom:
-            height *
-            .96
-
-    };
-
-}
-
-
-function drawLane(){
-
-    const lane =
-        getLane();
-
-    const left =
-        lane.center -
-        lane.width/2;
-
-    const right =
-        lane.center +
-        lane.width/2;
-
-    const color =
-        selectedRocket ===
-        "A"
-
-            ? "34,229,255"
-
-            : "255,56,209";
-
-    const fill =
-        ctx.createLinearGradient(
-            lane.center,
-            lane.top,
-            lane.center,
-            lane.bottom
-        );
-
-    fill.addColorStop(
-        0,
-        `rgba(${color},0)`
-    );
-
-    fill.addColorStop(
-        .45,
-        `rgba(${color},.018)`
-    );
-
-    fill.addColorStop(
-        1,
-        `rgba(${color},.09)`
-    );
-
-    ctx.fillStyle =
-        fill;
-
-    ctx.fillRect(
-        left,
-        lane.top,
-        lane.width,
-        lane.bottom -
-        lane.top
-    );
-
-    /*
-       很淡的道路邊線，
-       不干擾遊戲。
-    */
-
-    ctx.strokeStyle =
-        `rgba(${color},.13)`;
-
-    ctx.lineWidth =
-        1;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        left,
-        lane.top
-    );
-
-    ctx.lineTo(
-        left,
-        lane.bottom
-    );
-
-    ctx.moveTo(
-        right,
-        lane.top
-    );
-
-    ctx.lineTo(
-        right,
-        lane.bottom
-    );
-
-    ctx.stroke();
-
-}
-
-
-/* =========================================================
-   METEOR
+   METEOR DRAW
 ========================================================= */
 
 function drawMeteor(
@@ -8322,21 +8855,36 @@ function drawMeteor(
 
     }
 
-    const lane =
-        getLane();
+    const laneWidth =
+        Math.min(
+            width*.88,
+            500
+        );
+
+    const laneCenter =
+        width/2;
+
+    const laneTop =
+        Math.max(
+            120,
+            height*.16
+        );
+
+    const laneBottom =
+        height*.96;
 
     const x =
-        lane.center +
+        laneCenter +
         meteor.x *
-        lane.width *
+        laneWidth *
         .43;
 
     const y =
-        lane.top +
+        laneTop +
         meteor.y *
         (
-            lane.bottom -
-            lane.top
+            laneBottom -
+            laneTop
         );
 
     const size =
@@ -8353,37 +8901,37 @@ function drawMeteor(
         meteor.rotation
     );
 
+
     /*
-       火焰尾巴。
-       沒有紅色外框。
+       尾焰。
     */
 
     const trail =
         ctx.createLinearGradient(
             0,
-            size*3.6,
+            size*3.2,
             0,
             0
         );
 
     trail.addColorStop(
         0,
-        "rgba(255,50,23,0)"
+        "rgba(255,40,20,0)"
     );
 
     trail.addColorStop(
-        .45,
-        "rgba(255,85,33,.18)"
+        .52,
+        "rgba(255,86,34,.16)"
     );
 
     trail.addColorStop(
-        .78,
-        "rgba(255,151,55,.6)"
+        .8,
+        "rgba(255,151,55,.52)"
     );
 
     trail.addColorStop(
         1,
-        "rgba(255,230,155,.94)"
+        "rgba(255,226,151,.9)"
     );
 
     ctx.fillStyle =
@@ -8392,17 +8940,17 @@ function drawMeteor(
     ctx.beginPath();
 
     ctx.moveTo(
-        -size*.36,
+        -size*.35,
         0
     );
 
     ctx.lineTo(
         0,
-        size*3.8
+        size*3.5
     );
 
     ctx.lineTo(
-        size*.36,
+        size*.35,
         0
     );
 
@@ -8412,26 +8960,22 @@ function drawMeteor(
 
 
     /*
-       本體柔和光暈。
+       本體。
+
+       不再畫紅色外框。
     */
 
     ctx.shadowBlur =
-        22;
+        18;
 
     ctx.shadowColor =
-        "rgba(255,86,42,.54)";
-
-
-    /*
-       隕石。
-    */
+        "rgba(255,83,40,.48)";
 
     const rock =
         ctx.createRadialGradient(
-            -size*.3,
-            -size*.28,
+            -size*.27,
+            -size*.27,
             2,
-
             0,
             0,
             size
@@ -8439,22 +8983,22 @@ function drawMeteor(
 
     rock.addColorStop(
         0,
-        "#ffd9a2"
+        "#ffe0a9"
     );
 
     rock.addColorStop(
-        .22,
-        "#ff9a59"
+        .2,
+        "#ff9c5a"
     );
 
     rock.addColorStop(
         .58,
-        "#c94a35"
+        "#c94d37"
     );
 
     rock.addColorStop(
         1,
-        "#551c20"
+        "#541b20"
     );
 
     ctx.fillStyle =
@@ -8479,10 +9023,11 @@ function drawMeteor(
         const radius =
             size *
             (
-                .73 +
+                .74 +
                 Math.sin(
-                    i*5.3
-                )*.12
+                    i*5.1
+                ) *
+                .12
             );
 
         const px =
@@ -8498,7 +9043,7 @@ function drawMeteor(
             radius;
 
         if(
-            i===0
+            i === 0
         ){
 
             ctx.moveTo(
@@ -8519,7 +9064,6 @@ function drawMeteor(
     }
 
     ctx.closePath();
-
     ctx.fill();
 
 
@@ -8531,45 +9075,48 @@ function drawMeteor(
         0;
 
     ctx.fillStyle =
-        "rgba(57,12,17,.68)";
+        "rgba(55,12,16,.65)";
 
-    [
-        [-.27,-.18,.13],
-        [.27,-.07,.1],
-        [.02,.25,.11]
-    ]
-    .forEach(
-        p => {
-
-            ctx.beginPath();
-
-            ctx.arc(
-                size*p[0],
-                size*p[1],
-                size*p[2],
-                0,
-                Math.PI*2
-            );
-
-            ctx.fill();
-
-        }
+    ctx.beginPath();
+    ctx.arc(
+        -size*.25,
+        -size*.18,
+        size*.12,
+        0,
+        Math.PI*2
     );
+    ctx.fill();
 
-    /*
-       中央熱點，
-       取代紅框。
-    */
+    ctx.beginPath();
+    ctx.arc(
+        size*.25,
+        -size*.06,
+        size*.09,
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(
+        size*.02,
+        size*.25,
+        size*.11,
+        0,
+        Math.PI*2
+    );
+    ctx.fill();
+
 
     ctx.fillStyle =
-        "rgba(255,213,137,.65)";
+        "rgba(255,220,145,.7)";
 
     ctx.beginPath();
 
     ctx.arc(
         -size*.25,
         -size*.24,
-        size*.08,
+        size*.07,
         0,
         Math.PI*2
     );
@@ -8598,35 +9145,46 @@ function drawEnergy(
 
     }
 
-    const lane =
-        getLane();
+    const laneWidth =
+        Math.min(
+            width*.88,
+            500
+        );
 
     const x =
-        lane.center +
+        width/2 +
         item.x *
-        lane.width *
+        laneWidth *
         .43;
 
+    const laneTop =
+        Math.max(
+            120,
+            height*.16
+        );
+
+    const laneBottom =
+        height*.96;
+
     const y =
-        lane.top +
+        laneTop +
         item.y *
         (
-            lane.bottom -
-            lane.top
+            laneBottom -
+            laneTop
         );
 
     const pulse =
         9 +
         Math.sin(
-            performance.now() *
-            .008
+            performance.now()*.008
         ) *
         2;
 
     ctx.save();
 
     ctx.shadowBlur =
-        25;
+        23;
 
     ctx.shadowColor =
         "#ffd84a";
@@ -8657,7 +9215,7 @@ function drawEnergy(
     ctx.arc(
         x,
         y,
-        pulse*1.7,
+        pulse*1.55,
         0,
         Math.PI*2
     );
@@ -8665,7 +9223,7 @@ function drawEnergy(
     ctx.fill();
 
     ctx.fillStyle =
-        "#fff8c0";
+        "#fff9c1";
 
     ctx.beginPath();
 
@@ -8685,7 +9243,7 @@ function drawEnergy(
 
 
 /* =========================================================
-   PLAYER ROCKET
+   ROCKET DRAW
 ========================================================= */
 
 function drawPlayerRocket(){
@@ -8705,18 +9263,20 @@ function drawPlayerRocket(){
 
     }
 
-    const lane =
-        getLane();
+    const laneWidth =
+        Math.min(
+            width*.88,
+            500
+        );
 
     const x =
-        lane.center +
+        width/2 +
         me.x *
-        lane.width *
+        laneWidth *
         .43;
 
     let y =
-        height *
-        .79;
+        height*.79;
 
     if(
         me.status ===
@@ -8733,20 +9293,10 @@ function drawPlayerRocket(){
         y -=
             Math.min(
                 160,
-                elapsed *
-                .23
+                elapsed*.23
             );
 
     }
-
-    const profile =
-        ROCKETS[
-            selectedRocket
-        ];
-
-    /*
-       無敵時閃爍。
-    */
 
     if(
         Date.now() <
@@ -8768,11 +9318,6 @@ function drawPlayerRocket(){
 
     ctx.save();
 
-
-    /*
-       更明顯的火箭尾焰。
-    */
-
     if(
         selectedRocket ===
         "A"
@@ -8780,8 +9325,7 @@ function drawPlayerRocket(){
 
         drawStableRocket(
             x,
-            y,
-            profile
+            y
         );
 
     }
@@ -8789,8 +9333,7 @@ function drawPlayerRocket(){
 
         drawBerserkRocket(
             x,
-            y,
-            profile
+            y
         );
 
     }
@@ -8800,32 +9343,26 @@ function drawPlayerRocket(){
 }
 
 
-/* =========================================================
-   STABLE ROCKET
-========================================================= */
-
 function drawStableRocket(
     x,
-    y,
-    profile
+    y
 ){
 
+    const profile =
+        ROCKETS.A;
+
     ctx.shadowBlur =
-        30;
+        25;
 
     ctx.shadowColor =
         profile.glow;
 
-    /*
-       長單焰
-    */
-
     const flame =
         ctx.createLinearGradient(
             x,
-            y+15,
+            y+13,
             x,
-            y+104
+            y+100
         );
 
     flame.addColorStop(
@@ -8835,12 +9372,12 @@ function drawStableRocket(
 
     flame.addColorStop(
         .18,
-        "#ffe56d"
+        "#ffe267"
     );
 
     flame.addColorStop(
         .5,
-        "#ff762b"
+        "#ff762f"
     );
 
     flame.addColorStop(
@@ -8854,31 +9391,25 @@ function drawStableRocket(
     ctx.beginPath();
 
     ctx.moveTo(
-        x-11,
+        x-10,
         y+13
     );
 
     ctx.lineTo(
-        x+11,
+        x+10,
         y+13
     );
 
     ctx.lineTo(
         x,
-        y+
-        93 +
-        Math.random()*15
+        y+91+
+        Math.random()*13
     );
 
     ctx.closePath();
 
     ctx.fill();
 
-
-    /*
-       本體：
-       圓潤、穩定。
-    */
 
     ctx.fillStyle =
         "#f4f8ff";
@@ -8892,19 +9423,19 @@ function drawStableRocket(
 
     ctx.quadraticCurveTo(
         x+25,
-        y-11,
+        y-10,
         x+20,
-        y+27
+        y+26
     );
 
     ctx.lineTo(
         x-20,
-        y+27
+        y+26
     );
 
     ctx.quadraticCurveTo(
         x-25,
-        y-11,
+        y-10,
         x,
         y-48
     );
@@ -8922,10 +9453,6 @@ function drawStableRocket(
     ctx.stroke();
 
 
-    /*
-       穩定號雙側翼。
-    */
-
     ctx.fillStyle =
         "#aab6c7";
 
@@ -8938,7 +9465,7 @@ function drawStableRocket(
 
     ctx.lineTo(
         x-43,
-        y+36
+        y+35
     );
 
     ctx.lineTo(
@@ -8959,7 +9486,7 @@ function drawStableRocket(
 
     ctx.lineTo(
         x+43,
-        y+36
+        y+35
     );
 
     ctx.lineTo(
@@ -8971,10 +9498,6 @@ function drawStableRocket(
 
     ctx.fill();
 
-
-    /*
-       大窗戶。
-    */
 
     ctx.shadowBlur =
         0;
@@ -9003,10 +9526,6 @@ function drawStableRocket(
     ctx.stroke();
 
 
-    /*
-       穩定號護盾。
-    */
-
     ctx.strokeStyle =
         "rgba(34,229,255,.18)";
 
@@ -9017,8 +9536,8 @@ function drawStableRocket(
 
     ctx.arc(
         x,
-        y+4,
-        37,
+        y+3,
+        36,
         Math.PI*.15,
         Math.PI*.85
     );
@@ -9028,25 +9547,18 @@ function drawStableRocket(
 }
 
 
-/* =========================================================
-   BERSERK ROCKET
-========================================================= */
-
 function drawBerserkRocket(
     x,
-    y,
-    profile
+    y
 ){
 
-    /*
-       狂暴號：
-       雙尾焰。
-    */
+    const profile =
+        ROCKETS.B;
 
     const flame1 =
         ctx.createLinearGradient(
             x-9,
-            y+15,
+            y+14,
             x-9,
             y+108
         );
@@ -9063,7 +9575,7 @@ function drawBerserkRocket(
 
     flame1.addColorStop(
         .45,
-        "#ff4a7b"
+        "#ff4c7e"
     );
 
     flame1.addColorStop(
@@ -9077,7 +9589,7 @@ function drawBerserkRocket(
     ctx.beginPath();
 
     ctx.moveTo(
-        x-16,
+        x-15,
         y+12
     );
 
@@ -9088,8 +9600,8 @@ function drawBerserkRocket(
 
     ctx.lineTo(
         x-9,
-        y+102+
-        Math.random()*20
+        y+101+
+        Math.random()*18
     );
 
     ctx.closePath();
@@ -9100,7 +9612,7 @@ function drawBerserkRocket(
     const flame2 =
         ctx.createLinearGradient(
             x+2,
-            y+15,
+            y+14,
             x+2,
             y+108
         );
@@ -9117,7 +9629,7 @@ function drawBerserkRocket(
 
     flame2.addColorStop(
         .45,
-        "#d84cff"
+        "#d94cff"
     );
 
     flame2.addColorStop(
@@ -9136,14 +9648,14 @@ function drawBerserkRocket(
     );
 
     ctx.lineTo(
-        x+16,
+        x+15,
         y+12
     );
 
     ctx.lineTo(
         x+9,
-        y+102+
-        Math.random()*20
+        y+101+
+        Math.random()*18
     );
 
     ctx.closePath();
@@ -9151,12 +9663,8 @@ function drawBerserkRocket(
     ctx.fill();
 
 
-    /*
-       黑紫色尖銳機身。
-    */
-
     ctx.shadowBlur =
-        34;
+        28;
 
     ctx.shadowColor =
         profile.glow;
@@ -9214,10 +9722,6 @@ function drawBerserkRocket(
     ctx.stroke();
 
 
-    /*
-       狂暴號尖翼。
-    */
-
     ctx.fillStyle =
         "#494d67";
 
@@ -9264,10 +9768,6 @@ function drawBerserkRocket(
     ctx.fill();
 
 
-    /*
-       中央強化駕駛艙。
-    */
-
     ctx.shadowBlur =
         0;
 
@@ -9308,121 +9808,226 @@ function drawBerserkRocket(
 
     ctx.stroke();
 
-
-    /*
-       狂暴能量翼。
-    */
-
-    ctx.strokeStyle =
-        "rgba(255,56,209,.55)";
-
-    ctx.lineWidth =
-        2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        x-18,
-        y+4
-    );
-
-    ctx.lineTo(
-        x-36,
-        y+20
-    );
-
-    ctx.moveTo(
-        x+18,
-        y+4
-    );
-
-    ctx.lineTo(
-        x+36,
-        y+20
-    );
-
-    ctx.stroke();
-
 }
 
 
 /* =========================================================
-   MAIN DRAW
+   DRAW FRAME
 ========================================================= */
 
-let shakeX = 0;
-let shakeY = 0;
-
-
-function draw(){
-
-    drawBackground();
+function updateRemoteItems(
+    dt
+){
 
     if(
-        !body.classList.contains(
-            "playing"
-        )
+        isHost()
     ){
 
         return;
 
     }
 
-    drawLane();
-
     worldItems.forEach(
         item => {
 
             if(
-                item.type ===
-                "meteor"
+                Number.isFinite(
+                    item.targetY
+                )
             ){
 
-                drawMeteor(
-                    item
-                );
+                item.y +=
+                    (
+                        item.targetY -
+                        item.y
+                    ) *
+                    Math.min(
+                        1,
+                        12 *
+                        dt
+                    );
 
             }
-            else{
 
-                drawEnergy(
-                    item
-                );
+            item.y +=
+                item.speed *
+                dt;
+
+            if(
+                Number.isFinite(
+                    item.targetRotation
+                )
+            ){
+
+                item.rotation +=
+                    (
+                        item.targetRotation -
+                        item.rotation
+                    ) *
+                    Math.min(
+                        1,
+                        10 *
+                        dt
+                    );
 
             }
 
         }
     );
 
-    drawPlayerRocket();
+}
+
+
+function drawFrame(
+    dt
+){
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    /*
+       背景用快取 Bitmap。
+    */
+
+    ctx.drawImage(
+        backgroundCanvas,
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    const speed =
+        state ===
+        "FLYING"
+
+            ? clamp(
+                getMyVisualMultiplier(),
+                1,
+                7
+            )
+
+            : .7;
+
+
+    ctx.save();
+
+    ctx.translate(
+        shakeX,
+        shakeY
+    );
+
+    drawStars(
+        speed
+    );
+
+    updateRemoteItems(
+        dt
+    );
+
 
     if(
-        Math.abs(shakeX) >
-        .1 ||
-        Math.abs(shakeY) >
-        .1
+        body.classList.contains(
+            "playing"
+        )
     ){
 
-        canvas.style.transform =
-            `translate(${shakeX}px,${shakeY}px)`;
+        worldItems.forEach(
+            item => {
 
-        shakeX *=
-            .84;
+                if(
+                    item.type ===
+                    "meteor"
+                ){
 
-        shakeY *=
-            .84;
+                    drawMeteor(
+                        item
+                    );
+
+                }
+                else{
+
+                    drawEnergy(
+                        item
+                    );
+
+                }
+
+            }
+        );
+
+
+        drawPlayerRocket();
 
     }
-    else{
 
-        canvas.style.transform =
-            "";
+    ctx.restore();
 
-        shakeX =
-            0;
 
-        shakeY =
-            0;
+    shakeX *=
+        .84;
+
+    shakeY *=
+        .84;
+
+}
+
+
+/* =========================================================
+   PERFORMANCE WATCH
+========================================================= */
+
+function updatePerformance(
+    dt
+){
+
+    const frameMs =
+        dt * 1000;
+
+    avgFrameMs +=
+        (
+            frameMs -
+            avgFrameMs
+        ) *
+        .06;
+
+    const now =
+        performance.now();
+
+    if(
+        now -
+        performanceSampleTime <
+        1200
+    ){
+
+        return;
+
+    }
+
+    performanceSampleTime =
+        now;
+
+    if(
+        avgFrameMs >
+        21
+    ){
+
+        performanceLow =
+            true;
+
+    }
+    else if(
+        avgFrameMs <
+        17
+    ){
+
+        performanceLow =
+            false;
 
     }
 
@@ -9430,8 +10035,113 @@ function draw(){
 
 
 /* =========================================================
-   MOVEMENT
+   FRAME LOOP
 ========================================================= */
+
+let lastFrame =
+    performance.now();
+
+
+function frame(
+    now
+){
+
+    let dt =
+        (
+            now -
+            lastFrame
+        ) /
+        1000;
+
+    lastFrame =
+        now;
+
+    dt =
+        Math.min(
+            .05,
+            Math.max(
+                .001,
+                dt
+            )
+        );
+
+
+    updatePerformance(
+        dt
+    );
+
+
+    /*
+       本地感測器輸入。
+    */
+
+    updateSensorInput();
+
+
+    /*
+       本地火箭。
+    */
+
+    if(
+        state ===
+        "FLYING"
+    ){
+
+        updateLocalMovement(
+            dt
+        );
+
+    }
+
+
+    /*
+       Host 模擬。
+
+       真正的世界 simulation
+       跟網路 broadcast 分離。
+    */
+
+    if(
+        isHost() &&
+        state ===
+        "FLYING"
+    ){
+
+        simulateHost(
+            dt,
+            now
+        );
+
+        maybeBroadcastWorld(
+            now
+        );
+
+    }
+
+
+    drawFrame(
+        dt
+    );
+
+    updateHUD();
+
+    requestAnimationFrame(
+        frame
+    );
+
+}
+
+
+/* =========================================================
+   SCREEN SHAKE
+========================================================= */
+
+let shakeX =
+    0;
+
+let shakeY =
+    0;
+
 
 function screenShake(
     amount
@@ -9465,20 +10175,51 @@ function getMyVisualMultiplier(){
             user.id
         );
 
-    return me
-        ? Math.max(
-            1,
-            getPlayerMultiplier(
-                me
-            )
+    if(
+        !me
+    ){
+
+        return 1;
+
+    }
+
+    return Math.max(
+        1,
+        getPlayerMultiplier(
+            me
         )
-        : 1;
+    );
 
 }
 
 
 /* =========================================================
-   SOUND
+   DAMAGE
+========================================================= */
+
+function damageVisual(){
+
+    hitFlash.classList.remove(
+        "active"
+    );
+
+    void hitFlash.offsetWidth;
+
+    hitFlash.classList.add(
+        "active"
+    );
+
+    screenShake(
+        10
+    );
+
+    soundHit();
+
+}
+
+
+/* =========================================================
+   AUDIO
 ========================================================= */
 
 let audioContext =
@@ -9517,10 +10258,10 @@ function initAudio(){
     ){
 
         audioContext
-            .resume()
-            .catch(
-                () => {}
-            );
+        .resume()
+        .catch(
+            () => {}
+        );
 
     }
 
@@ -9610,35 +10351,35 @@ function soundStart(){
     initAudio();
 
     tone(
-        160,
-        .14,
+        150,
+        .13,
         "sawtooth",
         .05,
-        230
+        220
     );
 
     setTimeout(
         () =>
             tone(
-                310,
-                .15,
+                300,
+                .14,
                 "sawtooth",
                 .05,
-                280
+                270
             ),
-        90
+        80
     );
 
     setTimeout(
         () =>
             tone(
-                560,
-                .2,
+                550,
+                .19,
                 "triangle",
-                .055,
+                .05,
                 300
             ),
-        190
+        170
     );
 
 }
@@ -9650,7 +10391,7 @@ function soundHit(){
 
     tone(
         110,
-        .15,
+        .14,
         "sawtooth",
         .065,
         -80
@@ -9664,7 +10405,7 @@ function soundHit(){
                 "square",
                 .035
             ),
-        65
+        60
     );
 
 }
@@ -9675,8 +10416,8 @@ function soundEnergy(){
     initAudio();
 
     tone(
-        670,
-        .06,
+        680,
+        .05,
         "triangle",
         .045,
         130
@@ -9685,13 +10426,13 @@ function soundEnergy(){
     setTimeout(
         () =>
             tone(
-                970,
-                .08,
+                980,
+                .07,
                 "triangle",
                 .05,
-                180
+                170
             ),
-        60
+        55
     );
 
 }
@@ -9718,7 +10459,7 @@ function soundCashout(){
                 .055,
                 190
             ),
-        75
+        70
     );
 
     setTimeout(
@@ -9730,7 +10471,7 @@ function soundCashout(){
                 .06,
                 220
             ),
-        170
+        165
     );
 
 }
@@ -9742,7 +10483,7 @@ function soundCrash(){
 
     tone(
         75,
-        .34,
+        .33,
         "sawtooth",
         .14,
         -40
@@ -9803,16 +10544,36 @@ function showToast(
    HELPERS
 ========================================================= */
 
-function rocketName(
-    id
+function average(
+    values
 ){
 
-    return id ===
-        "B"
+    if(
+        !values.length
+    ){
 
-        ? "🩷 狂暴號"
+        return 0;
 
-        : "🔵 穩定號";
+    }
+
+    let total =
+        0;
+
+    for(
+        let i=0;
+        i<values.length;
+        i++
+    ){
+
+        total +=
+            values[i];
+
+    }
+
+    return (
+        total /
+        values.length
+    );
 
 }
 
@@ -9830,6 +10591,20 @@ function clamp(
             value
         )
     );
+
+}
+
+
+function rocketName(
+    id
+){
+
+    return id ===
+        "B"
+
+        ? "🩷 狂暴號"
+
+        : "🔵 穩定號";
 
 }
 
@@ -9866,32 +10641,17 @@ function escapeHTML(
 
 
 /* =========================================================
-   LIFECYCLE
-========================================================= */
-
-document.addEventListener(
-    "visibilitychange",
-    () => {
-
-        if(
-            document.visibilityState ===
-            "visible"
-        ){
-
-            broadcastHello();
-
-        }
-
-    }
-);
-
-
-/* =========================================================
    HEARTBEAT
 ========================================================= */
 
+let heartbeatCounter =
+    0;
+
+
 setInterval(
     () => {
+
+        heartbeatCounter++;
 
         broadcastHello();
 
@@ -9910,24 +10670,26 @@ setInterval(
         ){
 
             if(
-                state ===
-                "LOBBY"
+                heartbeatCounter %
+                6 ===
+                0
             ){
 
                 sendHostAnnounce();
-
-                sendLobbyState();
-
-                maybeStartRound();
 
             }
 
             if(
                 state ===
-                "FLYING"
+                "LOBBY" &&
+                heartbeatCounter %
+                5 ===
+                0
             ){
 
-                hostWorldTick();
+                sendLobbyState();
+
+                maybeStartRound();
 
             }
 
@@ -9950,78 +10712,45 @@ setInterval(
         }
 
     },
-    80
+    700
 );
 
 
 /* =========================================================
-   HOST ANNOUNCE
+   VISIBILITY
 ========================================================= */
 
-setInterval(
+document.addEventListener(
+    "visibilitychange",
     () => {
 
         if(
-            isHost()
+            document.visibilityState ===
+            "visible"
         ){
 
-            sendHostAnnounce();
+            broadcastHello();
+
+            /*
+               回到前景時重新取得
+               sensor stream 狀態。
+            */
+
+            if(
+                controlMode ===
+                "tilt" &&
+                state ===
+                "FLYING"
+            ){
+
+                scheduleRecalibration();
+
+            }
 
         }
 
-    },
-    1800
-);
-
-
-/* =========================================================
-   GAME LOOP
-========================================================= */
-
-let lastFrame =
-    performance.now();
-
-
-function frame(
-    now
-){
-
-    const dt =
-        Math.min(
-            .05,
-            Math.max(
-                .001,
-                (
-                    now -
-                    lastFrame
-                ) /
-                1000
-            )
-        );
-
-    lastFrame =
-        now;
-
-    if(
-        state ===
-        "FLYING"
-    ){
-
-        updateLocalMovement(
-            dt
-        );
-
     }
-
-    draw();
-
-    updateHUD();
-
-    requestAnimationFrame(
-        frame
-    );
-
-}
+);
 
 
 /* =========================================================
@@ -10038,6 +10767,7 @@ updateRoomCount();
 
 broadcastHello();
 
+
 setTimeout(
     () => {
 
@@ -10052,8 +10782,9 @@ setTimeout(
         }
 
     },
-    500
+    350
 );
+
 
 requestAnimationFrame(
     frame
