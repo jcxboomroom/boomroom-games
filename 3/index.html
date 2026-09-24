@@ -1,455 +1,786 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>霓虹駭客戰：核心拔河</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
-        * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; }
-        body {
-            margin: 0; padding: 0; background-color: #050510; color: #fff;
-            font-family: 'Orbitron', sans-serif; overflow: hidden;
-            display: flex; flex-direction: column; height: 100vh;
-        }
-        
-        /* CRT 掃描線特效 */
-        body::after {
-            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
-        }
-
-        #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-        /* UI 層 */
-        #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-        
-        /* 頂部隊伍資訊 */
-        .team-info { display: flex; justify-content: space-between; padding: 20px; width: 100%; }
-        .team { display: flex; flex-direction: column; gap: 10px; }
-        .team.blue { align-items: flex-start; }
-        .team.red { align-items: flex-end; }
-        .player-slot { 
-            display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); 
-            padding: 5px 10px; border-radius: 20px; border: 1px solid #333;
-        }
-        .blue .player-slot { border-color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
-        .red .player-slot { border-color: #ff003c; box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); flex-direction: row-reverse; }
-        .avatar { width: 30px; height: 30px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .name { font-size: 12px; font-weight: bold; }
-
-        /* 中間戰況提示 */
-        #centerMsg { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 900; text-align: center; text-shadow: 0 0 20px #fff; opacity: 0; transition: opacity 0.2s; }
-
-        /* 底部操作區 */
-        .controls { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: auto; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
-        
-        /* QTE 判定條 */
-        .qte-bar-container { width: 100%; max-width: 400px; height: 30px; background: #222; border-radius: 15px; position: relative; border: 2px solid #555; overflow: hidden; }
-        .qte-zone-perfect { position: absolute; top: 0; height: 100%; background: #00f3ff; box-shadow: 0 0 15px #00f3ff; }
-        .qte-zone-good { position: absolute; top: 0; height: 100%; background: #ffea00; }
-        .qte-cursor { position: absolute; top: -5px; width: 4px; height: 40px; background: #fff; box-shadow: 0 0 10px #fff; border-radius: 2px; }
-
-        /* 按鈕區 */
-        .btn-group { display: flex; gap: 20px; width: 100%; max-width: 400px; }
-        .btn-hack { 
-            flex: 2; height: 60px; border-radius: 30px; border: none; background: #00f3ff; color: #000; 
-            font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6); transition: transform 0.1s;
-        }
-        .btn-hack:active { transform: scale(0.95); }
-        
-        .btn-ult {
-            flex: 1; height: 60px; border-radius: 30px; border: none; background: #333; color: #777;
-            font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900; cursor: pointer;
-            position: relative; overflow: hidden; transition: all 0.3s;
-        }
-        .btn-ult.ready { background: #ff003c; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 60, 0.8); animation: pulse 1s infinite; }
-        .ult-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255, 0, 60, 0.5); transition: height 0.2s; z-index: 0; }
-        .btn-ult span { position: relative; z-index: 1; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* 選單畫面 */
-        #menuScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,16,0.95); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
-        .menu-title { font-size: 40px; color: #00f3ff; text-shadow: 0 0 20px #00f3ff; margin-bottom: 10px; text-align: center; }
-        .menu-subtitle { color: #aaa; margin-bottom: 40px; text-align: center; }
-        .mode-btn { 
-            width: 200px; padding: 15px; margin: 10px; background: transparent; border: 2px solid #00f3ff; 
-            color: #00f3ff; font-family: 'Orbitron'; font-size: 18px; font-weight: bold; border-radius: 10px;
-            cursor: pointer; transition: all 0.2s;
-        }
-        .mode-btn:hover { background: #00f3ff; color: #000; box-shadow: 0 0 20px #00f3ff; }
-
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#05060d">
+<title>霓虹駭客戰｜核心拔河</title>
+<style>
+:root{
+  --bg:#05060d; --panel:rgba(10,14,25,.86); --panel2:rgba(16,21,35,.92);
+  --cyan:#57f6ff; --red:#ff4d75; --gold:#ffd166; --violet:#a675ff; --green:#65ff9f;
+  --text:#f7f8ff; --muted:#9da6c2; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+body{touch-action:none}
+button{font:inherit;color:inherit}
+#gameCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none}
+.scanlines{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:.24;background:linear-gradient(rgba(255,255,255,0) 50%,rgba(0,0,0,.2) 50%),linear-gradient(90deg,rgba(255,0,0,.03),rgba(0,255,255,.02),rgba(0,0,255,.03));background-size:100% 3px,4px 100%}
+.top-tools{position:fixed;z-index:20;top:calc(10px + var(--safe-top));left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none}
+.tool-btn{pointer-events:auto;width:42px;height:42px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(8,10,18,.78);backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,.35);display:grid;place-items:center;font-size:18px;cursor:pointer}
+.tool-btn:active{transform:scale(.95)}
+#ui{position:fixed;inset:0;z-index:10;display:none;pointer-events:none;padding:calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom))}
+.hud{display:flex;flex-direction:column;justify-content:space-between;height:100%;width:min(760px,100%);margin:auto}
+.top-hud{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start;padding:0 48px}
+.team-card{padding:9px 10px;border:1px solid rgba(255,255,255,.10);background:rgba(9,12,20,.72);border-radius:16px;min-width:0}
+.team-card.blue{border-color:rgba(87,246,255,.28);box-shadow:0 0 24px rgba(87,246,255,.08)}
+.team-card.red{border-color:rgba(255,77,117,.28);box-shadow:0 0 24px rgba(255,77,117,.08);text-align:right}
+.team-title{font-size:9px;letter-spacing:.13em;color:var(--muted);margin-bottom:4px}.team-title b{font-size:11px;color:var(--text)}
+.team-avatars{display:flex;gap:4px;min-height:28px}.team-card.red .team-avatars{justify-content:flex-end}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#20263d,#111726);display:grid;place-items:center;font-size:13px;border:1px solid rgba(255,255,255,.10);overflow:hidden;flex:0 0 auto}.avatar img{width:100%;height:100%;object-fit:cover}
+.center-hud{text-align:center}.round{font-size:9px;color:var(--muted);letter-spacing:.14em}.mode{font-size:10px;color:var(--gold);margin-top:2px}
+.balance-chip{margin-top:7px;padding:6px 10px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(8,10,17,.72);font-size:9px;color:#dbe1f5;white-space:nowrap}
+#centerMsg{position:fixed;z-index:30;left:50%;top:35%;transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;font-weight:1000;font-size:clamp(30px,9vw,56px);letter-spacing:.05em;text-align:center;text-shadow:0 0 24px currentColor;transition:opacity .16s ease,transform .16s ease}
+#centerMsg.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.battle-card{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(92vw,720px);pointer-events:none;text-align:center}
+.battle-label{font-size:10px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px}.battle-label strong{color:#fff}
+.track{position:relative;width:100%;height:86px;border-radius:26px;border:1px solid rgba(255,255,255,.10);background:rgba(5,7,12,.80);overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.45)}
+.track::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(87,246,255,.10),transparent 46%,transparent 54%,rgba(255,77,117,.10));pointer-events:none}
+.track-mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.16);transform:translateX(-1px)}
+.energy{position:absolute;top:50%;height:10px;transform:translateY(-50%);border-radius:999px;filter:blur(.2px)}
+.energy.blue{left:2%;background:linear-gradient(90deg,rgba(87,246,255,.1),var(--cyan));box-shadow:0 0 20px rgba(87,246,255,.6)}
+.energy.red{right:2%;background:linear-gradient(90deg,var(--red),rgba(255,77,117,.08));box-shadow:0 0 20px rgba(255,77,117,.55)}
+.core-orb{position:absolute;left:50%;top:50%;width:66px;height:66px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,#fff 0 4%,#d6faff 8%,#74f9ff 18%,#7b43ff 53%,#170c2d 80%);box-shadow:0 0 24px rgba(87,246,255,.45),0 0 60px rgba(166,117,255,.26),inset -8px -10px 14px rgba(0,0,0,.45);transition:filter .1s ease,transform .1s ease}
+.core-orb.hit{filter:brightness(1.65);transform:translate(-50%,-50%) scale(1.12)}
+.qte-wrap{position:relative;margin:20px auto 0;width:min(94vw,520px)}
+.qte-header{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:6px}.qte-header strong{color:#fff}
+.qte{position:relative;height:42px;border-radius:20px;border:2px solid rgba(255,255,255,.18);background:linear-gradient(90deg,rgba(255,77,117,.12),rgba(255,255,255,.04) 25%,rgba(87,246,255,.08) 50%,rgba(255,255,255,.04) 75%,rgba(255,77,117,.12));overflow:visible;box-shadow:inset 0 0 30px rgba(0,0,0,.45)}
+.zone-good,.zone-perfect{position:absolute;top:0;height:100%}.zone-good{left:25%;width:50%;background:rgba(255,209,102,.13);border-left:1px solid rgba(255,209,102,.35);border-right:1px solid rgba(255,209,102,.35)}
+.zone-perfect{left:37%;width:26%;background:rgba(87,246,255,.24);border-left:1px solid var(--cyan);border-right:1px solid var(--cyan);box-shadow:0 0 24px rgba(87,246,255,.25)}
+.cursor{position:absolute;top:-9px;width:8px;height:58px;border-radius:4px;background:#fff;box-shadow:0 0 15px #fff,0 0 30px rgba(87,246,255,.65);transform:translateX(-50%);will-change:left}
+.center-mark{position:absolute;left:50%;top:-4px;height:50px;width:2px;background:#fff;opacity:.7;transform:translateX(-1px);box-shadow:0 0 10px rgba(255,255,255,.4)}
+.controls{display:flex;flex-direction:column;align-items:center;gap:9px;margin-bottom:4px;pointer-events:auto}
+.btn-row{display:flex;gap:8px;width:min(94vw,520px)}
+.btn{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.05);border-radius:16px;min-height:54px;padding:0 14px;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.28);transition:transform .08s ease,filter .15s ease,border-color .15s ease}
+.btn:active{transform:scale(.975)}.btn:disabled{opacity:.38;cursor:default}.btn-main{flex:1;background:linear-gradient(90deg,rgba(87,246,255,.26),rgba(112,73,255,.24));border-color:rgba(87,246,255,.4);box-shadow:0 0 30px rgba(87,246,255,.1)}
+.btn-ult{width:120px;position:relative;overflow:hidden;background:#131725;color:#747b91}.btn-ult.ready{color:#fff;border-color:rgba(255,77,117,.62);box-shadow:0 0 25px rgba(255,77,117,.2)}.ult-fill{position:absolute;left:0;bottom:0;height:0;width:100%;background:linear-gradient(0deg,rgba(255,77,117,.38),transparent);z-index:0;transition:height .12s}.btn-ult span{position:relative;z-index:1}
+.sub-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.mini{padding:7px 10px;border-radius:999px;background:rgba(8,10,17,.72);border:1px solid rgba(255,255,255,.08);font-size:9px;color:#d4d9e9}
+#menu,#result,#help{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 35%,rgba(73,44,132,.18),transparent 35%),rgba(3,4,9,.94)}
+.modal{width:min(92vw,520px);max-height:min(86dvh,720px);overflow:auto;padding:22px;border:1px solid rgba(255,255,255,.12);border-radius:26px;background:linear-gradient(180deg,rgba(18,22,38,.96),rgba(7,9,15,.98));box-shadow:0 30px 90px rgba(0,0,0,.58)}
+.modal h1{margin:0;text-align:center;font-size:clamp(28px,8vw,44px);color:var(--cyan);text-shadow:0 0 24px rgba(87,246,255,.45)}
+.modal h2{margin:0 0 8px;font-size:20px;text-align:center}.modal p{margin:7px 0;color:var(--muted);font-size:11px;line-height:1.6;text-align:center}.menu-badge{margin:10px auto 18px;width:max-content;padding:7px 10px;border-radius:999px;background:rgba(87,246,255,.09);border:1px solid rgba(87,246,255,.2);font-size:10px;color:#cdfcff}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.mode-btn{min-height:70px;border:1px solid rgba(255,255,255,.1);border-radius:17px;background:rgba(255,255,255,.04);cursor:pointer}.mode-btn strong{display:block;font-size:15px}.mode-btn span{display:block;font-size:9px;color:var(--muted);margin-top:3px}.mode-btn.selected{border-color:var(--cyan);box-shadow:0 0 22px rgba(87,246,255,.12);background:rgba(87,246,255,.08)}
+.menu-foot{margin-top:12px;text-align:center;font-size:9px;color:rgba(194,200,220,.55);line-height:1.5}
+.primary-menu{width:100%;min-height:54px;background:linear-gradient(90deg,rgba(87,246,255,.28),rgba(166,117,255,.28));border:1px solid rgba(87,246,255,.38);border-radius:17px;font-weight:900;cursor:pointer}
+#result{display:none}.result-rank{font-size:44px;text-align:center;font-weight:1000}.reward{font-size:34px;text-align:center;color:var(--green);font-weight:1000;text-shadow:0 0 24px rgba(101,255,159,.4)}.reason{text-align:center;color:var(--muted);font-size:11px;margin:8px 0 16px}.result-list{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}.result-item{display:grid;grid-template-columns:32px 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
+#help{display:none}.help-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.close-btn{width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);cursor:pointer}.rule{margin:12px 0;padding:12px;border-radius:15px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}.rule b{display:block;color:#fff;font-size:11px;margin-bottom:4px}.rule span{display:block;color:var(--muted);font-size:10px;line-height:1.6}
+#devBanner{position:fixed;z-index:25;left:50%;top:calc(58px + var(--safe-top));transform:translateX(-50%);display:none;padding:6px 10px;border-radius:999px;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.25);font-size:9px;color:var(--gold);pointer-events:none}
+@media(max-width:380px){.top-hud{padding:0 46px}.track{height:78px}.core-orb{width:56px;height:56px}.qte{height:38px}.cursor{height:52px}.btn{min-height:50px}.btn-ult{width:108px}.modal{padding:18px}}
+@media(min-width:700px){.battle-card{top:48%}.controls{margin-bottom:14px}}
+</style>
 </head>
 <body>
+<canvas id="gameCanvas"></canvas>
+<div class="scanlines"></div>
 
-    <!-- 遊戲選單 -->
-    <div id="menuScreen">
-        <div class="menu-title">NEON CYBER-CLASH</div>
-        <div class="menu-subtitle">選擇對戰規模 (將自動配對 AI 隊友與對手)</div>
-        <button class="mode-btn" onclick="startGame(1)">1 V 1 決鬥</button>
-        <button class="mode-btn" onclick="startGame(3)">3 V 3 團戰</button>
-        <button class="mode-btn" onclick="startGame(5)">5 V 5 史詩戰役</button>
+<div class="top-tools">
+  <button class="tool-btn" id="soundBtn" aria-label="音效">🔊</button>
+  <button class="tool-btn" id="helpBtn" aria-label="玩法說明">?</button>
+</div>
+
+<div id="devBanner">開發測試模式</div>
+
+<div id="menu">
+  <div class="modal">
+    <h1>NEON<br>CYBER-CLASH</h1>
+    <div class="menu-badge">霓虹駭客戰 · 核心拔河</div>
+    <p>抓準中心時機，發動完美駭入，把核心推向你的一方。越準，推力越強。</p>
+    <div class="mode-grid">
+      <button class="mode-btn selected" data-mode="1"><strong>1 vs 1</strong><span>極速決鬥</span></button>
+      <button class="mode-btn" data-mode="3"><strong>3 vs 3</strong><span>團隊攻防</span></button>
+      <button class="mode-btn" data-mode="5"><strong>5 vs 5</strong><span>混戰模式</span></button>
+    </div>
+    <button class="primary-menu" id="startBtn">開始遊戲</button>
+    <div class="menu-foot">規則：點「HACK」在游標進入中央 Perfect 區時攻擊。中心附近會自然減速，方便掌握節奏。<br>本遊戲使用 BoomRoom 銀幣作為娛樂遊戲資源。</div>
+  </div>
+</div>
+
+<div id="help">
+  <div class="modal">
+    <div class="help-title"><h2>❔ 遊戲玩法</h2><button class="close-btn" id="closeHelp">×</button></div>
+    <div class="rule"><b>🎯 你的目標</b><span>讓中央核心移到藍隊終點。每次 HACK 都會依照你按下的時機造成推力。</span></div>
+    <div class="rule"><b>⚡ PERFECT</b><span>游標越接近正中央，傷害越高。現在中央區會減速、Perfect 區放大，手機上不需要狂點也能穩定操作。</span></div>
+    <div class="rule"><b>✅ GOOD / ❌ MISS</b><span>GOOD 會造成普通推力；MISS 會反噬並讓核心往敵方移動。命中會有畫面、音效與震動回饋。</span></div>
+    <div class="rule"><b>🔥 ULTIMATE</b><span>連續命中可累積能量，充滿後按 ULTIMATE 發動強力駭入，一次把核心大幅推向藍隊。</span></div>
+    <div class="rule"><b>👥 多人</b><span>BoomRoom 房間中由房主主持重要戰鬥結果；其他玩家同步看到回合、隊伍狀態與結果。</span></div>
+    <div class="rule"><b>📱 手機操作</b><span>點擊 HACK 即可攻擊。按鈕已做大觸控區，且游標靠近中心會減速，讓你能靠節奏與反應取勝。</span></div>
+    <div class="rule"><b>🔊 音效</b><span>左上角喇叭可以一鍵靜音／恢復音效。</span></div>
+    <button class="primary-menu" id="closeHelp2">知道了</button>
+  </div>
+</div>
+
+<div id="ui">
+  <div class="hud">
+    <div class="top-hud">
+      <div class="team-card blue"><div class="team-title"><b>BLUE</b> · 你的隊伍</div><div class="team-avatars" id="blueAvatars"></div></div>
+      <div class="center-hud"><div class="round" id="roundLabel">ROUND 01</div><div class="mode" id="modeLabel">1 vs 1</div><div class="balance-chip" id="balanceChip">核心：50%</div></div>
+      <div class="team-card red"><div class="team-title">敵方 · <b>RED</b></div><div class="team-avatars" id="redAvatars"></div></div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- 遊戲 UI -->
-    <div id="uiLayer" style="display: none;">
-        <div class="team-info">
-            <div class="team blue" id="blueTeam"></div>
-            <div class="team red" id="redTeam"></div>
+    <div class="battle-card">
+      <div class="battle-label">CORE TUG · <strong id="phaseLabel">準備中</strong></div>
+      <div class="track">
+        <div class="energy blue" id="blueEnergy"></div>
+        <div class="energy red" id="redEnergy"></div>
+        <div class="track-mid"></div>
+        <div class="core-orb" id="coreOrb"></div>
+      </div>
+      <div class="qte-wrap">
+        <div class="qte-header"><span>精準度</span><strong id="accuracyLabel">中心越近越強</strong><span id="comboLabel">COMBO ×0</span></div>
+        <div class="qte">
+          <div class="zone-good"></div><div class="zone-perfect"></div><div class="center-mark"></div><div class="cursor" id="cursor"></div>
         </div>
-
-        <div id="centerMsg">PERFECT!</div>
-
-        <div class="controls">
-            <div class="qte-bar-container">
-                <div class="qte-zone-good" style="left: 20%; width: 60%;"></div>
-                <div class="qte-zone-perfect" style="left: 40%; width: 20%;"></div>
-                <div class="qte-cursor" id="qteCursor"></div>
-            </div>
-            <div class="btn-group">
-                <button class="btn-hack" id="btnHack">HACK (攻擊)</button>
-                <button class="btn-ult" id="btnUlt"><div class="ult-fill" id="ultFill" style="height: 0%;"></div><span>ULTIMATE</span></button>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <script>
-        // ==========================================
-        // 1. 遊戲核心變數與設定
-        // ==========================================
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        
-        let gameMode = 1; // 1v1, 3v3, 5v5
-        let isPlaying = false;
-        let balance = 50; // 核心位置 0~100 (50為正中間，0藍贏，100紅贏)
-        let particles = [];
-        let floatingTexts = [];
-        
-        // QTE 系統
-        let cursorX = 0;
-        let cursorSpeed = 2;
-        let cursorDir = 1;
-        
-        // 玩家狀態
-        let ultCharge = 0;
-        const ULT_MAX = 100;
-        let myName = "玩家";
+    <div class="controls">
+      <div class="btn-row">
+        <button class="btn btn-main" id="hackBtn">⚡ HACK 攻擊</button>
+        <button class="btn btn-ult" id="ultBtn"><div class="ult-fill" id="ultFill"></div><span>ULTIMATE</span></button>
+      </div>
+      <div class="sub-row">
+        <div class="mini" id="statusMini">準備中</div>
+        <div class="mini" id="lastHitMini">等待第一次攻擊</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // 隊伍資料
-        let blueTeamData = [];
-        let redTeamData = [];
-        const avatars = ['🤖','👽','👻','👾','💀','🤡','👹','👺','🎃','😺'];
+<div id="centerMsg"></div>
 
-        // ==========================================
-        // 2. 初始化與視窗調整
-        // ==========================================
-        function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+<div id="result">
+  <div class="modal">
+    <div class="result-rank" id="resultRank">VICTORY!</div>
+    <div class="reward" id="resultReward">+0 銀幣</div>
+    <div class="reason" id="resultReason">—</div>
+    <div class="result-list" id="resultList"></div>
+    <button class="primary-menu" id="replayBtn">再玩一次</button>
+  </div>
+</div>
 
-        // 嘗試獲取 BoomRoom SDK 玩家資訊
-        if (window.BoomRoomSDK) {
-            try {
-                const user = window.BoomRoomSDK.getUser();
-                if (user && user.username) myName = user.username;
-            } catch (e) {}
-        }
+<script>
+(() => {
+  'use strict';
 
-        // ==========================================
-        // 3. 遊戲流程控制
-        // ==========================================
-        function startGame(mode) {
-            gameMode = mode;
-            document.getElementById('menuScreen').style.display = 'none';
-            document.getElementById('uiLayer').style.display = 'flex';
-            
-            balance = 50;
-            ultCharge = 0;
-            updateUltUI();
-            
-            generateTeams();
-            renderTeamsUI();
-            
-            isPlaying = true;
-            cursorSpeed = 1.5 + (mode * 0.2); // 人越多速度越快
-            
-            requestAnimationFrame(gameLoop);
-            
-            // 啟動 AI 機器人
-            setInterval(botLogic, 800);
-        }
+  /* ==========================================================
+     CONFIG / GAME INFO
+     ========================================================== */
+  const DEBUG = false;
+  const GAME_INFO = {
+    id:'neon_cyber_clash',
+    category:'派對競技',
+    name:'霓虹駭客戰：核心拔河',
+    description:'抓準中心時機攻擊，把核心推到你的終點。',
+    version:'3.0.0',
+    entryCost:100,
+    maxPlayers:10,
+    controlModes:['touch','pointer','keyboard'],
+    duration:'30～90 秒',
+    multiplayer:true,
+    rewardEnabled:true
+  };
 
-        function generateTeams() {
-            blueTeamData = [{ name: myName, avatar: '😎', isMe: true }];
-            redTeamData = [];
-            
-            for(let i=1; i<gameMode; i++) {
-                blueTeamData.push({ name: `AI_藍_${i}`, avatar: avatars[Math.floor(Math.random()*avatars.length)] });
-            }
-            for(let i=0; i<gameMode; i++) {
-                redTeamData.push({ name: `AI_紅_${i+1}`, avatar: avatars[Math.floor(Math.random()*avatars.length)] });
-            }
-        }
+  const CONFIG = {
+    modes:{1:{label:'1 vs 1',size:1},3:{label:'3 vs 3',size:3},5:{label:'5 vs 5',size:5}},
+    ROUND_MAX_MS:90000,
+    COUNTDOWN_MS:1800,
+    CURSOR_BASE_SPEED:0.42,
+    CURSOR_MAX_SPEED:0.68,
+    CENTER_SLOW_RADIUS:20,
+    PERFECT_RADIUS:13,
+    GOOD_RADIUS:25,
+    MAX_PARTICLES:100,
+    MAX_FLOATING:16,
+    ULT_MAX:100,
+    ENTRY_ITEM:'cyber_clash_entry_100',
+    ENTRY_COST:100,
+    HOST_TIMEOUT:6500,
+    HEARTBEAT_MS:1600,
+    STATE_BROADCAST_MS:600,
+    ACTION_COOLDOWN_MS:110,
+    RESULT_MS:5000
+  };
 
-        function renderTeamsUI() {
-            const bTeam = document.getElementById('blueTeam');
-            const rTeam = document.getElementById('redTeam');
-            bTeam.innerHTML = ''; rTeam.innerHTML = '';
+  const canvas=document.getElementById('gameCanvas');
+  const ctx=canvas.getContext('2d',{alpha:false});
+  const $=id=>document.getElementById(id);
 
-            blueTeamData.forEach(p => {
-                bTeam.innerHTML += `<div class="player-slot"><div class="avatar">${p.avatar}</div><div class="name" style="color:${p.isMe?'#00f3ff':'#fff'}">${p.name}</div></div>`;
-            });
-            redTeamData.forEach(p => {
-                rTeam.innerHTML += `<div class="player-slot"><div class="avatar">${p.avatar}</div><div class="name">${p.name}</div></div>`;
-            });
-        }
+  const els={
+    menu:$('menu'), startBtn:$('startBtn'), modeButtons:[...document.querySelectorAll('.mode-btn')],
+    ui:$('ui'), roundLabel:$('roundLabel'), modeLabel:$('modeLabel'), balanceChip:$('balanceChip'),
+    blueAvatars:$('blueAvatars'), redAvatars:$('redAvatars'), phaseLabel:$('phaseLabel'),
+    blueEnergy:$('blueEnergy'), redEnergy:$('redEnergy'), coreOrb:$('coreOrb'), cursor:$('cursor'),
+    accuracyLabel:$('accuracyLabel'), comboLabel:$('comboLabel'), statusMini:$('statusMini'), lastHitMini:$('lastHitMini'),
+    hackBtn:$('hackBtn'), ultBtn:$('ultBtn'), ultFill:$('ultFill'), centerMsg:$('centerMsg'),
+    result:$('result'), resultRank:$('resultRank'), resultReward:$('resultReward'), resultReason:$('resultReason'), resultList:$('resultList'), replayBtn:$('replayBtn'),
+    soundBtn:$('soundBtn'), helpBtn:$('helpBtn'), help:$('help'), closeHelp:$('closeHelp'), closeHelp2:$('closeHelp2'), devBanner:$('devBanner')
+  };
 
-        // ==========================================
-        // 4. 玩家操作與戰鬥邏輯
-        // ==========================================
-        document.getElementById('btnHack').addEventListener('touchstart', handleHack);
-        document.getElementById('btnHack').addEventListener('mousedown', handleHack);
-        
-        document.getElementById('btnUlt').addEventListener('touchstart', handleUlt);
-        document.getElementById('btnUlt').addEventListener('mousedown', handleUlt);
+  /* ==========================================================
+     SDK / PLAYER
+     ========================================================== */
+  const SDK=window.BoomRoomSDK || null;
+  const DEVELOPMENT_MODE=!SDK;
+  let rawUser={id:'dev-'+Math.random().toString(36).slice(2),username:'開發玩家',avatar:''};
+  if(SDK && typeof SDK.getUser==='function'){
+    try{const u=SDK.getUser(); if(u) rawUser=u;}catch(e){}
+  }
+  const ME={
+    id:String(rawUser.id || ('dev-'+Math.random().toString(36).slice(2))),
+    username:String(rawUser.username || '玩家').slice(0,22),
+    avatar:String(rawUser.avatar || ''),
+    joinedAt:Date.now()
+  };
 
-        function handleHack(e) {
-            e.preventDefault();
-            if (!isPlaying) return;
+  /* ==========================================================
+     AUDIO
+     ========================================================== */
+  let audioCtx=null, masterGain=null, muted=false;
+  try{muted=localStorage.getItem('neonCyberClashMuted')==='1';}catch(e){}
 
-            // 判斷 QTE 位置 (0~100)
-            let damage = 0;
-            let msg = "";
-            let color = "";
+  function initAudio(){
+    if(muted) return;
+    if(!audioCtx){
+      try{
+        audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        masterGain=audioCtx.createGain(); masterGain.gain.value=.06; masterGain.connect(audioCtx.destination);
+      }catch(e){return;}
+    }
+    if(audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+  }
+  function tone(freq,duration=.08,type='sine',vol=.4,delay=0){
+    if(muted || !audioCtx || !masterGain) return;
+    const t=audioCtx.currentTime+delay; const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+    o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+duration);o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+duration+.02);
+  }
+  function sfx(name){
+    initAudio();
+    if(name==='tap') tone(540,.04,'triangle',.28);
+    else if(name==='good'){tone(580,.06,'triangle',.25);tone(740,.08,'triangle',.25,.045);}
+    else if(name==='perfect'){tone(700,.06,'triangle',.30);tone(980,.08,'triangle',.3,.06);tone(1320,.13,'sine',.28,.13);}
+    else if(name==='miss'){tone(230,.12,'sawtooth',.28);tone(150,.18,'sawtooth',.22,.09);}
+    else if(name==='ult'){tone(360,.09,'square',.25);tone(620,.09,'triangle',.3,.08);tone(1100,.18,'sine',.35,.16);}
+    else if(name==='win'){tone(620,.1,'triangle',.28);tone(820,.1,'triangle',.3,.09);tone(1080,.18,'sine',.34,.18);}
+    else if(name==='lose'){tone(300,.12,'sine',.22);tone(190,.22,'sawtooth',.25,.12);}
+    else if(name==='count'){tone(780,.05,'square',.18);}
+  }
+  function toggleMute(){
+    muted=!muted;
+    try{localStorage.setItem('neonCyberClashMuted',muted?'1':'0');}catch(e){}
+    els.soundBtn.textContent=muted?'🔇':'🔊';
+    if(!muted) initAudio();
+  }
+  els.soundBtn.textContent=muted?'🔇':'🔊';
+  els.soundBtn.addEventListener('pointerdown',e=>{e.preventDefault();toggleMute();});
 
-            if (cursorX >= 40 && cursorX <= 60) {
-                damage = 3; msg = "PERFECT!"; color = "#00f3ff";
-                ultCharge += 15;
-            } else if (cursorX >= 20 && cursorX <= 80) {
-                damage = 1; msg = "GOOD"; color = "#ffea00";
-                ultCharge += 5;
-            } else {
-                damage = -0.5; msg = "MISS"; color = "#ff003c"; // 失誤會反噬
-            }
+  /* ==========================================================
+     STATE MACHINE
+     ========================================================== */
+  const STATES={MENU:'MENU',LOBBY:'LOBBY',COUNTDOWN:'COUNTDOWN',PLAYING:'PLAYING',RESULT:'RESULT'};
+  let gameState=STATES.MENU;
+  let selectedMode=1;
+  let state={
+    roundId:0, hostId:null, phase:STATES.LOBBY, mode:1, phaseEndsAt:0,
+    balance:50, combo:0, ultOwnerCharge:0, startAt:0, winner:null, result:[], seed:0
+  };
+  let gameOverCalled=false;
+  let localPurchaseLocked=false;
+  let pendingPurchaseItem=null;
+  let currentRoundPaid=false;
+  let currentRoundSettled=false;
+  let lastActionAt=0;
+  let lastStateSent=0;
+  let lastWholeSecond=-1;
+  let actionSeq=0;
+  const processedActions=new Map();
 
-            applyDamage('blue', damage);
-            showCenterMsg(msg, color);
-            spawnParticles('blue', damage > 0 ? (damage === 3 ? 20 : 10) : 0);
-            updateUltUI();
-            
-            // 隨機改變游標速度增加難度
-            cursorSpeed = (Math.random() * 2 + 1.5);
-        }
+  /* ==========================================================
+     PLAYER REGISTRY
+     ========================================================== */
+  const roster=new Map();
+  function addPlayer(p){
+    if(!p || p.id==null) return null;
+    const id=String(p.id); let existing=roster.get(id);
+    if(!existing){
+      existing={id,username:String(p.username||'玩家').slice(0,22),avatar:String(p.avatar||''),joinedAt:Number(p.joinedAt)||Date.now(),online:true,lastSeen:Date.now(),team:null,score:0,actions:0};
+      roster.set(id,existing);
+    }else{
+      if(p.username!=null) existing.username=String(p.username).slice(0,22);
+      if(p.avatar!=null) existing.avatar=String(p.avatar);
+      if(p.joinedAt!=null && Number.isFinite(Number(p.joinedAt))) existing.joinedAt=Number(p.joinedAt);
+      existing.online=true; existing.lastSeen=Date.now();
+    }
+    return existing;
+  }
+  addPlayer(ME);
 
-        function handleUlt(e) {
-            e.preventDefault();
-            if (!isPlaying || ultCharge < ULT_MAX) return;
+  function sortedPlayers(){return [...roster.values()].sort((a,b)=>a.joinedAt-b.joinedAt || a.id.localeCompare(b.id));}
+  function onlinePlayers(){const now=Date.now();return sortedPlayers().filter(p=>p.online && now-p.lastSeen<CONFIG.HOST_TIMEOUT);}
+  function isHost(){return state.hostId===ME.id;}
 
-            ultCharge = 0;
-            updateUltUI();
-            
-            applyDamage('blue', 15); // 大招巨量傷害
-            showCenterMsg("ULTIMATE HACK!", "#ff003c");
-            spawnParticles('blue', 50);
-            
-            // 畫面震動
-            canvas.style.transform = "translate(10px, 10px)";
-            setTimeout(() => canvas.style.transform = "translate(-10px, -10px)", 50);
-            setTimeout(() => canvas.style.transform = "translate(10px, -10px)", 100);
-            setTimeout(() => canvas.style.transform = "translate(0, 0)", 150);
-        }
+  function electHost(){
+    const list=onlinePlayers(); if(!list.length) return;
+    const candidate=list[0].id;
+    if(!state.hostId){state.hostId=candidate;}
+    else{
+      const h=roster.get(state.hostId);
+      if(!h || !h.online || Date.now()-h.lastSeen>=CONFIG.HOST_TIMEOUT) state.hostId=candidate;
+    }
+    if(isHost() && DEVELOPMENT_MODE) state.hostId=ME.id;
+  }
 
-        function applyDamage(team, amount) {
-            if (team === 'blue') balance += amount;
-            else balance -= amount;
-            
-            if (balance >= 100) endGame('blue');
-            if (balance <= 0) endGame('red');
-        }
+  function assignTeams(mode){
+    const participants=onlinePlayers().slice(0,Math.min(GAME_INFO.maxPlayers,mode*2));
+    if(!participants.some(p=>p.id===ME.id)) participants.unshift(roster.get(ME.id));
+    const unique=[...new Map(participants.map(p=>[p.id,p])).values()].slice(0,mode*2);
+    unique.sort((a,b)=>a.joinedAt-b.joinedAt || a.id.localeCompare(b.id));
+    unique.forEach((p,i)=>{p.team=i%2===0?'BLUE':'RED';p.score=0;p.actions=0;});
+    return unique;
+  }
 
-        function updateUltUI() {
-            if (ultCharge > ULT_MAX) ultCharge = ULT_MAX;
-            const btn = document.getElementById('btnUlt');
-            const fill = document.getElementById('ultFill');
-            fill.style.height = `${ultCharge}%`;
-            
-            if (ultCharge === ULT_MAX) btn.classList.add('ready');
-            else btn.classList.remove('ready');
-        }
+  /* ==========================================================
+     RANDOM / VALIDATION
+     ========================================================== */
+  function randomInt(max){
+    max=Math.max(1,Math.floor(max));
+    try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%max;}catch(e){return Math.floor(Math.random()*max);}
+  }
+  function clamp(n,min,max){n=Number(n);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):min;}
+  function validRound(roundId){return Number(roundId)===Number(state.roundId);}
+  function validSender(id){return String(id||'')===ME.id;}
+  function makeActionId(){return ME.id+'-'+Date.now()+'-'+(++actionSeq);}
 
-        function showCenterMsg(text, color) {
-            const msgEl = document.getElementById('centerMsg');
-            msgEl.innerText = text;
-            msgEl.style.color = color;
-            msgEl.style.textShadow = `0 0 20px ${color}`;
-            msgEl.style.opacity = 1;
-            msgEl.style.transform = "translate(-50%, -50%) scale(1.2)";
-            
-            setTimeout(() => {
-                msgEl.style.opacity = 0;
-                msgEl.style.transform = "translate(-50%, -50%) scale(1)";
-            }, 500);
-        }
+  /* ==========================================================
+     NETWORK EVENTS
+     ========================================================== */
+  function send(eventName,payload){
+    if(SDK && typeof SDK.sendGameEvent==='function'){
+      try{SDK.sendGameEvent(eventName,payload||{});}catch(e){}
+    }
+  }
+  function broadcastState(force=false){
+    if(!isHost()) return;
+    const now=Date.now(); if(!force && now-lastStateSent<CONFIG.STATE_BROADCAST_MS)return;
+    lastStateSent=now;
+    send('NCC_STATE',{
+      roundId:state.roundId,hostId:state.hostId,phase:state.phase,mode:state.mode,phaseEndsAt:state.phaseEndsAt,
+      balance:clamp(state.balance,0,100),combo:clamp(state.combo,0,20),startAt:state.startAt,winner:state.winner,seed:state.seed,
+      players:[...roster.values()].map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,team:p.team,score:clamp(p.score,0,9999),actions:clamp(p.actions,0,9999),online:!!p.online,lastSeen:p.lastSeen}))
+    });
+  }
 
-        // ==========================================
-        // 5. AI 機器人邏輯
-        // ==========================================
-        function botLogic() {
-            if (!isPlaying) return;
-            
-            // 藍隊 AI
-            for(let i=1; i<gameMode; i++) {
-                if (Math.random() > 0.3) {
-                    let dmg = Math.random() > 0.8 ? 3 : 1;
-                    applyDamage('blue', dmg);
-                    spawnParticles('blue', 5);
-                }
-            }
-            
-            // 紅隊 AI (稍微強一點點製造壓力)
-            for(let i=0; i<gameMode; i++) {
-                if (Math.random() > 0.25) {
-                    let dmg = Math.random() > 0.75 ? 3 : 1;
-                    applyDamage('red', dmg);
-                    spawnParticles('red', 5);
-                }
-            }
-        }
+  window.addEventListener('message',e=>{
+    let data;try{data=typeof e.data==='string'?JSON.parse(e.data):e.data;}catch(err){return;}
+    if(!data || data.action!=='gameEventReceived') return;
+    const ev=data.eventName,payload=data.payload||{},sender=data.userId!=null?String(data.userId):null;
 
-        // ==========================================
-        // 6. Canvas 渲染與特效引擎
-        // ==========================================
-        function spawnParticles(team, count) {
-            const startX = team === 'blue' ? 0 : width;
-            const startY = height / 2;
-            const color = team === 'blue' ? '#00f3ff' : '#ff003c';
-            const dir = team === 'blue' ? 1 : -1;
+    if(ev==='NCC_HELLO'){
+      if(payload.player)addPlayer(payload.player);
+      if(isHost())broadcastState(true);
+      return;
+    }
+    if(ev==='NCC_HEARTBEAT'){
+      if(payload.player){const p=addPlayer(payload.player);if(p)p.online=true;p.lastSeen=Date.now();}
+      if(payload.requestState && isHost())broadcastState(true);
+      return;
+    }
+    if(ev==='NCC_HOST'){
+      const hid=String(payload.hostId||'');
+      if(hid && roster.has(hid)) state.hostId=hid;
+      return;
+    }
+    if(ev==='NCC_STATE'){
+      if(!payload || !Number.isFinite(Number(payload.roundId)))return;
+      const incomingRound=Number(payload.roundId);
+      if(incomingRound<state.roundId)return;
+      if(payload.hostId!=null && String(payload.hostId)!==String(state.hostId || payload.hostId)){
+        state.hostId=String(payload.hostId);
+      }
+      if(incomingRound===state.roundId && isHost()) return;
+      state.roundId=incomingRound;
+      state.phase=Object.values(STATES).includes(payload.phase)?payload.phase:state.phase;
+      state.mode=CONFIG.modes[Number(payload.mode)]?Number(payload.mode):state.mode;
+      state.phaseEndsAt=Number.isFinite(Number(payload.phaseEndsAt))?Number(payload.phaseEndsAt):0;
+      state.balance=clamp(payload.balance,0,100);
+      state.combo=clamp(payload.combo,0,20);
+      state.startAt=Number(payload.startAt)||0;
+      state.winner=payload.winner==null?null:String(payload.winner);
+      state.seed=Number(payload.seed)||0;
+      if(Array.isArray(payload.players))payload.players.forEach(p=>addRemoteStatePlayer(p));
+      if(state.phase===STATES.RESULT) finishLocalRoundIfNeeded();
+      return;
+    }
+    if(ev==='NCC_HIT'){
+      if(isHost()){
+        if(!validRound(payload.roundId))return;
+        const id=String(payload.playerId||sender||'');
+        if(!id || id!==sender && sender!==null)return;
+        if(processedActions.has(payload.actionId))return;
+        processedActions.set(payload.actionId,Date.now());
+        const p=roster.get(id); if(!p || p.team!=='BLUE')return;
+        const type=String(payload.type||'MISS');
+        const push=clamp(payload.push,-1.5,4.0);
+        const now=Date.now(); if(now-lastActionAt<CONFIG.ACTION_COOLDOWN_MS)return;
+        lastActionAt=now;
+        applyHostHit(id,type,push);
+        broadcastState(true);
+      }
+      return;
+    }
+    if(ev==='NCC_ULT'){
+      if(isHost()){
+        if(!validRound(payload.roundId))return;
+        const id=String(payload.playerId||sender||''); if(id!==sender && sender!==null)return;
+        if(processedActions.has(payload.actionId))return; processedActions.set(payload.actionId,Date.now());
+        const p=roster.get(id); if(!p||p.team!=='BLUE')return;
+        useHostUltimate(id); broadcastState(true);
+      }
+      return;
+    }
+    if(ev==='NCC_VISUAL'){
+      if(!validRound(payload.roundId))return;
+      showCenterMessage(String(payload.text||''),String(payload.color||'var(--cyan)'));
+      if(payload.sfx)sfx(String(payload.sfx));
+      return;
+    }
+  });
 
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: startX, y: startY + (Math.random() * 200 - 100),
-                    vx: (Math.random() * 15 + 5) * dir,
-                    vy: Math.random() * 4 - 2,
-                    life: 1,
-                    color: color,
-                    size: Math.random() * 4 + 2
-                });
-            }
-        }
+  function addRemoteStatePlayer(p){
+    const q=addPlayer(p); if(!q)return; q.team=p.team||q.team;q.score=clamp(p.score,0,9999);q.actions=clamp(p.actions,0,9999);q.online=!!p.online;q.lastSeen=Date.now();
+  }
 
-        function gameLoop() {
-            if (!isPlaying) return;
+  /* ==========================================================
+     PURCHASE / REWARD
+     ========================================================== */
+  window.onPurchaseSuccess=function(itemId){
+    if(!localPurchaseLocked || itemId!==pendingPurchaseItem)return;
+    localPurchaseLocked=false;pendingPurchaseItem=null;currentRoundPaid=true;
+    beginCountdown();
+  };
+  window.onPurchaseFailed=function(itemId){
+    if(itemId!==pendingPurchaseItem)return;
+    localPurchaseLocked=false;pendingPurchaseItem=null;
+    showCenterMessage('購買未完成','#ff8aa0');sfx('miss');
+  };
 
-            // 清除畫面
-            ctx.fillStyle = 'rgba(5, 5, 16, 0.3)'; // 殘影效果
-            ctx.fillRect(0, 0, width, height);
+  function requestEntry(){
+    if(localPurchaseLocked || currentRoundPaid)return;
+    if(DEVELOPMENT_MODE){currentRoundPaid=true;showCenterMessage('開發測試','#ffd166');beginCountdown();return;}
+    if(!SDK || typeof SDK.requestPurchase!=='function'){showCenterMessage('SDK 不可用','#ff8aa0');return;}
+    localPurchaseLocked=true;pendingPurchaseItem=CONFIG.ENTRY_ITEM;
+    try{SDK.requestPurchase(CONFIG.ENTRY_ITEM,CONFIG.ENTRY_COST);}catch(e){localPurchaseLocked=false;pendingPurchaseItem=null;showCenterMessage('購買請求失敗','#ff8aa0');}
+  }
 
-            // 更新 QTE 游標
-            cursorX += cursorSpeed * cursorDir;
-            if (cursorX >= 100) { cursorX = 100; cursorDir = -1; }
-            if (cursorX <= 0) { cursorX = 0; cursorDir = 1; }
-            document.getElementById('qteCursor').style.left = `${cursorX}%`;
+  function settleReward(reward){
+    reward=Math.floor(clamp(reward,0,CONFIG.ENTRY_COST*2));
+    if(currentRoundSettled)return;
+    currentRoundSettled=true;
+    if(!gameOverCalled){
+      gameOverCalled=true;
+      try{if(SDK && typeof SDK.gameOver==='function')SDK.gameOver(reward);}catch(e){}
+    }
+    return reward;
+  }
 
-            // 繪製中心能量線
-            const centerPos = width - (balance / 100) * width; // balance 100 = 藍贏 = 線在最右邊
-            
-            // 畫藍色雷射
-            ctx.beginPath();
-            ctx.moveTo(0, height/2);
-            ctx.lineTo(centerPos, height/2);
-            ctx.strokeStyle = '#00f3ff';
-            ctx.lineWidth = 10;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#00f3ff';
-            ctx.stroke();
+  /* ==========================================================
+     ROUND FLOW
+     ========================================================== */
+  function resetLocalRound(){
+    state.balance=50;state.combo=0;state.ultOwnerCharge=0;state.winner=null;state.result=[];state.startAt=0;state.phaseEndsAt=0;state.seed=0;
+    gameOverCalled=false;currentRoundPaid=false;currentRoundSettled=false;lastActionAt=0;processedActions.clear();
+    for(const p of roster.values()){p.team=null;p.score=0;p.actions=0;}
+  }
 
-            // 畫紅色雷射
-            ctx.beginPath();
-            ctx.moveTo(width, height/2);
-            ctx.lineTo(centerPos, height/2);
-            ctx.strokeStyle = '#ff003c';
-            ctx.lineWidth = 10;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#ff003c';
-            ctx.stroke();
+  function startRound(){
+    initAudio();sfx('tap');
+    if(!isHost()){
+      showCenterMessage('等待房主開始','#ffd166');return;
+    }
+    if(state.phase!==STATES.LOBBY && state.phase!==STATES.RESULT)return;
+    selectedMode=selectedMode||1; state.roundId+=1; state.mode=selectedMode;resetLocalRound();
+    state.hostId=ME.id;state.phase=STATES.LOBBY;
+    assignTeams(state.mode);
+    requestEntry();
+  }
 
-            // 畫交界處能量球
-            ctx.beginPath();
-            ctx.arc(centerPos, height/2, 30 + Math.random()*10, 0, Math.PI*2);
-            ctx.fillStyle = '#fff';
-            ctx.shadowBlur = 50;
-            ctx.shadowColor = balance > 50 ? '#00f3ff' : '#ff003c';
-            ctx.fill();
+  function beginCountdown(){
+    if(!isHost())return;
+    state.phase=STATES.COUNTDOWN;state.phaseEndsAt=Date.now()+CONFIG.COUNTDOWN_MS;state.startAt=Date.now()+CONFIG.COUNTDOWN_MS;
+    state.seed=randomInt(0x7fffffff);state.balance=50;state.combo=0;state.ultOwnerCharge=0;state.winner=null;state.result=[];
+    send('NCC_ROUND_START',{roundId:state.roundId,seed:state.seed,startAt:state.startAt,mode:state.mode,maxDuration:CONFIG.ROUND_MAX_MS});
+    broadcastState(true);sfx('count');
+  }
 
-            // 更新與繪製粒子
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life -= 0.02;
-                
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                    continue;
-                }
+  function hostEnterPlaying(){
+    if(!isHost()||state.phase!==STATES.COUNTDOWN)return;
+    state.phase=STATES.PLAYING;state.phaseEndsAt=state.startAt+CONFIG.ROUND_MAX_MS;
+    broadcastState(true);showCenterMessage('HACK!','#57f6ff');sfx('tap');
+  }
 
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = p.color;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
+  function applyHostHit(playerId,type,push){
+    if(state.phase!==STATES.PLAYING)return;
+    const p=roster.get(playerId);if(!p||p.team!=='BLUE')return;
+    p.actions+=1;
+    let finalPush=clamp(push,-1.5,3.0);
+    if(type==='PERFECT'){state.combo=clamp(state.combo+1,0,20);p.score+=300;state.ultOwnerCharge=clamp(state.ultOwnerCharge+18,0,CONFIG.ULT_MAX);}
+    else if(type==='GOOD'){state.combo=clamp(state.combo+1,0,20);p.score+=100;state.ultOwnerCharge=clamp(state.ultOwnerCharge+7,0,CONFIG.ULT_MAX);}
+    else{state.combo=0;p.score+=0;state.ultOwnerCharge=clamp(state.ultOwnerCharge+1,0,CONFIG.ULT_MAX);}
+    finalPush*=1+Math.min(state.combo,10)*0.035;
+    state.balance=clamp(state.balance+finalPush,0,100);
+    send('NCC_VISUAL',{roundId:state.roundId,text:type==='PERFECT'?'PERFECT!':type==='GOOD'?'GOOD':'MISS',color:type==='PERFECT'?'#57f6ff':type==='GOOD'?'#ffd166':'#ff4d75',sfx:type==='PERFECT'?'perfect':type==='GOOD'?'good':'miss'});
+    if(state.balance>=100){hostEnd('BLUE','核心突破：藍隊奪下核心');return;}
+    if(state.balance<=0){hostEnd('RED','核心失守：紅隊反推成功');return;}
+    if(Date.now()>=state.phaseEndsAt){hostEnd(state.balance>=50?'BLUE':'RED', '時間到：以核心位置判定勝負');}
+  }
 
-            requestAnimationFrame(gameLoop);
-        }
+  function useHostUltimate(playerId){
+    if(state.phase!==STATES.PLAYING || state.ultOwnerCharge<CONFIG.ULT_MAX)return;
+    const p=roster.get(playerId);if(!p||p.team!=='BLUE')return;
+    state.ultOwnerCharge=0;state.combo=0;p.score+=600;
+    state.balance=clamp(state.balance+15,0,100);
+    send('NCC_VISUAL',{roundId:state.roundId,text:'ULTIMATE!',color:'#ff4d75',sfx:'ult'});
+    if(state.balance>=100)hostEnd('BLUE','終極駭入突破核心');
+  }
 
-        // ==========================================
-        // 7. 遊戲結算與 SDK 整合
-        // ==========================================
-        function endGame(winner) {
-            isPlaying = false;
-            
-            const isWin = winner === 'blue';
-            const winAmount = isWin ? gameMode * 100 : 0; // 5v5 贏了拿 500，1v1 拿 100
-            
-            showCenterMsg(isWin ? "VICTORY!" : "DEFEAT", isWin ? "#00f3ff" : "#ff003c");
-            
-            setTimeout(() => {
-                if (window.BoomRoomSDK) {
-                    const modeText = `${gameMode}v${gameMode}`;
-                    if (isWin) {
-                        window.BoomRoomSDK.sendRoomMessage(`🏆 【霓虹駭客戰】太神啦！${myName} 帶領藍隊在 ${modeText} 激戰中擊潰紅隊，贏得 ${winAmount} 銀幣！`);
-                    } else {
-                        window.BoomRoomSDK.sendRoomMessage(`💀 【霓虹駭客戰】慘遭滑鐵盧... ${myName} 的隊伍在 ${modeText} 對決中被紅隊碾壓了。`);
-                    }
-                    
-                    // 延遲關閉遊戲並派彩
-                    setTimeout(() => {
-                        window.BoomRoomSDK.gameOver(winAmount);
-                    }, 3000);
-                } else {
-                    alert(isWin ? `你贏了！獲得 ${winAmount} 分` : "你輸了！");
-                    location.reload();
-                }
-            }, 2000);
-        }
+  function hostEnd(winner,reason){
+    if(!isHost()||state.phase!==STATES.PLAYING)return;
+    state.winner=winner;state.phase=STATES.RESULT;state.phaseEndsAt=Date.now()+CONFIG.RESULT_MS;
+    const all=sortedPlayers().filter(p=>p.team);
+    const blueScore=all.filter(p=>p.team==='BLUE').reduce((a,p)=>a+p.score,0);
+    const redScore=all.filter(p=>p.team==='RED').reduce((a,p)=>a+p.score,0);
+    state.result=all.map(p=>({id:p.id,username:p.username,avatar:p.avatar,team:p.team,score:clamp(p.score,0,9999),win:p.team===winner})).sort((a,b)=>b.score-a.score);
+    send('NCC_ROUND_END',{roundId:state.roundId,winner,blueScore,redScore,reason,result:state.result});
+    broadcastState(true);
+    showCenterMessage(winner==='BLUE'?'VICTORY!':'DEFEAT',winner==='BLUE'?'#57f6ff':'#ff4d75');
+    winner==='BLUE'?sfx('win'):sfx('lose');
+    if(navigator.vibrate){try{navigator.vibrate(winner==='BLUE'?[45,30,80]:120);}catch(e){}}
+  }
 
-    </script>
+  function finishLocalRoundIfNeeded(){
+    if(state.phase!==STATES.RESULT)return;
+    if(state.roundId<1)return;
+    const me=roster.get(ME.id);
+    const won=state.winner==='BLUE' && me && me.team==='BLUE';
+    const reward=won?CONFIG.ENTRY_COST*2:0;
+    const actualReward=settleReward(reward);
+    renderResult(actualReward,won);
+  }
+
+  /* ==========================================================
+     QTE / INPUT — slower, center-weighted, mobile-first
+     ========================================================== */
+  let cursor=0,direction=1,cursorSpeed=CONFIG.CURSOR_BASE_SPEED,held=false,lastTs=0,freezeUntil=0;
+  function updateCursor(dt){
+    if(gameState!==STATES.PLAYING || Date.now()<freezeUntil)return;
+    const dist=Math.abs(cursor-50);
+    const slowFactor=dist<CONFIG.CENTER_SLOW_RADIUS ? 0.34 + (dist/CONFIG.CENTER_SLOW_RADIUS)*0.48 : 1;
+    const easeSpeed=clamp(cursorSpeed*slowFactor,0.12,CONFIG.CURSOR_MAX_SPEED);
+    cursor+=direction*easeSpeed*dt*60;
+    if(cursor>=100){cursor=100;direction=-1;}
+    if(cursor<=0){cursor=0;direction=1;}
+    els.cursor.style.left=cursor+'%';
+  }
+  function classifyCursor(){
+    const d=Math.abs(cursor-50);
+    if(d<=CONFIG.PERFECT_RADIUS)return 'PERFECT';
+    if(d<=CONFIG.GOOD_RADIUS)return 'GOOD';
+    return 'MISS';
+  }
+  function playerHack(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    initAudio();
+    if(gameState!==STATES.PLAYING || Date.now()<freezeUntil)return;
+    const now=Date.now();if(now-lastActionAt<CONFIG.ACTION_COOLDOWN_MS)return;
+    lastActionAt=now;
+    const type=classifyCursor();
+    const push=type==='PERFECT'?3.0:type==='GOOD'?1.0:-0.8;
+    const actionId=makeActionId();
+    if(isHost()){
+      if(processedActions.has(actionId))return;processedActions.set(actionId,now);
+      applyHostHit(ME.id,type,push);broadcastState(true);
+    }else{
+      send('NCC_HIT',{roundId:state.roundId,actionId,playerId:ME.id,type,push});
+    }
+    freezeUntil=now+(type==='PERFECT'?130:type==='GOOD'?80:55);
+    showCenterMessage(type,type==='PERFECT'?'#57f6ff':type==='GOOD'?'#ffd166':'#ff4d75');
+    els.lastHitMini.textContent=type==='PERFECT'?'精準駭入 + 高推力':type==='GOOD'?'穩定命中 + 推力':'失誤反噬';
+    els.coreOrb.classList.remove('hit');void els.coreOrb.offsetWidth;els.coreOrb.classList.add('hit');
+    if(navigator.vibrate){try{navigator.vibrate(type==='PERFECT'?22:type==='GOOD'?12:8);}catch(err){}}
+    sfx(type==='PERFECT'?'perfect':type==='GOOD'?'good':'miss');
+  }
+  function playerUlt(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    initAudio();if(gameState!==STATES.PLAYING)return;
+    if(state.ultOwnerCharge<CONFIG.ULT_MAX)return;
+    const actionId=makeActionId();
+    if(isHost())useHostUltimate(ME.id);else send('NCC_ULT',{roundId:state.roundId,actionId,playerId:ME.id});
+  }
+  els.hackBtn.addEventListener('pointerdown',playerHack);
+  els.ultBtn.addEventListener('pointerdown',playerUlt);
+  window.addEventListener('keydown',e=>{if(e.code==='Space')playerHack(e);if(e.code==='KeyU')playerUlt(e);});
+
+  /* ==========================================================
+     PARTICLES / FX
+     ========================================================== */
+  const particles=[];const floating=[];
+  function spawnParticles(x,y,count,type){
+    count=Math.min(count,12);
+    for(let i=0;i<count && particles.length<CONFIG.MAX_PARTICLES;i++)particles.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:1,size:Math.random()*3+1,team:type});
+  }
+  function floatText(x,y,text){
+    if(floating.length>=CONFIG.MAX_FLOATING)floating.shift();
+    floating.push({x,y,text,life:1});
+  }
+
+  /* ==========================================================
+     RENDER / RESPONSIVE
+     ========================================================== */
+  let W=innerWidth,H=innerHeight,DPR=1;
+  function resize(){
+    DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+    canvas.width=Math.floor(W*DPR);canvas.height=Math.floor(H*DPR);canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize',resize);resize();
+
+  function drawBackground(t){
+    ctx.fillStyle='#05060d';ctx.fillRect(0,0,W,H);
+    const g=ctx.createRadialGradient(W*.5,H*.48,20,W*.5,H*.48,Math.max(W,H)*.65);g.addColorStop(0,'rgba(48,20,92,.18)');g.addColorStop(.5,'rgba(5,15,28,.10)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha=.11;ctx.strokeStyle='#57f6ff';ctx.lineWidth=1;
+    const step=Math.max(36,Math.floor(W/10));for(let x=0;x<W;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    ctx.globalAlpha=.07;for(let y=0;y<H;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}ctx.globalAlpha=1;
+    const cx=W/2,cy=H*.48;ctx.beginPath();ctx.arc(cx,cy,Math.min(W,H)*.24+Math.sin(t/550)*4,0,Math.PI*2);ctx.strokeStyle='rgba(166,117,255,.14)';ctx.stroke();
+  }
+
+  function drawParticles(){
+    for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.985;p.vy*=.985;p.life-=.035;if(p.life<=0){particles.splice(i,1);continue;}ctx.globalAlpha=p.life;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fillStyle=p.team==='BLUE'?'#57f6ff':'#ff4d75';ctx.fill();}ctx.globalAlpha=1;
+    for(let i=floating.length-1;i>=0;i--){const f=floating[i];f.y-=.7;f.life-=.03;if(f.life<=0){floating.splice(i,1);continue;}ctx.globalAlpha=f.life;ctx.font='900 16px system-ui';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(f.text,f.x,f.y);}ctx.globalAlpha=1;
+  }
+
+  /* ==========================================================
+     UI RENDER
+     ========================================================== */
+  function initials(name){return String(name||'玩家').trim().slice(0,2).toUpperCase();}
+  function avatarNode(p){
+    const d=document.createElement('div');d.className='avatar';
+    if(p.avatar){const img=new Image();img.onload=()=>{d.innerHTML='';d.appendChild(img)};img.onerror=()=>{d.textContent=initials(p.username)};img.src=p.avatar;}else d.textContent=initials(p.username);return d;
+  }
+  function renderTeams(){
+    els.blueAvatars.innerHTML='';els.redAvatars.innerHTML='';
+    sortedPlayers().filter(p=>p.team==='BLUE').slice(0,state.mode).forEach(p=>els.blueAvatars.appendChild(avatarNode(p)));
+    sortedPlayers().filter(p=>p.team==='RED').slice(0,state.mode).forEach(p=>els.redAvatars.appendChild(avatarNode(p)));
+  }
+  function renderHud(){
+    els.roundLabel.textContent='ROUND '+String(state.roundId).padStart(2,'0');
+    els.modeLabel.textContent=CONFIG.modes[state.mode].label;
+    els.balanceChip.textContent='核心：'+Math.round(state.balance)+'%';
+    els.blueEnergy.style.width=Math.max(0,state.balance-2)+'%';
+    els.redEnergy.style.width=Math.max(0,98-state.balance)+'%';
+    els.phaseLabel.textContent=state.phase===STATES.COUNTDOWN?'準備':state.phase===STATES.PLAYING?'作戰中':state.phase===STATES.RESULT?'結算':'等待';
+    els.comboLabel.textContent='COMBO ×'+Math.round(state.combo);
+    els.ultFill.style.height=state.ultOwnerCharge+'%';
+    els.ultBtn.classList.toggle('ready',state.ultOwnerCharge>=CONFIG.ULT_MAX);
+    els.hackBtn.disabled=state.phase!==STATES.PLAYING;
+    els.ultBtn.disabled=state.phase!==STATES.PLAYING || state.ultOwnerCharge<CONFIG.ULT_MAX;
+    if(state.phase===STATES.PLAYING){
+      els.statusMini.textContent='抓中心 · Perfect 區 '+(CONFIG.PERFECT_RADIUS*2)+'%';
+      els.accuracyLabel.textContent='中心附近會減速';
+    }else if(state.phase===STATES.COUNTDOWN){
+      els.statusMini.textContent='倒數 '+Math.max(0,Math.ceil((state.phaseEndsAt-Date.now())/1000))+' 秒';
+      els.accuracyLabel.textContent='準備！';
+    }else if(state.phase===STATES.RESULT){
+      els.statusMini.textContent=state.winner==='BLUE'?'藍隊勝利':'紅隊勝利';
+      els.accuracyLabel.textContent='本局完成';
+    }else{
+      els.statusMini.textContent='等待開始';
+      els.accuracyLabel.textContent='中心越近越強';
+    }
+  }
+
+  function showCenterMessage(text,color){
+    if(!text)return;els.centerMsg.textContent=text;els.centerMsg.style.color=color;els.centerMsg.classList.remove('show');void els.centerMsg.offsetWidth;els.centerMsg.classList.add('show');clearTimeout(showCenterMessage.t);showCenterMessage.t=setTimeout(()=>els.centerMsg.classList.remove('show'),520);
+  }
+
+  function renderResult(reward,won){
+    els.resultRank.textContent=won?'VICTORY!':'DEFEAT';els.resultRank.style.color=won?'#57f6ff':'#ff4d75';els.resultReward.textContent='+'+reward+' 銀幣';els.resultReward.style.color=won?'#65ff9f':'#9da6c2';
+    els.resultReason.textContent=state.winner==='BLUE'?'藍隊把核心推到突破線。':'紅隊成功把核心推回己方。';
+    els.resultList.innerHTML='';
+    state.result.slice(0,10).forEach((r,i)=>{const item=document.createElement('div');item.className='result-item';item.innerHTML='<b>#'+(i+1)+'</b><span>'+escapeHtml(r.username)+' · '+r.team+'</span><strong>'+Math.round(r.score)+'</strong>';els.resultList.appendChild(item);});
+    els.result.style.display='grid';els.ui.style.display='none';gameState=STATES.RESULT;
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+  /* ==========================================================
+     FLOW / REPLAY
+     ========================================================== */
+  function openGame(){
+    els.menu.style.display='none';els.result.style.display='none';els.ui.style.display='block';gameState=STATES.LOBBY;state.phase=STATES.LOBBY;currentRoundPaid=false;currentRoundSettled=false;gameOverCalled=false;electHost();renderTeams();renderHud();
+  }
+  function replay(){
+    els.result.style.display='none';els.ui.style.display='block';gameState=STATES.LOBBY;state.phase=STATES.LOBBY;currentRoundPaid=false;currentRoundSettled=false;gameOverCalled=false;
+    for(const p of roster.values()){p.score=0;p.actions=0;}
+    if(isHost())assignTeams(selectedMode);renderTeams();renderHud();
+    if(isHost())requestEntry();else showCenterMessage('等待房主下一局','#ffd166');
+  }
+
+  els.modeButtons.forEach(btn=>btn.addEventListener('pointerdown',e=>{e.preventDefault();selectedMode=Number(btn.dataset.mode)||1;els.modeButtons.forEach(b=>b.classList.toggle('selected',b===btn));initAudio();sfx('tap');}));
+  els.startBtn.addEventListener('pointerdown',e=>{e.preventDefault();openGame();if(isHost())requestEntry();else showCenterMessage('等待房主','#ffd166');});
+  els.replayBtn.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();replay();});
+  els.helpBtn.addEventListener('pointerdown',e=>{e.preventDefault();els.help.style.display='grid';initAudio();sfx('tap');});
+  els.closeHelp.addEventListener('pointerdown',e=>{e.preventDefault();els.help.style.display='none';});
+  els.closeHelp2.addEventListener('pointerdown',e=>{e.preventDefault();els.help.style.display='none';});
+
+  /* ==========================================================
+     HEARTBEAT / HOST TAKEOVER
+     ========================================================== */
+  function hello(){send('NCC_HELLO',{player:ME});send('NCC_HEARTBEAT',{player:ME,requestState:true});}
+  hello();
+  setInterval(()=>{
+    const p=roster.get(ME.id);if(p){p.online=true;p.lastSeen=Date.now();}
+    send('NCC_HEARTBEAT',{player:ME});
+    for(const q of roster.values())if(Date.now()-q.lastSeen>CONFIG.HOST_TIMEOUT)q.online=false;
+    const previous=state.hostId;electHost();
+    if(previous!==state.hostId){send('NCC_HOST',{hostId:state.hostId});if(isHost())broadcastState(true);}
+  },CONFIG.HEARTBEAT_MS);
+
+  if(DEVELOPMENT_MODE){
+    state.hostId=ME.id;els.devBanner.style.display='block';
+  }
+
+  /* ==========================================================
+     MAIN LOOP — requestAnimationFrame + dt clamp
+     ========================================================== */
+  let lastTime=0;
+  function loop(ts){
+    const dt=lastTime?Math.min((ts-lastTime)/1000,.033):0;lastTime=ts;
+    drawBackground(ts);
+
+    if(gameState===STATES.PLAYING){
+      updateCursor(dt);
+      if(isHost()){
+        if(Date.now()>=state.phaseEndsAt)hostEnd(state.balance>=50?'BLUE':'RED','時間到：以核心位置判定');
+        broadcastState(false);
+      }
+      const x=W*(state.balance/100);spawnParticles(x,H*.48,1,state.balance>=50?'BLUE':'RED');
+    }else if(gameState===STATES.COUNTDOWN){
+      if(isHost() && Date.now()>=state.phaseEndsAt)hostEnterPlaying();
+      if(state.phaseEndsAt>0){const sec=Math.ceil((state.phaseEndsAt-Date.now())/1000);if(sec!==lastWholeSecond){lastWholeSecond=sec;if(sec>0)sfx('count');showCenterMessage(String(sec),'#ffd166');}}
+    }
+
+    for(let i=0;i<particles.length;i++){particles[i].vx*=.999;}
+    drawParticles();renderHud();renderTeams();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  /* ==========================================================
+     DEV MODE — no fake SDK success message, but fully playable
+     ========================================================== */
+  if(DEVELOPMENT_MODE){
+    window.dispatchEvent(new Event('dev-ready'));
+  }
+
+})();
+</script>
 </body>
 </html>
