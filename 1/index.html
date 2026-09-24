@@ -1,240 +1,533 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星際逃脫：貪婪火箭</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@700&display=swap');
-        body { margin: 0; overflow: hidden; background: #050505; color: white; font-family: 'Roboto', sans-serif; }
-        canvas { display: block; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-        
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
-        
-        .multiplier { font-family: 'Black Ops One', cursive; font-size: 80px; text-shadow: 0 0 20px rgba(255,255,255,0.5); margin-bottom: 100px; transition: color 0.3s; }
-        .crashed-text { color: #ff3333 !important; text-shadow: 0 0 30px #ff0000 !important; transform: scale(1.2); }
-        .win-text { color: #00ff88 !important; text-shadow: 0 0 30px #00ff88 !important; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>爆爆房｜貪婪火箭 (正式版)</title>
+<!-- 🌟 引入 Socket.IO Client -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-        .btn-container { position: absolute; bottom: 50px; width: 100%; display: flex; justify-content: center; pointer-events: auto; }
-        button {
-            width: 250px; height: 70px; border-radius: 35px; border: none; font-size: 24px; font-weight: bold;
-            cursor: pointer; text-transform: uppercase; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: all 0.1s;
-        }
-        button:active { transform: translateY(5px); box-shadow: 0 5px 10px rgba(0,0,0,0.5); }
-        
-        .btn-bet { background: linear-gradient(90deg, #8e2de2, #4a00e0); color: white; }
-        .btn-eject { background: linear-gradient(90deg, #f12711, #f5af19); color: white; animation: pulse 0.5s infinite alternate; }
-        .btn-disabled { background: #333; color: #777; cursor: not-allowed; animation: none; }
+<style>
+/* (保留你原本的所有 CSS，並在最下方加上排行榜的 CSS) */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 35%, #111b3d 0%, #050714 45%, #010207 100%); color: white; font-family: Arial, "Microsoft JhengHei", sans-serif; user-select: none; }
+#gameCanvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; }
+#app { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+#roomHeader { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.roomTitle { padding: 8px 14px; border-radius: 15px; background: rgba(8, 12, 30, .82); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(10px); }
+.roomTitle strong { font-size: 16px; }
+.roomTitle small { display: block; margin-top: 3px; color: #8992b0; font-size: 11px; }
+.roomInfo { display: flex; gap: 7px; }
+.headerBadge { padding: 8px 11px; border-radius: 12px; background: rgba(8,12,30,.82); border: 1px solid rgba(255,255,255,.12); color: #b8c0dc; font-size: 12px; backdrop-filter: blur(10px); }
+#players { position: absolute; top: 85px; left: 12px; right: 12px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; pointer-events: none; }
+.playerCard { min-width: 0; padding: 8px; border-radius: 14px; background: rgba(8,12,30,.72); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(8px); transition: transform .15s, border .15s, background .15s; overflow: hidden; }
+.playerCard.me { border-color: rgba(90,150,255,.7); box-shadow: 0 0 18px rgba(50,120,255,.18); }
+.playerCard.flying { border-color: rgba(255,180,30,.5); }
+.playerCard.cashed { background: rgba(0,150,100,.18); border-color: rgba(0,255,170,.55); }
+.playerCard.crashed { background: rgba(160,20,20,.18); border-color: rgba(255,50,50,.45); opacity: .75; }
+.playerTop { display: flex; align-items: center; gap: 6px; }
+.avatar { width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, #7538ff, #e32fff); font-size: 14px; }
+.playerName { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; font-weight: 900; }
+.playerStatus { margin-top: 5px; color: #8790ad; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.playerBet { margin-top: 4px; font-size: 11px; color: #cfd5e8; }
+#center { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); width: 100%; text-align: center; }
+#multiplier { font-family: Impact, "Arial Black", sans-serif; font-size: clamp(65px, 13vw, 140px); line-height: 1; letter-spacing: 2px; text-shadow: 0 0 20px rgba(255,255,255,.3); transition: color .15s, transform .1s; }
+#multiplier.warning { color: #ffd23f; text-shadow: 0 0 20px #ff9d00, 0 0 60px rgba(255,130,0,.7); }
+#multiplier.danger { color: #ff623c; text-shadow: 0 0 20px #ff2600, 0 0 70px rgba(255,30,0,.7); }
+#multiplier.legend { color: #ff3ee5; text-shadow: 0 0 25px #ff00dd, 0 0 90px rgba(255,0,200,.8); }
+#multiplier.win { color: #00ffae; text-shadow: 0 0 25px #00ff9d, 0 0 80px rgba(0,255,150,.8); transform: scale(1.15); }
+#multiplier.crash { color: #ff2222; text-shadow: 0 0 30px #ff0000, 0 0 100px rgba(255,0,0,.9); transform: scale(1.25); }
+#gameStatus { margin-top: 12px; color: #a9b1cc; font-size: 14px; }
+#eventFeed { position: absolute; left: 15px; bottom: 180px; width: min(340px, calc(100% - 30px)); pointer-events: none; }
+.event { margin-top: 6px; padding: 8px 12px; border-radius: 12px; background: rgba(5,8,20,.72); border: 1px solid rgba(255,255,255,.08); color: #c8cde0; font-size: 11px; animation: eventIn .2s ease-out; }
+@keyframes eventIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+#pot { position: absolute; right: 15px; bottom: 180px; min-width: 170px; padding: 12px; text-align: center; border-radius: 15px; background: rgba(5,8,20,.78); border: 1px solid rgba(255,190,40,.25); backdrop-filter: blur(10px); }
+.potTitle { color: #888fa9; font-size: 10px; }
+.potValue { margin-top: 4px; color: #ffd43b; font-size: 20px; font-weight: 900; }
+#controls { position: absolute; left: 50%; bottom: 15px; transform: translateX(-50%); width: min(700px, calc(100% - 24px)); pointer-events: auto; }
+#bets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 7px; }
+.bet { height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(10,14,30,.9); color: #cdd3e7; font-weight: 900; cursor: pointer; }
+.bet.active { background: linear-gradient(135deg, #7028ff, #a000ff); color: white; border-color: rgba(190,120,255,.8); }
+.bet:disabled { opacity: .35; cursor: not-allowed; }
+#autoRow { display: flex; gap: 7px; margin-bottom: 7px; }
+#autoInput { width: 110px; border-radius: 11px; border: 1px solid rgba(255,255,255,.12); background: rgba(5,8,20,.9); color: white; text-align: center; font-size: 14px; font-weight: 900; }
+#autoButton { flex: 1; border-radius: 11px; border: 1px solid rgba(255,255,255,.12); background: rgba(5,8,20,.9); color: #aab2cb; font-weight: 900; cursor: pointer; }
+#autoButton.active { color: #00ffad; border-color: rgba(0,255,170,.6); background: rgba(0,150,100,.2); }
+#action { width: 100%; height: 65px; border: 0; border-radius: 34px; background: linear-gradient(90deg, #7128ef, #4a00e0); color: white; font-size: 21px; font-weight: 900; cursor: pointer; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+#action.eject { background: linear-gradient(90deg, #ff3519, #ffb11b); animation: ejectPulse .5s infinite alternate; }
+#action:disabled { background: #333; cursor: not-allowed; animation: none; box-shadow: none; color: #888; }
+@keyframes ejectPulse { from { box-shadow: 0 10px 30px rgba(0,0,0,.5); } to { box-shadow: 0 10px 30px rgba(0,0,0,.5), 0 0 35px rgba(255,100,0,.7); } }
+#result { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%) scale(.95); min-width: 280px; padding: 20px; border-radius: 20px; background: rgba(5,8,20,.94); border: 1px solid rgba(255,255,255,.12); text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+#result.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; z-index: 100;}
+.resultTitle { color: #929ab5; font-size: 12px; }
+.resultAmount { margin-top: 6px; font-size: 31px; font-weight: 900; }
+.resultSub { margin-top: 5px; color: #858da7; font-size: 12px; }
 
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+/* 🌟 新增排行榜樣式 */
+#leaderboard { margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; text-align: left; }
+.lb-title { font-size: 14px; font-weight: bold; color: #ffd43b; margin-bottom: 8px; text-align: center;}
+.lb-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05);}
+.lb-name { font-weight: bold; color: #fff;}
+.lb-win { color: #00ffae; font-weight: bold;}
+.lb-crash { color: #ff623c; font-weight: bold;}
+.lb-mult { color: #858da7; font-size: 10px;}
 
-        #msgBox { position: absolute; top: 20px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px; border: 1px solid #444; font-size: 14px; color: #aaa; }
-    </style>
+@media(max-width:600px) {
+    #players { grid-template-columns: repeat(2, minmax(0, 1fr)); top: 78px; }
+    .playerCard:nth-child(n+7) { display: none; }
+    #center { top: 38%; }
+    #pot { display: none; }
+    #eventFeed { bottom: 165px; width: calc(100% - 30px); }
+    #controls { bottom: 10px; }
+    #action { height: 60px; font-size: 19px; }
+}
+</style>
 </head>
+
 <body>
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="ui">
-        <div id="msgBox">入場費: 50 銀幣 | 準備起飛</div>
-        <div class="multiplier" id="multiplierDisplay">1.00x</div>
-        
-        <div class="btn-container">
-            <button id="actionBtn" class="btn-bet" onclick="handleAction()">支付 50 銀幣起飛</button>
+<canvas id="gameCanvas"></canvas>
+<div id="app">
+    <div id="roomHeader">
+        <div class="roomTitle">
+            <strong>🚀 貪婪火箭</strong>
+            <small>爆爆房 · Crash Party</small>
+        </div>
+        <div class="roomInfo">
+            <div class="headerBadge">👥 <span id="onlineCount">0</span></div>
+            <div class="headerBadge">🟢 LIVE</div>
         </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
+    <div id="players"></div>
 
-        // 遊戲狀態
-        let state = 'IDLE'; // IDLE, FLYING, CASHED_OUT, CRASHED
-        let multiplier = 1.00;
-        let crashPoint = 1.00;
-        let startTime = 0;
-        let betAmount = 50;
-        let winAmount = 0;
+    <div id="center">
+        <div id="multiplier">1.00x</div>
+        <div id="gameStatus">等待玩家下注</div>
+    </div>
 
-        // 星星背景
-        let stars = [];
-        function initStars() {
-            stars = [];
-            for(let i=0; i<100; i++) {
-                stars.push({ x: Math.random()*width, y: Math.random()*height, size: Math.random()*2+1, speed: Math.random()*2+1 });
-            }
+    <div id="eventFeed"></div>
+
+    <div id="pot">
+        <div class="potTitle">本局總下注</div>
+        <div class="potValue" id="potValue">0 🪙</div>
+    </div>
+
+    <div id="result">
+        <div class="resultTitle" id="resultTitle">本局結果</div>
+        <div class="resultAmount" id="resultAmount">+0 🪙</div>
+        <div class="resultSub" id="resultSub">0.00x</div>
+        <!-- 排行榜容器 -->
+        <div id="leaderboard"></div>
+    </div>
+
+    <div id="controls">
+        <div id="bets">
+            <button class="bet active" data-bet="50">50</button>
+            <button class="bet" data-bet="100">100</button>
+            <button class="bet" data-bet="250">250</button>
+            <button class="bet" data-bet="500">500</button>
+            <button class="bet" data-bet="1000">1000</button>
+        </div>
+        <div id="autoRow">
+            <input id="autoInput" type="number" min="1.10" max="100" step="0.10" value="2.00">
+            <button id="autoButton">🎯 自動逃脫 2.00x</button>
+        </div>
+        <button id="action">支付 50 銀幣加入</button>
+    </div>
+</div>
+
+<script>
+// 解析 URL 參數獲取 Token 與 RoomID
+const urlParams = new URLSearchParams(window.location.search);
+const TOKEN = urlParams.get('token');
+const ROOM_ID = urlParams.get('roomId');
+
+// 🌟 連接 BoomRoom Server (請改成你的實際伺服器網址)
+const SERVER_URL = 'http://localhost:3000';
+const socket = io(SERVER_URL, {
+    auth: { token: TOKEN },
+    transports: ['websocket']
+});
+
+/* =========================================================
+   DOM 與變數
+========================================================= */
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const multiplierEl = document.getElementById("multiplier");
+const gameStatus = document.getElementById("gameStatus");
+const action = document.getElementById("action");
+const playerContainer = document.getElementById("players");
+const eventFeed = document.getElementById("eventFeed");
+const potValue = document.getElementById("potValue");
+const onlineCount = document.getElementById("onlineCount");
+const result = document.getElementById("result");
+const resultTitle = document.getElementById("resultTitle");
+const resultAmount = document.getElementById("resultAmount");
+const resultSub = document.getElementById("resultSub");
+const leaderboard = document.getElementById("leaderboard");
+const autoInput = document.getElementById("autoInput");
+const autoButton = document.getElementById("autoButton");
+
+let width = 0, height = 0;
+let stars = [], particles = [];
+let rocketX = 0, rocketY = 0;
+
+let state = "WAITING"; // WAITING, FLYING, CRASHED
+let multiplier = 1.00;
+let startTime = 0;
+let betAmount = 50;
+let autoCash = false;
+let autoCashPoint = 2.00;
+let myUserId = null; // 從伺服器獲取
+let players = []; // { userId, username, avatar, bet, status, multiplier, reward }
+
+/* =========================================================
+   Socket.IO 事件監聽
+========================================================= */
+
+// 剛連線時，請求我的資訊
+socket.on('connect', () => {
+    addEvent("✅ 已連接到伺服器");
+    // 解析 Token 拿自己的 ID
+    if(TOKEN) {
+        const payload = JSON.parse(atob(TOKEN.split('.')[1]));
+        myUserId = payload.userId;
+    }
+});
+
+// 系統提示
+socket.on('system_alert', (data) => {
+    addEvent(`⚠️ ${data.message}`);
+    // 如果下注失敗，重置按鈕
+    if (data.message.includes('不足') || data.message.includes('失敗')) {
+        action.disabled = false;
+        action.innerText = `支付 ${betAmount} 銀幣加入`;
+    }
+});
+
+// 房間倒數
+socket.on('rocket:countdown', (sec) => {
+    if (state === 'WAITING') {
+        gameStatus.innerText = `🚀 遊戲將在 ${sec} 秒後開始...`;
+    }
+});
+
+// 玩家列表更新 (有人加入)
+socket.on('rocket:player_joined', (serverPlayers) => {
+    players = serverPlayers;
+    renderPlayers();
+    updatePot();
+});
+
+// 遊戲正式開始
+socket.on('rocket:round_started', (data) => {
+    state = "FLYING";
+    startTime = data.startedAt;
+    players = data.players;
+    result.classList.remove("show");
+    multiplierEl.className = "";
+    
+    const me = players.find(p => p.userId === myUserId);
+    if (me) {
+        action.className = "eject";
+        action.innerText = "🚀 EJECT 逃脫";
+        action.disabled = false;
+    } else {
+        action.className = "";
+        action.innerText = "本局已開始，請觀戰";
+        action.disabled = true;
+    }
+
+    gameStatus.innerText = "所有火箭已升空！";
+    addEvent(`🚀 本局開始！${players.length} 位玩家加入`);
+    soundLaunch();
+    requestAnimationFrame(gameLoop);
+});
+
+// 某人逃脫成功
+socket.on('rocket:cashout_confirmed', (data) => {
+    const { userId, username, multiplier: escMult, reward } = data;
+    const p = players.find(p => p.userId === userId);
+    if (p) {
+        p.status = 'CASHED_OUT';
+        p.multiplier = escMult;
+        p.reward = reward;
+    }
+
+    if (userId === myUserId) {
+        action.className = "";
+        action.innerText = "等待下一局";
+        action.disabled = true;
+        multiplierEl.classList.add("win");
+        gameStatus.innerText = `🎉 你在 ${escMult.toFixed(2)}x 成功逃脫！`;
+        addEvent(`🎉 你在 ${escMult.toFixed(2)}x 逃脫，獲得 ${reward} 銀幣`);
+        soundCashout();
+    } else {
+        addEvent(`💰 ${username} 在 ${escMult.toFixed(2)}x 逃脫`);
+    }
+    renderPlayers();
+});
+
+// 火箭爆炸！結算
+socket.on('rocket:round_crashed', (data) => {
+    state = "CRASHED";
+    multiplier = data.crashPoint;
+    players = data.results; // 更新最終狀態
+
+    multiplierEl.innerText = multiplier.toFixed(2) + "x";
+    multiplierEl.className = "crash";
+    gameStatus.innerText = `💥 火箭在 ${multiplier.toFixed(2)}x 爆炸！`;
+    
+    action.className = "";
+    action.innerText = `再來一局 · ${betAmount} 銀幣`;
+    action.disabled = true; // 鎖定直到狀態變回 WAITING
+
+    const me = players.find(p => p.userId === myUserId);
+    
+    // 渲染自己的結果
+    if (me) {
+        result.classList.add("show");
+        if (me.status === 'CRASHED') {
+            resultTitle.innerText = "💥 火箭爆炸";
+            resultAmount.innerText = `-${me.bet} 🪙`;
+            resultAmount.style.color = "#ff623c";
+            resultSub.innerText = `爆炸倍率 ${multiplier.toFixed(2)}x`;
+        } else {
+            resultTitle.innerText = "🚀 成功逃脫";
+            resultAmount.innerText = `+${me.reward} 🪙`;
+            resultAmount.style.color = "#00ffae";
+            resultSub.innerText = `逃脫於 ${me.multiplier.toFixed(2)}x`;
         }
+    } else {
+        // 觀戰者顯示結算板
+        result.classList.add("show");
+        resultTitle.innerText = "🏁 本局結束";
+        resultAmount.innerText = `${multiplier.toFixed(2)}x`;
+        resultAmount.style.color = "#ff2222";
+        resultSub.innerText = "等待下一局開始";
+    }
 
-        function resize() {
-            width = window.innerWidth; height = window.innerHeight;
-            canvas.width = width; canvas.height = height;
-            initStars();
+    // 🏆 渲染房間排行榜
+    renderLeaderboard();
+
+    addEvent(`💥 火箭在 ${multiplier.toFixed(2)}x 爆炸！`);
+    soundCrash();
+    createExplosion(rocketX, rocketY);
+    screenShake();
+    renderPlayers();
+});
+
+// 等待下一局
+socket.on('rocket:waiting', () => {
+    state = "WAITING";
+    players = [];
+    multiplier = 1.00;
+    multiplierEl.innerText = "1.00x";
+    multiplierEl.className = "";
+    gameStatus.innerText = "等待玩家下注";
+    result.classList.remove("show");
+    
+    action.disabled = false;
+    action.innerText = `支付 ${betAmount} 銀幣加入`;
+    renderPlayers();
+    updatePot();
+});
+
+
+/* =========================================================
+   UI 與 按鈕互動
+========================================================= */
+
+function renderLeaderboard() {
+    // 依據獎金排序 (獲勝者在上面)
+    const sorted = [...players].sort((a, b) => b.reward - a.reward);
+    
+    let html = `<div class="lb-title">🏆 本局英雄榜</div>`;
+    
+    if (sorted.length === 0) {
+        html += `<div style="font-size:12px; color:grey; text-align:center;">本局無人參與</div>`;
+    }
+
+    sorted.slice(0, 5).forEach((p, i) => {
+        let rankIcon = '';
+        if (i === 0 && p.reward > 0) rankIcon = '🥇';
+        else if (i === 1 && p.reward > 0) rankIcon = '🥈';
+        else if (i === 2 && p.reward > 0) rankIcon = '🥉';
+        else rankIcon = '👤';
+
+        const isWin = p.status === 'CASHED_OUT';
+        html += `
+            <div class="lb-item">
+                <div>${rankIcon} <span class="lb-name">${p.username}</span> <span class="lb-mult">${isWin ? p.multiplier.toFixed(2)+'x' : '爆炸'}</span></div>
+                <div class="${isWin ? 'lb-win' : 'lb-crash'}">${isWin ? '+'+p.reward : '-'+p.bet} 🪙</div>
+            </div>
+        `;
+    });
+
+    leaderboard.innerHTML = html;
+}
+
+function renderPlayers() {
+    playerContainer.innerHTML = "";
+    players.forEach(p => {
+        const isMe = p.userId === myUserId;
+        const card = document.createElement("div");
+        let cssClass = "playerCard ";
+        if (p.status === 'FLYING') cssClass += "flying";
+        else if (p.status === 'CASHED_OUT') cssClass += "cashed";
+        else if (p.status === 'CRASHED') cssClass += "crashed";
+        if (isMe) cssClass += " me";
+        card.className = cssClass;
+
+        let statusText = "等待下注";
+        if (state === "FLYING" && p.status === 'FLYING') statusText = `🚀 飛行中`;
+        if (p.status === 'CASHED_OUT') statusText = `✅ 逃脫 ${p.multiplier.toFixed(2)}x`;
+        if (p.status === 'CRASHED') statusText = "💥 爆炸";
+
+        card.innerHTML = `
+            <div class="playerTop">
+                <div class="avatar">${p.avatar}</div>
+                <div class="playerName">${p.username}</div>
+            </div>
+            <div class="playerBet">🪙 ${p.bet.toLocaleString()}</div>
+            <div class="playerStatus">${statusText}</div>
+        `;
+        playerContainer.appendChild(card);
+    });
+    onlineCount.innerText = players.length;
+}
+
+function updatePot() {
+    const total = players.reduce((sum, p) => sum + Number(p.bet), 0);
+    potValue.innerText = total.toLocaleString() + " 🪙";
+}
+
+document.querySelectorAll(".bet").forEach(button => {
+    button.addEventListener("click", () => {
+        if (state === "FLYING") return;
+        betAmount = Number(button.dataset.bet);
+        document.querySelectorAll(".bet").forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+        if (state === "WAITING") {
+            action.innerText = `支付 ${betAmount} 銀幣加入`;
         }
-        window.addEventListener('resize', resize);
-        resize();
+    });
+});
 
-        // 🌟 監聽 SDK 內購成功
-        window.onPurchaseSuccess = function(itemId) {
-            if (itemId === 'rocket_ticket') {
-                startFlight();
-            }
-        };
-        window.onPurchaseFailed = function(itemId) {
-            document.getElementById('msgBox').innerText = "銀幣不足或取消支付！";
-            const btn = document.getElementById('actionBtn');
-            btn.innerText = "支付 50 銀幣起飛";
-            btn.className = "btn-bet";
-            btn.disabled = false;
-        };
+autoButton.addEventListener("click", () => {
+    const value = Number(autoInput.value);
+    if (!Number.isFinite(value) || value < 1.1) return;
+    autoCashPoint = Math.min(value, 100);
+    autoCash = !autoCash;
+    autoButton.classList.toggle("active", autoCash);
+    autoButton.innerText = `🎯 自動逃脫 ${autoCashPoint.toFixed(2)}x`;
+});
 
-        function generateCrashPoint() {
-            // 產生一個符合賭場機率的崩潰點 (95% RTP)
-            const e = 100;
-            const h = Math.random() * 100;
-            if (h < 5) return 1.00; // 5% 機率直接爆炸 (莊家優勢)
-            return Math.max(1.01, (e / (100 - h)).toFixed(2));
-        }
+action.addEventListener("click", () => {
+    initAudio();
+    if (state === "WAITING") {
+        // 發送加入意圖給 Server
+        action.disabled = true;
+        action.innerText = "審核中...";
+        socket.emit('rocket:join', { roomId: ROOM_ID, betAmount });
+    } else if (state === "FLYING") {
+        // 發送逃脫意圖給 Server
+        socket.emit('rocket:cashout', { roomId: ROOM_ID });
+    }
+});
 
-        function handleAction() {
-            const btn = document.getElementById('actionBtn');
-            
-            if (state === 'IDLE' || state === 'CRASHED' || state === 'CASHED_OUT') {
-                // 請求扣款
-                if (window.BoomRoomSDK) {
-                    btn.disabled = true;
-                    btn.innerText = "驗證中...";
-                    window.BoomRoomSDK.requestPurchase('rocket_ticket', betAmount);
-                } else {
-                    // 網頁版直接測試
-                    startFlight();
-                }
-            } else if (state === 'FLYING') {
-                // 逃脫 (Cash Out)
-                cashOut();
-            }
-        }
+function checkAutoCash() {
+    if (!autoCash || state !== "FLYING") return;
+    const me = players.find(p => p.userId === myUserId);
+    if (!me || me.status !== "FLYING") return;
+    
+    if (multiplier >= autoCashPoint) {
+        socket.emit('rocket:cashout', { roomId: ROOM_ID });
+    }
+}
 
-        function startFlight() {
-            state = 'FLYING';
-            multiplier = 1.00;
-            crashPoint = generateCrashPoint();
-            startTime = Date.now();
-            
-            const display = document.getElementById('multiplierDisplay');
-            display.className = "multiplier";
-            document.getElementById('msgBox').innerText = "🚀 火箭升空中... 隨時準備逃脫！";
-            
-            const btn = document.getElementById('actionBtn');
-            btn.disabled = false;
-            btn.innerText = "EJECT (逃脫)";
-            btn.className = "btn-eject";
 
-            requestAnimationFrame(flightLoop);
-        }
+/* =========================================================
+   Canvas 繪圖與 Game Loop (動畫渲染層，不決定結果)
+========================================================= */
 
-        function cashOut() {
-            state = 'CASHED_OUT';
-            winAmount = Math.floor(betAmount * multiplier);
-            
-            const display = document.getElementById('multiplierDisplay');
-            display.className = "multiplier win-text";
-            document.getElementById('msgBox').innerText = `✅ 成功逃脫！贏得 ${winAmount} 銀幣！`;
-            
-            const btn = document.getElementById('actionBtn');
-            btn.innerText = "領獎並離開";
-            btn.className = "btn-bet";
-            btn.onclick = () => {
-                if (window.BoomRoomSDK) {
-                    if (multiplier >= 5.0) {
-                        window.BoomRoomSDK.sendRoomMessage(`🚀 太神啦！乘著火箭在 ${multiplier.toFixed(2)}x 極限逃生，狂賺 ${winAmount} 銀幣！`);
-                    }
-                    window.BoomRoomSDK.gameOver(winAmount);
-                }
-            };
-        }
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    rocketX = width / 2;
+    rocketY = height / 2 + 80;
+    initStars();
+}
+window.addEventListener("resize", resize);
 
-        function crash() {
-            state = 'CRASHED';
-            multiplier = crashPoint;
-            
-            const display = document.getElementById('multiplierDisplay');
-            display.innerText = multiplier.toFixed(2) + "x";
-            display.className = "multiplier crashed-text";
-            document.getElementById('msgBox').innerText = "💥 貪心必敗！火箭爆炸了！";
-            
-            const btn = document.getElementById('actionBtn');
-            btn.innerText = "再試一次 (50 銀幣)";
-            btn.className = "btn-bet";
-            btn.onclick = handleAction;
+// 音效模組 (保留你原本的)
+let audio = null;
+function initAudio() { if (!audio) { const AudioContext = window.AudioContext || window.webkitAudioContext; if (!AudioContext) return; audio = new AudioContext(); } if (audio.state === "suspended") { audio.resume(); } }
+function tone(f, d, t = "sine", v = .04, s = 0) { if (!audio) return; const o = audio.createOscillator(); const g = audio.createGain(); o.type = t; o.frequency.value = f; if (s !== 0) o.frequency.linearRampToValueAtTime(f + s, audio.currentTime + d); g.gain.setValueAtTime(v, audio.currentTime); g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + d); o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + d); }
+function soundLaunch() { initAudio(); tone(180, .15, "sawtooth", .05, 250); setTimeout(() => tone(420, .2, "triangle", .05, 400), 100); }
+function soundTick() { initAudio(); tone(600 + Math.min(multiplier * 40, 700), .045, "square", .015); }
+function soundWarning() { initAudio(); tone(750, .08, "square", .05); setTimeout(() => tone(950, .08, "square", .05), 100); }
+function soundCashout() { initAudio(); tone(600, .12, "triangle", .06, 200); setTimeout(() => tone(900, .15, "triangle", .07, 300), 100); setTimeout(() => tone(1400, .22, "triangle", .08, 300), 230); }
+function soundCrash() { initAudio(); tone(80, .4, "sawtooth", .13, -50); setTimeout(() => tone(40, .5, "square", .1, -20), 80); }
 
-            // 畫面震動
-            document.body.style.transform = "translate(15px, 15px)";
-            setTimeout(() => document.body.style.transform = "translate(-15px, -15px)", 50);
-            setTimeout(() => document.body.style.transform = "translate(0, 0)", 100);
+// 星星與爆炸模組 (保留你原本的)
+function initStars() { stars = []; for (let i = 0; i < 180; i++) stars.push({ x: Math.random() * width, y: Math.random() * height, size: Math.random() * 2 + .5, speed: Math.random() * 2 + .5, alpha: Math.random() * .7 + .2 }); }
+function drawStars() { const speed = state === "FLYING" ? Math.min(multiplier, 12) : 1; stars.forEach(s => { s.y += s.speed * speed; if (s.y > height) { s.y = 0; s.x = Math.random() * width; } ctx.globalAlpha = s.alpha; ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; }
+function drawRocket() { if (state !== "FLYING") return; rocketX = width / 2 + (Math.random() - .5) * Math.min(multiplier * 3, 25); rocketY = height / 2 + 80 - Math.min(multiplier * 8, 330); ctx.save(); ctx.translate(rocketX, rocketY); const flame = 35 + Math.random() * 20 * Math.min(multiplier, 7); ctx.fillStyle = "#ff8c00"; ctx.beginPath(); ctx.moveTo(-11, 15); ctx.lineTo(11, 15); ctx.lineTo(0, flame); ctx.closePath(); ctx.fill(); const gradient = ctx.createLinearGradient(-20, -50, 20, 30); gradient.addColorStop(0, "#ffffff"); gradient.addColorStop(1, "#777d91"); ctx.fillStyle = gradient; ctx.beginPath(); ctx.moveTo(0, -50); ctx.quadraticCurveTo(20, -15, 20, 20); ctx.lineTo(-20, 20); ctx.quadraticCurveTo(-20, -15, 0, -50); ctx.closePath(); ctx.fill(); ctx.fillStyle = "#20a9ff"; ctx.beginPath(); ctx.arc(0, -14, 7, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+function createExplosion(x, y) { particles = []; for (let i = 0; i < 150; i++) { const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 12 + 2; particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: Math.random() + .5, size: Math.random() * 5 + 2 }); } }
+function drawExplosion() { particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .15; p.life -= .025; if (p.life <= 0) return; ctx.globalAlpha = p.life; ctx.fillStyle = "#ff9d00"; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; }
+function draw() { ctx.fillStyle = "rgba(1,2,7,.28)"; ctx.fillRect(0, 0, width, height); drawStars(); drawRocket(); if (particles.length) { drawExplosion(); if (state === "CRASHED") requestAnimationFrame(draw); } }
+function screenShake() { const start = performance.now(); const duration = 300; function shake(now) { const progress = (now - start) / duration; if (progress >= 1) { document.body.style.transform = ""; return; } const strength = 15 * (1 - progress); const x = (Math.random() - .5) * strength; const y = (Math.random() - .5) * strength; document.body.style.transform = `translate(${x}px,${y}px)`; requestAnimationFrame(shake); } requestAnimationFrame(shake); }
 
-            if (window.BoomRoomSDK && crashPoint > 2.0) {
-                window.BoomRoomSDK.sendRoomMessage(`💥 貪心鬼！火箭在 ${crashPoint}x 爆炸，50 銀幣化為灰燼！`);
-            }
-        }
+let lastTick = 0;
+function gameLoop(timestamp) {
+    if (state !== "FLYING") {
+        draw();
+        return;
+    }
 
-        function flightLoop() {
-            if (state !== 'FLYING' && state !== 'CASHED_OUT') return;
+    // 🌟 平滑計算當前倍率 (Server-Authoritative)
+    const elapsed = Date.now() - startTime;
+    multiplier = Math.pow(1.06, elapsed / 1000);
 
-            // 計算倍率 (指數增長)
-            if (state === 'FLYING') {
-                const elapsed = Date.now() - startTime;
-                multiplier = Math.pow(1.06, elapsed / 1000); // 每秒成長
-                
-                if (multiplier >= crashPoint) {
-                    crash();
-                    return;
-                }
-                document.getElementById('multiplierDisplay').innerText = multiplier.toFixed(2) + "x";
-            }
+    multiplierEl.innerText = multiplier.toFixed(2) + "x";
+    updateMultiplierStyle();
+    checkAutoCash(); // 本地檢查是否需要發送自動逃脫請求
 
-            // 繪製背景
-            ctx.fillStyle = 'rgba(5, 5, 5, 0.3)'; // 殘影
-            ctx.fillRect(0, 0, width, height);
+    if (timestamp - lastTick > 250) {
+        lastTick = timestamp;
+        soundTick();
+    }
 
-            // 繪製星星 (速度隨倍率增加)
-            const speedMult = state === 'FLYING' ? multiplier : 1;
-            ctx.fillStyle = 'white';
-            stars.forEach(s => {
-                s.y += s.speed * speedMult;
-                if (s.y > height) { s.y = 0; s.x = Math.random() * width; }
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-                ctx.fill();
-            });
+    if (Math.abs(multiplier - 2) < .015 || Math.abs(multiplier - 5) < .015 || Math.abs(multiplier - 10) < .015) {
+        soundWarning();
+    }
 
-            // 繪製火箭 (簡單的三角形)
-            if (state === 'FLYING') {
-                const shake = multiplier > 2 ? (Math.random() - 0.5) * multiplier * 2 : 0;
-                ctx.save();
-                ctx.translate(width/2 + shake, height/2 + 100);
-                
-                // 火焰
-                ctx.fillStyle = '#f5af19';
-                ctx.beginPath();
-                ctx.moveTo(-10, 20); ctx.lineTo(10, 20); ctx.lineTo(0, 40 + Math.random()*30*multiplier);
-                ctx.fill();
+    draw();
+    requestAnimationFrame(gameLoop);
+}
 
-                // 機身
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.moveTo(0, -40); ctx.lineTo(20, 20); ctx.lineTo(-20, 20);
-                ctx.fill();
-                
-                ctx.restore();
-            }
+function updateMultiplierStyle() {
+    multiplierEl.className = "";
+    if (multiplier >= 10) { multiplierEl.classList.add("legend"); gameStatus.innerText = "☢️ 傳說倍率！再飛下去就是極限！"; }
+    else if (multiplier >= 5) { multiplierEl.classList.add("danger"); gameStatus.innerText = "🔥 高風險區！有人開始逃了！"; }
+    else if (multiplier >= 2) { multiplierEl.classList.add("warning"); gameStatus.innerText = "⚠️ 倍率加速中！"; }
+    else { gameStatus.innerText = "🚀 火箭飛行中！"; }
+}
 
-            requestAnimationFrame(flightLoop);
-        }
-        
-        // 初始畫面繪製
-        ctx.fillStyle = '#050505';
-        ctx.fillRect(0, 0, width, height);
-        initStars();
-    </script>
+function addEvent(message) {
+    const event = document.createElement("div");
+    event.className = "event";
+    event.innerText = message;
+    eventFeed.prepend(event);
+    while (eventFeed.children.length > 5) eventFeed.lastChild.remove();
+}
+
+resize();
+draw();
+</script>
 </body>
 </html>

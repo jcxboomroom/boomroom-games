@@ -1,0 +1,6779 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+>
+<meta name="theme-color" content="#050713">
+<title>BoomRoom｜Neon Dual Rocket</title>
+
+<style>
+:root{
+    --bg:#03040b;
+    --panel:rgba(9,12,29,.88);
+    --panel2:rgba(14,18,42,.9);
+    --line:rgba(255,255,255,.11);
+    --text:#f6f7ff;
+    --muted:#8d96b3;
+    --cyan:#22e7ff;
+    --cyan2:#008cff;
+    --pink:#ff32ce;
+    --pink2:#7d30ff;
+    --gold:#ffd84d;
+    --green:#19ffb1;
+    --red:#ff4a57;
+    --orange:#ff8e32;
+}
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 50% 18%,#13204a 0,#070a1c 35%,#020309 100%);
+    color:var(--text);
+    font-family:
+        Inter,
+        "SF Pro Display",
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        Arial,
+        sans-serif;
+    user-select:none;
+    touch-action:none;
+}
+
+body{
+    position:relative;
+}
+
+button,
+input{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+#gameCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:1;
+}
+
+#app{
+    position:fixed;
+    inset:0;
+    z-index:5;
+    pointer-events:none;
+}
+
+#topBar{
+    position:absolute;
+    top:max(10px,env(safe-area-inset-top));
+    left:10px;
+    right:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.brand{
+    min-width:0;
+    padding:9px 12px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:rgba(5,8,22,.78);
+    backdrop-filter:blur(12px);
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+.brand-title{
+    font-size:15px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.3px;
+}
+
+.brand-sub{
+    margin-top:4px;
+    color:var(--muted);
+    font-size:9px;
+}
+
+.header-pills{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+}
+
+.pill{
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:rgba(5,8,22,.78);
+    backdrop-filter:blur(12px);
+    font-size:11px;
+    color:#b8c0d9;
+    white-space:nowrap;
+}
+
+.host-pill{
+    color:var(--gold);
+}
+
+#roomHud{
+    position:absolute;
+    top:70px;
+    left:10px;
+    right:10px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.rocket-card{
+    min-width:0;
+    padding:9px 11px;
+    border-radius:15px;
+    border:1px solid var(--line);
+    background:rgba(7,10,25,.73);
+    backdrop-filter:blur(10px);
+    transition:.2s;
+}
+
+.rocket-card.active-a{
+    border-color:rgba(34,231,255,.55);
+    box-shadow:0 0 24px rgba(34,231,255,.08);
+}
+
+.rocket-card.active-b{
+    border-color:rgba(255,50,206,.55);
+    box-shadow:0 0 24px rgba(255,50,206,.08);
+}
+
+.rocket-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.rocket-name{
+    font-size:12px;
+    font-weight:900;
+}
+
+.rocket-mult{
+    font-size:18px;
+    font-weight:1000;
+}
+
+.rocket-card.a .rocket-mult{
+    color:var(--cyan);
+}
+
+.rocket-card.b .rocket-mult{
+    color:var(--pink);
+}
+
+.rocket-meta{
+    display:flex;
+    justify-content:space-between;
+    margin-top:4px;
+    color:var(--muted);
+    font-size:9px;
+}
+
+#centerHud{
+    position:absolute;
+    left:50%;
+    top:44%;
+    transform:translate(-50%,-50%);
+    width:min(90%,520px);
+    text-align:center;
+}
+
+#mainMultiplier{
+    font-family:
+        Impact,
+        "Arial Black",
+        sans-serif;
+    font-size:clamp(58px,14vw,120px);
+    line-height:.92;
+    letter-spacing:1px;
+    text-shadow:
+        0 0 16px rgba(255,255,255,.22),
+        0 0 50px rgba(73,98,255,.18);
+    transition:
+        transform .08s,
+        color .15s,
+        text-shadow .15s;
+}
+
+#mainMultiplier.cyan{
+    color:var(--cyan);
+    text-shadow:
+        0 0 20px rgba(34,231,255,.5),
+        0 0 60px rgba(0,140,255,.4);
+}
+
+#mainMultiplier.pink{
+    color:var(--pink);
+    text-shadow:
+        0 0 20px rgba(255,50,206,.5),
+        0 0 60px rgba(125,48,255,.42);
+}
+
+#mainMultiplier.warning{
+    color:var(--gold);
+    text-shadow:
+        0 0 22px rgba(255,216,77,.55),
+        0 0 60px rgba(255,142,50,.38);
+}
+
+#mainMultiplier.danger{
+    color:var(--red);
+    text-shadow:
+        0 0 22px rgba(255,74,87,.6),
+        0 0 70px rgba(255,30,50,.4);
+}
+
+#mainMultiplier.win{
+    color:var(--green);
+    text-shadow:
+        0 0 25px rgba(25,255,177,.65),
+        0 0 75px rgba(0,255,170,.35);
+    transform:scale(1.11);
+}
+
+#mainMultiplier.crash{
+    color:var(--red);
+    text-shadow:
+        0 0 25px #ff2238,
+        0 0 100px rgba(255,0,34,.7);
+    transform:scale(1.2);
+}
+
+#statusText{
+    margin-top:11px;
+    color:#abb2ca;
+    font-size:12px;
+}
+
+#controlHint{
+    margin-top:7px;
+    color:#69728e;
+    font-size:10px;
+}
+
+#playersPanel{
+    position:absolute;
+    top:172px;
+    left:10px;
+    right:10px;
+    max-height:30vh;
+    overflow:hidden;
+}
+
+#players{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+}
+
+.player{
+    min-width:0;
+    padding:7px;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:13px;
+    background:rgba(6,9,23,.72);
+    backdrop-filter:blur(9px);
+    transition:.15s;
+}
+
+.player.me{
+    border-color:rgba(255,255,255,.25);
+}
+
+.player.flying{
+    border-color:rgba(255,191,54,.3);
+}
+
+.player.cashed{
+    border-color:rgba(25,255,177,.52);
+    background:rgba(0,120,88,.12);
+}
+
+.player.crashed{
+    border-color:rgba(255,74,87,.45);
+    background:rgba(120,10,30,.12);
+    opacity:.72;
+}
+
+.player-row{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+
+.avatar{
+    width:27px;
+    height:27px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex-shrink:0;
+    background:linear-gradient(135deg,#7138ff,#e12aff);
+    border:1px solid rgba(255,255,255,.14);
+}
+
+.avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.avatar-fallback{
+    font-size:13px;
+}
+
+.player-main{
+    min-width:0;
+    flex:1;
+}
+
+.player-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:10px;
+    font-weight:900;
+}
+
+.player-status{
+    margin-top:2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:8px;
+    color:var(--muted);
+}
+
+.player-bet{
+    flex-shrink:0;
+    font-size:10px;
+    font-weight:900;
+    color:#d9def0;
+}
+
+.player-rocket{
+    margin-top:4px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:5px;
+    font-size:8px;
+    color:#7e87a4;
+}
+
+.choice-a{
+    color:var(--cyan);
+}
+
+.choice-b{
+    color:var(--pink);
+}
+
+#eventFeed{
+    position:absolute;
+    left:10px;
+    right:10px;
+    bottom:214px;
+    max-height:120px;
+    overflow:hidden;
+}
+
+.event{
+    display:inline-block;
+    margin-top:4px;
+    margin-right:4px;
+    padding:6px 9px;
+    border-radius:10px;
+    background:rgba(4,7,18,.72);
+    border:1px solid rgba(255,255,255,.08);
+    color:#bcc3d9;
+    font-size:9px;
+    backdrop-filter:blur(8px);
+    animation:eventIn .16s ease-out;
+}
+
+@keyframes eventIn{
+    from{
+        opacity:0;
+        transform:translateY(7px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+#gestureButton{
+    position:absolute;
+    left:50%;
+    bottom:210px;
+    transform:translateX(-50%);
+    pointer-events:auto;
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:14px;
+    padding:9px 13px;
+    background:rgba(6,9,23,.9);
+    color:#d8ddf0;
+    font-size:11px;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+
+#gestureButton.enabled{
+    border-color:rgba(25,255,177,.55);
+    color:var(--green);
+}
+
+#bottomPanel{
+    position:absolute;
+    left:50%;
+    bottom:max(10px,env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    width:min(620px,calc(100% - 20px));
+    pointer-events:auto;
+}
+
+#choiceRow{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-bottom:7px;
+}
+
+.choice{
+    height:42px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    color:#aeb5ce;
+    background:rgba(7,10,25,.9);
+    font-size:12px;
+    font-weight:900;
+}
+
+.choice.active-a{
+    color:#eaffff;
+    border-color:rgba(34,231,255,.62);
+    background:linear-gradient(135deg,rgba(34,231,255,.2),rgba(0,140,255,.08));
+    box-shadow:0 0 24px rgba(34,231,255,.11);
+}
+
+.choice.active-b{
+    color:#fff1fb;
+    border-color:rgba(255,50,206,.62);
+    background:linear-gradient(135deg,rgba(255,50,206,.2),rgba(125,48,255,.08));
+    box-shadow:0 0 24px rgba(255,50,206,.1);
+}
+
+#betRow{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:5px;
+    margin-bottom:7px;
+}
+
+.bet{
+    height:36px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:rgba(6,9,24,.92);
+    color:#bbc3dc;
+    font-size:10px;
+    font-weight:900;
+}
+
+.bet.active{
+    color:#fff;
+    border-color:rgba(126,70,255,.8);
+    background:linear-gradient(135deg,#6630df,#932cff);
+}
+
+.bet:disabled,
+.choice:disabled{
+    opacity:.35;
+}
+
+#actionRow{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+}
+
+#actionButton{
+    width:100%;
+    height:62px;
+    border:0;
+    border-radius:31px;
+    color:#fff;
+    background:linear-gradient(90deg,#6c2cf0,#9b26db);
+    font-size:19px;
+    font-weight:1000;
+    letter-spacing:.2px;
+    box-shadow:
+        0 14px 30px rgba(0,0,0,.4),
+        inset 0 1px rgba(255,255,255,.2);
+}
+
+#actionButton.eject{
+    background:linear-gradient(90deg,#ff3a39,#ff9d24);
+    animation:ejectPulse .48s infinite alternate;
+}
+
+#actionButton.disabled{
+    opacity:.48;
+}
+
+@keyframes ejectPulse{
+    from{
+        box-shadow:
+            0 12px 30px rgba(0,0,0,.45);
+    }
+    to{
+        box-shadow:
+            0 12px 30px rgba(0,0,0,.45),
+            0 0 36px rgba(255,108,31,.35);
+    }
+}
+
+#resultOverlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    opacity:0;
+    pointer-events:none;
+    transition:.2s;
+}
+
+#resultOverlay.show{
+    opacity:1;
+}
+
+.result-card{
+    width:min(420px,100%);
+    padding:18px;
+    border-radius:22px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(5,8,20,.95);
+    box-shadow:
+        0 30px 90px rgba(0,0,0,.55);
+    backdrop-filter:blur(18px);
+    text-align:center;
+}
+
+.result-title{
+    color:#8f97b2;
+    font-size:11px;
+}
+
+.result-main{
+    margin-top:7px;
+    font-size:31px;
+    font-weight:1000;
+}
+
+.result-sub{
+    margin-top:5px;
+    color:#7e87a4;
+    font-size:10px;
+}
+
+#leaderboard{
+    margin-top:13px;
+    display:grid;
+    gap:5px;
+    text-align:left;
+}
+
+.rank{
+    display:grid;
+    grid-template-columns:25px 1fr auto;
+    align-items:center;
+    gap:6px;
+    padding:6px 8px;
+    border-radius:9px;
+    background:rgba(255,255,255,.035);
+    font-size:10px;
+}
+
+.rank-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:800;
+}
+
+.rank-value{
+    font-weight:1000;
+    color:var(--green);
+}
+
+#restartButton{
+    width:100%;
+    height:44px;
+    margin-top:12px;
+    border-radius:13px;
+    border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(135deg,#6230df,#8229c8);
+    color:#fff;
+    font-weight:1000;
+}
+
+#toast{
+    position:absolute;
+    left:50%;
+    top:42%;
+    transform:translate(-50%,-50%);
+    padding:9px 14px;
+    border-radius:999px;
+    background:rgba(3,6,15,.86);
+    border:1px solid rgba(255,255,255,.1);
+    color:#dfe4f5;
+    font-size:11px;
+    opacity:0;
+    pointer-events:none;
+    transition:.18s;
+    white-space:nowrap;
+}
+
+#toast.show{
+    opacity:1;
+}
+
+.hidden{
+    display:none !important;
+}
+
+@media(min-width:700px){
+    #players{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+
+    #playersPanel{
+        max-width:620px;
+        left:50%;
+        right:auto;
+        width:min(620px,calc(100% - 20px));
+        transform:translateX(-50%);
+    }
+}
+
+@media(max-height:720px){
+    #playersPanel{
+        top:155px;
+        max-height:23vh;
+    }
+
+    #eventFeed{
+        bottom:194px;
+    }
+
+    #gestureButton{
+        bottom:188px;
+    }
+
+    #centerHud{
+        top:42%;
+    }
+
+    #bottomPanel{
+        bottom:7px;
+    }
+
+    #actionButton{
+        height:55px;
+    }
+
+    .choice,
+    .bet{
+        height:34px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="app">
+
+    <div id="topBar">
+
+        <div class="brand">
+            <div class="brand-title">🚀 NEON DUAL ROCKET</div>
+            <div class="brand-sub">BoomRoom · 雙火箭派對</div>
+        </div>
+
+        <div class="header-pills">
+            <div class="pill host-pill" id="hostPill">HOST</div>
+            <div class="pill">👥 <span id="onlineCount">1</span></div>
+        </div>
+
+    </div>
+
+    <div id="roomHud">
+
+        <div class="rocket-card a" id="rocketCardA">
+
+            <div class="rocket-top">
+                <div class="rocket-name">🔵 穩定號</div>
+                <div class="rocket-mult" id="rocketMultA">1.00x</div>
+            </div>
+
+            <div class="rocket-meta">
+                <span>低風險航道</span>
+                <span id="rocketStateA">待命</span>
+            </div>
+
+        </div>
+
+        <div class="rocket-card b" id="rocketCardB">
+
+            <div class="rocket-top">
+                <div class="rocket-name">🩷 狂暴號</div>
+                <div class="rocket-mult" id="rocketMultB">1.00x</div>
+            </div>
+
+            <div class="rocket-meta">
+                <span>高風險航道</span>
+                <span id="rocketStateB">待命</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="centerHud">
+
+        <div id="mainMultiplier">1.00x</div>
+
+        <div id="statusText">
+            等待玩家選擇火箭並下注
+        </div>
+
+        <div id="controlHint">
+            左右傾斜手機控制你的火箭
+        </div>
+
+    </div>
+
+    <div id="playersPanel">
+        <div id="players"></div>
+    </div>
+
+    <div id="eventFeed"></div>
+
+    <button id="gestureButton">
+        📱 啟用體感控制
+    </button>
+
+    <div id="bottomPanel">
+
+        <div id="choiceRow">
+
+            <button class="choice active-a" id="choiceA">
+                🔵 穩定號
+            </button>
+
+            <button class="choice" id="choiceB">
+                🩷 狂暴號
+            </button>
+
+        </div>
+
+        <div id="betRow">
+
+            <button class="bet active" data-bet="50">50</button>
+            <button class="bet" data-bet="100">100</button>
+            <button class="bet" data-bet="250">250</button>
+            <button class="bet" data-bet="500">500</button>
+            <button class="bet" data-bet="1000">1000</button>
+
+        </div>
+
+        <div id="actionRow">
+
+            <button id="actionButton">
+                支付 50 銀幣加入
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="resultOverlay">
+
+        <div class="result-card">
+
+            <div class="result-title" id="resultTitle">
+                本局結果
+            </div>
+
+            <div class="result-main" id="resultMain">
+                等待結算
+            </div>
+
+            <div class="result-sub" id="resultSub">
+                —
+            </div>
+
+            <div id="leaderboard"></div>
+
+            <button id="restartButton">
+                下一局
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="toast"></div>
+
+</div>
+
+<script>
+(() => {
+    "use strict";
+
+    /* =========================================================
+       SDK / 使用者
+    ========================================================= */
+
+    const sdk = window.BoomRoomSDK || null;
+
+    let user = {
+        id: "demo_" + Math.random().toString(36).slice(2, 9),
+        username: "訪客",
+        avatar: ""
+    };
+
+    if (sdk && typeof sdk.getUser === "function") {
+        try {
+            const sdkUser = sdk.getUser();
+            if (sdkUser && sdkUser.id) {
+                user = {
+                    id: String(sdkUser.id),
+                    username: String(sdkUser.username || "玩家"),
+                    avatar: String(sdkUser.avatar || "")
+                };
+            }
+        } catch (e) {}
+    }
+
+    const sdkAvailable =
+        !!sdk &&
+        typeof sdk.requestPurchase === "function" &&
+        typeof sdk.gameOver === "function" &&
+        typeof sdk.sendGameEvent === "function";
+
+
+    /* =========================================================
+       DOM
+    ========================================================= */
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d", { alpha: false });
+
+    const mainMultiplier = document.getElementById("mainMultiplier");
+    const statusText = document.getElementById("statusText");
+    const controlHint = document.getElementById("controlHint");
+
+    const playersEl = document.getElementById("players");
+    const onlineCountEl = document.getElementById("onlineCount");
+    const hostPill = document.getElementById("hostPill");
+
+    const rocketMultA = document.getElementById("rocketMultA");
+    const rocketMultB = document.getElementById("rocketMultB");
+    const rocketStateA = document.getElementById("rocketStateA");
+    const rocketStateB = document.getElementById("rocketStateB");
+    const rocketCardA = document.getElementById("rocketCardA");
+    const rocketCardB = document.getElementById("rocketCardB");
+
+    const choiceA = document.getElementById("choiceA");
+    const choiceB = document.getElementById("choiceB");
+
+    const actionButton = document.getElementById("actionButton");
+    const gestureButton = document.getElementById("gestureButton");
+
+    const eventFeed = document.getElementById("eventFeed");
+
+    const resultOverlay = document.getElementById("resultOverlay");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultMain = document.getElementById("resultMain");
+    const resultSub = document.getElementById("resultSub");
+    const leaderboard = document.getElementById("leaderboard");
+    const restartButton = document.getElementById("restartButton");
+
+    const toast = document.getElementById("toast");
+
+
+    /* =========================================================
+       Canvas / 視窗
+    ========================================================= */
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    function resizeCanvas() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        width = window.innerWidth;
+        height = window.innerHeight;
+
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        createStars();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
+
+    /* =========================================================
+       遊戲常數
+    ========================================================= */
+
+    const GAME_ID = "neon_dual_rocket_v1";
+
+    const ROUND_WAIT_MS = 3500;
+    const START_DELAY_MS = 1800;
+    const ROUND_RESULT_MS = 6500;
+
+    const INPUT_INTERVAL_MS = 75;
+    const WORLD_BROADCAST_MS = 100;
+
+    const MAX_PAYOUT_MULTIPLIER = 20;
+    const MAX_PLAYERS_DISPLAY = 12;
+
+    const ROCKETS = {
+        A: {
+            id: "A",
+            name: "穩定號",
+            color: "#22e7ff",
+            glow: "#008cff",
+            growth: 1.043,
+            minCrash: 1.08,
+            maxCrash: 18
+        },
+        B: {
+            id: "B",
+            name: "狂暴號",
+            color: "#ff32ce",
+            glow: "#7d30ff",
+            growth: 1.061,
+            minCrash: 1.04,
+            maxCrash: 28
+        }
+    };
+
+
+    /* =========================================================
+       本地遊戲狀態
+    ========================================================= */
+
+    let state = "LOBBY";
+    let selectedRocket = "A";
+    let selectedBet = 50;
+
+    let currentRoundId = null;
+    let roundStartAt = 0;
+
+    let crashPointA = null;
+    let crashPointB = null;
+
+    let rocketCrashedA = false;
+    let rocketCrashedB = false;
+
+    let lastHostHeartbeat = 0;
+    let hostId = null;
+
+    let clockOffset = 0;
+
+    let lastWorldBroadcast = 0;
+    let lastInputSent = 0;
+
+    let lastMultiplierTick = 0;
+    let lastWarningTone = 0;
+
+    let roundRewardSent = false;
+    let roundBetSent = false;
+
+    let roundResultData = null;
+
+    let nextRoundTimer = null;
+
+    let localReady = false;
+
+    let hostSimulationInitialized = false;
+
+
+    /* =========================================================
+       Host Election
+    ========================================================= */
+
+    const joinKey = "boomroom_neon_dual_join_stamp";
+
+    let myJoinAt =
+        Number(sessionStorage.getItem(joinKey));
+
+    if (!Number.isFinite(myJoinAt) || myJoinAt <= 0) {
+        myJoinAt = Date.now();
+        sessionStorage.setItem(joinKey, String(myJoinAt));
+    }
+
+    const hostCandidates = new Map();
+
+    hostCandidates.set(
+        user.id,
+        {
+            id: user.id,
+            joinedAt: myJoinAt,
+            username: user.username
+        }
+    );
+
+
+    /* =========================================================
+       玩家資料
+    ========================================================= */
+
+    const playerMap = new Map();
+
+    function createLocalPlayer() {
+        return {
+            id: user.id,
+            username: user.username,
+            avatar: user.avatar,
+            joinedAt: myJoinAt,
+            ready: false,
+            bet: 0,
+            rocket: selectedRocket,
+            status: "waiting",
+            x: 0,
+            renderX: 0,
+            bonus: 0,
+            reward: 0,
+            roundMultiplier: 1,
+            cashoutAt: 0,
+            lastInputSeq: 0
+        };
+    }
+
+    playerMap.set(user.id, createLocalPlayer());
+
+
+    /* =========================================================
+       Socket / SDK Relay
+    ========================================================= */
+
+    function sendEvent(eventName, payload = {}) {
+        if (
+            sdkAvailable &&
+            typeof sdk.sendGameEvent === "function"
+        ) {
+            try {
+                sdk.sendGameEvent(
+                    eventName,
+                    payload
+                );
+            } catch (e) {}
+        }
+    }
+
+
+    window.addEventListener("message", (event) => {
+        let data = null;
+
+        try {
+            data =
+                typeof event.data === "string"
+                    ? JSON.parse(event.data)
+                    : event.data;
+        } catch (e) {
+            return;
+        }
+
+        if (
+            !data ||
+            data.action !== "gameEventReceived"
+        ) {
+            return;
+        }
+
+        const senderId =
+            data.userId != null
+                ? String(data.userId)
+                : "";
+
+        const eventName =
+            data.eventName;
+
+        const payload =
+            data.payload || {};
+
+        if (!eventName) {
+            return;
+        }
+
+        if (senderId === user.id) {
+            return;
+        }
+
+        handleGameEvent(
+            senderId,
+            eventName,
+            payload
+        );
+    });
+
+
+    /* =========================================================
+       WebAudio
+    ========================================================= */
+
+    let audioContext = null;
+
+    function initAudio() {
+        if (!audioContext) {
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            if (AudioContext) {
+                try {
+                    audioContext =
+                        new AudioContext();
+                } catch (e) {}
+            }
+        }
+
+        if (
+            audioContext &&
+            audioContext.state === "suspended"
+        ) {
+            audioContext.resume().catch(() => {});
+        }
+    }
+
+    function tone(
+        frequency,
+        duration = 0.08,
+        type = "sine",
+        volume = 0.035,
+        slide = 0
+    ) {
+        if (!audioContext) {
+            return;
+        }
+
+        try {
+            const oscillator =
+                audioContext.createOscillator();
+
+            const gain =
+                audioContext.createGain();
+
+            oscillator.type =
+                type;
+
+            oscillator.frequency.setValueAtTime(
+                frequency,
+                audioContext.currentTime
+            );
+
+            if (slide) {
+                oscillator.frequency.linearRampToValueAtTime(
+                    frequency + slide,
+                    audioContext.currentTime +
+                    duration
+                );
+            }
+
+            gain.gain.setValueAtTime(
+                volume,
+                audioContext.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioContext.currentTime +
+                duration
+            );
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.start();
+
+            oscillator.stop(
+                audioContext.currentTime +
+                duration
+            );
+        } catch (e) {}
+    }
+
+    function soundJoin() {
+        initAudio();
+        tone(420, .09, "triangle", .04, 130);
+        setTimeout(() => tone(680, .12, "triangle", .04, 220), 80);
+    }
+
+    function soundStart() {
+        initAudio();
+        tone(180, .18, "sawtooth", .045, 250);
+        setTimeout(() => tone(320, .18, "sawtooth", .045, 300), 100);
+        setTimeout(() => tone(520, .22, "triangle", .05, 500), 210);
+    }
+
+    function soundTick(multiplier) {
+        initAudio();
+        const base = 500 + Math.min(multiplier * 42, 900);
+        tone(base, .035, "square", .008);
+    }
+
+    function soundNearCrash() {
+        initAudio();
+        tone(800, .075, "square", .045);
+        setTimeout(() => tone(1040, .075, "square", .045), 90);
+    }
+
+    function soundCollect() {
+        initAudio();
+        tone(730, .06, "triangle", .04, 180);
+        setTimeout(() => tone(1050, .08, "triangle", .04, 220), 55);
+    }
+
+    function soundHit() {
+        initAudio();
+        tone(150, .12, "sawtooth", .04, -80);
+    }
+
+    function soundCashout() {
+        initAudio();
+        tone(560, .09, "triangle", .05, 170);
+        setTimeout(() => tone(810, .11, "triangle", .055, 220), 75);
+        setTimeout(() => tone(1240, .18, "triangle", .065, 260), 165);
+    }
+
+    function soundCrash() {
+        initAudio();
+        tone(85, .34, "sawtooth", .12, -50);
+        setTimeout(() => tone(48, .42, "square", .08, -15), 80);
+    }
+
+    function soundWin() {
+        initAudio();
+        [520, 690, 860, 1080, 1380].forEach(
+            (n, i) => {
+                setTimeout(
+                    () => tone(n, .13, "triangle", .05),
+                    i * 75
+                );
+            }
+        );
+    }
+
+
+    /* =========================================================
+       Toast / Event
+    ========================================================= */
+
+    let toastTimer = null;
+
+    function showToast(message, duration = 1600) {
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        clearTimeout(toastTimer);
+
+        toastTimer =
+            setTimeout(
+                () => toast.classList.remove("show"),
+                duration
+            );
+    }
+
+    function addEvent(message) {
+        const item =
+            document.createElement("div");
+
+        item.className = "event";
+        item.textContent = message;
+
+        eventFeed.prepend(item);
+
+        while (
+            eventFeed.children.length > 7
+        ) {
+            eventFeed.lastElementChild.remove();
+        }
+    }
+
+
+    /* =========================================================
+       Utils
+    ========================================================= */
+
+    function clamp(value, min, max) {
+        return Math.max(
+            min,
+            Math.min(max, value)
+        );
+    }
+
+    function safeNumber(value, fallback = 0) {
+        const n = Number(value);
+        return Number.isFinite(n)
+            ? n
+            : fallback;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function randomId(prefix = "r") {
+        return (
+            prefix +
+            "_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random()
+                .toString(36)
+                .slice(2, 8)
+        );
+    }
+
+    function getHostCandidateArray() {
+        return Array.from(
+            hostCandidates.values()
+        ).sort(
+            (a, b) => {
+                if (a.joinedAt !== b.joinedAt) {
+                    return a.joinedAt - b.joinedAt;
+                }
+                return a.id.localeCompare(b.id);
+            }
+        );
+    }
+
+    function isHost() {
+        return hostId === user.id;
+    }
+
+    function currentHostKnown() {
+        return (
+            hostId &&
+            hostId.length > 0
+        );
+    }
+
+
+    /* =========================================================
+       Host Election
+    ========================================================= */
+
+    function broadcastHello() {
+        sendEvent("PLAYER_HELLO", {
+            gameId: GAME_ID,
+            user: {
+                id: user.id,
+                username: user.username,
+                avatar: user.avatar
+            },
+            joinedAt: myJoinAt,
+            clientTime: Date.now()
+        });
+    }
+
+    function tryElectHost() {
+        const candidates =
+            getHostCandidateArray();
+
+        if (!candidates.length) {
+            return;
+        }
+
+        const winner =
+            candidates[0];
+
+        if (
+            !hostId ||
+            (
+                hostId !== winner.id &&
+                isEarlierCandidate(
+                    winner.id,
+                    hostId
+                )
+            )
+        ) {
+            hostId =
+                winner.id;
+
+            lastHostHeartbeat =
+                Date.now();
+
+            sendEvent(
+                "HOST_ANNOUNCE",
+                {
+                    gameId: GAME_ID,
+                    hostId,
+                    hostJoinedAt:
+                        winner.joinedAt,
+                    epoch:
+                        winner.joinedAt
+                }
+            );
+
+            addEvent(
+                hostId === user.id
+                    ? "👑 你成為本房 Host"
+                    : "👑 房主已同步"
+            );
+        }
+
+        renderHeader();
+    }
+
+    function isEarlierCandidate(
+        candidateId,
+        currentHostId
+    ) {
+        const candidate =
+            hostCandidates.get(
+                candidateId
+            );
+
+        const current =
+            hostCandidates.get(
+                currentHostId
+            );
+
+        if (!candidate) {
+            return false;
+        }
+
+        if (!current) {
+            return true;
+        }
+
+        if (
+            candidate.joinedAt !==
+            current.joinedAt
+        ) {
+            return (
+                candidate.joinedAt <
+                current.joinedAt
+            );
+        }
+
+        return (
+            candidate.id
+                .localeCompare(
+                    current.id
+                ) < 0
+        );
+    }
+
+    function becomeHost() {
+        const candidate =
+            hostCandidates.get(
+                user.id
+            );
+
+        if (!candidate) {
+            return;
+        }
+
+        hostId =
+            user.id;
+
+        lastHostHeartbeat =
+            Date.now();
+
+        sendEvent(
+            "HOST_ANNOUNCE",
+            {
+                gameId: GAME_ID,
+                hostId: user.id,
+                hostJoinedAt:
+                    candidate.joinedAt,
+                epoch:
+                    candidate.joinedAt
+            }
+        );
+
+        addEvent(
+            "👑 Host 已接管房間"
+        );
+
+        if (state === "FLYING") {
+            restoreHostSimulation();
+        }
+    }
+
+
+    /* =========================================================
+       Event Router
+    ========================================================= */
+
+    function handleGameEvent(
+        senderId,
+        eventName,
+        payload
+    ) {
+        switch (eventName) {
+
+            case "PLAYER_HELLO":
+                onPlayerHello(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "HOST_ANNOUNCE":
+                onHostAnnounce(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "HOST_HEARTBEAT":
+                onHostHeartbeat(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "PLAYER_READY":
+                onPlayerReady(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "LOBBY_STATE":
+                onLobbyState(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "ROUND_START":
+                onRoundStart(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "ROUND_SNAPSHOT":
+                onRoundSnapshot(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "PLAYER_INPUT":
+                onPlayerInput(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "WORLD_STATE":
+                onWorldState(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "PLAYER_CASHOUT":
+                onPlayerCashout(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "CASHOUT_CONFIRMED":
+                onCashoutConfirmed(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "PLAYER_CRASHED":
+                onPlayerCrashed(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "ROCKET_CRASHED":
+                onRocketCrashed(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "ROUND_RESULT":
+                onRoundResult(
+                    senderId,
+                    payload
+                );
+                break;
+
+            case "PLAYER_MESSAGE":
+                if (payload && payload.text) {
+                    addEvent(
+                        `💬 ${payload.text}`
+                    );
+                }
+                break;
+        }
+    }
+
+
+    /* =========================================================
+       Player Hello
+    ========================================================= */
+
+    function onPlayerHello(
+        senderId,
+        payload
+    ) {
+        const incomingUser =
+            payload.user || {};
+
+        const id =
+            String(
+                incomingUser.id ||
+                senderId
+            );
+
+        if (id === user.id) {
+            return;
+        }
+
+        const joinedAt =
+            safeNumber(
+                payload.joinedAt,
+                Date.now()
+            );
+
+        hostCandidates.set(
+            id,
+            {
+                id,
+                joinedAt,
+                username:
+                    String(
+                        incomingUser.username ||
+                        "玩家"
+                    )
+            }
+        );
+
+        upsertPlayer(
+            id,
+            {
+                id,
+                username:
+                    String(
+                        incomingUser.username ||
+                        "玩家"
+                    ),
+                avatar:
+                    String(
+                        incomingUser.avatar ||
+                        ""
+                    ),
+                joinedAt
+            }
+        );
+
+        sendEvent(
+            "PLAYER_HELLO_ACK",
+            {
+                gameId: GAME_ID,
+                targetId: id,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    avatar: user.avatar
+                },
+                joinedAt: myJoinAt
+            }
+        );
+
+        if (isHost()) {
+            sendLobbySnapshot(id);
+
+            if (state === "FLYING") {
+                sendRoundSnapshot(id);
+            }
+        }
+
+        tryElectHost();
+
+        renderPlayers();
+    }
+
+
+    /* =========================================================
+       Host Announcement
+    ========================================================= */
+
+    function onHostAnnounce(
+        senderId,
+        payload
+    ) {
+        const announcedHost =
+            String(
+                payload.hostId ||
+                senderId
+            );
+
+        const joinedAt =
+            safeNumber(
+                payload.hostJoinedAt,
+                Number.MAX_SAFE_INTEGER
+            );
+
+        if (!hostCandidates.has(announcedHost)) {
+            hostCandidates.set(
+                announcedHost,
+                {
+                    id: announcedHost,
+                    joinedAt,
+                    username:
+                        announcedHost === user.id
+                            ? user.username
+                            : "玩家"
+                }
+            );
+        }
+
+        const current =
+            hostId
+                ? hostCandidates.get(hostId)
+                : null;
+
+        const candidate =
+            hostCandidates.get(
+                announcedHost
+            );
+
+        if (
+            !current ||
+            !candidate ||
+            isEarlierCandidate(
+                announcedHost,
+                hostId
+            )
+        ) {
+            hostId =
+                announcedHost;
+        }
+
+        lastHostHeartbeat =
+            Date.now();
+
+        renderHeader();
+    }
+
+
+    /* =========================================================
+       Host Heartbeat
+    ========================================================= */
+
+    function onHostHeartbeat(
+        senderId,
+        payload
+    ) {
+        const incomingHost =
+            String(
+                payload.hostId ||
+                senderId
+            );
+
+        if (
+            hostId === incomingHost ||
+            !hostId
+        ) {
+            hostId =
+                incomingHost;
+
+            lastHostHeartbeat =
+                Date.now();
+        }
+
+        if (payload.hostNow) {
+            clockOffset =
+                safeNumber(
+                    payload.hostNow,
+                    Date.now()
+                ) -
+                Date.now();
+        }
+    }
+
+
+    /* =========================================================
+       Player Data
+    ========================================================= */
+
+    function upsertPlayer(
+        id,
+        patch
+    ) {
+        if (!playerMap.has(id)) {
+            playerMap.set(
+                id,
+                {
+                    id,
+                    username: "玩家",
+                    avatar: "",
+                    joinedAt: Date.now(),
+                    ready: false,
+                    bet: 0,
+                    rocket: "A",
+                    status: "waiting",
+                    x: 0,
+                    renderX: 0,
+                    bonus: 0,
+                    reward: 0,
+                    roundMultiplier: 1,
+                    cashoutAt: 0,
+                    lastInputSeq: 0
+                }
+            );
+        }
+
+        Object.assign(
+            playerMap.get(id),
+            patch
+        );
+    }
+
+
+    /* =========================================================
+       Lobby Ready
+    ========================================================= */
+
+    function onPlayerReady(
+        senderId,
+        payload
+    ) {
+        const p =
+            getOrCreateRemotePlayer(
+                senderId,
+                payload
+            );
+
+        p.ready = true;
+        p.bet =
+            clamp(
+                safeNumber(
+                    payload.bet,
+                    0
+                ),
+                0,
+                1000
+            );
+
+        p.rocket =
+            payload.rocket === "B"
+                ? "B"
+                : "A";
+
+        p.status = "ready";
+
+        if (payload.username) {
+            p.username =
+                String(payload.username);
+        }
+
+        if (payload.avatar) {
+            p.avatar =
+                String(payload.avatar);
+        }
+
+        addEvent(
+            `🪙 ${p.username} 下注 ${p.bet}｜${rocketName(p.rocket)}`
+        );
+
+        renderPlayers();
+
+        if (isHost() && state === "LOBBY") {
+            maybeStartRound();
+        }
+    }
+
+
+    function getOrCreateRemotePlayer(
+        id,
+        payload = {}
+    ) {
+        if (!playerMap.has(id)) {
+            upsertPlayer(
+                id,
+                {
+                    id,
+                    username:
+                        String(
+                            payload.username ||
+                            "玩家"
+                        ),
+                    avatar:
+                        String(
+                            payload.avatar ||
+                            ""
+                        ),
+                    joinedAt:
+                        safeNumber(
+                            payload.joinedAt,
+                            Date.now()
+                        )
+                }
+            );
+        }
+
+        return playerMap.get(id);
+    }
+
+
+    /* =========================================================
+       Player Ready / Join
+    ========================================================= */
+
+    function requestBetAndJoin() {
+        initAudio();
+
+        if (state === "FLYING") {
+            cashoutLocal();
+            return;
+        }
+
+        if (localReady) {
+            return;
+        }
+
+        roundBetSent = false;
+
+        if (
+            !sdkAvailable
+        ) {
+            onLocalPurchaseSuccess(
+                `neon_dual_bet_${selectedBet}`
+            );
+            return;
+        }
+
+        actionButton.disabled = true;
+        actionButton.classList.add("disabled");
+        actionButton.textContent =
+            "驗證銀幣中…";
+
+        const itemId =
+            `neon_dual_bet_${selectedBet}`;
+
+        try {
+            sdk.requestPurchase(
+                itemId,
+                selectedBet
+            );
+        } catch (e) {
+            actionButton.disabled = false;
+            actionButton.classList.remove("disabled");
+            actionButton.textContent =
+                `支付 ${selectedBet} 銀幣加入`;
+            showToast("無法發起付款");
+        }
+    }
+
+
+    function onLocalPurchaseSuccess(itemId) {
+        const match =
+            /^neon_dual_bet_(\d+)$/
+                .exec(
+                    String(itemId)
+                );
+
+        if (!match) {
+            return;
+        }
+
+        const paid =
+            Number(match[1]);
+
+        if (
+            paid !== selectedBet
+        ) {
+            selectedBet = paid;
+        }
+
+        initAudio();
+
+        localReady = true;
+        roundBetSent = true;
+
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        me.ready = true;
+        me.bet = selectedBet;
+        me.rocket = selectedRocket;
+        me.status = "ready";
+        me.reward = 0;
+        me.bonus = 0;
+
+        sendEvent(
+            "PLAYER_READY",
+            {
+                gameId: GAME_ID,
+                username: user.username,
+                avatar: user.avatar,
+                joinedAt: myJoinAt,
+                bet: selectedBet,
+                rocket: selectedRocket
+            }
+        );
+
+        soundJoin();
+
+        addEvent(
+            `✅ 你已下注 ${selectedBet} 銀幣`
+        );
+
+        actionButton.disabled = false;
+        actionButton.classList.remove("disabled");
+        actionButton.textContent =
+            "等待開局…";
+
+        showToast(
+            `${rocketName(selectedRocket)} 已加入`
+        );
+
+        renderPlayers();
+
+        if (
+            isHost() &&
+            state === "LOBBY"
+        ) {
+            maybeStartRound();
+        }
+    }
+
+
+    /* =========================================================
+       SDK Callbacks
+    ========================================================= */
+
+    window.onPurchaseSuccess =
+        function(itemId) {
+            onLocalPurchaseSuccess(
+                itemId
+            );
+        };
+
+    window.onPurchaseFailed =
+        function(itemId) {
+            const str =
+                String(itemId || "");
+
+            if (
+                str.startsWith(
+                    "neon_dual_bet_"
+                )
+            ) {
+                actionButton.disabled = false;
+                actionButton.classList.remove("disabled");
+                actionButton.textContent =
+                    `支付 ${selectedBet} 銀幣加入`;
+
+                showToast(
+                    "銀幣不足或取消加入"
+                );
+            }
+        };
+
+
+    /* =========================================================
+       Lobby Snapshot
+    ========================================================= */
+
+    function buildLobbyPlayers() {
+        return Array.from(
+            playerMap.values()
+        )
+        .slice(0, MAX_PLAYERS_DISPLAY)
+        .map(p => ({
+            id: p.id,
+            username: p.username,
+            avatar: p.avatar,
+            joinedAt: p.joinedAt,
+            ready: p.ready,
+            bet: p.bet,
+            rocket: p.rocket,
+            status: p.status
+        }));
+    }
+
+    function sendLobbySnapshot(targetId = null) {
+        if (!isHost()) {
+            return;
+        }
+
+        sendEvent(
+            "LOBBY_STATE",
+            {
+                gameId: GAME_ID,
+                hostId,
+                targetId,
+                hostNow: Date.now(),
+                players:
+                    buildLobbyPlayers()
+            }
+        );
+    }
+
+    function onLobbyState(
+        senderId,
+        payload
+    ) {
+        if (
+            payload.targetId &&
+            String(payload.targetId) !== user.id
+        ) {
+            return;
+        }
+
+        const incomingPlayers =
+            payload.players || [];
+
+        incomingPlayers.forEach(
+            p => {
+
+                if (p.id === user.id) {
+                    return;
+                }
+
+                upsertPlayer(
+                    String(p.id),
+                    {
+                        id: String(p.id),
+                        username:
+                            String(
+                                p.username ||
+                                "玩家"
+                            ),
+                        avatar:
+                            String(
+                                p.avatar ||
+                                ""
+                            ),
+                        joinedAt:
+                            safeNumber(
+                                p.joinedAt,
+                                Date.now()
+                            ),
+                        ready:
+                            !!p.ready,
+                        bet:
+                            safeNumber(
+                                p.bet,
+                                0
+                            ),
+                        rocket:
+                            p.rocket === "B"
+                                ? "B"
+                                : "A",
+                        status:
+                            String(
+                                p.status ||
+                                "waiting"
+                            )
+                    }
+                );
+
+                hostCandidates.set(
+                    String(p.id),
+                    {
+                        id: String(p.id),
+                        joinedAt:
+                            safeNumber(
+                                p.joinedAt,
+                                Date.now()
+                            ),
+                        username:
+                            String(
+                                p.username ||
+                                "玩家"
+                            )
+                    }
+                );
+            }
+        );
+
+        if (payload.hostId) {
+            hostId =
+                String(
+                    payload.hostId
+                );
+        }
+
+        lastHostHeartbeat =
+            Date.now();
+
+        if (payload.hostNow) {
+            clockOffset =
+                safeNumber(
+                    payload.hostNow,
+                    Date.now()
+                ) -
+                Date.now();
+        }
+
+        renderPlayers();
+        renderHeader();
+    }
+
+
+    /* =========================================================
+       Round Start
+    ========================================================= */
+
+    function readyPlayers() {
+        return Array.from(
+            playerMap.values()
+        )
+        .filter(
+            p =>
+                p.ready &&
+                p.bet > 0
+        );
+    }
+
+    function maybeStartRound() {
+        if (
+            !isHost() ||
+            state !== "LOBBY"
+        ) {
+            return;
+        }
+
+        const ready =
+            readyPlayers();
+
+        if (!ready.length) {
+            return;
+        }
+
+        if (
+            maybeStartRound.lastAttempt &&
+            Date.now() -
+                maybeStartRound.lastAttempt <
+                ROUND_WAIT_MS
+        ) {
+            return;
+        }
+
+        maybeStartRound.lastAttempt =
+            Date.now();
+
+        sendEvent(
+            "PLAYER_MESSAGE",
+            {
+                text:
+                    `🚀 ${ready.length} 人準備完成，倒數開始！`
+            }
+        );
+
+        const roundId =
+            randomId("round");
+
+        const startAt =
+            Date.now() +
+            START_DELAY_MS;
+
+        crashPointA =
+            generateCrashPoint(
+                ROCKETS.A.minCrash,
+                ROCKETS.A.maxCrash,
+                "A"
+            );
+
+        crashPointB =
+            generateCrashPoint(
+                ROCKETS.B.minCrash,
+                ROCKETS.B.maxCrash,
+                "B"
+            );
+
+        const startPayload = {
+            gameId: GAME_ID,
+            roundId,
+            hostId: user.id,
+            hostNow: Date.now(),
+            startAt,
+            crashPointA,
+            crashPointB,
+            rocketGrowthA: ROCKETS.A.growth,
+            rocketGrowthB: ROCKETS.B.growth,
+            players:
+                ready.map(
+                    p => ({
+                        id: p.id,
+                        username: p.username,
+                        avatar: p.avatar,
+                        bet: p.bet,
+                        rocket: p.rocket,
+                        x: p.x,
+                        bonus: 0
+                    })
+                )
+        };
+
+        state = "COUNTDOWN";
+        currentRoundId =
+            roundId;
+        roundStartAt =
+            startAt;
+
+        rocketCrashedA = false;
+        rocketCrashedB = false;
+        roundRewardSent = false;
+
+        sendEvent(
+            "ROUND_START",
+            startPayload
+        );
+
+        applyRoundStart(
+            user.id,
+            startPayload
+        );
+
+        setTimeout(
+            () => {
+                if (
+                    currentRoundId ===
+                    roundId &&
+                    state === "COUNTDOWN"
+                ) {
+                    state = "FLYING";
+                    soundStart();
+
+                    if (isHost()) {
+                        initHostWorld();
+                    }
+                }
+            },
+            START_DELAY_MS + 30
+        );
+    }
+
+
+    function generateCrashPoint(
+        min,
+        max,
+        rocketId
+    ) {
+        const r =
+            Math.random();
+
+        let point;
+
+        if (rocketId === "A") {
+            point =
+                min +
+                (
+                    Math.pow(
+                        r,
+                        1.65
+                    ) *
+                    (max - min)
+                );
+        } else {
+            point =
+                min +
+                (
+                    Math.pow(
+                        r,
+                        2.15
+                    ) *
+                    (max - min)
+                );
+        }
+
+        point =
+            clamp(
+                point,
+                min,
+                max
+            );
+
+        return Number(
+            point.toFixed(2)
+        );
+    }
+
+
+    function onRoundStart(
+        senderId,
+        payload
+    ) {
+        if (
+            hostId &&
+            senderId !== hostId
+        ) {
+            return;
+        }
+
+        if (
+            payload.hostId
+        ) {
+            hostId =
+                String(
+                    payload.hostId
+                );
+        }
+
+        lastHostHeartbeat =
+            Date.now();
+
+        if (payload.hostNow) {
+            clockOffset =
+                safeNumber(
+                    payload.hostNow,
+                    Date.now()
+                ) -
+                Date.now();
+        }
+
+        applyRoundStart(
+            senderId,
+            payload
+        );
+    }
+
+
+    function applyRoundStart(
+        senderId,
+        payload
+    ) {
+        currentRoundId =
+            String(
+                payload.roundId
+            );
+
+        state =
+            "COUNTDOWN";
+
+        roundStartAt =
+            safeNumber(
+                payload.startAt,
+                Date.now() +
+                START_DELAY_MS
+            );
+
+        crashPointA =
+            safeNumber(
+                payload.crashPointA,
+                2
+            );
+
+        crashPointB =
+            safeNumber(
+                payload.crashPointB,
+                2
+            );
+
+        rocketCrashedA = false;
+        rocketCrashedB = false;
+        roundRewardSent = false;
+
+        resultOverlay.classList.remove(
+            "show"
+        );
+
+        const incomingPlayers =
+            payload.players || [];
+
+        incomingPlayers.forEach(
+            p => {
+                upsertPlayer(
+                    String(p.id),
+                    {
+                        id: String(p.id),
+                        username:
+                            String(
+                                p.username ||
+                                "玩家"
+                            ),
+                        avatar:
+                            String(
+                                p.avatar ||
+                                ""
+                            ),
+                        ready: true,
+                        bet:
+                            safeNumber(
+                                p.bet,
+                                0
+                            ),
+                        rocket:
+                            p.rocket === "B"
+                                ? "B"
+                                : "A",
+                        status: "flying",
+                        x:
+                            clamp(
+                                safeNumber(
+                                    p.x,
+                                    0
+                                ),
+                                -1,
+                                1
+                            ),
+                        renderX:
+                            clamp(
+                                safeNumber(
+                                    p.x,
+                                    0
+                                ),
+                                -1,
+                                1
+                            ),
+                        bonus: 0,
+                        reward: 0,
+                        cashoutAt: 0
+                    }
+                );
+            }
+        );
+
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (
+            me &&
+            !incomingPlayers.some(
+                p =>
+                    String(p.id) ===
+                    user.id
+            ) &&
+            me.ready
+        ) {
+            me.status = "flying";
+        }
+
+        actionButton.disabled =
+            !me ||
+            !me.ready;
+
+        actionButton.classList.remove(
+            "disabled"
+        );
+
+        if (
+            me &&
+            me.ready
+        ) {
+            actionButton.textContent =
+                "🚀 EJECT 逃脫";
+            actionButton.classList.add(
+                "eject"
+            );
+        }
+
+        statusText.textContent =
+            "雙火箭即將升空…";
+
+        controlHint.textContent =
+            "左右傾斜手機，收集能量球並躲開隕石";
+
+        soundJoin();
+
+        renderPlayers();
+
+        setTimeout(
+            () => {
+
+                if (
+                    currentRoundId !==
+                    String(payload.roundId)
+                ) {
+                    return;
+                }
+
+                state =
+                    "FLYING";
+
+                actionButton.classList.add(
+                    "eject"
+                );
+
+                actionButton.textContent =
+                    "🚀 EJECT 逃脫";
+
+                if (isHost()) {
+                    initHostWorld();
+                }
+
+            },
+            Math.max(
+                0,
+                roundStartAt -
+                (Date.now() +
+                clockOffset)
+            )
+        );
+    }
+
+
+    /* =========================================================
+       Host World Simulation
+    ========================================================= */
+
+    let hostWorld = {
+        orbs: [],
+        nextOrbId: 1,
+        lastTick: 0,
+        meteorCooldownA: 0,
+        meteorCooldownB: 0
+    };
+
+    function initHostWorld() {
+        hostSimulationInitialized =
+            true;
+
+        hostWorld = {
+            orbs: [],
+            nextOrbId: 1,
+            lastTick: Date.now(),
+            meteorCooldownA: 0,
+            meteorCooldownB: 0
+        };
+
+        Array.from(
+            playerMap.values()
+        )
+        .forEach(
+            p => {
+                if (p.ready) {
+                    p.status =
+                        "flying";
+                    p.bonus = 0;
+                    p.reward = 0;
+                    p.cashoutAt = 0;
+                }
+            }
+        );
+
+        addEvent(
+            "🔥 Host 已啟動雙火箭模擬"
+        );
+    }
+
+
+    function restoreHostSimulation() {
+        if (!isHost()) {
+            return;
+        }
+
+        if (!hostSimulationInitialized) {
+            initHostWorld();
+        }
+    }
+
+
+    function hostTick() {
+        if (!isHost()) {
+            return;
+        }
+
+        if (
+            state !== "FLYING"
+        ) {
+            return;
+        }
+
+        const now =
+            Date.now();
+
+        const dt =
+            Math.min(
+                .1,
+                Math.max(
+                    .001,
+                    (
+                        now -
+                        hostWorld.lastTick
+                    ) / 1000
+                )
+            );
+
+        hostWorld.lastTick =
+            now;
+
+        const baseA =
+            getBaseMultiplier(
+                "A",
+                now
+            );
+
+        const baseB =
+            getBaseMultiplier(
+                "B",
+                now
+            );
+
+        if (
+            !rocketCrashedA &&
+            baseA >= crashPointA
+        ) {
+            crashRocket("A");
+        }
+
+        if (
+            !rocketCrashedB &&
+            baseB >= crashPointB
+        ) {
+            crashRocket("B");
+        }
+
+        spawnWorldItems(
+            dt,
+            baseA,
+            baseB
+        );
+
+        moveWorldItems(
+            dt
+        );
+
+        processCollisions();
+
+        if (
+            now -
+            lastWorldBroadcast >=
+            WORLD_BROADCAST_MS
+        ) {
+            broadcastWorldState();
+
+            lastWorldBroadcast =
+                now;
+        }
+
+        if (
+            rocketCrashedA &&
+            rocketCrashedB
+        ) {
+            finishRound();
+        }
+    }
+
+
+    function getBaseMultiplier(
+        rocketId,
+        hostNow = Date.now()
+    ) {
+        const elapsedMs =
+            Math.max(
+                0,
+                hostNow -
+                roundStartAt
+            );
+
+        const elapsedSeconds =
+            elapsedMs / 1000;
+
+        const growth =
+            rocketId === "A"
+                ? ROCKETS.A.growth
+                : ROCKETS.B.growth;
+
+        return Math.pow(
+            growth,
+            elapsedSeconds
+        );
+    }
+
+
+    function getPlayerMultiplier(
+        player
+    ) {
+        const base =
+            getBaseMultiplier(
+                player.rocket
+            );
+
+        return Math.min(
+            MAX_PAYOUT_MULTIPLIER,
+            base +
+            clamp(
+                safeNumber(
+                    player.bonus,
+                    0
+                ),
+                0,
+                1.5
+            )
+        );
+    }
+
+
+    function spawnWorldItems(
+        dt,
+        baseA,
+        baseB
+    ) {
+        const now =
+            Date.now();
+
+        if (
+            now -
+            hostWorld.lastOrbSpawn >
+            720
+        ) {
+            spawnEnergyOrb();
+            hostWorld.lastOrbSpawn =
+                now;
+        }
+
+        if (
+            !hostWorld.lastMeteorSpawn ||
+            now -
+            hostWorld.lastMeteorSpawn >
+            1150
+        ) {
+            spawnMeteor();
+            hostWorld.lastMeteorSpawn =
+                now;
+        }
+    }
+
+
+    function spawnEnergyOrb() {
+        const rocket =
+            Math.random() < .5
+                ? "A"
+                : "B";
+
+        const speed =
+            0.26 +
+            Math.random() * .12;
+
+        hostWorld.orbs.push({
+            id:
+                "o" +
+                hostWorld.nextOrbId++,
+            type: "energy",
+            rocket,
+            x:
+                clamp(
+                    (
+                        Math.random() *
+                        2 -
+                        1
+                    ),
+                    -1,
+                    1
+                ),
+            y: 0,
+            speed,
+            value:
+                .06 +
+                Math.random() * .05,
+            ttl: 4
+        });
+    }
+
+
+    function spawnMeteor() {
+        const rocket =
+            Math.random() < .5
+                ? "A"
+                : "B";
+
+        hostWorld.orbs.push({
+            id:
+                "m" +
+                hostWorld.nextOrbId++,
+            type: "meteor",
+            rocket,
+            x:
+                clamp(
+                    (
+                        Math.random() *
+                        2 -
+                        1
+                    ),
+                    -1,
+                    1
+                ),
+            y: 0,
+            speed:
+                0.32 +
+                Math.random() * .18,
+            damage:
+                .08 +
+                Math.random() * .08,
+            ttl: 4
+        });
+    }
+
+
+    function moveWorldItems(dt) {
+        hostWorld.orbs.forEach(
+            item => {
+                item.y +=
+                    item.speed *
+                    dt;
+
+                item.ttl -=
+                    dt;
+            }
+        );
+
+        hostWorld.orbs =
+            hostWorld.orbs.filter(
+                item =>
+                    item.y < 1.18 &&
+                    item.ttl > 0
+            );
+    }
+
+
+    function processCollisions() {
+        const players =
+            Array.from(
+                playerMap.values()
+            );
+
+        for (
+            const item of hostWorld.orbs
+        ) {
+            if (
+                item.y < .67 ||
+                item.y > .87
+            ) {
+                continue;
+            }
+
+            for (
+                const player of players
+            ) {
+                if (
+                    player.status !==
+                    "flying"
+                ) {
+                    continue;
+                }
+
+                if (
+                    player.rocket !==
+                    item.rocket
+                ) {
+                    continue;
+                }
+
+                const distance =
+                    Math.abs(
+                        player.x -
+                        item.x
+                    );
+
+                if (
+                    distance >
+                    .14
+                ) {
+                    continue;
+                }
+
+                item.ttl = 0;
+
+                if (
+                    item.type ===
+                    "energy"
+                ) {
+                    player.bonus =
+                        clamp(
+                            player.bonus +
+                            item.value,
+                            0,
+                            1.5
+                        );
+
+                    if (
+                        player.id ===
+                        user.id
+                    ) {
+                        soundCollect();
+                        showToast(
+                            `⚡ 能量 +${item.value.toFixed(2)}x`
+                        );
+                    }
+
+                    sendEvent(
+                        "PLAYER_MESSAGE",
+                        {
+                            text:
+                                `⚡ ${player.username} 收集到能量`
+                        }
+                    );
+
+                } else {
+                    player.bonus =
+                        clamp(
+                            player.bonus -
+                            item.damage,
+                            0,
+                            1.5
+                        );
+
+                    if (
+                        player.id ===
+                        user.id
+                    ) {
+                        soundHit();
+                        showToast(
+                            "☄️ 撞擊！倍率加成下降"
+                        );
+                    }
+                }
+
+                break;
+            }
+        }
+
+        hostWorld.orbs =
+            hostWorld.orbs.filter(
+                item =>
+                    item.ttl > 0
+            );
+    }
+
+
+    function onPlayerInput(
+        senderId,
+        payload
+    ) {
+        if (!isHost()) {
+            return;
+        }
+
+        if (
+            state !==
+            "FLYING"
+        ) {
+            return;
+        }
+
+        if (
+            String(payload.roundId) !==
+            currentRoundId
+        ) {
+            return;
+        }
+
+        const p =
+            playerMap.get(
+                senderId
+            );
+
+        if (!p) {
+            return;
+        }
+
+        const seq =
+            safeNumber(
+                payload.seq,
+                0
+            );
+
+        if (
+            seq <=
+            p.lastInputSeq
+        ) {
+            return;
+        }
+
+        p.lastInputSeq =
+            seq;
+
+        p.x =
+            clamp(
+                safeNumber(
+                    payload.x,
+                    p.x
+                ),
+                -1,
+                1
+            );
+    }
+
+
+    /* =========================================================
+       World State
+    ========================================================= */
+
+    function buildWorldState() {
+        return {
+            gameId: GAME_ID,
+            roundId: currentRoundId,
+            hostId: user.id,
+            hostNow: Date.now(),
+            state,
+            roundStartAt,
+            crashPointA,
+            crashPointB,
+            rocketCrashedA,
+            rocketCrashedB,
+            orbs:
+                hostWorld.orbs.map(
+                    o => ({
+                        id: o.id,
+                        type: o.type,
+                        rocket: o.rocket,
+                        x: o.x,
+                        y: o.y
+                    })
+                ),
+            players:
+                Array.from(
+                    playerMap.values()
+                )
+                .slice(
+                    0,
+                    MAX_PLAYERS_DISPLAY
+                )
+                .map(
+                    p => ({
+                        id: p.id,
+                        username: p.username,
+                        avatar: p.avatar,
+                        bet: p.bet,
+                        rocket: p.rocket,
+                        status: p.status,
+                        x: p.x,
+                        bonus: p.bonus,
+                        reward: p.reward,
+                        cashoutAt:
+                            p.cashoutAt
+                    })
+                )
+        };
+    }
+
+
+    function broadcastWorldState() {
+        if (!isHost()) {
+            return;
+        }
+
+        sendEvent(
+            "WORLD_STATE",
+            buildWorldState()
+        );
+    }
+
+
+    function onWorldState(
+        senderId,
+        payload
+    ) {
+        if (
+            hostId &&
+            senderId !== hostId
+        ) {
+            return;
+        }
+
+        if (
+            String(payload.roundId || "") !==
+            currentRoundId
+        ) {
+            return;
+        }
+
+        if (payload.hostNow) {
+            clockOffset =
+                safeNumber(
+                    payload.hostNow,
+                    Date.now()
+                ) -
+                Date.now();
+
+            lastHostHeartbeat =
+                Date.now();
+        }
+
+        applyWorldPayload(
+            payload
+        );
+    }
+
+
+    function applyWorldPayload(
+        payload
+    ) {
+        if (
+            payload.state
+        ) {
+            state =
+                payload.state;
+        }
+
+        if (
+            payload.roundStartAt
+        ) {
+            roundStartAt =
+                safeNumber(
+                    payload.roundStartAt,
+                    roundStartAt
+                );
+        }
+
+        crashPointA =
+            safeNumber(
+                payload.crashPointA,
+                crashPointA
+            );
+
+        crashPointB =
+            safeNumber(
+                payload.crashPointB,
+                crashPointB
+            );
+
+        rocketCrashedA =
+            !!payload.rocketCrashedA;
+
+        rocketCrashedB =
+            !!payload.rocketCrashedB;
+
+        const incomingPlayers =
+            payload.players || [];
+
+        incomingPlayers.forEach(
+            p => {
+                upsertPlayer(
+                    String(p.id),
+                    {
+                        id: String(p.id),
+                        username:
+                            String(
+                                p.username ||
+                                "玩家"
+                            ),
+                        avatar:
+                            String(
+                                p.avatar ||
+                                ""
+                            ),
+                        bet:
+                            safeNumber(
+                                p.bet,
+                                0
+                            ),
+                        rocket:
+                            p.rocket === "B"
+                                ? "B"
+                                : "A",
+                        status:
+                            String(
+                                p.status ||
+                                "waiting"
+                            ),
+                        x:
+                            clamp(
+                                safeNumber(
+                                    p.x,
+                                    0
+                                ),
+                                -1,
+                                1
+                            ),
+                        bonus:
+                            clamp(
+                                safeNumber(
+                                    p.bonus,
+                                    0
+                                ),
+                                0,
+                                1.5
+                            ),
+                        reward:
+                            safeNumber(
+                                p.reward,
+                                0
+                            ),
+                        cashoutAt:
+                            safeNumber(
+                                p.cashoutAt,
+                                0
+                            )
+                    }
+                );
+            }
+        );
+
+        worldVisualOrbs =
+            Array.isArray(payload.orbs)
+                ? payload.orbs.map(
+                    o => ({
+                        id: o.id,
+                        type: o.type,
+                        rocket: o.rocket,
+                        x:
+                            safeNumber(
+                                o.x,
+                                0
+                            ),
+                        y:
+                            safeNumber(
+                                o.y,
+                                0
+                            )
+                    })
+                )
+                : [];
+
+        renderPlayers();
+    }
+
+
+    /* =========================================================
+       Round Snapshot
+    ========================================================= */
+
+    function sendRoundSnapshot(targetId = null) {
+        if (!isHost()) {
+            return;
+        }
+
+        const payload =
+            buildWorldState();
+
+        payload.targetId =
+            targetId;
+
+        sendEvent(
+            "ROUND_SNAPSHOT",
+            payload
+        );
+    }
+
+
+    function onRoundSnapshot(
+        senderId,
+        payload
+    ) {
+        if (
+            payload.targetId &&
+            String(payload.targetId) !==
+            user.id
+        ) {
+            return;
+        }
+
+        if (
+            hostId &&
+            senderId !== hostId
+        ) {
+            return;
+        }
+
+        if (payload.hostNow) {
+            clockOffset =
+                safeNumber(
+                    payload.hostNow,
+                    Date.now()
+                ) -
+                Date.now();
+
+            lastHostHeartbeat =
+                Date.now();
+        }
+
+        currentRoundId =
+            String(
+                payload.roundId ||
+                currentRoundId
+            );
+
+        applyWorldPayload(
+            payload
+        );
+
+        if (
+            payload.roundStartAt
+        ) {
+            roundStartAt =
+                safeNumber(
+                    payload.roundStartAt,
+                    roundStartAt
+                );
+        }
+    }
+
+
+    /* =========================================================
+       Crash
+    ========================================================= */
+
+    function crashRocket(
+        rocketId
+    ) {
+        if (
+            rocketId === "A"
+        ) {
+            rocketCrashedA =
+                true;
+        } else {
+            rocketCrashedB =
+                true;
+        }
+
+        Array.from(
+            playerMap.values()
+        )
+        .forEach(
+            p => {
+                if (
+                    p.status ===
+                    "flying" &&
+                    p.rocket ===
+                    rocketId
+                ) {
+                    p.status =
+                        "crashed";
+                    p.reward = 0;
+                    p.cashoutAt = 0;
+
+                    sendEvent(
+                        "PLAYER_CRASHED",
+                        {
+                            gameId: GAME_ID,
+                            roundId:
+                                currentRoundId,
+                            playerId:
+                                p.id,
+                            rocket:
+                                rocketId
+                        }
+                    );
+
+                    if (
+                        p.id ===
+                        user.id
+                    ) {
+                        settleLocalLoss(
+                            rocketId
+                        );
+                    }
+                }
+            }
+        );
+
+        sendEvent(
+            "ROCKET_CRASHED",
+            {
+                gameId: GAME_ID,
+                roundId:
+                    currentRoundId,
+                rocket:
+                    rocketId,
+                crashPoint:
+                    rocketId === "A"
+                        ? crashPointA
+                        : crashPointB
+            }
+        );
+
+        soundCrash();
+
+        addEvent(
+            rocketId === "A"
+                ? `💥 穩定號在 ${crashPointA.toFixed(2)}x 爆炸`
+                : `💥 狂暴號在 ${crashPointB.toFixed(2)}x 爆炸`
+        );
+
+        renderPlayers();
+
+        if (
+            rocketId ===
+            "A"
+        ) {
+            rocketStateA.textContent =
+                "💥 爆炸";
+        } else {
+            rocketStateB.textContent =
+                "💥 爆炸";
+        }
+    }
+
+
+    function onRocketCrashed(
+        senderId,
+        payload
+    ) {
+        if (
+            hostId &&
+            senderId !== hostId
+        ) {
+            return;
+        }
+
+        const rocket =
+            payload.rocket === "B"
+                ? "B"
+                : "A";
+
+        if (rocket === "A") {
+            rocketCrashedA = true;
+        } else {
+            rocketCrashedB = true;
+        }
+
+        if (payload.crashPoint) {
+            if (rocket === "A") {
+                crashPointA =
+                    Number(
+                        payload.crashPoint
+                    );
+            } else {
+                crashPointB =
+                    Number(
+                        payload.crashPoint
+                    );
+            }
+        }
+
+        soundCrash();
+
+        addEvent(
+            rocket === "A"
+                ? `💥 穩定號爆炸`
+                : `💥 狂暴號爆炸`
+        );
+    }
+
+
+    function onPlayerCrashed(
+        senderId,
+        payload
+    ) {
+        const playerId =
+            String(
+                payload.playerId ||
+                senderId
+            );
+
+        const p =
+            playerMap.get(
+                playerId
+            );
+
+        if (!p) {
+            return;
+        }
+
+        p.status =
+            "crashed";
+
+        p.reward = 0;
+
+        addEvent(
+            `💥 ${p.username} 爆炸出局`
+        );
+
+        renderPlayers();
+    }
+
+
+    /* =========================================================
+       Cashout
+    ========================================================= */
+
+    function cashoutLocal() {
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (
+            !me ||
+            me.status !==
+            "flying" ||
+            state !== "FLYING"
+        ) {
+            return;
+        }
+
+        initAudio();
+
+        if (isHost()) {
+            processCashoutOnHost(
+                user.id
+            );
+        } else {
+            sendEvent(
+                "PLAYER_CASHOUT",
+                {
+                    gameId: GAME_ID,
+                    roundId:
+                        currentRoundId,
+                    playerId:
+                        user.id,
+                    clientTime:
+                        Date.now()
+                }
+            );
+        }
+    }
+
+
+    function onPlayerCashout(
+        senderId,
+        payload
+    ) {
+        if (!isHost()) {
+            return;
+        }
+
+        if (
+            String(
+                payload.roundId
+            ) !==
+            currentRoundId
+        ) {
+            return;
+        }
+
+        const id =
+            String(
+                payload.playerId ||
+                senderId
+            );
+
+        processCashoutOnHost(
+            id
+        );
+    }
+
+
+    function processCashoutOnHost(
+        playerId
+    ) {
+        if (
+            state !==
+            "FLYING"
+        ) {
+            return;
+        }
+
+        const p =
+            playerMap.get(
+                playerId
+            );
+
+        if (
+            !p ||
+            p.status !==
+            "flying"
+        ) {
+            return;
+        }
+
+        const rocketCrashed =
+            p.rocket === "A"
+                ? rocketCrashedA
+                : rocketCrashedB;
+
+        if (rocketCrashed) {
+            return;
+        }
+
+        const currentMult =
+            getPlayerMultiplier(
+                p
+            );
+
+        const payoutMultiplier =
+            clamp(
+                currentMult,
+                1.01,
+                MAX_PAYOUT_MULTIPLIER
+            );
+
+        const reward =
+            Math.floor(
+                p.bet *
+                payoutMultiplier
+            );
+
+        p.status =
+            "cashed";
+
+        p.cashoutAt =
+            payoutMultiplier;
+
+        p.reward =
+            reward;
+
+        sendEvent(
+            "CASHOUT_CONFIRMED",
+            {
+                gameId: GAME_ID,
+                roundId:
+                    currentRoundId,
+                playerId:
+                    p.id,
+                username:
+                    p.username,
+                rocket:
+                    p.rocket,
+                bet:
+                    p.bet,
+                multiplier:
+                    payoutMultiplier,
+                reward
+            }
+        );
+
+        if (
+            p.id ===
+            user.id
+        ) {
+            applyOwnCashout(
+                payoutMultiplier,
+                reward
+            );
+        }
+
+        addEvent(
+            `✅ ${p.username} 在 ${payoutMultiplier.toFixed(2)}x 逃脫 +${reward} 🪙`
+        );
+
+        renderPlayers();
+    }
+
+
+    function onCashoutConfirmed(
+        senderId,
+        payload
+    ) {
+        const playerId =
+            String(
+                payload.playerId ||
+                senderId
+            );
+
+        const p =
+            playerMap.get(
+                playerId
+            );
+
+        if (!p) {
+            return;
+        }
+
+        p.status =
+            "cashed";
+
+        p.cashoutAt =
+            safeNumber(
+                payload.multiplier,
+                1
+            );
+
+        p.reward =
+            safeNumber(
+                payload.reward,
+                0
+            );
+
+        if (
+            playerId ===
+            user.id
+        ) {
+            applyOwnCashout(
+                p.cashoutAt,
+                p.reward
+            );
+        }
+
+        addEvent(
+            `💰 ${p.username} 逃脫 ${p.cashoutAt.toFixed(2)}x`
+        );
+
+        renderPlayers();
+    }
+
+
+    function applyOwnCashout(
+        multiplier,
+        reward
+    ) {
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (!me) {
+            return;
+        }
+
+        me.status =
+            "cashed";
+
+        me.reward =
+            reward;
+
+        me.cashoutAt =
+            multiplier;
+
+        roundRewardSent =
+            true;
+
+        actionButton.disabled =
+            true;
+
+        actionButton.classList.remove(
+            "eject"
+        );
+
+        actionButton.textContent =
+            "✅ 已逃脫";
+
+        mainMultiplier.className =
+            "win";
+
+        mainMultiplier.textContent =
+            `${multiplier.toFixed(2)}x`;
+
+        resultTitle.textContent =
+            "🚀 極限逃脫成功";
+
+        resultMain.textContent =
+            `+${reward.toLocaleString()} 🪙`;
+
+        resultSub.textContent =
+            `${rocketName(me.rocket)} · ${multiplier.toFixed(2)}x`;
+
+        soundCashout();
+
+        if (
+            multiplier >= 5
+        ) {
+            soundWin();
+        }
+
+        if (
+            sdkAvailable &&
+            typeof sdk.gameOver ===
+            "function"
+        ) {
+            try {
+                sdk.gameOver(
+                    Math.max(
+                        0,
+                        Math.floor(
+                            reward
+                        )
+                    )
+                );
+            } catch (e) {}
+        }
+
+        showToast(
+            `成功逃脫 ${multiplier.toFixed(2)}x`
+        );
+    }
+
+
+    function settleLocalLoss(
+        rocketId
+    ) {
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (
+            !me ||
+            me.reward > 0
+        ) {
+            return;
+        }
+
+        if (
+            me.status !==
+            "crashed"
+        ) {
+            me.status =
+                "crashed";
+        }
+
+        if (
+            !roundRewardSent &&
+            sdkAvailable &&
+            typeof sdk.gameOver ===
+            "function"
+        ) {
+            roundRewardSent =
+                true;
+
+            try {
+                sdk.gameOver(0);
+            } catch (e) {}
+        }
+
+        if (rocketId === selectedRocket) {
+            actionButton.classList.remove(
+                "eject"
+            );
+
+            actionButton.textContent =
+                "💥 火箭爆炸";
+
+            mainMultiplier.className =
+                "crash";
+        }
+    }
+
+
+    /* =========================================================
+       Finish Round
+    ========================================================= */
+
+    function finishRound() {
+        if (
+            !isHost() ||
+            state === "RESULT"
+        ) {
+            return;
+        }
+
+        state =
+            "RESULT";
+
+        const results =
+            Array.from(
+                playerMap.values()
+            )
+            .filter(
+                p =>
+                    p.ready
+            )
+            .map(
+                p => ({
+                    id: p.id,
+                    username: p.username,
+                    avatar: p.avatar,
+                    bet: p.bet,
+                    rocket: p.rocket,
+                    status: p.status,
+                    reward:
+                        Math.max(
+                            0,
+                            Math.floor(
+                                safeNumber(
+                                    p.reward,
+                                    0
+                                )
+                            )
+                        ),
+                    cashoutAt:
+                        safeNumber(
+                            p.cashoutAt,
+                            0
+                        )
+                })
+            );
+
+        results.sort(
+            (a, b) => {
+                const netA =
+                    a.reward -
+                    a.bet;
+                const netB =
+                    b.reward -
+                    b.bet;
+
+                if (
+                    netA !==
+                    netB
+                ) {
+                    return netB - netA;
+                }
+
+                return (
+                    b.cashoutAt -
+                    a.cashoutAt
+                );
+            }
+        );
+
+        roundResultData = {
+            roundId:
+                currentRoundId,
+            results,
+            crashPointA,
+            crashPointB
+        };
+
+        sendEvent(
+            "ROUND_RESULT",
+            {
+                gameId: GAME_ID,
+                roundId:
+                    currentRoundId,
+                crashPointA,
+                crashPointB,
+                results
+            }
+        );
+
+        applyRoundResult(
+            roundResultData
+        );
+    }
+
+
+    function onRoundResult(
+        senderId,
+        payload
+    ) {
+        if (
+            hostId &&
+            senderId !== hostId
+        ) {
+            return;
+        }
+
+        if (
+            String(
+                payload.roundId || ""
+            ) !==
+            currentRoundId
+        ) {
+            return;
+        }
+
+        roundResultData = {
+            roundId:
+                currentRoundId,
+            results:
+                Array.isArray(
+                    payload.results
+                )
+                    ? payload.results
+                    : [],
+            crashPointA:
+                safeNumber(
+                    payload.crashPointA,
+                    crashPointA
+                ),
+            crashPointB:
+                safeNumber(
+                    payload.crashPointB,
+                    crashPointB
+                )
+        };
+
+        state =
+            "RESULT";
+
+        applyRoundResult(
+            roundResultData
+        );
+    }
+
+
+    function applyRoundResult(
+        data
+    ) {
+        state =
+            "RESULT";
+
+        const results =
+            Array.isArray(
+                data.results
+            )
+                ? data.results
+                : [];
+
+        const meResult =
+            results.find(
+                r =>
+                    String(r.id) ===
+                    user.id
+            );
+
+        if (
+            meResult &&
+            !roundRewardSent &&
+            (
+                meResult.status ===
+                "crashed"
+            )
+        ) {
+            roundRewardSent =
+                true;
+
+            if (
+                sdkAvailable &&
+                typeof sdk.gameOver ===
+                "function"
+            ) {
+                try {
+                    sdk.gameOver(0);
+                } catch (e) {}
+            }
+        }
+
+        if (
+            meResult &&
+            meResult.reward > 0
+        ) {
+            resultTitle.textContent =
+                "🚀 本局結算";
+
+            resultMain.textContent =
+                `+${Number(
+                    meResult.reward
+                ).toLocaleString()} 🪙`;
+
+            resultSub.textContent =
+                `${rocketName(meResult.rocket)} · ` +
+                `${
+                    Number(
+                        meResult.cashoutAt || 0
+                    ).toFixed(2)
+                }x`;
+        } else {
+            resultTitle.textContent =
+                "💥 本局結算";
+
+            resultMain.textContent =
+                "0 🪙";
+
+            resultSub.textContent =
+                "這局沒有成功逃脫";
+        }
+
+        leaderboard.innerHTML =
+            "";
+
+        results
+            .slice(0, 5)
+            .forEach(
+                (r, index) => {
+
+                    const row =
+                        document.createElement(
+                            "div"
+                        );
+
+                    row.className =
+                        "rank";
+
+                    const net =
+                        Number(
+                            r.reward || 0
+                        ) -
+                        Number(
+                            r.bet || 0
+                        );
+
+                    const medal =
+                        index === 0
+                            ? "🥇"
+                            : index === 1
+                                ? "🥈"
+                                : index === 2
+                                    ? "🥉"
+                                    : `${index + 1}`;
+
+                    row.innerHTML = `
+                        <div>${medal}</div>
+                        <div class="rank-name">
+                            ${escapeHtml(
+                                r.username ||
+                                "玩家"
+                            )}
+                        </div>
+                        <div class="rank-value">
+                            ${net >= 0 ? "+" : ""}
+                            ${net.toLocaleString()}
+                        </div>
+                    `;
+
+                    leaderboard.appendChild(
+                        row
+                    );
+                }
+            );
+
+        resultOverlay.classList.add(
+            "show"
+        );
+
+        actionButton.disabled =
+            true;
+
+        actionButton.classList.remove(
+            "eject"
+        );
+
+        actionButton.textContent =
+            "本局結束";
+
+        if (
+            meResult &&
+            meResult.reward > 0
+        ) {
+            soundWin();
+        }
+
+        setTimeout(
+            () => {
+                if (
+                    state ===
+                    "RESULT"
+                ) {
+                    prepareNextRound();
+                }
+            },
+            ROUND_RESULT_MS
+        );
+    }
+
+
+    function prepareNextRound() {
+        resultOverlay.classList.remove(
+            "show"
+        );
+
+        state =
+            "LOBBY";
+
+        currentRoundId =
+            null;
+
+        roundStartAt =
+            0;
+
+        crashPointA =
+            null;
+
+        crashPointB =
+            null;
+
+        rocketCrashedA =
+            false;
+
+        rocketCrashedB =
+            false;
+
+        hostSimulationInitialized =
+            false;
+
+        roundRewardSent =
+            false;
+
+        localReady =
+            false;
+
+        roundBetSent =
+            false;
+
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (me) {
+            me.ready = false;
+            me.status = "waiting";
+            me.reward = 0;
+            me.cashoutAt = 0;
+            me.bonus = 0;
+            me.bet = 0;
+        }
+
+        Array.from(
+            playerMap.values()
+        )
+        .forEach(
+            p => {
+                if (
+                    p.id !==
+                    user.id
+                ) {
+                    p.ready = false;
+                    p.status = "waiting";
+                    p.bet = 0;
+                    p.reward = 0;
+                    p.cashoutAt = 0;
+                    p.bonus = 0;
+                }
+            }
+        );
+
+        worldVisualOrbs =
+            [];
+
+        mainMultiplier.className =
+            "";
+
+        mainMultiplier.textContent =
+            "1.00x";
+
+        statusText.textContent =
+            "等待玩家選擇火箭並下注";
+
+        controlHint.textContent =
+            "左右傾斜手機控制你的火箭";
+
+        actionButton.disabled =
+            false;
+
+        actionButton.classList.remove(
+            "eject"
+        );
+
+        actionButton.textContent =
+            `支付 ${selectedBet} 銀幣加入`;
+
+        rocketStateA.textContent =
+            "待命";
+
+        rocketStateB.textContent =
+            "待命";
+
+        renderPlayers();
+
+        renderHeader();
+
+        if (isHost()) {
+            maybeStartRound.lastAttempt = 0;
+        }
+
+        addEvent(
+            "🔄 新回合準備中"
+        );
+    }
+
+
+    /* =========================================================
+       Round Result Restart Button
+    ========================================================= */
+
+    restartButton.addEventListener(
+        "click",
+        () => {
+            initAudio();
+
+            if (
+                state === "RESULT"
+            ) {
+                prepareNextRound();
+            }
+        }
+    );
+
+
+    /* =========================================================
+       UI 選擇火箭
+    ========================================================= */
+
+    choiceA.addEventListener(
+        "click",
+        () => {
+            if (
+                state ===
+                "FLYING" ||
+                localReady
+            ) {
+                return;
+            }
+
+            initAudio();
+
+            selectedRocket =
+                "A";
+
+            updateChoiceUI();
+        }
+    );
+
+    choiceB.addEventListener(
+        "click",
+        () => {
+            if (
+                state ===
+                "FLYING" ||
+                localReady
+            ) {
+                return;
+            }
+
+            initAudio();
+
+            selectedRocket =
+                "B";
+
+            updateChoiceUI();
+        }
+    );
+
+    function updateChoiceUI() {
+        choiceA.className =
+            "choice" +
+            (
+                selectedRocket === "A"
+                    ? " active-a"
+                    : ""
+            );
+
+        choiceB.className =
+            "choice" +
+            (
+                selectedRocket === "B"
+                    ? " active-b"
+                    : ""
+            );
+
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (me) {
+            me.rocket =
+                selectedRocket;
+        }
+
+        const text =
+            selectedRocket === "A"
+                ? "🔵 穩定號已選"
+                : "🩷 狂暴號已選";
+
+        actionButton.textContent =
+            localReady
+                ? "等待開局…"
+                : `支付 ${selectedBet} 銀幣加入`;
+
+        showToast(
+            text
+        );
+
+        renderPlayers();
+    }
+
+
+    /* =========================================================
+       UI 選擇下注
+    ========================================================= */
+
+    document
+    .querySelectorAll(".bet")
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        state ===
+                        "FLYING" ||
+                        localReady
+                    ) {
+                        return;
+                    }
+
+                    initAudio();
+
+                    selectedBet =
+                        Number(
+                            button.dataset.bet
+                        );
+
+                    document
+                    .querySelectorAll(".bet")
+                    .forEach(
+                        b =>
+                            b.classList.remove(
+                                "active"
+                            )
+                    );
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                    actionButton.textContent =
+                        `支付 ${selectedBet} 銀幣加入`;
+                }
+            );
+        }
+    );
+
+
+    /* =========================================================
+       Action
+    ========================================================= */
+
+    actionButton.addEventListener(
+        "click",
+        () => {
+            initAudio();
+
+            if (
+                state === "FLYING"
+            ) {
+                cashoutLocal();
+                return;
+            }
+
+            if (
+                state === "COUNTDOWN"
+            ) {
+                showToast(
+                    "火箭即將升空"
+                );
+                return;
+            }
+
+            if (
+                state === "RESULT"
+            ) {
+                return;
+            }
+
+            requestBetAndJoin();
+        }
+    );
+
+
+    /* =========================================================
+       Tilt / Device Orientation
+    ========================================================= */
+
+    let tiltEnabled = false;
+    let tiltSupported = false;
+    let tiltCenter = 0;
+    let filteredTilt = 0;
+    let localX = 0;
+    let inputSeq = 0;
+
+    function normalizeTilt(
+        gamma
+    ) {
+        let delta =
+            gamma -
+            tiltCenter;
+
+        delta =
+            clamp(
+                delta / 25,
+                -1,
+                1
+            );
+
+        filteredTilt =
+            filteredTilt * .82 +
+            delta * .18;
+
+        return clamp(
+            filteredTilt,
+            -1,
+            1
+        );
+    }
+
+
+    function handleOrientation(
+        event
+    ) {
+        if (!tiltEnabled) {
+            return;
+        }
+
+        if (
+            typeof event.gamma !==
+            "number"
+        ) {
+            return;
+        }
+
+        localX =
+            normalizeTilt(
+                event.gamma
+            );
+
+        sendLocalInputIfNeeded();
+    }
+
+
+    async function enableTilt() {
+        initAudio();
+
+        try {
+            if (
+                typeof DeviceOrientationEvent !==
+                "undefined" &&
+                typeof DeviceOrientationEvent.requestPermission ===
+                "function"
+            ) {
+                const result =
+                    await DeviceOrientationEvent
+                        .requestPermission();
+
+                if (
+                    result !==
+                    "granted"
+                ) {
+                    showToast(
+                        "沒有取得體感權限"
+                    );
+                    return;
+                }
+            }
+
+            tiltCenter =
+                0;
+
+            filteredTilt =
+                0;
+
+            window.addEventListener(
+                "deviceorientation",
+                handleOrientation,
+                true
+            );
+
+            tiltEnabled = true;
+            tiltSupported = true;
+
+            gestureButton.classList.add(
+                "enabled"
+            );
+
+            gestureButton.textContent =
+                "✅ 體感控制已啟用";
+
+            controlHint.textContent =
+                "左右傾斜手機控制你的火箭";
+
+            showToast(
+                "📱 體感控制啟用"
+            );
+
+        } catch (e) {
+            showToast(
+                "裝置不支援體感控制"
+            );
+        }
+    }
+
+    gestureButton.addEventListener(
+        "click",
+        enableTilt
+    );
+
+
+    /* =========================================================
+       Touch / Drag fallback
+    ========================================================= */
+
+    let dragging =
+        false;
+
+    function updateTouchX(
+        clientX
+    ) {
+        localX =
+            clamp(
+                (
+                    clientX -
+                    width / 2
+                ) /
+                (
+                    width / 2
+                ),
+                -1,
+                1
+            );
+
+        filteredTilt =
+            localX;
+
+        sendLocalInputIfNeeded(
+            true
+        );
+    }
+
+    canvas.addEventListener(
+        "pointerdown",
+        event => {
+            dragging = true;
+            updateTouchX(
+                event.clientX
+            );
+        }
+    );
+
+    canvas.addEventListener(
+        "pointermove",
+        event => {
+            if (!dragging) {
+                return;
+            }
+
+            updateTouchX(
+                event.clientX
+            );
+        }
+    );
+
+    window.addEventListener(
+        "pointerup",
+        () => {
+            dragging = false;
+        }
+    );
+
+
+    /* =========================================================
+       Input Broadcast
+    ========================================================= */
+
+    function sendLocalInputIfNeeded(
+        immediate = false
+    ) {
+        if (
+            state !==
+            "FLYING"
+        ) {
+            return;
+        }
+
+        const now =
+            Date.now();
+
+        if (
+            !immediate &&
+            now -
+            lastInputSent <
+            INPUT_INTERVAL_MS
+        ) {
+            return;
+        }
+
+        lastInputSent =
+            now;
+
+        inputSeq += 1;
+
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (!me) {
+            return;
+        }
+
+        me.x =
+            clamp(
+                localX,
+                -1,
+                1
+            );
+
+        if (isHost()) {
+            me.lastInputSeq =
+                inputSeq;
+        }
+
+        sendEvent(
+            "PLAYER_INPUT",
+            {
+                gameId: GAME_ID,
+                roundId:
+                    currentRoundId,
+                seq:
+                    inputSeq,
+                x:
+                    localX
+            }
+        );
+    }
+
+
+    /* =========================================================
+       Host Timeout / Election
+    ========================================================= */
+
+    setInterval(
+        () => {
+
+            broadcastHello();
+
+            if (
+                !currentHostKnown()
+            ) {
+                tryElectHost();
+            }
+
+            const now =
+                Date.now();
+
+            if (
+                hostId &&
+                hostId !== user.id &&
+                now -
+                lastHostHeartbeat >
+                6500
+            ) {
+                addEvent(
+                    "⚡ Host 連線逾時，重新選舉"
+                );
+
+                hostId =
+                    null;
+
+                tryElectHost();
+
+                if (
+                    !hostId ||
+                    hostId === user.id
+                ) {
+                    becomeHost();
+                }
+            }
+
+            if (isHost()) {
+                sendEvent(
+                    "HOST_HEARTBEAT",
+                    {
+                        gameId: GAME_ID,
+                        hostId: user.id,
+                        hostNow: Date.now(),
+                        roundId:
+                            currentRoundId,
+                        state
+                    }
+                );
+
+                if (
+                    state === "LOBBY"
+                ) {
+                    sendLobbySnapshot();
+                }
+
+                if (
+                    state === "FLYING"
+                ) {
+                    hostTick();
+                }
+            }
+
+        },
+        100
+    );
+
+
+    /* =========================================================
+       Host / Lobby heartbeat
+    ========================================================= */
+
+    setInterval(
+        () => {
+            if (!isHost()) {
+                return;
+            }
+
+            if (
+                state ===
+                "LOBBY"
+            ) {
+                sendLobbySnapshot();
+            }
+
+            if (
+                state ===
+                "FLYING"
+            ) {
+                sendRoundSnapshot();
+            }
+        },
+        1800
+    );
+
+
+    /* =========================================================
+       Periodic Hello
+    ========================================================= */
+
+    setInterval(
+        broadcastHello,
+        2200
+    );
+
+
+    /* =========================================================
+       Header
+    ========================================================= */
+
+    function renderHeader() {
+        if (!hostId) {
+            hostPill.textContent =
+                "HOST 選舉中";
+            return;
+        }
+
+        hostPill.textContent =
+            hostId === user.id
+                ? "👑 你是 HOST"
+                : "👑 HOST 已同步";
+
+        onlineCountEl.textContent =
+            String(
+                Math.max(
+                    1,
+                    playerMap.size
+                )
+            );
+    }
+
+
+    /* =========================================================
+       Player UI
+    ========================================================= */
+
+    function rocketName(
+        rocket
+    ) {
+        return rocket === "B"
+            ? "🩷 狂暴號"
+            : "🔵 穩定號";
+    }
+
+
+    function renderPlayers() {
+        const all =
+            Array.from(
+                playerMap.values()
+            )
+            .sort(
+                (a, b) => {
+                    if (
+                        a.id ===
+                        user.id
+                    ) {
+                        return -1;
+                    }
+
+                    return (
+                        a.joinedAt -
+                        b.joinedAt
+                    );
+                }
+            )
+            .slice(
+                0,
+                MAX_PLAYERS_DISPLAY
+            );
+
+        playersEl.innerHTML =
+            "";
+
+        all.forEach(
+            p => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+                card.className =
+                    "player " +
+                    (
+                        p.id ===
+                        user.id
+                            ? "me "
+                            : ""
+                    ) +
+                    String(
+                        p.status ||
+                        "waiting"
+                    );
+
+                const avatar =
+                    document.createElement(
+                        "div"
+                    );
+
+                avatar.className =
+                    "avatar";
+
+                if (
+                    p.avatar
+                ) {
+                    const img =
+                        document.createElement(
+                            "img"
+                        );
+
+                    img.src =
+                        p.avatar;
+
+                    img.alt =
+                        "";
+
+                    img.referrerPolicy =
+                        "no-referrer";
+
+                    avatar.appendChild(
+                        img
+                    );
+                } else {
+                    avatar.innerHTML =
+                        `<span class="avatar-fallback">${
+                            p.id === user.id
+                                ? "🚀"
+                                : "👤"
+                        }</span>`;
+                }
+
+                const main =
+                    document.createElement(
+                        "div"
+                    );
+
+                main.className =
+                    "player-main";
+
+                const name =
+                    document.createElement(
+                        "div"
+                    );
+
+                name.className =
+                    "player-name";
+
+                name.textContent =
+                    p.username +
+                    (
+                        p.id === user.id
+                            ? " · 你"
+                            : ""
+                    );
+
+                const status =
+                    document.createElement(
+                        "div"
+                    );
+
+                status.className =
+                    "player-status";
+
+                status.textContent =
+                    playerStatusText(p);
+
+                main.appendChild(
+                    name
+                );
+
+                main.appendChild(
+                    status
+                );
+
+                const bet =
+                    document.createElement(
+                        "div"
+                    );
+
+                bet.className =
+                    "player-bet";
+
+                bet.textContent =
+                    p.bet > 0
+                        ? `${p.bet}🪙`
+                        : "—";
+
+                const top =
+                    document.createElement(
+                        "div"
+                    );
+
+                top.className =
+                    "player-row";
+
+                top.appendChild(
+                    avatar
+                );
+
+                top.appendChild(
+                    main
+                );
+
+                top.appendChild(
+                    bet
+                );
+
+                card.appendChild(
+                    top
+                );
+
+                const rocket =
+                    document.createElement(
+                        "div"
+                    );
+
+                rocket.className =
+                    "player-rocket";
+
+                const rocketText =
+                    document.createElement(
+                        "span"
+                    );
+
+                rocketText.className =
+                    p.rocket === "B"
+                        ? "choice-b"
+                        : "choice-a";
+
+                rocketText.textContent =
+                    rocketName(
+                        p.rocket
+                    );
+
+                const bonusText =
+                    document.createElement(
+                        "span"
+                    );
+
+                bonusText.textContent =
+                    p.bonus > 0
+                        ? `+${p.bonus.toFixed(2)}x`
+                        : "";
+
+                rocket.appendChild(
+                    rocketText
+                );
+
+                rocket.appendChild(
+                    bonusText
+                );
+
+                card.appendChild(
+                    rocket
+                );
+
+                playersEl.appendChild(
+                    card
+                );
+            }
+        );
+
+        onlineCountEl.textContent =
+            String(
+                Math.max(
+                    1,
+                    playerMap.size
+                )
+            );
+    }
+
+
+    function playerStatusText(
+        player
+    ) {
+        switch (
+            player.status
+        ) {
+            case "ready":
+                return "🟢 已下注";
+            case "flying":
+                return "🚀 飛行中";
+            case "cashed":
+                return (
+                    `✅ ${safeNumber(
+                        player.cashoutAt,
+                        0
+                    ).toFixed(2)}x 逃脫`
+                );
+            case "crashed":
+                return "💥 爆炸";
+            default:
+                return "等待加入";
+        }
+    }
+
+
+    /* =========================================================
+       Main HUD
+    ========================================================= */
+
+    function renderHUD(
+        now = Date.now()
+    ) {
+        const effectiveNow =
+            now +
+            clockOffset;
+
+        if (
+            state === "COUNTDOWN"
+        ) {
+            const remain =
+                Math.max(
+                    0,
+                    roundStartAt -
+                    effectiveNow
+                );
+
+            const seconds =
+                Math.ceil(
+                    remain / 1000
+                );
+
+            mainMultiplier.className =
+                "";
+
+            mainMultiplier.textContent =
+                seconds > 0
+                    ? String(seconds)
+                    : "GO!";
+
+            statusText.textContent =
+                "雙火箭即將起飛";
+
+        } else if (
+            state === "FLYING"
+        ) {
+
+            const baseA =
+                getBaseMultiplier(
+                    "A",
+                    effectiveNow
+                );
+
+            const baseB =
+                getBaseMultiplier(
+                    "B",
+                    effectiveNow
+                );
+
+            rocketMultA.textContent =
+                `${baseA.toFixed(2)}x`;
+
+            rocketMultB.textContent =
+                `${baseB.toFixed(2)}x`;
+
+            const me =
+                playerMap.get(
+                    user.id
+                );
+
+            if (me) {
+                const current =
+                    getPlayerMultiplier(
+                        me
+                    );
+
+                mainMultiplier.textContent =
+                    `${current.toFixed(2)}x`;
+
+                if (
+                    me.status ===
+                    "cashed"
+                ) {
+                    mainMultiplier.className =
+                        "win";
+
+                } else if (
+                    me.status ===
+                    "crashed"
+                ) {
+                    mainMultiplier.className =
+                        "crash";
+
+                } else if (
+                    current >= 5
+                ) {
+                    mainMultiplier.className =
+                        "danger";
+
+                } else if (
+                    current >= 2
+                ) {
+                    mainMultiplier.className =
+                        "warning";
+
+                } else {
+                    mainMultiplier.className =
+                        selectedRocket === "A"
+                            ? "cyan"
+                            : "pink";
+                }
+
+                if (
+                    me.status ===
+                    "flying"
+                ) {
+                    statusText.textContent =
+                        `🚀 ${
+                            rocketName(me.rocket)
+                        } · ${current.toFixed(2)}x`;
+                }
+            }
+
+            rocketStateA.textContent =
+                rocketCrashedA
+                    ? "💥 爆炸"
+                    : "🚀 飛行";
+
+            rocketStateB.textContent =
+                rocketCrashedB
+                    ? "💥 爆炸"
+                    : "🚀 飛行";
+
+            rocketCardA.classList.toggle(
+                "active-a",
+                selectedRocket === "A"
+            );
+
+            rocketCardB.classList.toggle(
+                "active-b",
+                selectedRocket === "B"
+            );
+
+            maybePlayHudWarnings(
+                baseA,
+                baseB
+            );
+
+        } else if (
+            state === "LOBBY"
+        ) {
+            mainMultiplier.className =
+                "";
+
+            mainMultiplier.textContent =
+                "1.00x";
+
+            statusText.textContent =
+                localReady
+                    ? "等待 Host 開局…"
+                    : "等待玩家選擇火箭並下注";
+
+            controlHint.textContent =
+                tiltEnabled
+                    ? "📱 體感控制已開啟"
+                    : "左右傾斜手機控制你的火箭";
+        }
+
+        if (
+            state === "CRASHED"
+        ) {
+            mainMultiplier.className =
+                "crash";
+        }
+    }
+
+
+    function maybePlayHudWarnings(
+        a,
+        b
+    ) {
+        const now =
+            Date.now();
+
+        const active =
+            selectedRocket === "A"
+                ? a
+                : b;
+
+        if (
+            active >= 2 &&
+            active < 2.08 &&
+            now -
+            lastWarningTone >
+            1200
+        ) {
+            lastWarningTone =
+                now;
+
+            soundNearCrash();
+        }
+
+        if (
+            active >= 5 &&
+            now -
+            lastMultiplierTick >
+            260
+        ) {
+            lastMultiplierTick =
+                now;
+
+            soundTick(
+                active
+            );
+        }
+    }
+
+
+    /* =========================================================
+       World Visual Orbs
+    ========================================================= */
+
+    let worldVisualOrbs = [];
+
+
+    /* =========================================================
+       Canvas Background
+    ========================================================= */
+
+    let stars = [];
+
+    function createStars() {
+        stars =
+            [];
+
+        const count =
+            Math.min(
+                170,
+                Math.max(
+                    90,
+                    Math.floor(
+                        width *
+                        height /
+                        10000
+                    )
+                )
+            );
+
+        for (
+            let i = 0;
+            i < count;
+            i++
+        ) {
+            stars.push({
+                x:
+                    Math.random() *
+                    width,
+                y:
+                    Math.random() *
+                    height,
+                z:
+                    Math.random() *
+                    .9 +
+                    .1,
+                size:
+                    Math.random() *
+                    1.8 +
+                    .4
+            });
+        }
+    }
+
+
+    function drawBackground(
+        time
+    ) {
+        ctx.fillStyle =
+            "#020309";
+
+        ctx.fillRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+        const glow =
+            ctx.createRadialGradient(
+                width / 2,
+                height * .42,
+                20,
+                width / 2,
+                height * .42,
+                Math.max(
+                    width,
+                    height
+                ) * .72
+            );
+
+        glow.addColorStop(
+            0,
+            "rgba(29,46,112,.4)"
+        );
+
+        glow.addColorStop(
+            .48,
+            "rgba(11,18,53,.23)"
+        );
+
+        glow.addColorStop(
+            1,
+            "rgba(0,0,0,0)"
+        );
+
+        ctx.fillStyle =
+            glow;
+
+        ctx.fillRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+        for (
+            const star of stars
+        ) {
+            const speed =
+                state === "FLYING"
+                    ? 1 +
+                      Math.min(
+                          getFastestMultiplier(),
+                          10
+                      ) *
+                      .08
+                    : .25;
+
+            star.y +=
+                star.z *
+                speed;
+
+            if (
+                star.y >
+                height
+            ) {
+                star.y = 0;
+                star.x =
+                    Math.random() *
+                    width;
+            }
+
+            ctx.globalAlpha =
+                .25 +
+                star.z *
+                .7;
+
+            ctx.fillStyle =
+                "#ffffff";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                star.x,
+                star.y,
+                star.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+        }
+
+        ctx.globalAlpha =
+            1;
+    }
+
+
+    function getFastestMultiplier() {
+        const now =
+            Date.now() +
+            clockOffset;
+
+        const a =
+            getBaseMultiplier(
+                "A",
+                now
+            );
+
+        const b =
+            getBaseMultiplier(
+                "B",
+                now
+            );
+
+        return Math.max(
+            a,
+            b
+        );
+    }
+
+
+    /* =========================================================
+       Flight Lanes
+    ========================================================= */
+
+    function laneGeometry(
+        rocketId
+    ) {
+        const gap =
+            Math.min(
+                24,
+                width * .06
+            );
+
+        const laneWidth =
+            Math.min(
+                175,
+                width * .34
+            );
+
+        const total =
+            laneWidth * 2 +
+            gap;
+
+        const left =
+            width / 2 -
+            total / 2;
+
+        if (
+            rocketId === "A"
+        ) {
+            return {
+                left,
+                width: laneWidth,
+                center:
+                    left +
+                    laneWidth / 2
+            };
+        }
+
+        return {
+            left:
+                left +
+                laneWidth +
+                gap,
+            width: laneWidth,
+            center:
+                left +
+                laneWidth +
+                gap +
+                laneWidth / 2
+        };
+    }
+
+
+    function drawLane(
+        rocketId,
+        time
+    ) {
+        const g =
+            laneGeometry(
+                rocketId
+            );
+
+        const color =
+            rocketId === "A"
+                ? "34,231,255"
+                : "255,50,206";
+
+        const bottom =
+            height * .82;
+
+        const top =
+            height * .24;
+
+        const grad =
+            ctx.createLinearGradient(
+                g.left,
+                top,
+                g.left,
+                bottom
+            );
+
+        grad.addColorStop(
+            0,
+            `rgba(${color},0)`
+        );
+
+        grad.addColorStop(
+            .45,
+            `rgba(${color},.045)`
+        );
+
+        grad.addColorStop(
+            1,
+            `rgba(${color},.1)`
+        );
+
+        ctx.fillStyle =
+            grad;
+
+        ctx.fillRect(
+            g.left,
+            top,
+            g.width,
+            bottom - top
+        );
+
+        ctx.strokeStyle =
+            `rgba(${color},.13)`;
+
+        ctx.lineWidth =
+            1;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            g.left,
+            top
+        );
+
+        ctx.lineTo(
+            g.left,
+            bottom
+        );
+
+        ctx.moveTo(
+            g.left + g.width,
+            top
+        );
+
+        ctx.lineTo(
+            g.left + g.width,
+            bottom
+        );
+
+        ctx.stroke();
+
+        const laneScroll =
+            (
+                time *
+                .045
+            ) %
+            46;
+
+        ctx.strokeStyle =
+            `rgba(${color},.07)`;
+
+        for (
+            let y =
+                top +
+                laneScroll;
+            y <
+            bottom;
+            y += 46
+        ) {
+            ctx.beginPath();
+
+            ctx.moveTo(
+                g.left + 10,
+                y
+            );
+
+            ctx.lineTo(
+                g.left +
+                g.width -
+                10,
+                y
+            );
+
+            ctx.stroke();
+        }
+    }
+
+
+    /* =========================================================
+       Hero Rockets
+    ========================================================= */
+
+    function drawHeroRocket(
+        rocketId,
+        multiplier,
+        crashed,
+        time
+    ) {
+        const g =
+            laneGeometry(
+                rocketId
+            );
+
+        const color =
+            rocketId === "A"
+                ? "#22e7ff"
+                : "#ff32ce";
+
+        const glow =
+            rocketId === "A"
+                ? "#008cff"
+                : "#7d30ff";
+
+        const pulse =
+            Math.sin(
+                time *
+                .006
+            ) *
+            3;
+
+        const x =
+            g.center;
+
+        const y =
+            height *
+            .62 -
+            Math.min(
+                multiplier *
+                3.8,
+                155
+            ) +
+            pulse;
+
+        ctx.save();
+
+        if (crashed) {
+            drawExplosionGlow(
+                x,
+                y,
+                color
+            );
+            ctx.restore();
+            return;
+        }
+
+        ctx.translate(
+            x,
+            y
+        );
+
+        ctx.shadowBlur =
+            24;
+
+        ctx.shadowColor =
+            glow;
+
+        ctx.fillStyle =
+            color;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            -33
+        );
+
+        ctx.quadraticCurveTo(
+            18,
+            -4,
+            18,
+            18
+        );
+
+        ctx.lineTo(
+            -18,
+            18
+        );
+
+        ctx.quadraticCurveTo(
+            -18,
+            -4,
+            0,
+            -33
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.shadowBlur =
+            0;
+
+        ctx.fillStyle =
+            "#eef9ff";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            -7,
+            6,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.fillStyle =
+            "#ffffff";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -9,
+            15
+        );
+
+        ctx.lineTo(
+            -29,
+            26
+        );
+
+        ctx.lineTo(
+            -10,
+            23
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            9,
+            15
+        );
+
+        ctx.lineTo(
+            29,
+            26
+        );
+
+        ctx.lineTo(
+            10,
+            23
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.fillStyle =
+            "#ffd84d";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -8,
+            19
+        );
+
+        ctx.lineTo(
+            8,
+            19
+        );
+
+        ctx.lineTo(
+            0,
+            44 +
+            Math.random() *
+            15
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.fillStyle =
+            "#ff6c2c";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -5,
+            20
+        );
+
+        ctx.lineTo(
+            5,
+            20
+        );
+
+        ctx.lineTo(
+            0,
+            37
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+
+    function drawExplosionGlow(
+        x,
+        y,
+        color
+    ) {
+        const radius =
+            24 +
+            Math.random() *
+            25;
+
+        const glow =
+            ctx.createRadialGradient(
+                x,
+                y,
+                2,
+                x,
+                y,
+                radius
+            );
+
+        glow.addColorStop(
+            0,
+            "rgba(255,255,255,.95)"
+        );
+
+        glow.addColorStop(
+            .2,
+            color
+        );
+
+        glow.addColorStop(
+            1,
+            "rgba(255,0,0,0)"
+        );
+
+        ctx.fillStyle =
+            glow;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    /* =========================================================
+       World Items Rendering
+    ========================================================= */
+
+    function drawWorldItems() {
+        for (
+            const item of worldVisualOrbs
+        ) {
+            const g =
+                laneGeometry(
+                    item.rocket
+                );
+
+            const x =
+                g.center +
+                item.x *
+                (
+                    g.width /
+                    2 -
+                    18
+                );
+
+            const y =
+                height *
+                .24 +
+                item.y *
+                (
+                    height *
+                    .58
+                );
+
+            if (
+                item.type ===
+                "energy"
+            ) {
+                drawEnergyOrb(
+                    x,
+                    y
+                );
+            } else {
+                drawMeteor(
+                    x,
+                    y
+                );
+            }
+        }
+    }
+
+
+    function drawEnergyOrb(
+        x,
+        y
+    ) {
+        const pulse =
+            8 +
+            Math.sin(
+                Date.now() *
+                .007
+            ) *
+            2;
+
+        ctx.save();
+
+        ctx.shadowBlur =
+            18;
+
+        ctx.shadowColor =
+            "#ffd84d";
+
+        ctx.strokeStyle =
+            "#ffd84d";
+
+        ctx.lineWidth =
+            2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            pulse,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.stroke();
+
+        ctx.fillStyle =
+            "rgba(255,216,77,.15)";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            pulse * 1.6,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+
+    function drawMeteor(
+        x,
+        y
+    ) {
+        ctx.save();
+
+        ctx.translate(
+            x,
+            y
+        );
+
+        ctx.rotate(
+            Date.now() *
+            .002
+        );
+
+        ctx.shadowBlur =
+            12;
+
+        ctx.shadowColor =
+            "#ff5335";
+
+        ctx.fillStyle =
+            "#ff6d45";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            -10,
+            -8
+        );
+
+        ctx.lineTo(
+            6,
+            -11
+        );
+
+        ctx.lineTo(
+            12,
+            3
+        );
+
+        ctx.lineTo(
+            2,
+            12
+        );
+
+        ctx.lineTo(
+            -11,
+            7
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+
+    /* =========================================================
+       玩家火箭
+    ========================================================= */
+
+    function drawPlayerRockets() {
+        const me =
+            playerMap.get(
+                user.id
+            );
+
+        if (!me) {
+            return;
+        }
+
+        Array.from(
+            playerMap.values()
+        )
+        .forEach(
+            p => {
+
+                if (
+                    p.status !==
+                    "flying"
+                ) {
+                    return;
+                }
+
+                const g =
+                    laneGeometry(
+                        p.rocket
+                    );
+
+                const color =
+                    p.id === user.id
+                        ? "#ffffff"
+                        : p.rocket === "A"
+                            ? "#22e7ff"
+                            : "#ff32ce";
+
+                p.renderX =
+                    p.renderX * .72 +
+                    p.x * .28;
+
+                const x =
+                    g.center +
+                    p.renderX *
+                    (
+                        g.width /
+                        2 -
+                        20
+                    );
+
+                const y =
+                    height *
+                    .79 -
+                    Math.min(
+                        p.bonus *
+                        18,
+                        22
+                    );
+
+                ctx.save();
+
+                ctx.globalAlpha =
+                    p.id === user.id
+                        ? 1
+                        : .4;
+
+                ctx.shadowBlur =
+                    p.id === user.id
+                        ? 20
+                        : 9;
+
+                ctx.shadowColor =
+                    color;
+
+                ctx.fillStyle =
+                    color;
+
+                ctx.beginPath();
+
+                ctx.moveTo(
+                    x,
+                    y - 16
+                );
+
+                ctx.lineTo(
+                    x + 7,
+                    y + 9
+                );
+
+                ctx.lineTo(
+                    x - 7,
+                    y + 9
+                );
+
+                ctx.closePath();
+
+                ctx.fill();
+
+                ctx.fillStyle =
+                    "#ffffff";
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y - 3,
+                    2.5,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fill();
+
+                ctx.restore();
+            }
+        );
+    }
+
+
+    /* =========================================================
+       Render Loop
+    ========================================================= */
+
+    let shakeX = 0;
+    let shakeY = 0;
+
+    function animate(time) {
+        renderHUD();
+
+        drawBackground(
+            time
+        );
+
+        drawLane(
+            "A",
+            time
+        );
+
+        drawLane(
+            "B",
+            time
+        );
+
+        const now =
+            Date.now() +
+            clockOffset;
+
+        const a =
+            getBaseMultiplier(
+                "A",
+                now
+            );
+
+        const b =
+            getBaseMultiplier(
+                "B",
+                now
+            );
+
+        drawHeroRocket(
+            "A",
+            a,
+            rocketCrashedA,
+            time
+        );
+
+        drawHeroRocket(
+            "B",
+            b,
+            rocketCrashedB,
+            time
+        );
+
+        drawWorldItems();
+
+        drawPlayerRockets();
+
+        updateShake();
+
+        requestAnimationFrame(
+            animate
+        );
+    }
+
+
+    function updateShake() {
+        if (
+            Math.abs(shakeX) < .1 &&
+            Math.abs(shakeY) < .1
+        ) {
+            shakeX = 0;
+            shakeY = 0;
+            return;
+        }
+
+        shakeX *= .86;
+        shakeY *= .86;
+
+        canvas.style.transform =
+            `translate(${shakeX}px,${shakeY}px)`;
+    }
+
+
+    function screenShake(
+        amount = 9
+    ) {
+        shakeX =
+            (
+                Math.random() -
+                .5
+            ) *
+            amount;
+
+        shakeY =
+            (
+                Math.random() -
+                .5
+            ) *
+            amount;
+    }
+
+
+    /* =========================================================
+       Crash Visual Event
+    ========================================================= */
+
+    window.addEventListener(
+        "message",
+        event => {
+            let data = null;
+
+            try {
+                data =
+                    typeof event.data ===
+                    "string"
+                        ? JSON.parse(
+                            event.data
+                        )
+                        : event.data;
+            } catch (e) {
+                return;
+            }
+
+            if (
+                !data ||
+                data.action !==
+                "gameEventReceived"
+            ) {
+                return;
+            }
+
+            if (
+                data.eventName ===
+                "ROCKET_CRASHED"
+            ) {
+                screenShake(
+                    15
+                );
+            }
+        }
+    );
+
+
+    /* =========================================================
+       Initial UI
+    ========================================================= */
+
+    updateChoiceUI();
+
+    resizeCanvas();
+
+    renderPlayers();
+
+    renderHeader();
+
+    broadcastHello();
+
+    setTimeout(
+        () => {
+            tryElectHost();
+
+            if (
+                isHost()
+            ) {
+                addEvent(
+                    "👑 你是本房第一位玩家，Host 已建立"
+                );
+            }
+        },
+        850
+    );
+
+
+    /* =========================================================
+       開發/瀏覽器測試模式
+    ========================================================= */
+
+    if (!sdkAvailable) {
+        addEvent(
+            "🧪 預覽模式：SDK 未連線"
+        );
+    }
+
+
+    /* =========================================================
+       Demo Bots
+       僅在沒有 SDK 時啟用，方便直接開 HTML 測試。
+    ========================================================= */
+
+    if (!sdkAvailable) {
+
+        function createDemoBots() {
+
+            const bots = [
+                {
+                    id: "demo_01",
+                    username: "CyberCat",
+                    avatar: "",
+                    joinedAt:
+                        myJoinAt + 100,
+                    bet: 100,
+                    rocket: "A"
+                },
+                {
+                    id: "demo_02",
+                    username: "NeonFox",
+                    avatar: "",
+                    joinedAt:
+                        myJoinAt + 200,
+                    bet: 250,
+                    rocket: "B"
+                },
+                {
+                    id: "demo_03",
+                    username: "RocketKid",
+                    avatar: "",
+                    joinedAt:
+                        myJoinAt + 300,
+                    bet: 500,
+                    rocket: "A"
+                }
+            ];
+
+            bots.forEach(
+                b => {
+                    upsertPlayer(
+                        b.id,
+                        {
+                            ...b,
+                            ready: true,
+                            status: "ready",
+                            x:
+                                Math.random() *
+                                1.4 -
+                                .7,
+                            renderX: 0,
+                            bonus: 0,
+                            reward: 0,
+                            cashoutAt: 0
+                        }
+                    );
+
+                    hostCandidates.set(
+                        b.id,
+                        {
+                            id: b.id,
+                            joinedAt:
+                                b.joinedAt,
+                            username:
+                                b.username
+                        }
+                    );
+                }
+            );
+
+            if (
+                !hostId
+            ) {
+                hostId =
+                    getHostCandidateArray()[0]
+                        ?.id ||
+                    user.id;
+            }
+
+            renderPlayers();
+            renderHeader();
+        }
+
+        createDemoBots();
+
+        setTimeout(
+            () => {
+                if (
+                    state === "LOBBY" &&
+                    isHost()
+                ) {
+                    maybeStartRound();
+                }
+            },
+            1800
+        );
+
+        setInterval(
+            () => {
+                if (
+                    state !==
+                    "FLYING"
+                ) {
+                    return;
+                }
+
+                Array.from(
+                    playerMap.values()
+                )
+                .filter(
+                    p =>
+                        p.id !==
+                        user.id &&
+                        p.status ===
+                        "flying"
+                )
+                .forEach(
+                    p => {
+                        p.x +=
+                            (
+                                Math.random() -
+                                .5
+                            ) *
+                            .25;
+
+                        p.x =
+                            clamp(
+                                p.x,
+                                -1,
+                                1
+                            );
+
+                        if (
+                            Math.random() <
+                            .006 *
+                            Math.max(
+                                1,
+                                getPlayerMultiplier(
+                                    p
+                                )
+                            )
+                        ) {
+                            processCashoutOnHost(
+                                p.id
+                            );
+                        }
+                    }
+                );
+            },
+            180
+        );
+    }
+
+
+    /* =========================================================
+       遊戲內訊息
+    ========================================================= */
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+            if (
+                document.visibilityState ===
+                "visible"
+            ) {
+                broadcastHello();
+
+                if (
+                    isHost()
+                ) {
+                    sendLobbySnapshot();
+
+                    if (
+                        state ===
+                        "FLYING"
+                    ) {
+                        sendRoundSnapshot();
+                    }
+                }
+            }
+        }
+    );
+
+
+    /* =========================================================
+       開始動畫
+    ========================================================= */
+
+    requestAnimationFrame(
+        animate
+    );
+
+})();
+</script>
+
+</body>
+</html>

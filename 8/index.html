@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Dice Battle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        :root {
+            --bg-color: #05050a;
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #fcee0a;
+            --panel-bg: rgba(10, 10, 20, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #canvas-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #game-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--panel-bg);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--neon-magenta);
+            box-shadow: 0 0 8px var(--neon-magenta);
+        }
+
+        .username {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .host-badge {
+            font-size: 10px;
+            background: var(--neon-yellow);
+            color: #000;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+            display: none;
+        }
+
+        /* Main Display */
+        .display-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(255,0,255,0.1) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .status-text {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .timer {
+            font-size: 40px;
+            font-weight: 900;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan);
+            position: absolute;
+            top: 10px;
+            right: 15px;
+        }
+
+        .dice-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .die {
+            font-size: 70px;
+            line-height: 1;
+            color: #fff;
+            text-shadow: 0 0 20px var(--neon-magenta), 0 0 40px var(--neon-magenta);
+            transition: transform 0.1s;
+        }
+
+        .die.rolling {
+            animation: shake 0.3s infinite;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            25% { transform: translate(-1px, -2px) rotate(-10deg); }
+            50% { transform: translate(-3px, 0px) rotate(10deg); }
+            75% { transform: translate(2px, 2px) rotate(-10deg); }
+            100% { transform: translate(1px, -1px) rotate(0deg); }
+        }
+
+        .result-sum {
+            margin-top: 15px;
+            font-size: 20px;
+            color: var(--neon-yellow);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        /* Betting Area */
+        .betting-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .bet-btn {
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 10px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bet-btn:active {
+            transform: scale(0.95);
+        }
+
+        .bet-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            border-color: #555;
+        }
+
+        .bet-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        .bet-multiplier {
+            font-size: 12px;
+            color: var(--neon-magenta);
+        }
+
+        .bet-amount {
+            margin-top: 10px;
+            font-size: 16px;
+            color: var(--neon-yellow);
+            font-weight: bold;
+        }
+
+        .total-pool {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* Action Feed */
+        .action-feed {
+            height: 80px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 10px;
+            padding: 5px 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .feed-item {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feed-item span.name { color: var(--neon-cyan); }
+        .feed-item span.amount { color: var(--neon-yellow); }
+        .feed-item span.zone { color: var(--neon-magenta); font-weight: bold; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Overlays */
+        #start-overlay, #leaderboard-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .glowing-btn {
+            background: transparent;
+            border: 2px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            padding: 15px 40px;
+            font-size: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--neon-magenta) inset, 0 0 15px var(--neon-magenta);
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .glowing-btn:hover {
+            background: var(--neon-magenta);
+            color: #000;
+        }
+
+        .leaderboard-title {
+            font-size: 30px;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 15px var(--neon-yellow);
+            margin-bottom: 20px;
+        }
+
+        .lb-entry {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            font-size: 16px;
+        }
+        .lb-entry.me {
+            color: var(--neon-cyan);
+            font-weight: bold;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Floating text animation */
+        .floating-text {
+            position: absolute;
+            color: var(--neon-yellow);
+            font-weight: bold;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            text-shadow: 0 0 10px var(--neon-yellow);
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-bg"></canvas>
+
+    <div id="start-overlay">
+        <h1 style="color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan); margin-bottom: 10px; font-size: 40px;">NEON DICE</h1>
+        <h2 style="color: var(--neon-magenta); margin-bottom: 40px; letter-spacing: 5px;">BATTLE</h2>
+        <button class="glowing-btn" id="btn-join">Enter Room</button>
+    </div>
+
+    <div id="leaderboard-overlay" class="hidden">
+        <div class="leaderboard-title">ROUND RESULTS</div>
+        <div id="lb-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
+            <!-- Entries injected here -->
+        </div>
+        <div id="my-result" style="font-size: 24px; margin-bottom: 20px;"></div>
+    </div>
+
+    <div id="game-container">
+        <header>
+            <div class="user-info">
+                <img id="my-avatar" class="avatar" src="" alt="avatar">
+                <div>
+                    <div id="my-username" class="username">Player</div>
+                    <span id="host-badge" class="host-badge">HOST</span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 10px; color: #aaa;">BET AMOUNT</div>
+                <div style="color: var(--neon-yellow); font-weight: bold;">100 COINS</div>
+            </div>
+        </header>
+
+        <div class="display-area">
+            <div id="timer" class="timer">--</div>
+            <div id="status-text" class="status-text">WAITING...</div>
+            
+            <div class="dice-container">
+                <div class="die" id="die1">&#x2680;</div>
+                <div class="die" id="die2">&#x2680;</div>
+                <div class="die" id="die3">&#x2680;</div>
+            </div>
+            <div id="result-sum" class="result-sum">SUM: 3</div>
+        </div>
+
+        <div class="betting-area">
+            <div class="bet-btn disabled" id="btn-small" onclick="placeBet('small')">
+                <div class="bet-title">SMALL</div>
+                <div class="bet-multiplier">4-10 (1:1)</div>
+                <div class="bet-amount" id="my-bet-small">0</div>
+                <div class="total-pool">Pool: <span id="pool-small">0</span></div>
+            </div>
+            <div class="bet-btn disabled" id="btn-triple" onclick="placeBet('triple')">
+                <div class="bet-title">TRIPLE</div>
+                <div class="bet-multiplier">ANY (24:1)</div>
+                <div class="bet-amount" id="my-bet-triple">0</div>
+                <div class="total-pool">Pool: <span id="pool-triple">0</span></div>
+            </div>
+            <div class="bet-btn disabled" id="btn-big" onclick="placeBet('big')">
+                <div class="bet-title">BIG</div>
+                <div class="bet-multiplier">11-17 (1:1)</div>
+                <div class="bet-amount" id="my-bet-big">0</div>
+                <div class="total-pool">Pool: <span id="pool-big">0</span></div>
+            </div>
+        </div>
+
+        <div class="action-feed" id="action-feed">
+            <!-- Feed items injected here -->
+        </div>
+    </div>
+
+    <script>
+        // --- MOCK SDK FOR TESTING OUTSIDE BOOMROOM APP ---
+        if (typeof window.BoomRoomSDK === 'undefined') {
+            window.BoomRoomSDK = {
+                getUser: () => ({ 
+                    id: 'u_' + Math.floor(Math.random()*10000), 
+                    username: 'CyberPunk' + Math.floor(Math.random()*100), 
+                    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random() 
+                }),
+                requestPurchase: (itemId, cost) => {
+                    // Simulate network delay and success
+                    setTimeout(() => {
+                        if(window.onPurchaseSuccess) window.onPurchaseSuccess(itemId);
+                    }, 300);
+                },
+                gameOver: (winAmount) => {
+                    console.log("[Mock SDK] Game Over. Win Amount:", winAmount);
+                },
+                sendGameEvent: (eventName, payload) => {
+                    // Loopback for local testing
+                    const msg = JSON.stringify({
+                        action: "gameEventReceived",
+                        eventName: eventName,
+                        userId: window.BoomRoomSDK.getUser().id,
+                        payload: payload
+                    });
+                    window.postMessage(msg, "*");
+                }
+            };
+        }
+
+        // --- GAME VARIABLES ---
+        const user = window.BoomRoomSDK.getUser();
+        let isHost = false;
+        let hostId = null;
+        let currentPhase = "WAITING"; // WAITING, BETTING, ROLLING, RESULT
+        let phaseTimer = 0;
+        let diceResults = [1, 1, 1];
+        
+        const BET_COST = 100;
+        let myBets = { small: 0, triple: 0, big: 0 };
+        let poolBets = { small: 0, triple: 0, big: 0 };
+        let roundLeaderboard = [];
+
+        // --- AUDIO SYSTEM ---
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(freq, type, duration, vol=0.1) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playBetSound() { playTone(800, 'sine', 0.1, 0.2); playTone(1200, 'sine', 0.15, 0.2); }
+        function playWinSound() { 
+            playTone(400, 'square', 0.1, 0.1); 
+            setTimeout(()=>playTone(600, 'square', 0.1, 0.1), 100);
+            setTimeout(()=>playTone(800, 'square', 0.3, 0.1), 200);
+        }
+        function playLoseSound() { playTone(200, 'sawtooth', 0.4, 0.1); }
+        function playTickSound() { playTone(1000, 'sine', 0.05, 0.05); }
+
+        // --- UI ELEMENTS ---
+        const elTimer = document.getElementById('timer');
+        const elStatus = document.getElementById('status-text');
+        const elDice = [document.getElementById('die1'), document.getElementById('die2'), document.getElementById('die3')];
+        const elResultSum = document.getElementById('result-sum');
+        const elFeed = document.getElementById('action-feed');
+        const btns = {
+            small: document.getElementById('btn-small'),
+            triple: document.getElementById('btn-triple'),
+            big: document.getElementById('btn-big')
+        };
+
+        // --- INITIALIZATION ---
+        document.getElementById('my-username').innerText = user.username;
+        document.getElementById('my-avatar').src = user.avatar;
+
+        document.getElementById('btn-join').addEventListener('click', () => {
+            initAudio();
+            document.getElementById('start-overlay').classList.add('hidden');
+            joinRoom();
+        });
+
+        function joinRoom() {
+            // Broadcast join
+            window.BoomRoomSDK.sendGameEvent("PLAYER_JOIN", { username: user.username });
+            
+            // Host election logic: if no host ping received in 2 seconds, become host
+            setTimeout(() => {
+                if (!hostId) {
+                    becomeHost();
+                }
+            }, 2000);
+        }
+
+        function becomeHost() {
+            isHost = true;
+            hostId = user.id;
+            document.getElementById('host-badge').style.display = 'inline-block';
+            addFeedItem("SYSTEM", "You are the Host", "sys");
+            startHostLoop();
+        }
+
+        // --- HOST LOGIC ---
+        async function startHostLoop() {
+            while (isHost) {
+                // 1. BETTING PHASE (12s)
+                setPhase("BETTING", 12);
+                for(let i=12; i>0; i--) {
+                    broadcastState(i);
+                    await sleep(1000);
+                }
+
+                // 2. ROLLING PHASE (3s)
+                diceResults = [rand(1,6), rand(1,6), rand(1,6)];
+                setPhase("ROLLING", 3);
+                for(let i=3; i>0; i--) {
+                    broadcastState(i);
+                    await sleep(1000);
+                }
+
+                // 3. RESULT PHASE (6s)
+                setPhase("RESULT", 6);
+                for(let i=6; i>0; i--) {
+                    broadcastState(i);
+                    await sleep(1000);
+                }
+                
+                // Reset pools for next round
+                poolBets = { small: 0, triple: 0, big: 0 };
+                roundLeaderboard = [];
+            }
+        }
+
+        function broadcastState(time) {
+            window.BoomRoomSDK.sendGameEvent("HOST_SYNC", {
+                hostId: user.id,
+                phase: currentPhase,
+                time: time,
+                dice: diceResults,
+                pools: poolBets
+            });
+        }
+
+        // --- CLIENT LOGIC & SYNC ---
+        window.addEventListener("message", (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                if (data.action === "gameEventReceived") {
+                    handleGameEvent(data.eventName, data.payload, data.userId);
+                }
+            } catch(err) {}
+        });
+
+        function handleGameEvent(eventName, payload, senderId) {
+            switch(eventName) {
+                case "HOST_SYNC":
+                    if (!hostId || hostId === senderId) {
+                        hostId = senderId;
+                        syncState(payload);
+                    }
+                    break;
+                case "PLAYER_BET":
+                    handleRemoteBet(payload);
+                    break;
+                case "PLAYER_RESULT":
+                    handleRemoteResult(payload);
+                    break;
+            }
+        }
+
+        function syncState(payload) {
+            // Update pools
+            if(!isHost) poolBets = payload.pools;
+            updatePoolUI();
+
+            // Phase transition
+            if (currentPhase !== payload.phase) {
+                currentPhase = payload.phase;
+                triggerPhaseChange(currentPhase, payload.dice);
+            }
+
+            // Timer update
+            phaseTimer = payload.time;
+            elTimer.innerText = phaseTimer;
+            if(phaseTimer <= 3 && currentPhase === "BETTING") playTickSound();
+        }
+
+        let diceAnimInterval;
+        function triggerPhaseChange(phase, dice) {
+            elStatus.innerText = phase + "...";
+            
+            if (phase === "BETTING") {
+                elStatus.style.color = "var(--neon-cyan)";
+                elResultSum.style.opacity = 0;
+                document.getElementById('leaderboard-overlay').classList.add('hidden');
+                
+                // Reset local bets
+                myBets = { small: 0, triple: 0, big: 0 };
+                updateMyBetsUI();
+                
+                // Enable buttons
+                Object.values(btns).forEach(b => b.classList.remove('disabled'));
+                
+                // Reset Dice UI
+                elDice.forEach(d => { d.classList.remove('rolling'); d.style.color = '#fff'; });
+                
+            } else if (phase === "ROLLING") {
+                elStatus.style.color = "var(--neon-magenta)";
+                // Disable buttons
+                Object.values(btns).forEach(b => b.classList.add('disabled'));
+                
+                // Animate dice
+                elDice.forEach(d => d.classList.add('rolling'));
+                diceAnimInterval = setInterval(() => {
+                    elDice[0].innerHTML = getDieChar(rand(1,6));
+                    elDice[1].innerHTML = getDieChar(rand(1,6));
+                    elDice[2].innerHTML = getDieChar(rand(1,6));
+                }, 100);
+                
+            } else if (phase === "RESULT") {
+                elStatus.style.color = "var(--neon-yellow)";
+                clearInterval(diceAnimInterval);
+                elDice.forEach(d => d.classList.remove('rolling'));
+                
+                // Set final dice
+                elDice[0].innerHTML = getDieChar(dice[0]);
+                elDice[1].innerHTML = getDieChar(dice[1]);
+                elDice[2].innerHTML = getDieChar(dice[2]);
+                
+                // Highlight winning dice
+                elDice.forEach(d => d.style.color = 'var(--neon-yellow)');
+                
+                const sum = dice[0] + dice[1] + dice[2];
+                elResultSum.innerText = `SUM: ${sum}`;
+                elResultSum.style.opacity = 1;
+
+                calculateMyResult(dice);
+            }
+        }
+
+        // --- BETTING SYSTEM ---
+        let pendingBetType = null;
+        function placeBet(type) {
+            if(currentPhase !== "BETTING") return;
+            pendingBetType = type;
+            const itemId = `bet_${type}_${BET_COST}_${Date.now()}`;
+            window.BoomRoomSDK.requestPurchase(itemId, BET_COST);
+        }
+
+        window.onPurchaseSuccess = function(itemId) {
+            if(itemId.startsWith("bet_") && pendingBetType) {
+                const type = pendingBetType;
+                myBets[type] += BET_COST;
+                poolBets[type] += BET_COST; // Optimistic local update
+                
+                playBetSound();
+                updateMyBetsUI();
+                updatePoolUI();
+                showFloatingText(btns[type], `-100`);
+
+                window.BoomRoomSDK.sendGameEvent("PLAYER_BET", {
+                    username: user.username,
+                    type: type,
+                    amount: BET_COST
+                });
+                
+                pendingBetType = null;
+            }
+        };
+
+        function handleRemoteBet(payload) {
+            if(isHost) {
+                poolBets[payload.type] += payload.amount;
+            }
+            addFeedItem(payload.username, `bet ${payload.amount} on`, payload.type.toUpperCase());
+        }
+
+        // --- RESULT CALCULATION ---
+        function calculateMyResult(dice) {
+            const sum = dice[0] + dice[1] + dice[2];
+            const isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
+            const isSmall = (sum >= 4 && sum <= 10 && !isTriple);
+            const isBig = (sum >= 11 && sum <= 17 && !isTriple);
+
+            let winAmount = 0;
+            if (isSmall) winAmount += myBets.small * 2;
+            if (isBig) winAmount += myBets.big * 2;
+            if (isTriple) winAmount += myBets.triple * 25;
+
+            // Call SDK
+            window.BoomRoomSDK.gameOver(winAmount);
+
+            // Broadcast for leaderboard
+            window.BoomRoomSDK.sendGameEvent("PLAYER_RESULT", {
+                username: user.username,
+                win: winAmount,
+                totalBet: myBets.small + myBets.big + myBets.triple
+            });
+
+            // Local UI
+            setTimeout(() => {
+                showLeaderboard(winAmount);
+                if(winAmount > 0) playWinSound();
+                else if(myBets.small + myBets.big + myBets.triple > 0) playLoseSound();
+            }, 1500);
+        }
+
+        function handleRemoteResult(payload) {
+            roundLeaderboard.push(payload);
+            updateLeaderboardUI();
+        }
+
+        // --- UI UPDATES ---
+        function updateMyBetsUI() {
+            document.getElementById('my-bet-small').innerText = myBets.small;
+            document.getElementById('my-bet-triple').innerText = myBets.triple;
+            document.getElementById('my-bet-big').innerText = myBets.big;
+        }
+
+        function updatePoolUI() {
+            document.getElementById('pool-small').innerText = poolBets.small;
+            document.getElementById('pool-triple').innerText = poolBets.triple;
+            document.getElementById('pool-big').innerText = poolBets.big;
+        }
+
+        function addFeedItem(name, action, zone) {
+            const div = document.createElement('div');
+            div.className = 'feed-item';
+            div.innerHTML = `<span class="name">${name}</span> ${action} <span class="zone">${zone}</span>`;
+            elFeed.appendChild(div);
+            elFeed.scrollTop = elFeed.scrollHeight;
+            if(elFeed.children.length > 20) elFeed.removeChild(elFeed.firstChild);
+        }
+
+        function showFloatingText(element, text) {
+            const rect = element.getBoundingClientRect();
+            const div = document.createElement('div');
+            div.className = 'floating-text';
+            div.innerText = text;
+            div.style.left = (rect.left + rect.width/2 - 20) + 'px';
+            div.style.top = (rect.top + 10) + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+        }
+
+        function showLeaderboard(myWin) {
+            const lb = document.getElementById('leaderboard-overlay');
+            lb.classList.remove('hidden');
+            
+            const resText = document.getElementById('my-result');
+            if(myWin > 0) {
+                resText.innerText = `YOU WON ${myWin} COINS!`;
+                resText.style.color = 'var(--neon-cyan)';
+            } else {
+                resText.innerText = `NO LUCK THIS ROUND`;
+                resText.style.color = '#aaa';
+            }
+            updateLeaderboardUI();
+        }
+
+        function updateLeaderboardUI() {
+            const container = document.getElementById('lb-content');
+            container.innerHTML = '';
+            
+            // Sort by win amount desc
+            const sorted = [...roundLeaderboard].sort((a,b) => b.win - a.win).slice(0, 5);
+            
+            if(sorted.length === 0) {
+                container.innerHTML = '<div style="color:#aaa">Waiting for results...</div>';
+                return;
+            }
+
+            sorted.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = `lb-entry ${entry.username === user.username ? 'me' : ''}`;
+                div.innerHTML = `<span>${entry.username}</span> <span>+${entry.win}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        // --- UTILS ---
+        function getDieChar(num) {
+            return ['&#x2680;','&#x2681;','&#x2682;','&#x2683;','&#x2684;','&#x2685;'][num-1];
+        }
+        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        function setPhase(p, t) { currentPhase = p; phaseTimer = t; }
+
+        // --- BACKGROUND PARTICLES ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 100;
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 1 + 0.5;
+                this.color = Math.random() > 0.5 ? '#00f3ff' : '#ff00ff';
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.y -= this.speedY;
+                if (this.y < -10) {
+                    this.y = canvas.height + 10;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<50; i++) particles.push(new Particle());
+
+        function animateBg() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Dice Battle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --neon-cyan: #66fcf1;
+            --neon-cyan-dim: #45a29e;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #fce300;
+            --text-main: #c5c6c7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: linear-gradient(180deg, #111, transparent);
+            border-bottom: 1px solid var(--neon-cyan-dim);
+            box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--neon-pink);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 8px var(--neon-cyan);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .username {
+            font-size: 14px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .host-badge {
+            font-size: 10px;
+            background: var(--neon-pink);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            display: inline-block;
+            box-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        /* Game Area */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 200px;
+            filter: drop-shadow(0 0 10px rgba(102, 252, 241, 0.5));
+        }
+
+        .status-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+            margin-top: 10px;
+            height: 24px;
+            text-align: center;
+        }
+
+        /* Betting Area */
+        .betting-area {
+            padding: 15px;
+            background: var(--panel-bg);
+            border-top: 2px solid var(--neon-pink);
+            box-shadow: 0 -5px 15px rgba(255, 0, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bet-options {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .bet-btn {
+            flex: 1;
+            background: transparent;
+            border: 2px solid var(--neon-cyan-dim);
+            color: var(--neon-cyan);
+            padding: 15px 5px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .bet-btn span {
+            font-size: 10px;
+            color: var(--text-main);
+        }
+
+        .bet-btn.active {
+            border-color: var(--neon-cyan);
+            background: rgba(102, 252, 241, 0.1);
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.5), inset 0 0 10px rgba(102, 252, 241, 0.3);
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .bet-btn.triple {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+        .bet-btn.triple.active {
+            background: rgba(255, 0, 255, 0.1);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5), inset 0 0 10px rgba(255, 0, 255, 0.3);
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        .amount-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .amt-btn {
+            background: #111;
+            border: 1px solid #444;
+            color: #888;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .amt-btn.active {
+            border-color: var(--neon-yellow);
+            color: var(--neon-yellow);
+            box-shadow: 0 0 10px rgba(252, 227, 0, 0.4);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #ff00ff, #66fcf1);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            transition: transform 0.1s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .action-btn:disabled {
+            background: #333;
+            color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Social Feed / Leaderboard */
+        .social-feed {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            max-height: 120px;
+            overflow-y: auto;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 10px;
+        }
+
+        .feed-item {
+            background: rgba(0, 0, 0, 0.6);
+            border-left: 2px solid var(--neon-cyan);
+            padding: 4px 8px;
+            border-radius: 0 4px 4px 0;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feed-item.win { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+        .feed-item.lose { border-color: #ff3333; color: #ff3333; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Host Claim Overlay */
+        #host-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 12, 16, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .claim-btn {
+            background: transparent;
+            border: 2px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Orbitron', sans-serif;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(252, 227, 0, 0.5);
+            cursor: pointer;
+            text-transform: uppercase;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(252, 227, 0, 1); }
+            100% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); }
+        }
+        
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="user-info">
+            <div class="avatar" id="user-avatar">?</div>
+            <div>
+                <div class="username" id="user-name">Player</div>
+                <div class="host-badge hidden" id="host-badge">HOST</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="game-area">
+        <canvas id="diceCanvas" width="400" height="200"></canvas>
+        <div class="status-text" id="status-text">PLACE YOUR BETS</div>
+        
+        <div class="social-feed" id="social-feed"></div>
+    </div>
+
+    <div class="betting-area">
+        <div class="bet-options">
+            <button class="bet-btn" data-type="small">
+                SMALL (4-10)
+                <span>1 : 2</span>
+            </button>
+            <button class="bet-btn triple" data-type="triple">
+                ANY TRIPLE
+                <span>1 : 24</span>
+            </button>
+            <button class="bet-btn" data-type="big">
+                BIG (11-17)
+                <span>1 : 2</span>
+            </button>
+        </div>
+
+        <div class="amount-selector">
+            <button class="amt-btn active" data-amt="100">100</button>
+            <button class="amt-btn" data-amt="500">500</button>
+            <button class="amt-btn" data-amt="1000">1K</button>
+            <button class="amt-btn" data-amt="5000">5K</button>
+        </div>
+
+        <button class="action-btn" id="action-btn">PLACE BET</button>
+    </div>
+
+    <div id="host-overlay">
+        <h2 style="color:var(--neon-cyan); margin-bottom: 20px; text-shadow: 0 0 10px var(--neon-cyan);">NEON DICE BATTLE</h2>
+        <button class="claim-btn" id="claim-host-btn">START GAME (BECOME HOST)</button>
+        <p style="margin-top: 15px; font-size: 12px; color: #888;">First player to start controls the room.</p>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. BOOMROOM SDK MOCK & INITIALIZATION
+        // ==========================================
+        if (!window.BoomRoomSDK) {
+            console.warn("BoomRoomSDK not found. Using Mock SDK for local testing.");
+            window.BoomRoomSDK = {
+                getUser: () => ({ 
+                    id: 'u' + Math.floor(Math.random() * 10000), 
+                    username: 'CyberPunk' + Math.floor(Math.random() * 100), 
+                    avatar: '' 
+                }),
+                requestPurchase: (itemId, cost) => {
+                    console.log(`[Mock SDK] Requesting purchase: ${itemId} for ${cost}`);
+                    setTimeout(() => {
+                        if (window.onPurchaseSuccess) window.onPurchaseSuccess(itemId);
+                    }, 500);
+                },
+                gameOver: (winAmount) => {
+                    console.log(`[Mock SDK] Game Over. Win Amount: ${winAmount}`);
+                },
+                sendGameEvent: (eventName, payloadObj) => {
+                    console.log(`[Mock SDK] Broadcast: ${eventName}`, payloadObj);
+                    // Simulate receiving own event for local testing if not host
+                    // In real SDK, messages are received via window message event
+                    window.postMessage(JSON.stringify({
+                        action: "gameEventReceived",
+                        userId: window.BoomRoomSDK.getUser().id,
+                        eventName: eventName,
+                        payload: payloadObj
+                    }), "*");
+                }
+            };
+        }
+
+        const user = window.BoomRoomSDK.getUser();
+        document.getElementById('user-name').innerText = user.username;
+        document.getElementById('user-avatar').innerText = user.username.charAt(0).toUpperCase();
+
+        // ==========================================
+        // 2. GAME STATE & VARIABLES
+        // ==========================================
+        let isHost = false;
+        let gameState = 'WAITING'; // WAITING, BETTING, ROLLING, RESULT
+        let currentBetAmount = 100;
+        let selectedBetType = null;
+        let myCurrentBet = null; // { type, amount }
+        
+        let diceValues = [1, 2, 3];
+        let isAnimating = false;
+        let animationFrameId;
+
+        // ==========================================
+        // 3. AUDIO SYSTEM (Web Audio API)
+        // ==========================================
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playTone(freq, type, duration, vol) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const sfx = {
+            select: () => playTone(800, 'sine', 0.1, 0.3),
+            bet: () => playTone(1200, 'square', 0.15, 0.4),
+            rollTick: () => playTone(200 + Math.random()*100, 'sawtooth', 0.05, 0.2),
+            win: () => {
+                playTone(400, 'square', 0.1, 0.5);
+                setTimeout(() => playTone(600, 'square', 0.1, 0.5), 100);
+                setTimeout(() => playTone(800, 'square', 0.3, 0.5), 200);
+            },
+            lose: () => {
+                playTone(200, 'sawtooth', 0.3, 0.5);
+                setTimeout(() => playTone(150, 'sawtooth', 0.4, 0.5), 200);
+            }
+        };
+
+        // ==========================================
+        // 4. CANVAS RENDERING (Neon Dice)
+        // ==========================================
+        const canvas = document.getElementById('diceCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawRoundRect(x, y, w, h, r, color, glow) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = glow;
+            ctx.shadowBlur = 15;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fill();
+            ctx.shadowBlur = 0; // reset
+        }
+
+        function drawDot(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawDice(x, y, size, value, color) {
+            drawRoundRect(x, y, size, size, 10, color, color);
+            
+            const center = size / 2;
+            const offset = size * 0.25;
+            
+            if (value === 1 || value === 3 || value === 5) drawDot(x + center, y + center, color);
+            if (value === 2 || value === 3 || value === 4 || value === 5 || value === 6) {
+                drawDot(x + offset, y + offset, color);
+                drawDot(x + size - offset, y + size - offset, color);
+            }
+            if (value === 4 || value === 5 || value === 6) {
+                drawDot(x + offset, y + size - offset, color);
+                drawDot(x + size - offset, y + offset, color);
+            }
+            if (value === 6) {
+                drawDot(x + offset, y + center, color);
+                drawDot(x + size - offset, y + center, color);
+            }
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const diceSize = 80;
+            const gap = 30;
+            const startX = (canvas.width - (diceSize * 3 + gap * 2)) / 2;
+            const startY = (canvas.height - diceSize) / 2;
+
+            const colors = ['#66fcf1', '#ff00ff', '#fce300'];
+
+            for (let i = 0; i < 3; i++) {
+                drawDice(startX + i * (diceSize + gap), startY, diceSize, diceValues[i], colors[i]);
+            }
+        }
+
+        function animateRoll() {
+            if (!isAnimating) return;
+            diceValues = [
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1
+            ];
+            renderCanvas();
+            sfx.rollTick();
+            animationFrameId = requestAnimationFrame(animateRoll);
+        }
+
+        renderCanvas(); // Initial render
+
+        // ==========================================
+        // 5. UI INTERACTIONS
+        // ==========================================
+        const betBtns = document.querySelectorAll('.bet-btn');
+        const amtBtns = document.querySelectorAll('.amt-btn');
+        const actionBtn = document.getElementById('action-btn');
+        const statusText = document.getElementById('status-text');
+        const socialFeed = document.getElementById('social-feed');
+
+        betBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (gameState !== 'BETTING') return;
+                sfx.select();
+                betBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedBetType = btn.dataset.type;
+                updateActionBtn();
+            });
+        });
+
+        amtBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (gameState !== 'BETTING') return;
+                sfx.select();
+                amtBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentBetAmount = parseInt(btn.dataset.amt);
+                updateActionBtn();
+            });
+        });
+
+        function updateActionBtn() {
+            if (gameState === 'BETTING') {
+                if (myCurrentBet) {
+                    actionBtn.innerText = "BET PLACED. WAITING...";
+                    actionBtn.disabled = true;
+                } else if (selectedBetType) {
+                    actionBtn.innerText = `BET ${currentBetAmount} ON ${selectedBetType.toUpperCase()}`;
+                    actionBtn.disabled = false;
+                } else {
+                    actionBtn.innerText = "SELECT A BET";
+                    actionBtn.disabled = true;
+                }
+            } else if (gameState === 'WAITING' && isHost) {
+                actionBtn.innerText = "START ROUND";
+                actionBtn.disabled = false;
+            } else if (gameState === 'WAITING' && !isHost) {
+                actionBtn.innerText = "WAITING FOR HOST...";
+                actionBtn.disabled = true;
+            } else {
+                actionBtn.disabled = true;
+            }
+        }
+
+        function addFeedItem(text, type = 'normal') {
+            const div = document.createElement('div');
+            div.className = `feed-item ${type}`;
+            div.innerText = text;
+            socialFeed.appendChild(div);
+            socialFeed.scrollTop = socialFeed.scrollHeight;
+            setTimeout(() => {
+                if(div.parentNode) div.parentNode.removeChild(div);
+            }, 4000);
+        }
+
+        // ==========================================
+        // 6. CORE GAME LOGIC & SDK INTEGRATION
+        // ==========================================
+        
+        // Purchase Callbacks
+        window.onPurchaseSuccess = function(itemId) {
+            if (itemId.startsWith("bet_")) {
+                sfx.bet();
+                myCurrentBet = {
+                    type: selectedBetType,
+                    amount: currentBetAmount
+                };
+                updateActionBtn();
+                statusText.innerText = "BET ACCEPTED!";
+                
+                // Broadcast bet to room
+                window.BoomRoomSDK.sendGameEvent("PLAYER_BET", {
+                    username: user.username,
+                    type: selectedBetType,
+                    amount: currentBetAmount
+                });
+            }
+        };
+
+        window.onPurchaseFailed = function(itemId) {
+            statusText.innerText = "BET FAILED / CANCELLED";
+            statusText.style.color = "#ff3333";
+            setTimeout(() => {
+                if(gameState === 'BETTING') {
+                    statusText.innerText = "PLACE YOUR BETS";
+                    statusText.style.color = "var(--neon-yellow)";
+                }
+            }, 2000);
+        };
+
+        actionBtn.addEventListener('click', () => {
+            if (gameState === 'BETTING' && selectedBetType && !myCurrentBet) {
+                // Initiate Bet
+                const itemId = `bet_${currentBetAmount}_${selectedBetType}`;
+                window.BoomRoomSDK.requestPurchase(itemId, currentBetAmount);
+            } else if (gameState === 'WAITING' && isHost) {
+                // Host starts round
+                startRound();
+            }
+        });
+
+        // Host Logic
+        document.getElementById('claim-host-btn').addEventListener('click', () => {
+            document.getElementById('host-overlay').classList.add('hidden');
+            isHost = true;
+            document.getElementById('host-badge').classList.remove('hidden');
+            window.BoomRoomSDK.sendGameEvent("HOST_CLAIMED", { username: user.username });
+            setGameState('WAITING');
+        });
+
+        function startRound() {
+            window.BoomRoomSDK.sendGameEvent("ROUND_START", {});
+            
+            // Auto roll after 10 seconds of betting
+            setTimeout(() => {
+                if(isHost) executeRoll();
+            }, 10000);
+        }
+
+        function executeRoll() {
+            window.BoomRoomSDK.sendGameEvent("ROLL_START", {});
+            
+            setTimeout(() => {
+                const d1 = Math.floor(Math.random() * 6) + 1;
+                const d2 = Math.floor(Math.random() * 6) + 1;
+                const d3 = Math.floor(Math.random() * 6) + 1;
+                window.BoomRoomSDK.sendGameEvent("ROLL_RESULT", { dice: [d1, d2, d3] });
+            }, 2000);
+        }
+
+        function setGameState(state) {
+            gameState = state;
+            if (state === 'WAITING') {
+                myCurrentBet = null;
+                selectedBetType = null;
+                betBtns.forEach(b => b.classList.remove('active'));
+                statusText.innerText = isHost ? "READY TO START" : "WAITING FOR HOST";
+                statusText.style.color = "var(--neon-cyan)";
+            } else if (state === 'BETTING') {
+                statusText.innerText = "PLACE YOUR BETS (10s)";
+                statusText.style.color = "var(--neon-yellow)";
+            } else if (state === 'ROLLING') {
+                statusText.innerText = "NO MORE BETS!";
+                statusText.style.color = "var(--neon-pink)";
+                actionBtn.innerText = "ROLLING...";
+                actionBtn.disabled = true;
+            }
+            updateActionBtn();
+        }
+
+        function calculateResult(dice) {
+            const total = dice[0] + dice[1] + dice[2];
+            const isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
+            let winningType = 'none';
+
+            if (isTriple) {
+                winningType = 'triple';
+            } else if (total >= 4 && total <= 10) {
+                winningType = 'small';
+            } else if (total >= 11 && total <= 17) {
+                winningType = 'big';
+            }
+
+            statusText.innerText = `TOTAL: ${total} ${isTriple ? '(TRIPLE!)' : ''}`;
+
+            if (myCurrentBet) {
+                if (myCurrentBet.type === winningType) {
+                    // Win
+                    let multiplier = (winningType === 'triple') ? 24 : 2;
+                    let winAmount = myCurrentBet.amount * multiplier;
+                    sfx.win();
+                    statusText.innerText += ` - YOU WON ${winAmount}!`;
+                    statusText.style.color = "var(--neon-cyan)";
+                    window.BoomRoomSDK.gameOver(winAmount);
+                    addFeedItem(`You won ${winAmount}!`, 'win');
+                } else {
+                    // Lose
+                    sfx.lose();
+                    statusText.innerText += ` - YOU LOST!`;
+                    statusText.style.color = "#ff3333";
+                    window.BoomRoomSDK.gameOver(0);
+                    addFeedItem(`You lost ${myCurrentBet.amount}`, 'lose');
+                }
+            } else {
+                window.BoomRoomSDK.gameOver(0);
+            }
+
+            // Reset for next round
+            setTimeout(() => {
+                setGameState('WAITING');
+            }, 5000);
+        }
+
+        // ==========================================
+        // 7. MULTIPLAYER EVENT LISTENER
+        // ==========================================
+        window.addEventListener("message", (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.action === "gameEventReceived") {
+                    const { userId, eventName, payload } = data;
+                    
+                    switch(eventName) {
+                        case "HOST_CLAIMED":
+                            if (userId !== user.id) {
+                                document.getElementById('host-overlay').classList.add('hidden');
+                                addFeedItem(`${payload.username} is Host`);
+                                setGameState('WAITING');
+                            }
+                            break;
+                            
+                        case "ROUND_START":
+                            setGameState('BETTING');
+                            addFeedItem('Betting started!');
+                            break;
+                            
+                        case "PLAYER_BET":
+                            if (userId !== user.id) {
+                                addFeedItem(`${payload.username} bet on ${payload.type.toUpperCase()}`);
+                            }
+                            break;
+                            
+                        case "ROLL_START":
+                            setGameState('ROLLING');
+                            isAnimating = true;
+                            animateRoll();
+                            break;
+                            
+                        case "ROLL_RESULT":
+                            isAnimating = false;
+                            cancelAnimationFrame(animationFrameId);
+                            diceValues = payload.dice;
+                            renderCanvas();
+                            setGameState('RESULT');
+                            calculateResult(payload.dice);
+                            break;
+                    }
+                }
+            } catch(e) {
+                // Ignore non-JSON messages
+            }
+        });
+
+        // Auto-broadcast presence to check for host
+        setTimeout(() => {
+            if(!isHost && document.getElementById('host-overlay').classList.contains('hidden') === false) {
+                // If no one claimed host in 1 sec, we just wait. The button is there.
+            }
+        }, 1000);
+
+    </script>
+</body>
+</html>
