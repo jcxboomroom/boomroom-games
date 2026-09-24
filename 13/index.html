@@ -1,47 +1,78 @@
-```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+
+<meta
+    name="viewport"
+    content="
+        width=device-width,
+        initial-scale=1,
+        maximum-scale=1,
+        user-scalable=no,
+        viewport-fit=cover
+    "
+>
+
 <meta name="theme-color" content="#02040b">
+
 <title>BoomRoom｜Neon Dual Rocket</title>
 
 <style>
+
+/* =========================================================
+   基礎
+========================================================= */
+
 :root{
     --bg:#02040b;
+
     --cyan:#23e8ff;
-    --cyan2:#007dff;
+    --cyan2:#008cff;
+
     --pink:#ff38d1;
     --pink2:#7c24ff;
+
     --gold:#ffd84a;
     --green:#18ffad;
+
     --red:#ff344c;
     --orange:#ff7b2d;
+
     --white:#f7f9ff;
     --muted:#8b94ae;
-    --panel:rgba(5,8,22,.9);
+
+    --panel:rgba(5,8,22,.92);
 }
 
 *{
     box-sizing:border-box;
+
     -webkit-tap-highlight-color:transparent;
 }
 
 html,
 body{
-    margin:0;
+
     width:100%;
     height:100%;
+
+    margin:0;
+
     overflow:hidden;
+
     background:#02040b;
-    color:#fff;
+
+    color:white;
+
     font-family:
         Arial,
         "Noto Sans TC",
         "Microsoft JhengHei",
         sans-serif;
+
     user-select:none;
+
     touch-action:none;
 }
 
@@ -50,779 +81,1491 @@ body{
     inset:0;
 }
 
-button,
-input{
+button{
     font:inherit;
+    -webkit-appearance:none;
+    appearance:none;
 }
 
 button{
     cursor:pointer;
 }
 
+/* =========================================================
+   CANVAS
+========================================================= */
+
 #gameCanvas{
+
     position:fixed;
+
     inset:0;
+
     z-index:1;
+
     width:100%;
     height:100%;
+
     display:block;
+
+    touch-action:none;
 }
+
 
 /* =========================================================
    LOBBY
 ========================================================= */
 
 #lobby{
+
     position:fixed;
+
     inset:0;
+
     z-index:20;
+
     display:flex;
+
     flex-direction:column;
+
     align-items:center;
+
     padding:
-        max(14px,env(safe-area-inset-top))
+        max(12px,env(safe-area-inset-top))
         14px
-        max(14px,env(safe-area-inset-bottom));
+        calc(84px + env(safe-area-inset-bottom));
+
     background:
         radial-gradient(
-            circle at 50% 25%,
-            rgba(23,39,93,.42),
-            rgba(2,4,11,.96) 68%
+            circle at 50% 20%,
+            rgba(27,43,102,.48),
+            rgba(2,4,11,.97) 72%
         );
-    transition:.25s;
+
+    overflow:hidden;
 }
 
 body.playing #lobby{
+
     opacity:0;
+
     visibility:hidden;
+
     pointer-events:none;
 }
 
+
+/* =========================================================
+   LOBBY HEADER
+========================================================= */
+
 .lobby-header{
+
     width:100%;
+
     max-width:620px;
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
-    margin-bottom:16px;
+
+    flex-shrink:0;
+
+    margin-bottom:12px;
 }
 
 .logo{
-    font-size:18px;
+
+    font-size:17px;
+
     font-weight:1000;
-    letter-spacing:.4px;
+
+    letter-spacing:.3px;
 }
 
 .logo small{
+
     display:block;
-    margin-top:4px;
+
+    margin-top:3px;
+
     color:var(--muted);
+
     font-size:9px;
+
     font-weight:600;
-    letter-spacing:0;
 }
 
 .online{
-    padding:8px 10px;
+
+    padding:7px 10px;
+
     border-radius:12px;
-    background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.1);
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
     color:#aeb7d1;
+
     font-size:10px;
 }
 
-/* 火箭選擇 */
+
+/* =========================================================
+   火箭選擇
+========================================================= */
 
 #rocketChoices{
+
     width:100%;
+
     max-width:620px;
+
     display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:9px;
+
+    flex-shrink:0;
 }
 
 .rocket-option{
+
     position:relative;
-    min-height:215px;
-    padding:16px;
-    border:1px solid rgba(255,255,255,.11);
-    border-radius:22px;
+
+    min-height:190px;
+
+    padding:13px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
+    border-radius:20px;
+
     background:
         linear-gradient(
             160deg,
-            rgba(13,22,52,.96),
-            rgba(6,9,24,.94)
+            rgba(13,22,52,.97),
+            rgba(6,9,24,.95)
         );
+
+    color:white;
+
     overflow:hidden;
+
     transition:
-        transform .15s,
-        border-color .15s,
-        box-shadow .15s;
+        .15s;
 }
 
-.rocket-option::after{
-    content:"";
-    position:absolute;
-    inset:auto -30px -60px;
-    height:130px;
-    border-radius:50%;
-    opacity:.12;
-    filter:blur(18px);
+.rocket-option.a{
+
+    --rocket-color:
+        var(--cyan);
 }
 
-.rocket-option.a::after{
-    background:var(--cyan);
+.rocket-option.b{
+
+    --rocket-color:
+        var(--pink);
 }
 
-.rocket-option.b::after{
-    background:var(--pink);
-}
+.rocket-option.selected{
 
-.rocket-option.selected-a{
-    border-color:rgba(35,232,255,.75);
+    border-color:
+        var(--rocket-color);
+
     box-shadow:
-        0 0 30px rgba(35,232,255,.16),
-        inset 0 0 25px rgba(35,232,255,.05);
-    transform:translateY(-2px);
+        0 0 32px
+        color-mix(
+            in srgb,
+            var(--rocket-color) 16%,
+            transparent
+        );
+
+    transform:
+        translateY(-2px);
 }
 
-.rocket-option.selected-b{
-    border-color:rgba(255,56,209,.75);
-    box-shadow:
-        0 0 30px rgba(255,56,209,.16),
-        inset 0 0 25px rgba(255,56,209,.05);
-    transform:translateY(-2px);
+.rocket-option:active{
+
+    transform:
+        scale(.99);
 }
 
 .option-badge{
+
     position:absolute;
-    top:12px;
-    right:12px;
-    padding:4px 7px;
+
+    top:9px;
+    right:9px;
+
+    padding:
+        4px
+        7px;
+
     border-radius:999px;
+
+    background:
+        rgba(255,255,255,.06);
+
+    color:#8089a4;
+
     font-size:8px;
+
     font-weight:1000;
-    background:rgba(255,255,255,.07);
-    color:#929ab4;
 }
 
-.selected-a .option-badge{
-    color:var(--cyan);
-    background:rgba(35,232,255,.12);
-}
+.rocket-option.selected
+.option-badge{
 
-.selected-b .option-badge{
-    color:var(--pink);
-    background:rgba(255,56,209,.12);
+    background:
+        color-mix(
+            in srgb,
+            var(--rocket-color) 13%,
+            transparent
+        );
+
+    color:
+        var(--rocket-color);
 }
 
 .option-title{
-    font-size:17px;
+
+    position:relative;
+
+    z-index:2;
+
+    font-size:16px;
+
     font-weight:1000;
 }
 
 .option-sub{
-    margin-top:4px;
+
+    position:relative;
+
+    z-index:2;
+
+    margin-top:3px;
+
     color:var(--muted);
+
     font-size:9px;
 }
 
 .option-stats{
-    margin-top:12px;
+
+    position:relative;
+
+    z-index:2;
+
+    margin-top:9px;
+
     display:grid;
-    gap:6px;
+
+    gap:5px;
 }
 
 .option-stat{
+
     display:flex;
+
     justify-content:space-between;
-    gap:10px;
-    padding:7px 8px;
-    border-radius:9px;
-    background:rgba(255,255,255,.035);
-    font-size:9px;
-    color:#929bb5;
+
+    gap:6px;
+
+    padding:
+        6px 7px;
+
+    border-radius:8px;
+
+    background:
+        rgba(255,255,255,.035);
+
+    color:#9099b2;
+
+    font-size:8px;
 }
 
 .option-stat strong{
+
     color:#e4e8f5;
 }
 
-/* 小火箭 */
+
+/* =========================================================
+   火箭縮圖
+========================================================= */
 
 .option-rocket{
+
     position:absolute;
+
     left:50%;
-    bottom:20px;
-    transform:translateX(-50%);
-    width:55px;
+
+    bottom:4px;
+
+    transform:
+        translateX(-50%)
+        scale(.73);
+
+    transform-origin:
+        bottom center;
+
+    width:70px;
+
     height:100px;
+
+    color:
+        var(--rocket-color);
 }
 
 .option-rocket-body{
+
     position:absolute;
+
     left:50%;
-    top:12px;
-    transform:translateX(-50%);
-    width:31px;
-    height:60px;
-    border-radius:55% 55% 38% 38%;
-    background:#eef8ff;
-    box-shadow:0 0 22px currentColor;
+
+    top:10px;
+
+    transform:
+        translateX(-50%);
+
+    width:34px;
+
+    height:63px;
+
+    border-radius:
+        55%
+        55%
+        37%
+        37%;
+
+    background:
+        linear-gradient(
+            90deg,
+            #8d98ab,
+            #fff,
+            #dbe4ee
+        );
+
+    box-shadow:
+        0 0 28px
+        var(--rocket-color);
 }
 
 .option-rocket-window{
+
     position:absolute;
+
     left:50%;
-    top:28px;
-    transform:translateX(-50%);
-    width:10px;
-    height:10px;
+
+    top:27px;
+
+    transform:
+        translateX(-50%);
+
+    width:11px;
+
+    height:11px;
+
     border-radius:50%;
-    background:#31c8ff;
-    border:2px solid #fff;
+
+    background:
+        var(--rocket-color);
+
+    border:
+        2px solid white;
 }
 
 .option-fin-left,
 .option-fin-right{
+
     position:absolute;
-    top:50px;
-    width:24px;
+
+    top:48px;
+
+    width:25px;
+
     height:20px;
-    background:#abb4c6;
+
+    background:#aab4c6;
 }
 
 .option-fin-left{
-    left:-1px;
-    clip-path:polygon(100% 0,100% 100%,0 100%);
+
+    left:0;
+
+    clip-path:
+        polygon(
+            100% 0,
+            100% 100%,
+            0 100%
+        );
 }
 
 .option-fin-right{
-    right:-1px;
-    clip-path:polygon(0 0,100% 100%,0 100%);
+
+    right:0;
+
+    clip-path:
+        polygon(
+            0 0,
+            100% 100%,
+            0 100%
+        );
 }
 
 .option-flame{
+
     position:absolute;
+
     left:50%;
+
     bottom:0;
-    transform:translateX(-50%);
-    width:18px;
-    height:30px;
+
+    transform:
+        translateX(-50%);
+
+    width:20px;
+
+    height:32px;
+
     background:
         linear-gradient(
             to bottom,
-            #fff,
-            #ffd63f 25%,
-            #ff742c 60%,
-            transparent
+            white 0%,
+            #ffd84a 25%,
+            #ff732c 62%,
+            transparent 100%
         );
-    clip-path:polygon(50% 100%,0 0,100% 0);
-    animation:flame .16s infinite alternate;
-}
 
-.a .option-rocket{
-    color:var(--cyan);
-}
+    clip-path:
+        polygon(
+            50% 100%,
+            0 0,
+            100% 0
+        );
 
-.b .option-rocket{
-    color:var(--pink);
+    animation:
+        flame .13s
+        infinite alternate;
 }
 
 @keyframes flame{
-    from{height:26px}
-    to{height:37px}
+
+    from{
+        height:24px;
+    }
+
+    to{
+        height:40px;
+    }
 }
 
-/* 下注 */
+
+/* =========================================================
+   BET
+========================================================= */
 
 #betArea{
+
     width:100%;
+
     max-width:620px;
-    margin-top:12px;
+
+    margin-top:9px;
+
+    flex-shrink:0;
 }
 
 .section-title{
+
+    margin-bottom:5px;
+
     color:#7e87a3;
-    font-size:9px;
-    margin-bottom:6px;
+
+    font-size:8px;
 }
 
 #betButtons{
+
     display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:6px;
+
+    grid-template-columns:
+        repeat(5,1fr);
+
+    gap:5px;
 }
 
 .bet-button{
-    height:38px;
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:10px;
-    background:rgba(255,255,255,.035);
+
+    height:35px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
+    border-radius:9px;
+
+    background:
+        rgba(255,255,255,.035);
+
     color:#b4bdd4;
+
     font-size:10px;
+
     font-weight:1000;
 }
 
 .bet-button.active{
+
+    color:white;
+
     background:
         linear-gradient(
             135deg,
             #672fe0,
             #a126df
         );
-    color:#fff;
-    border-color:rgba(178,113,255,.72);
-    box-shadow:0 0 20px rgba(139,44,255,.18);
+
+    border-color:
+        rgba(178,113,255,.7);
 }
 
-/* 加入 */
+
+/* =========================================================
+   加入按鈕
+========================================================= */
 
 #joinButton{
-    width:100%;
+
+    position:absolute;
+
+    left:14px;
+
+    right:14px;
+
+    bottom:
+        max(10px,env(safe-area-inset-bottom));
+
+    width:
+        calc(100% - 28px);
+
     max-width:620px;
-    height:60px;
-    margin-top:12px;
+
+    height:59px;
+
     border:0;
+
     border-radius:30px;
-    color:#fff;
+
+    color:white;
+
     font-size:18px;
+
     font-weight:1000;
+
     background:
         linear-gradient(
             90deg,
             #6529eb,
             #a124d5
         );
+
     box-shadow:
-        0 12px 30px rgba(0,0,0,.45),
-        inset 0 1px rgba(255,255,255,.2);
+        0 13px 30px
+        rgba(0,0,0,.5),
+        inset 0 1px
+        rgba(255,255,255,.2);
 }
 
 #joinButton:disabled{
+
     opacity:.45;
 }
 
-#lobbyTip{
-    width:100%;
-    max-width:620px;
-    text-align:center;
-    margin-top:8px;
-    color:#616b88;
-    font-size:9px;
-}
 
 /* =========================================================
-   PLAY HUD
+   小提示
+========================================================= */
+
+#lobbyTip{
+
+    width:100%;
+
+    max-width:620px;
+
+    text-align:center;
+
+    margin-top:6px;
+
+    color:#5e6780;
+
+    font-size:8px;
+}
+
+
+/* =========================================================
+   PLAY UI
 ========================================================= */
 
 #playUI{
+
     position:fixed;
+
     inset:0;
+
     z-index:15;
-    pointer-events:none;
+
     opacity:0;
+
     visibility:hidden;
-    transition:.2s;
+
+    pointer-events:none;
+
+    transition:.18s;
 }
 
 body.playing #playUI{
+
     opacity:1;
+
     visibility:visible;
+
 }
 
-/* 極簡上方 HUD */
+
+/* =========================================================
+   上方只有必要資訊
+========================================================= */
 
 #playTop{
+
     position:absolute;
-    top:max(9px,env(safe-area-inset-top));
-    left:10px;
-    right:10px;
+
+    top:
+        max(8px,env(safe-area-inset-top));
+
+    left:9px;
+
+    right:9px;
+
     display:flex;
-    justify-content:space-between;
+
     align-items:center;
+
+    justify-content:space-between;
+
+    z-index:20;
 }
 
 #playRocketBadge{
-    padding:8px 11px;
-    border-radius:12px;
-    background:rgba(3,7,17,.63);
-    border:1px solid rgba(255,255,255,.1);
-    backdrop-filter:blur(8px);
+
+    padding:
+        7px 10px;
+
+    border-radius:11px;
+
+    background:
+        rgba(2,6,15,.55);
+
+    border:
+        1px solid
+        rgba(255,255,255,.09);
+
+    backdrop-filter:
+        blur(8px);
+
     font-size:10px;
+
     font-weight:1000;
 }
 
 #playRocketBadge.a{
+
     color:var(--cyan);
-    border-color:rgba(35,232,255,.28);
+
+    border-color:
+        rgba(35,232,255,.3);
 }
 
 #playRocketBadge.b{
+
     color:var(--pink);
-    border-color:rgba(255,56,209,.28);
+
+    border-color:
+        rgba(255,56,209,.3);
 }
 
-#tiltBadge{
-    padding:8px 10px;
-    border-radius:12px;
-    background:rgba(3,7,17,.63);
-    border:1px solid rgba(255,255,255,.1);
-    color:#a6afc7;
-    backdrop-filter:blur(8px);
-    font-size:9px;
+#playRightTools{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:5px;
 }
+
+#roundPlayers{
+
+    padding:
+        7px 9px;
+
+    border-radius:11px;
+
+    background:
+        rgba(2,6,15,.55);
+
+    border:
+        1px solid
+        rgba(255,255,255,.09);
+
+    backdrop-filter:
+        blur(8px);
+
+    color:#c6cee2;
+
+    font-size:9px;
+
+    font-weight:900;
+}
+
+#tiltButton{
+
+    pointer-events:auto;
+
+    padding:
+        7px 9px;
+
+    border-radius:11px;
+
+    border:
+        1px solid
+        rgba(255,255,255,.09);
+
+    background:
+        rgba(2,6,15,.65);
+
+    color:#aab3cc;
+
+    font-size:9px;
+
+    font-weight:1000;
+}
+
+#tiltButton.enabled{
+
+    color:var(--green);
+
+    border-color:
+        rgba(24,255,173,.4);
+}
+
+
+/* =========================================================
+   倍率
+========================================================= */
 
 #playCenter{
+
     position:absolute;
+
     left:50%;
-    top:23%;
-    transform:translate(-50%,-50%);
+
+    top:20%;
+
+    transform:
+        translateX(-50%);
+
     width:100%;
+
     text-align:center;
+
+    z-index:12;
 }
 
 #multiplier{
+
     font-family:
         Impact,
         "Arial Black",
         sans-serif;
-    font-size:clamp(66px,20vw,125px);
+
+    font-size:
+        clamp(
+            70px,
+            21vw,
+            135px
+        );
+
     line-height:.9;
+
     letter-spacing:1px;
-    color:#fff;
-    text-shadow:
-        0 0 15px rgba(255,255,255,.25),
-        0 0 50px rgba(92,104,255,.22);
+
     transition:
-        color .12s,
-        transform .08s,
-        text-shadow .12s;
+        .1s;
 }
 
 #multiplier.a{
+
     color:var(--cyan);
+
     text-shadow:
-        0 0 18px rgba(35,232,255,.58),
-        0 0 62px rgba(0,125,255,.42);
+        0 0 20px
+        rgba(35,232,255,.55),
+        0 0 70px
+        rgba(0,140,255,.4);
 }
 
 #multiplier.b{
+
     color:var(--pink);
+
     text-shadow:
-        0 0 18px rgba(255,56,209,.58),
-        0 0 62px rgba(124,36,255,.42);
+        0 0 20px
+        rgba(255,56,209,.55),
+        0 0 70px
+        rgba(125,36,255,.4);
 }
 
 #multiplier.warning{
+
     color:var(--gold);
+
     text-shadow:
-        0 0 22px rgba(255,216,74,.58),
-        0 0 65px rgba(255,122,45,.38);
+        0 0 24px
+        rgba(255,216,74,.6),
+        0 0 65px
+        rgba(255,120,40,.4);
 }
 
 #multiplier.danger{
+
     color:var(--red);
+
     text-shadow:
-        0 0 24px rgba(255,52,76,.65),
-        0 0 78px rgba(255,20,40,.48);
+        0 0 26px
+        rgba(255,52,76,.7),
+        0 0 85px
+        rgba(255,0,20,.45);
 }
 
 #multiplier.win{
+
     color:var(--green);
+
+    transform:
+        scale(1.12);
+
     text-shadow:
-        0 0 25px rgba(24,255,173,.65),
-        0 0 80px rgba(0,255,160,.42);
-    transform:scale(1.12);
+        0 0 26px
+        rgba(24,255,173,.7),
+        0 0 85px
+        rgba(0,255,160,.4);
 }
 
 #multiplier.crash{
+
     color:var(--red);
+
+    transform:
+        scale(1.22);
+
     text-shadow:
-        0 0 25px #ff2740,
-        0 0 100px rgba(255,0,30,.7);
-    transform:scale(1.2);
+        0 0 30px
+        #ff223e,
+        0 0 100px
+        rgba(255,0,30,.75);
 }
 
 #status{
-    margin-top:9px;
-    color:#aeb6ce;
+
+    margin-top:10px;
+
+    color:#b2b9cf;
+
     font-size:10px;
+
+    font-weight:700;
 }
 
-#tiltHint{
-    margin-top:5px;
-    color:#66708c;
-    font-size:9px;
+#controlHint{
+
+    margin-top:4px;
+
+    color:#66708a;
+
+    font-size:8px;
 }
 
-/* 遊戲中下方 */
+
+/* =========================================================
+   隕石警告
+========================================================= */
+
+#meteorWarning{
+
+    position:absolute;
+
+    left:50%;
+
+    top:40%;
+
+    transform:
+        translate(-50%,-50%);
+
+    padding:
+        8px 14px;
+
+    border-radius:999px;
+
+    background:
+        rgba(105,8,15,.78);
+
+    border:
+        2px solid
+        rgba(255,62,76,.7);
+
+    color:#fff1f2;
+
+    font-size:10px;
+
+    font-weight:1000;
+
+    letter-spacing:.6px;
+
+    opacity:0;
+
+    z-index:25;
+
+    pointer-events:none;
+
+    box-shadow:
+        0 0 25px
+        rgba(255,40,40,.35);
+
+    transition:.1s;
+}
+
+#meteorWarning.show{
+
+    opacity:1;
+
+    animation:
+        warningFlash
+        .35s
+        infinite alternate;
+}
+
+@keyframes warningFlash{
+
+    from{
+        transform:
+            translate(-50%,-50%)
+            scale(1);
+    }
+
+    to{
+        transform:
+            translate(-50%,-50%)
+            scale(1.06);
+    }
+}
+
+
+/* =========================================================
+   手動左右控制
+========================================================= */
+
+#manualControls{
+
+    position:absolute;
+
+    left:12px;
+
+    right:12px;
+
+    bottom:
+        calc(
+            86px +
+            env(safe-area-inset-bottom)
+        );
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    pointer-events:none;
+
+    z-index:21;
+
+    transition:.18s;
+}
+
+#manualControls.hidden{
+
+    opacity:0;
+
+    visibility:hidden;
+
+    pointer-events:none;
+}
+
+.moveButton{
+
+    pointer-events:auto;
+
+    width:68px;
+
+    height:68px;
+
+    border-radius:50%;
+
+    border:
+        1px solid
+        rgba(255,255,255,.18);
+
+    background:
+        rgba(4,8,19,.72);
+
+    backdrop-filter:
+        blur(8px);
+
+    color:white;
+
+    font-size:30px;
+
+    font-weight:1000;
+
+    box-shadow:
+        0 8px 28px
+        rgba(0,0,0,.38);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+}
+
+.moveButton:active{
+
+    transform:
+        scale(.9);
+
+    background:
+        rgba(255,255,255,.15);
+}
+
+#moveLeft{
+
+    border-color:
+        rgba(35,232,255,.42);
+
+    color:
+        var(--cyan);
+}
+
+#moveRight{
+
+    border-color:
+        rgba(255,56,209,.42);
+
+    color:
+        var(--pink);
+}
+
+
+/* =========================================================
+   底部
+========================================================= */
 
 #playBottom{
-    position:absolute;
-    left:10px;
-    right:10px;
-    bottom:max(10px,env(safe-area-inset-bottom));
-}
 
-#playerProgress{
-    width:100%;
-    display:flex;
-    justify-content:center;
-    margin-bottom:8px;
+    position:absolute;
+
+    left:10px;
+
+    right:10px;
+
+    bottom:
+        max(8px,env(safe-area-inset-bottom));
+
+    z-index:22;
 }
 
 #aliveText{
-    padding:6px 10px;
+
+    width:max-content;
+
+    margin:
+        0 auto 7px;
+
+    padding:
+        5px 9px;
+
     border-radius:999px;
-    background:rgba(3,7,17,.52);
-    border:1px solid rgba(255,255,255,.07);
-    color:#8892ad;
+
+    background:
+        rgba(2,6,15,.55);
+
+    border:
+        1px solid
+        rgba(255,255,255,.07);
+
+    color:#8d96ad;
+
     font-size:8px;
-    backdrop-filter:blur(6px);
 }
 
 #ejectButton{
+
     pointer-events:auto;
+
     width:100%;
-    height:66px;
+
+    height:62px;
+
     border:0;
-    border-radius:33px;
-    color:#fff;
-    font-size:22px;
+
+    border-radius:31px;
+
+    color:white;
+
+    font-size:21px;
+
     font-weight:1000;
+
     background:
         linear-gradient(
             90deg,
             #ff393c,
             #ff9e26
         );
+
     box-shadow:
-        0 15px 34px rgba(0,0,0,.46),
-        0 0 26px rgba(255,91,35,.25);
-    animation:ejectPulse .5s infinite alternate;
+        0 14px 34px
+        rgba(0,0,0,.5),
+        0 0 30px
+        rgba(255,100,30,.22);
+
+    animation:
+        ejectPulse
+        .5s
+        infinite
+        alternate;
 }
 
 #ejectButton:disabled{
+
     animation:none;
-    opacity:.45;
+
+    opacity:.4;
 }
 
 @keyframes ejectPulse{
+
     from{
-        transform:scale(1);
+        transform:
+            scale(1);
     }
+
     to{
-        transform:scale(1.018);
+        transform:
+            scale(1.015);
     }
 }
 
-/* 隕石警告 */
 
-#meteorWarning{
-    position:absolute;
-    left:50%;
-    top:39%;
-    transform:translateX(-50%);
-    padding:7px 12px;
-    border-radius:999px;
-    background:rgba(90,6,13,.58);
-    border:1px solid rgba(255,74,88,.5);
-    color:#ffccd1;
-    font-size:9px;
-    font-weight:1000;
-    letter-spacing:.5px;
-    opacity:0;
-    transition:.12s;
-}
-
-#meteorWarning.show{
-    opacity:1;
-}
-
-/* 結果 */
+/* =========================================================
+   結果
+========================================================= */
 
 #resultOverlay{
+
     position:fixed;
+
     inset:0;
-    z-index:30;
+
+    z-index:50;
+
     display:flex;
+
     align-items:center;
+
     justify-content:center;
+
     padding:18px;
-    background:rgba(0,0,0,.48);
-    backdrop-filter:blur(7px);
+
+    background:
+        rgba(0,0,0,.5);
+
+    backdrop-filter:
+        blur(8px);
+
     opacity:0;
+
     visibility:hidden;
+
     pointer-events:none;
-    transition:.2s;
+
+    transition:.18s;
 }
 
 #resultOverlay.show{
+
     opacity:1;
+
     visibility:visible;
+
     pointer-events:auto;
 }
 
-.result-card{
-    width:min(430px,100%);
+.resultCard{
+
+    width:min(420px,100%);
+
     padding:20px;
+
     border-radius:22px;
-    border:1px solid rgba(255,255,255,.12);
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
     background:
         linear-gradient(
             160deg,
             rgba(10,14,34,.98),
             rgba(4,6,17,.98)
         );
-    box-shadow:0 35px 100px rgba(0,0,0,.7);
+
+    box-shadow:
+        0 35px 100px
+        rgba(0,0,0,.7);
+
     text-align:center;
 }
 
-.result-small{
-    color:#828ba7;
+.resultTitle{
+
+    color:#858eaa;
+
     font-size:10px;
 }
 
-.result-main{
+.resultMain{
+
     margin-top:7px;
+
     font-size:34px;
+
     font-weight:1000;
 }
 
-.result-sub{
+.resultSub{
+
     margin-top:5px;
+
     color:#858ea9;
+
     font-size:10px;
 }
 
 #leaderboard{
+
     margin-top:14px;
+
     display:grid;
+
     gap:5px;
 }
 
 .rank{
+
     display:grid;
-    grid-template-columns:25px 1fr auto;
+
+    grid-template-columns:
+        25px
+        1fr
+        auto;
+
     gap:7px;
+
     align-items:center;
-    padding:7px 9px;
+
+    padding:
+        7px 9px;
+
     border-radius:10px;
-    background:rgba(255,255,255,.035);
+
+    background:
+        rgba(255,255,255,.035);
+
     text-align:left;
+
     font-size:10px;
 }
 
 .rank-name{
+
     overflow:hidden;
+
     text-overflow:ellipsis;
+
     white-space:nowrap;
+
     font-weight:900;
 }
 
 .rank-value{
+
     color:var(--green);
+
     font-weight:1000;
 }
 
 #nextRound{
+
     width:100%;
+
     height:44px;
+
     margin-top:12px;
-    border:1px solid rgba(255,255,255,.12);
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
     border-radius:12px;
+
     background:
         linear-gradient(
             135deg,
             #6429e3,
             #8c27c8
         );
-    color:#fff;
+
+    color:white;
+
     font-weight:1000;
 }
 
-/* Toast */
+
+/* =========================================================
+   TOAST
+========================================================= */
 
 #toast{
+
     position:fixed;
-    z-index:40;
+
     left:50%;
-    top:53%;
-    transform:translate(-50%,-50%);
-    padding:9px 14px;
+
+    top:52%;
+
+    transform:
+        translate(-50%,-50%);
+
+    z-index:60;
+
+    padding:
+        9px 14px;
+
     border-radius:999px;
-    background:rgba(3,6,14,.88);
-    border:1px solid rgba(255,255,255,.11);
-    color:#e0e6f7;
+
+    background:
+        rgba(3,6,14,.9);
+
+    border:
+        1px solid
+        rgba(255,255,255,.12);
+
+    color:#e1e6f6;
+
     font-size:10px;
+
     opacity:0;
+
     pointer-events:none;
-    transition:.15s;
+
     white-space:nowrap;
+
+    transition:.15s;
 }
 
 #toast.show{
+
     opacity:1;
 }
 
+
 /* =========================================================
-   小螢幕
+   短手機
 ========================================================= */
 
-@media(max-width:420px){
+@media(
+    max-height:700px
+){
+
     .rocket-option{
-        min-height:195px;
-        padding:13px;
-    }
 
-    .option-title{
-        font-size:15px;
-    }
-
-    #playCenter{
-        top:22%;
-    }
-
-    #ejectButton{
-        height:61px;
-        font-size:20px;
-    }
-}
-
-@media(max-height:700px){
-    .rocket-option{
-        min-height:175px;
+        min-height:165px;
     }
 
     .option-stats{
+
         display:none;
     }
 
     .option-rocket{
+
         transform:
             translateX(-50%)
-            scale(.75);
-        transform-origin:bottom center;
+            scale(.62);
     }
 
     #playCenter{
-        top:20%;
+
+        top:18%;
     }
 
     #ejectButton{
+
         height:56px;
     }
+
+    .moveButton{
+
+        width:60px;
+        height:60px;
+    }
 }
+
 </style>
 </head>
 
+
 <body>
+
 
 <canvas id="gameCanvas"></canvas>
 
+
 <!-- =======================================================
-     選擇 / 大廳
+     大廳
 ======================================================= -->
 
 <section id="lobby">
@@ -830,21 +1573,35 @@ body.playing #playUI{
     <div class="lobby-header">
 
         <div class="logo">
+
             🚀 NEON DUAL ROCKET
-            <small>BoomRoom · 雙火箭派對</small>
+
+            <small>
+                BoomRoom · 雙火箭派對
+            </small>
+
         </div>
 
         <div class="online">
-            👥 <span id="onlineCount">1</span> 人
+
+            👥 房間
+            <span id="onlineCount">
+                1
+            </span>
+
         </div>
 
     </div>
 
+
+    <!-- 火箭選擇 -->
+
     <div id="rocketChoices">
 
+
         <button
-            class="rocket-option a selected-a"
             id="rocketA"
+            class="rocket-option a selected"
         >
 
             <div class="option-badge">
@@ -856,7 +1613,7 @@ body.playing #playUI{
             </div>
 
             <div class="option-sub">
-                節奏較平穩 · 適合穩定累積
+                節奏平穩、比較容易掌握
             </div>
 
             <div class="option-stats">
@@ -873,28 +1630,34 @@ body.playing #playUI{
 
                 <div class="option-stat">
                     <span>特色</span>
-                    <strong>能量較容易掌握</strong>
+                    <strong>穩定成長</strong>
                 </div>
 
             </div>
 
+
             <div class="option-rocket">
+
                 <div class="option-rocket-body">
+
                     <div class="option-rocket-window"></div>
+
                 </div>
 
                 <div class="option-fin-left"></div>
+
                 <div class="option-fin-right"></div>
 
                 <div class="option-flame"></div>
+
             </div>
 
         </button>
 
 
         <button
-            class="rocket-option b"
             id="rocketB"
+            class="rocket-option b"
         >
 
             <div class="option-badge">
@@ -906,7 +1669,7 @@ body.playing #playUI{
             </div>
 
             <div class="option-sub">
-                加速更快 · 波動更大
+                加速更快、倍率波動更大
             </div>
 
             <div class="option-stats">
@@ -923,20 +1686,26 @@ body.playing #playUI{
 
                 <div class="option-stat">
                     <span>特色</span>
-                    <strong>高倍率成長</strong>
+                    <strong>高倍率</strong>
                 </div>
 
             </div>
 
+
             <div class="option-rocket">
+
                 <div class="option-rocket-body">
+
                     <div class="option-rocket-window"></div>
+
                 </div>
 
                 <div class="option-fin-left"></div>
+
                 <div class="option-fin-right"></div>
 
                 <div class="option-flame"></div>
+
             </div>
 
         </button>
@@ -944,10 +1713,12 @@ body.playing #playUI{
     </div>
 
 
+    <!-- 下注 -->
+
     <div id="betArea">
 
         <div class="section-title">
-            選擇下注
+            下注銀幣
         </div>
 
         <div id="betButtons">
@@ -992,23 +1763,28 @@ body.playing #playUI{
     </div>
 
 
-    <button id="joinButton">
-        支付 50 銀幣加入
-    </button>
-
-
     <div id="lobbyTip">
-        選好火箭與下注後，遊戲畫面會立即進入全螢幕模式
+        選好火箭與下注後，立即進入全螢幕遊戲
     </div>
+
+
+    <!-- 固定最底 -->
+
+    <button id="joinButton">
+
+        支付 50 銀幣加入
+
+    </button>
 
 </section>
 
 
 <!-- =======================================================
-     遊玩 HUD
+     實際遊戲
 ======================================================= -->
 
 <section id="playUI">
+
 
     <div id="playTop">
 
@@ -1019,8 +1795,22 @@ body.playing #playUI{
             🔵 穩定號
         </div>
 
-        <div id="tiltBadge">
-            📱 左右傾斜控制
+
+        <div id="playRightTools">
+
+            <!-- 本局實際加入玩家 -->
+
+            <div id="roundPlayers">
+                👥 本局 0 人
+            </div>
+
+
+            <!-- 手動開啟體感 -->
+
+            <button id="tiltButton">
+                📱 開啟體感
+            </button>
+
         </div>
 
     </div>
@@ -1033,31 +1823,60 @@ body.playing #playUI{
         </div>
 
         <div id="status">
-            火箭即將升空
+            等待火箭升空
         </div>
 
-        <div id="tiltHint">
-            傾斜手機移動火箭
+        <div id="controlHint">
+            左右控制火箭
         </div>
 
     </div>
 
+
+    <!-- 隕石警告 -->
 
     <div id="meteorWarning">
         ☄️ 注意隕石！
     </div>
 
 
+    <!-- 左右遙控 -->
+
+    <div id="manualControls">
+
+        <button
+            class="moveButton"
+            id="moveLeft"
+            aria-label="向左"
+        >
+            ◀
+        </button>
+
+
+        <button
+            class="moveButton"
+            id="moveRight"
+            aria-label="向右"
+        >
+            ▶
+        </button>
+
+    </div>
+
+
+    <!-- EJECT -->
+
     <div id="playBottom">
 
-        <div id="playerProgress">
-            <div id="aliveText">
-                🚀 飛行中
-            </div>
+        <div id="aliveText">
+            ⏳ 準備中
         </div>
 
+
         <button id="ejectButton">
+
             🚀 EJECT 逃脫
+
         </button>
 
     </div>
@@ -1071,24 +1890,24 @@ body.playing #playUI{
 
 <div id="resultOverlay">
 
-    <div class="result-card">
+    <div class="resultCard">
 
         <div
-            class="result-small"
+            class="resultTitle"
             id="resultTitle"
         >
             本局結果
         </div>
 
         <div
-            class="result-main"
+            class="resultMain"
             id="resultMain"
         >
             +0 🪙
         </div>
 
         <div
-            class="result-sub"
+            class="resultSub"
             id="resultSub"
         >
             —
@@ -1110,7 +1929,9 @@ body.playing #playUI{
 
 <script>
 (() => {
+
 "use strict";
+
 
 /* =========================================================
    SDK
@@ -1119,50 +1940,74 @@ body.playing #playUI{
 const SDK =
     window.BoomRoomSDK || null;
 
+
 let user = {
+
     id:
         "demo_" +
         Math.random()
-            .toString(36)
-            .slice(2,9),
+        .toString(36)
+        .slice(2,9),
+
     username:"玩家",
+
     avatar:""
+
 };
 
-if (
+
+if(
     SDK &&
-    typeof SDK.getUser === "function"
-) {
+    typeof SDK.getUser ===
+    "function"
+){
+
     try{
-        const data =
+
+        const sdkUser =
             SDK.getUser();
 
         if(
-            data &&
-            data.id
+            sdkUser &&
+            sdkUser.id
         ){
+
             user = {
-                id:String(data.id),
+
+                id:
+                    String(
+                        sdkUser.id
+                    ),
+
                 username:
                     String(
-                        data.username ||
+                        sdkUser.username ||
                         "玩家"
                     ),
+
                 avatar:
                     String(
-                        data.avatar ||
+                        sdkUser.avatar ||
                         ""
                     )
+
             };
+
         }
+
     }catch(e){}
+
 }
 
-const sdkEnabled =
+
+const SDK_READY =
     !!SDK &&
-    typeof SDK.requestPurchase === "function" &&
-    typeof SDK.gameOver === "function" &&
-    typeof SDK.sendGameEvent === "function";
+    typeof SDK.requestPurchase ===
+    "function" &&
+    typeof SDK.gameOver ===
+    "function" &&
+    typeof SDK.sendGameEvent ===
+    "function";
 
 
 /* =========================================================
@@ -1185,17 +2030,18 @@ const ctx =
         }
     );
 
+
 const lobby =
     document.getElementById(
         "lobby"
     );
 
-const rocketAButton =
+const rocketA =
     document.getElementById(
         "rocketA"
     );
 
-const rocketBButton =
+const rocketB =
     document.getElementById(
         "rocketB"
     );
@@ -1210,14 +2056,20 @@ const onlineCount =
         "onlineCount"
     );
 
+
 const playRocketBadge =
     document.getElementById(
         "playRocketBadge"
     );
 
-const tiltBadge =
+const roundPlayers =
     document.getElementById(
-        "tiltBadge"
+        "roundPlayers"
+    );
+
+const tiltButton =
+    document.getElementById(
+        "tiltButton"
     );
 
 const multiplierEl =
@@ -1230,9 +2082,29 @@ const statusEl =
         "status"
     );
 
-const tiltHint =
+const controlHint =
     document.getElementById(
-        "tiltHint"
+        "controlHint"
+    );
+
+const meteorWarning =
+    document.getElementById(
+        "meteorWarning"
+    );
+
+const manualControls =
+    document.getElementById(
+        "manualControls"
+    );
+
+const moveLeft =
+    document.getElementById(
+        "moveLeft"
+    );
+
+const moveRight =
+    document.getElementById(
+        "moveRight"
     );
 
 const aliveText =
@@ -1243,11 +2115,6 @@ const aliveText =
 const ejectButton =
     document.getElementById(
         "ejectButton"
-    );
-
-const meteorWarning =
-    document.getElementById(
-        "meteorWarning"
     );
 
 const resultOverlay =
@@ -1291,16 +2158,13 @@ const toast =
 ========================================================= */
 
 let width = 0;
+
 let height = 0;
+
 let dpr = 1;
 
-function resizeCanvas(){
 
-    dpr =
-        Math.min(
-            window.devicePixelRatio || 1,
-            2
-        );
+function resizeCanvas(){
 
     width =
         window.innerWidth;
@@ -1308,21 +2172,31 @@ function resizeCanvas(){
     height =
         window.innerHeight;
 
+    dpr =
+        Math.min(
+            window.devicePixelRatio || 1,
+            2
+        );
+
     canvas.width =
         Math.floor(
-            width * dpr
+            width *
+            dpr
         );
 
     canvas.height =
         Math.floor(
-            height * dpr
+            height *
+            dpr
         );
 
     canvas.style.width =
-        width + "px";
+        width +
+        "px";
 
     canvas.style.height =
-        height + "px";
+        height +
+        "px";
 
     ctx.setTransform(
         dpr,
@@ -1334,7 +2208,9 @@ function resizeCanvas(){
     );
 
     createStars();
+
 }
+
 
 window.addEventListener(
     "resize",
@@ -1343,11 +2219,12 @@ window.addEventListener(
 
 
 /* =========================================================
-   遊戲配置
+   GAME CONFIG
 ========================================================= */
 
 const GAME_ID =
-    "neon_dual_rocket_v2";
+    "neon_dual_rocket_v3";
+
 
 const ROCKETS = {
 
@@ -1355,7 +2232,7 @@ const ROCKETS = {
         id:"A",
         name:"穩定號",
         color:"#23e8ff",
-        glow:"#007dff",
+        glow:"#008cff",
         growth:1.043,
         maxCrash:18
     },
@@ -1371,15 +2248,21 @@ const ROCKETS = {
 
 };
 
-const MAX_PAYOUT_MULTIPLIER = 20;
 
-const START_DELAY = 1800;
+const MAX_PAYOUT =
+    20;
 
-const ROUND_RESULT_DELAY = 5500;
+
+const START_DELAY =
+    1800;
+
+
+const RESULT_DELAY =
+    5000;
 
 
 /* =========================================================
-   狀態
+   STATE
 ========================================================= */
 
 let selectedRocket =
@@ -1392,6 +2275,9 @@ let state =
     "LOBBY";
 
 let localReady =
+    false;
+
+let roundRewardSent =
     false;
 
 let currentRoundId =
@@ -1418,112 +2304,154 @@ let hostId =
 let myJoinAt =
     Date.now();
 
-let hostLastSeen =
+let lastHostSeen =
     Date.now();
 
-let roundRewardSent =
-    false;
-
-let lastWarning =
+let lastRoundStart =
     0;
 
 
 /* =========================================================
-   玩家
+   PLAYERS
 ========================================================= */
 
 const players =
     new Map();
 
+
 players.set(
     user.id,
     {
+
         id:user.id,
+
         username:user.username,
+
         avatar:user.avatar,
+
         joinedAt:myJoinAt,
+
         bet:0,
+
         rocket:"A",
+
         ready:false,
+
         status:"waiting",
+
         x:0,
+
         bonus:0,
+
         reward:0,
-        cashoutAt:0
+
+        cashoutAt:0,
+
+        roundId:null,
+
+        lastSeen:
+            Date.now()
+
     }
 );
 
 
 /* =========================================================
-   房主選舉
+   HOST CANDIDATES
 ========================================================= */
 
 const candidates =
     new Map();
 
+
 candidates.set(
     user.id,
     {
+
         id:user.id,
-        joinedAt:myJoinAt
+
+        joinedAt:
+            myJoinAt
+
     }
 );
+
 
 function electHost(){
 
     const list =
         Array.from(
             candidates.values()
-        ).sort(
+        )
+        .sort(
             (a,b) => {
 
                 if(
                     a.joinedAt !==
                     b.joinedAt
                 ){
+
                     return (
                         a.joinedAt -
                         b.joinedAt
                     );
+
                 }
 
                 return a.id.localeCompare(
                     b.id
                 );
+
             }
         );
 
-    if(!list.length){
-        return;
+
+    if(
+        list.length
+    ){
+
+        hostId =
+            list[0].id;
+
     }
 
-    hostId =
-        list[0].id;
 }
 
+
 function isHost(){
-    return hostId === user.id;
+
+    return (
+        hostId ===
+        user.id
+    );
+
 }
 
 
 /* =========================================================
-   Event
+   EVENTS
 ========================================================= */
 
 function sendEvent(
     eventName,
     payload={}
 ){
+
     if(
-        sdkEnabled
+        !SDK_READY
     ){
-        try{
-            SDK.sendGameEvent(
-                eventName,
-                payload
-            );
-        }catch(e){}
+        return;
     }
+
+    try{
+
+        SDK.sendGameEvent(
+            eventName,
+            payload
+        );
+
+    }catch(e){}
+
 }
 
 
@@ -1531,7 +2459,7 @@ window.addEventListener(
     "message",
     event => {
 
-        let data;
+        let data = null;
 
         try{
 
@@ -1544,28 +2472,38 @@ window.addEventListener(
                     : event.data;
 
         }catch(e){
+
             return;
+
         }
+
 
         if(
             !data ||
             data.action !==
             "gameEventReceived"
         ){
+
             return;
+
         }
+
 
         const sender =
             String(
                 data.userId || ""
             );
 
+
         if(
             !sender ||
             sender === user.id
         ){
+
             return;
+
         }
+
 
         handleEvent(
             sender,
@@ -1578,15 +2516,18 @@ window.addEventListener(
 
 
 /* =========================================================
-   音效
+   AUDIO
 ========================================================= */
 
 let audio =
     null;
 
+
 function initAudio(){
 
-    if(!audio){
+    if(
+        !audio
+    ){
 
         const AudioContext =
             window.AudioContext ||
@@ -1595,24 +2536,34 @@ function initAudio(){
         if(
             AudioContext
         ){
+
             try{
+
                 audio =
                     new AudioContext();
+
             }catch(e){}
+
         }
+
     }
+
 
     if(
         audio &&
         audio.state ===
         "suspended"
     ){
+
         audio.resume()
-            .catch(
-                () => {}
-            );
+        .catch(
+            () => {}
+        );
+
     }
+
 }
+
 
 function tone(
     frequency,
@@ -1622,103 +2573,124 @@ function tone(
     slide=0
 ){
 
-    if(!audio){
+    if(
+        !audio
+    ){
         return;
     }
 
+
     try{
 
-        const osc =
+        const oscillator =
             audio.createOscillator();
 
         const gain =
             audio.createGain();
 
-        osc.type =
+
+        oscillator.type =
             type;
 
-        osc.frequency.setValueAtTime(
+
+        oscillator.frequency.setValueAtTime(
             frequency,
             audio.currentTime
         );
 
-        if(slide){
 
-            osc.frequency.linearRampToValueAtTime(
-                frequency + slide,
+        if(
+            slide
+        ){
+
+            oscillator.frequency.linearRampToValueAtTime(
+                frequency +
+                slide,
                 audio.currentTime +
                 duration
             );
 
         }
 
+
         gain.gain.setValueAtTime(
             volume,
             audio.currentTime
         );
 
+
         gain.gain.exponentialRampToValueAtTime(
-            0.001,
+            .001,
             audio.currentTime +
             duration
         );
 
-        osc.connect(gain);
+
+        oscillator.connect(
+            gain
+        );
+
         gain.connect(
             audio.destination
         );
 
-        osc.start();
 
-        osc.stop(
+        oscillator.start();
+
+
+        oscillator.stop(
             audio.currentTime +
             duration
         );
 
     }catch(e){}
+
 }
+
 
 function soundStart(){
 
     initAudio();
 
     tone(
-        160,
+        150,
         .18,
         "sawtooth",
         .05,
-        260
+        250
     );
 
     setTimeout(
         () => tone(
-            330,
-            .2,
+            310,
+            .18,
             "sawtooth",
             .05,
-            350
+            300
         ),
         100
     );
 
     setTimeout(
         () => tone(
-            570,
-            .25,
+            540,
+            .23,
             "triangle",
             .055,
-            500
+            450
         ),
         220
     );
+
 }
+
 
 function soundTick(){
 
     initAudio();
 
     tone(
-        620 +
+        600 +
         Math.min(
             getMyMultiplier() *
             45,
@@ -1728,14 +2700,16 @@ function soundTick(){
         "square",
         .008
     );
+
 }
+
 
 function soundWarning(){
 
     initAudio();
 
     tone(
-        760,
+        720,
         .08,
         "square",
         .045
@@ -1743,14 +2717,16 @@ function soundWarning(){
 
     setTimeout(
         () => tone(
-            1000,
+            980,
             .08,
             "square",
             .045
         ),
         90
     );
+
 }
+
 
 function soundCollect(){
 
@@ -1761,20 +2737,22 @@ function soundCollect(){
         .06,
         "triangle",
         .045,
-        170
+        150
     );
 
     setTimeout(
         () => tone(
             980,
-            .09,
+            .08,
             "triangle",
             .05,
-            220
+            200
         ),
         60
     );
+
 }
+
 
 function soundMeteorHit(){
 
@@ -1782,12 +2760,14 @@ function soundMeteorHit(){
 
     tone(
         130,
-        .16,
+        .17,
         "sawtooth",
-        .06,
-        -80
+        .065,
+        -90
     );
+
 }
+
 
 function soundCashout(){
 
@@ -1798,7 +2778,7 @@ function soundCashout(){
         .08,
         "triangle",
         .05,
-        150
+        170
     );
 
     setTimeout(
@@ -1815,14 +2795,16 @@ function soundCashout(){
     setTimeout(
         () => tone(
             1260,
-            .16,
+            .17,
             "triangle",
             .065,
             250
         ),
-        160
+        165
     );
+
 }
+
 
 function soundCrash(){
 
@@ -1841,23 +2823,26 @@ function soundCrash(){
             40,
             .44,
             "square",
-            .095,
+            .1,
             -15
         ),
         85
     );
+
 }
 
 
 /* =========================================================
-   Toast
+   TOAST
 ========================================================= */
 
-let toastTimer = null;
+let toastTimer =
+    null;
+
 
 function showToast(
     message,
-    ms=1500
+    duration=1500
 ){
 
     toast.textContent =
@@ -1873,20 +2858,24 @@ function showToast(
 
     toastTimer =
         setTimeout(
-            () =>
+            () => {
+
                 toast.classList.remove(
                     "show"
-                ),
-            ms
+                );
+
+            },
+            duration
         );
+
 }
 
 
 /* =========================================================
-   選擇火箭
+   選火箭
 ========================================================= */
 
-rocketAButton.addEventListener(
+rocketA.addEventListener(
     "click",
     () => {
 
@@ -1906,7 +2895,8 @@ rocketAButton.addEventListener(
     }
 );
 
-rocketBButton.addEventListener(
+
+rocketB.addEventListener(
     "click",
     () => {
 
@@ -1926,45 +2916,44 @@ rocketBButton.addEventListener(
     }
 );
 
+
 function updateRocketSelection(){
 
-    rocketAButton.classList.toggle(
-        "selected-a",
+    rocketA.classList.toggle(
+        "selected",
         selectedRocket === "A"
     );
 
-    rocketBButton.classList.toggle(
-        "selected-b",
+    rocketB.classList.toggle(
+        "selected",
         selectedRocket === "B"
     );
 
-    const badgeA =
-        rocketAButton.querySelector(
-            ".option-badge"
-        );
 
-    const badgeB =
-        rocketBButton.querySelector(
-            ".option-badge"
-        );
-
-    badgeA.textContent =
+    rocketA.querySelector(
+        ".option-badge"
+    ).textContent =
         selectedRocket === "A"
             ? "已選擇"
             : "選擇";
 
-    badgeB.textContent =
+
+    rocketB.querySelector(
+        ".option-badge"
+    ).textContent =
         selectedRocket === "B"
             ? "已選擇"
             : "選擇";
+
 
     joinButton.textContent =
         `支付 ${selectedBet} 銀幣加入`;
+
 }
 
 
 /* =========================================================
-   選擇下注
+   BET
 ========================================================= */
 
 document
@@ -1989,20 +2978,26 @@ document
                         button.dataset.bet
                     );
 
+
                 document
                 .querySelectorAll(
                     ".bet-button"
                 )
                 .forEach(
-                    x =>
+                    x => {
+
                         x.classList.remove(
                             "active"
-                        )
+                        );
+
+                    }
                 );
+
 
                 button.classList.add(
                     "active"
                 );
+
 
                 updateRocketSelection();
 
@@ -2014,7 +3009,7 @@ document
 
 
 /* =========================================================
-   SDK 購買
+   付款
 ========================================================= */
 
 joinButton.addEventListener(
@@ -2029,11 +3024,13 @@ joinButton.addEventListener(
             return;
         }
 
+
         const itemId =
             `neon_dual_bet_${selectedBet}`;
 
+
         if(
-            sdkEnabled
+            SDK_READY
         ){
 
             joinButton.disabled =
@@ -2041,6 +3038,7 @@ joinButton.addEventListener(
 
             joinButton.textContent =
                 "驗證銀幣中…";
+
 
             try{
 
@@ -2061,13 +3059,15 @@ joinButton.addEventListener(
 
         }else{
 
-            /* 本地預覽 */
             setTimeout(
-                () =>
-                    onPurchaseSuccessInternal(
+                () => {
+
+                    purchaseSuccess(
                         itemId
-                    ),
-                250
+                    );
+
+                },
+                200
             );
 
         }
@@ -2076,10 +3076,16 @@ joinButton.addEventListener(
 );
 
 
-window.onPurchaseSuccess =
-function(itemId){
+/* =========================================================
+   SDK CALLBACK
+========================================================= */
 
-    onPurchaseSuccessInternal(
+window.onPurchaseSuccess =
+function(
+    itemId
+){
+
+    purchaseSuccess(
         itemId
     );
 
@@ -2087,12 +3093,15 @@ function(itemId){
 
 
 window.onPurchaseFailed =
-function(itemId){
+function(
+    itemId
+){
 
     const id =
         String(
             itemId || ""
         );
+
 
     if(
         id.startsWith(
@@ -2115,17 +3124,16 @@ function(itemId){
 };
 
 
-function onPurchaseSuccessInternal(
+function purchaseSuccess(
     itemId
 ){
 
     const match =
         /^neon_dual_bet_(\d+)$/
         .exec(
-            String(
-                itemId
-            )
+            String(itemId)
         );
+
 
     if(
         !match
@@ -2133,15 +3141,18 @@ function onPurchaseSuccessInternal(
         return;
     }
 
+
     selectedBet =
         Number(
             match[1]
         );
 
+
     const me =
         players.get(
             user.id
         );
+
 
     me.bet =
         selectedBet;
@@ -2155,110 +3166,124 @@ function onPurchaseSuccessInternal(
     me.status =
         "ready";
 
-    me.reward =
-        0;
+    me.roundId =
+        null;
 
-    me.bonus =
-        0;
+    me.lastSeen =
+        Date.now();
 
     localReady =
         true;
 
+
     /*
-       核心：
-       付款成功後立即把畫面切成
-       「只看自己選的火箭」
+       付款成功後立刻切換成
+       全螢幕遊戲模式。
     */
 
-    enterGameplayScreen();
+    enterGameplay();
+
 
     sendEvent(
         "PLAYER_READY",
         {
-            gameId:GAME_ID,
-            username:user.username,
-            avatar:user.avatar,
-            joinedAt:myJoinAt,
-            bet:selectedBet,
-            rocket:selectedRocket
+            gameId:
+                GAME_ID,
+
+            username:
+                user.username,
+
+            avatar:
+                user.avatar,
+
+            joinedAt:
+                myJoinAt,
+
+            bet:
+                selectedBet,
+
+            rocket:
+                selectedRocket
         }
     );
 
-    showToast(
-        `${rocketName(selectedRocket)} 已加入`,
-        1100
-    );
 
     if(
         isHost()
     ){
+
         maybeStartRound();
+
     }
 
 }
 
 
 /* =========================================================
-   進入遊戲畫面
+   進入遊戲
 ========================================================= */
 
-function enterGameplayScreen(){
+function enterGameplay(){
 
     body.classList.add(
         "playing"
     );
 
-    playRocketBadge.className =
-        "a";
 
-    if(
-        selectedRocket === "B"
-    ){
-        playRocketBadge.className =
-            "b";
-    }
+    playRocketBadge.className =
+        selectedRocket;
+
 
     playRocketBadge.textContent =
         selectedRocket === "A"
             ? "🔵 穩定號"
             : "🩷 狂暴號";
 
+
     multiplierEl.className =
-        selectedRocket === "A"
-            ? "a"
-            : "b";
+        selectedRocket;
+
 
     multiplierEl.textContent =
         "1.00x";
 
+
     statusEl.textContent =
-        "等待雙火箭起飛…";
+        "等待火箭升空";
 
-    tiltHint.textContent =
-        "左右傾斜手機控制火箭";
 
-    ejectButton.disabled =
-        true;
+    controlHint.textContent =
+        "左右遙控火箭";
+
 
     aliveText.textContent =
         "⏳ 等待開局";
 
-    startTilt();
+
+    ejectButton.disabled =
+        true;
+
+
+    /*
+       不會在這裡自動 requestPermission。
+       iOS 必須由玩家點按按鈕。
+    */
+
+    manualControls.classList.remove(
+        "hidden"
+    );
+
 
     resizeCanvas();
 
-    showToast(
-        "📱 遊戲模式已進入全螢幕",
-        1300
-    );
 }
 
 
 /* =========================================================
-   離開遊戲模式
+   離開遊戲
 ========================================================= */
 
-function exitGameplayScreen(){
+function exitGameplay(){
 
     body.classList.remove(
         "playing"
@@ -2266,16 +3291,15 @@ function exitGameplayScreen(){
 
     stopTilt();
 
-    ejectButton.disabled =
-        false;
+    manualControls.classList.remove(
+        "hidden"
+    );
 
-    aliveText.textContent =
-        "🚀 飛行中";
 }
 
 
 /* =========================================================
-   Host 選舉
+   HOST
 ========================================================= */
 
 function broadcastHello(){
@@ -2283,41 +3307,39 @@ function broadcastHello(){
     sendEvent(
         "PLAYER_HELLO",
         {
-            gameId:GAME_ID,
+            gameId:
+                GAME_ID,
+
             user:{
                 id:user.id,
                 username:user.username,
                 avatar:user.avatar
             },
-            joinedAt:myJoinAt
+
+            joinedAt:
+                myJoinAt
         }
     );
 
 }
 
-function maybeElectHost(){
-
-    if(
-        !hostId
-    ){
-        electHost();
-    }
-
-}
 
 function handleHello(
     sender,
     payload
 ){
 
-    const u =
-        payload.user || {};
+    const incoming =
+        payload.user ||
+        {};
+
 
     const id =
         String(
-            u.id ||
+            incoming.id ||
             sender
         );
+
 
     candidates.set(
         id,
@@ -2331,6 +3353,7 @@ function handleHello(
         }
     );
 
+
     if(
         !players.has(id)
     ){
@@ -2339,164 +3362,76 @@ function handleHello(
             id,
             {
                 id,
+
                 username:
                     String(
-                        u.username ||
+                        incoming.username ||
                         "玩家"
                     ),
+
                 avatar:
                     String(
-                        u.avatar ||
+                        incoming.avatar ||
                         ""
                     ),
+
                 joinedAt:
                     Number(
                         payload.joinedAt ||
                         Date.now()
                     ),
+
                 bet:0,
+
                 rocket:"A",
+
                 ready:false,
+
                 status:"waiting",
+
                 x:0,
+
                 bonus:0,
+
                 reward:0,
-                cashoutAt:0
+
+                cashoutAt:0,
+
+                roundId:null,
+
+                lastSeen:
+                    Date.now()
             }
         );
 
     }
 
+
+    players.get(
+        id
+    ).lastSeen =
+        Date.now();
+
+
+    electHost();
+
+
     if(
         isHost()
     ){
+
         sendLobbyState();
+
     }
 
-    maybeElectHost();
 
-    updateOnlineCount();
-
-}
-
-
-function handleHost(
-    sender,
-    payload
-){
-
-    if(
-        payload.hostId
-    ){
-        hostId =
-            String(
-                payload.hostId
-            );
-    }else{
-        hostId =
-            sender;
-    }
-
-    hostLastSeen =
-        Date.now();
-}
-
-
-/* =========================================================
-   Event Router
-========================================================= */
-
-function handleEvent(
-    sender,
-    name,
-    payload
-){
-
-    switch(name){
-
-        case "PLAYER_HELLO":
-            handleHello(
-                sender,
-                payload
-            );
-            break;
-
-        case "HOST_ANNOUNCE":
-            handleHost(
-                sender,
-                payload
-            );
-            break;
-
-        case "PLAYER_READY":
-            handlePlayerReady(
-                sender,
-                payload
-            );
-            break;
-
-        case "LOBBY_STATE":
-            handleLobbyState(
-                sender,
-                payload
-            );
-            break;
-
-        case "ROUND_START":
-            handleRoundStart(
-                sender,
-                payload
-            );
-            break;
-
-        case "PLAYER_INPUT":
-            handlePlayerInput(
-                sender,
-                payload
-            );
-            break;
-
-        case "WORLD_STATE":
-            handleWorldState(
-                sender,
-                payload
-            );
-            break;
-
-        case "PLAYER_CASHOUT":
-            handlePlayerCashout(
-                sender,
-                payload
-            );
-            break;
-
-        case "CASHOUT_CONFIRMED":
-            handleCashoutConfirmed(
-                sender,
-                payload
-            );
-            break;
-
-        case "ROCKET_CRASHED":
-            handleRocketCrashed(
-                sender,
-                payload
-            );
-            break;
-
-        case "ROUND_RESULT":
-            handleRoundResult(
-                sender,
-                payload
-            );
-            break;
-    }
+    updateRoomCount();
 
 }
 
 
 /* =========================================================
-   Player Ready
+   PLAYER READY
 ========================================================= */
 
 function handlePlayerReady(
@@ -2509,6 +3444,7 @@ function handlePlayerReady(
             sender
         );
 
+
     if(
         !players.has(id)
     ){
@@ -2517,38 +3453,56 @@ function handlePlayerReady(
             id,
             {
                 id,
+
                 username:
                     String(
                         payload.username ||
                         "玩家"
                     ),
+
                 avatar:
                     String(
                         payload.avatar ||
                         ""
                     ),
+
                 joinedAt:
                     Number(
                         payload.joinedAt ||
                         Date.now()
                     ),
+
                 bet:0,
+
                 rocket:"A",
+
                 ready:false,
+
                 status:"waiting",
+
                 x:0,
+
                 bonus:0,
+
                 reward:0,
-                cashoutAt:0
+
+                cashoutAt:0,
+
+                roundId:null,
+
+                lastSeen:
+                    Date.now()
             }
         );
 
     }
 
+
     const p =
         players.get(
             id
         );
+
 
     p.username =
         String(
@@ -2556,46 +3510,57 @@ function handlePlayerReady(
             p.username
         );
 
+
     p.avatar =
         String(
             payload.avatar ||
             p.avatar
         );
 
+
     p.bet =
-        clamp(
-            Number(
-                payload.bet
-            ),
-            0,
-            1000
+        Number(
+            payload.bet ||
+            0
         );
+
 
     p.rocket =
         payload.rocket === "B"
             ? "B"
             : "A";
 
+
     p.ready =
         true;
+
 
     p.status =
         "ready";
 
-    updateOnlineCount();
+
+    p.lastSeen =
+        Date.now();
+
+
+    updateRoomCount();
+
 
     if(
         isHost()
     ){
+
         sendLobbyState();
+
         maybeStartRound();
+
     }
 
 }
 
 
 /* =========================================================
-   Lobby State
+   ROOM STATE
 ========================================================= */
 
 function sendLobbyState(){
@@ -2606,26 +3571,51 @@ function sendLobbyState(){
         return;
     }
 
+
     sendEvent(
         "LOBBY_STATE",
         {
-            gameId:GAME_ID,
-            hostId:user.id,
+
+            gameId:
+                GAME_ID,
+
+            hostId:
+                user.id,
+
             players:
                 Array.from(
                     players.values()
-                ).map(
+                )
+                .map(
                     p => ({
-                        id:p.id,
-                        username:p.username,
-                        avatar:p.avatar,
-                        joinedAt:p.joinedAt,
-                        bet:p.bet,
-                        rocket:p.rocket,
-                        ready:p.ready,
-                        status:p.status
+
+                        id:
+                            p.id,
+
+                        username:
+                            p.username,
+
+                        avatar:
+                            p.avatar,
+
+                        joinedAt:
+                            p.joinedAt,
+
+                        ready:
+                            p.ready,
+
+                        bet:
+                            p.bet,
+
+                        rocket:
+                            p.rocket,
+
+                        status:
+                            p.status
+
                     })
                 )
+
         }
     );
 
@@ -2640,11 +3630,14 @@ function handleLobbyState(
     if(
         payload.hostId
     ){
+
         hostId =
             String(
                 payload.hostId
             );
+
     }
+
 
     const list =
         Array.isArray(
@@ -2653,94 +3646,110 @@ function handleLobbyState(
             ? payload.players
             : [];
 
+
     list.forEach(
         p => {
 
+            const id =
+                String(
+                    p.id
+                );
+
+
             if(
-                String(p.id) ===
+                id ===
                 user.id
             ){
                 return;
             }
 
-            candidates.set(
-                String(p.id),
-                {
-                    id:
-                        String(p.id),
-                    joinedAt:
-                        Number(
-                            p.joinedAt ||
-                            Date.now()
-                        )
-                }
-            );
 
             players.set(
-                String(p.id),
+                id,
                 {
-                    id:
-                        String(p.id),
+
+                    id,
+
                     username:
                         String(
                             p.username ||
                             "玩家"
                         ),
+
                     avatar:
                         String(
                             p.avatar ||
                             ""
                         ),
+
                     joinedAt:
                         Number(
                             p.joinedAt ||
                             Date.now()
                         ),
+
+                    ready:
+                        !!p.ready,
+
                     bet:
                         Number(
                             p.bet ||
                             0
                         ),
+
                     rocket:
                         p.rocket === "B"
                             ? "B"
                             : "A",
-                    ready:
-                        !!p.ready,
+
                     status:
                         String(
                             p.status ||
                             "waiting"
                         ),
+
                     x:0,
+
                     bonus:0,
+
                     reward:0,
-                    cashoutAt:0
+
+                    cashoutAt:0,
+
+                    roundId:null,
+
+                    lastSeen:
+                        Date.now()
+
                 }
             );
+
         }
     );
 
-    updateOnlineCount();
+
+    updateRoomCount();
 
 }
 
 
 /* =========================================================
-   Round
+   START ROUND
 ========================================================= */
 
-function readyPlayers(){
+function getReadyPlayers(){
 
     return Array.from(
         players.values()
-    ).filter(
+    )
+    .filter(
         p =>
             p.ready &&
             p.bet > 0
     );
 
 }
+
 
 function generateCrashPoint(
     rocketId
@@ -2751,58 +3760,48 @@ function generateCrashPoint(
             rocketId
         ];
 
+
     const r =
         Math.random();
+
 
     const min =
         rocketId === "A"
             ? 1.08
             : 1.04;
 
-    let point;
 
-    if(
+    const power =
         rocketId === "A"
-    ){
+            ? 1.55
+            : 2.0;
 
-        point =
-            min +
-            Math.pow(
-                r,
-                1.55
-            ) *
-            (
-                rocket.maxCrash -
-                min
-            );
 
-    }else{
+    const point =
+        min +
+        Math.pow(
+            r,
+            power
+        ) *
+        (
+            rocket.maxCrash -
+            min
+        );
 
-        point =
-            min +
-            Math.pow(
-                r,
-                2.0
-            ) *
-            (
-                rocket.maxCrash -
-                min
-            );
-
-    }
 
     return Number(
-        clamp(
-            point,
+        Math.max(
             min,
-            rocket.maxCrash
-        ).toFixed(2)
+            Math.min(
+                rocket.maxCrash,
+                point
+            )
+        )
+        .toFixed(2)
     );
+
 }
 
-
-let lastRoundAttempt =
-    0;
 
 function maybeStartRound(){
 
@@ -2813,48 +3812,64 @@ function maybeStartRound(){
         return;
     }
 
-    const list =
-        readyPlayers();
+
+    const ready =
+        getReadyPlayers();
+
 
     if(
-        list.length === 0
+        ready.length === 0
     ){
         return;
     }
 
+
     if(
         Date.now() -
-        lastRoundAttempt <
+        lastRoundStart <
         1800
     ){
         return;
     }
 
-    lastRoundAttempt =
+
+    lastRoundStart =
         Date.now();
 
+
     const roundId =
-        randomId();
+        "round_" +
+        Date.now().toString(36) +
+        "_" +
+        Math.random()
+        .toString(36)
+        .slice(2,7);
+
 
     const startAt =
         Date.now() +
         START_DELAY;
+
+
+    currentRoundId =
+        roundId;
+
+
+    roundStartAt =
+        startAt;
+
 
     crashPointA =
         generateCrashPoint(
             "A"
         );
 
+
     crashPointB =
         generateCrashPoint(
             "B"
         );
 
-    currentRoundId =
-        roundId;
-
-    roundStartAt =
-        startAt;
 
     crashedA =
         false;
@@ -2862,35 +3877,63 @@ function maybeStartRound(){
     crashedB =
         false;
 
+
+    const snapshot = {
+
+        gameId:
+            GAME_ID,
+
+        roundId:
+            roundId,
+
+        hostId:
+            user.id,
+
+        startAt:
+            startAt,
+
+        crashPointA:
+            crashPointA,
+
+        crashPointB:
+            crashPointB,
+
+        players:
+            ready.map(
+                p => ({
+
+                    id:
+                        p.id,
+
+                    username:
+                        p.username,
+
+                    avatar:
+                        p.avatar,
+
+                    bet:
+                        p.bet,
+
+                    rocket:
+                        p.rocket,
+
+                    x:0
+
+                })
+            )
+
+    };
+
+
     state =
         "COUNTDOWN";
 
-    const snapshot =
-        {
-            gameId:GAME_ID,
-            roundId,
-            hostId:user.id,
-            hostNow:Date.now(),
-            startAt,
-            crashPointA,
-            crashPointB,
-            players:
-                list.map(
-                    p => ({
-                        id:p.id,
-                        username:p.username,
-                        avatar:p.avatar,
-                        bet:p.bet,
-                        rocket:p.rocket,
-                        x:0
-                    })
-                )
-        };
 
     sendEvent(
         "ROUND_START",
         snapshot
     );
+
 
     applyRoundStart(
         snapshot
@@ -2898,6 +3941,10 @@ function maybeStartRound(){
 
 }
 
+
+/* =========================================================
+   ROUND START
+========================================================= */
 
 function handleRoundStart(
     sender,
@@ -2911,6 +3958,7 @@ function handleRoundStart(
     ){
         return;
     }
+
 
     applyRoundStart(
         payload
@@ -2928,26 +3976,31 @@ function applyRoundStart(
             payload.roundId
         );
 
+
     hostId =
         String(
             payload.hostId ||
             hostId
         );
 
+
     roundStartAt =
         Number(
             payload.startAt
         );
+
 
     crashPointA =
         Number(
             payload.crashPointA
         );
 
+
     crashPointB =
         Number(
             payload.crashPointB
         );
+
 
     crashedA =
         false;
@@ -2955,11 +4008,10 @@ function applyRoundStart(
     crashedB =
         false;
 
+
     roundRewardSent =
         false;
 
-    state =
-        "COUNTDOWN";
 
     const list =
         Array.isArray(
@@ -2967,6 +4019,11 @@ function applyRoundStart(
         )
             ? payload.players
             : [];
+
+
+    /*
+       這裡建立「本局實際玩家」
+    */
 
     list.forEach(
         p => {
@@ -2976,77 +4033,141 @@ function applyRoundStart(
                     p.id
                 );
 
-            const existing =
-                players.get(id);
+
+            const old =
+                players.get(
+                    id
+                );
+
 
             players.set(
                 id,
                 {
+
                     id,
+
                     username:
                         String(
                             p.username ||
-                            existing?.username ||
+                            old?.username ||
                             "玩家"
                         ),
+
                     avatar:
                         String(
                             p.avatar ||
-                            existing?.avatar ||
+                            old?.avatar ||
                             ""
                         ),
+
                     joinedAt:
-                        existing?.joinedAt ||
+                        old?.joinedAt ||
                         Date.now(),
+
                     bet:
                         Number(
                             p.bet ||
                             0
                         ),
+
                     rocket:
                         p.rocket === "B"
                             ? "B"
                             : "A",
+
                     ready:true,
+
                     status:"flying",
+
                     x:0,
+
                     bonus:0,
+
                     reward:0,
-                    cashoutAt:0
+
+                    cashoutAt:0,
+
+                    roundId:
+                        currentRoundId,
+
+                    lastSeen:
+                        Date.now()
+
                 }
             );
 
         }
     );
 
-    enterGameplayScreen();
+
+    /*
+       進入遊戲時不顯示
+       其他玩家 UI。
+    */
+
+    enterGameplay();
+
+
+    state =
+        "COUNTDOWN";
+
 
     ejectButton.disabled =
         true;
 
+
     aliveText.textContent =
         "⏳ 即將起飛";
 
+
     soundStart();
+
+
+    setTimeout(
+        () => {
+
+            if(
+                currentRoundId !==
+                String(
+                    payload.roundId
+                )
+            ){
+                return;
+            }
+
+
+            state =
+                "FLYING";
+
+
+            ejectButton.disabled =
+                false;
+
+
+            ejectButton.textContent =
+                "🚀 EJECT 逃脫";
+
+
+        },
+        Math.max(
+            50,
+            Number(
+                payload.startAt
+            ) -
+            Date.now()
+        )
+    );
 
 }
 
 
 /* =========================================================
-   遊戲時間
+   MULTIPLIER
 ========================================================= */
 
-function effectiveNow(){
-
-    return (
-        Date.now()
-    );
-
-}
-
-function baseMultiplier(
+function getBaseMultiplier(
     rocketId,
-    now=effectiveNow()
+    now=Date.now()
 ){
 
     if(
@@ -3055,12 +4176,15 @@ function baseMultiplier(
         return 1;
     }
 
+
     const elapsed =
         Math.max(
             0,
             now -
             roundStartAt
-        ) / 1000;
+        ) /
+        1000;
+
 
     return Math.pow(
         ROCKETS[
@@ -3071,6 +4195,7 @@ function baseMultiplier(
 
 }
 
+
 function getMyMultiplier(){
 
     const me =
@@ -3078,19 +4203,27 @@ function getMyMultiplier(){
             user.id
         );
 
-    if(!me){
+
+    if(
+        !me
+    ){
         return 1;
     }
 
+
     return Math.min(
-        MAX_PAYOUT_MULTIPLIER,
-        baseMultiplier(
+        MAX_PAYOUT,
+
+        getBaseMultiplier(
             me.rocket
         ) +
-        clamp(
-            me.bonus,
+
+        Math.max(
             0,
-            1.5
+            Math.min(
+                1.5,
+                me.bonus
+            )
         )
     );
 
@@ -3098,14 +4231,73 @@ function getMyMultiplier(){
 
 
 /* =========================================================
-   Host World
+   ROUND PLAYER COUNT
+   只算真正加入這一局的人。
 ========================================================= */
 
-let worldItems = [];
-let itemCounter = 0;
-let lastWorldTick = 0;
-let lastMeteorSpawn = 0;
-let lastEnergySpawn = 0;
+function getRoundPlayerCount(){
+
+    if(
+        !currentRoundId
+    ){
+        return 0;
+    }
+
+
+    return Array.from(
+        players.values()
+    )
+    .filter(
+        p =>
+            p.roundId ===
+            currentRoundId &&
+            p.bet > 0
+    )
+    .length;
+
+}
+
+
+function updateRoomCount(){
+
+    onlineCount.textContent =
+        String(
+            Math.max(
+                1,
+                players.size
+            )
+        );
+
+
+    roundPlayers.textContent =
+        `👥 本局 ${getRoundPlayerCount()} 人`;
+
+}
+
+
+/* =========================================================
+   WORLD OBJECTS
+========================================================= */
+
+let worldItems =
+    [];
+
+let itemCounter =
+    0;
+
+let lastWorldTick =
+    0;
+
+let lastMeteorSpawn =
+    0;
+
+let lastEnergySpawn =
+    0;
+
+
+/* =========================================================
+   HOST WORLD
+========================================================= */
 
 function hostWorldTick(){
 
@@ -3116,79 +4308,114 @@ function hostWorldTick(){
         return;
     }
 
+
     const now =
         Date.now();
+
 
     if(
         !lastWorldTick
     ){
+
         lastWorldTick =
             now;
+
     }
+
 
     const dt =
         Math.min(
-            .08,
-            (
-                now -
-                lastWorldTick
-            ) / 1000
+            .09,
+            Math.max(
+                .001,
+                (
+                    now -
+                    lastWorldTick
+                ) /
+                1000
+            )
         );
+
 
     lastWorldTick =
         now;
 
+
     const multA =
-        baseMultiplier(
+        getBaseMultiplier(
             "A",
             now
         );
 
+
     const multB =
-        baseMultiplier(
+        getBaseMultiplier(
             "B",
             now
         );
+
 
     if(
         !crashedA &&
         multA >=
         crashPointA
     ){
+
         crashRocket(
             "A"
         );
+
     }
+
 
     if(
         !crashedB &&
         multB >=
         crashPointB
     ){
+
         crashRocket(
             "B"
         );
+
     }
+
+
+    /*
+       隕石生成頻率
+    */
 
     if(
         now -
         lastMeteorSpawn >
-        800
+        720
     ){
+
         spawnMeteor();
+
         lastMeteorSpawn =
             now;
+
     }
+
+
+    /*
+       能量球
+    */
 
     if(
         now -
         lastEnergySpawn >
-        1050
+        980
     ){
+
         spawnEnergy();
+
         lastEnergySpawn =
             now;
+
     }
+
 
     worldItems.forEach(
         item => {
@@ -3203,30 +4430,36 @@ function hostWorldTick(){
         }
     );
 
+
     processCollisions();
+
 
     worldItems =
         worldItems.filter(
             item =>
                 item.life > 0 &&
                 item.y <
-                1.15
+                1.2
         );
 
+
     broadcastWorld();
+
 
     if(
         crashedA &&
         crashedB
     ){
+
         finishRound();
+
     }
 
 }
 
 
 /* =========================================================
-   隕石
+   SPAWN METEOR
 ========================================================= */
 
 function spawnMeteor(){
@@ -3237,34 +4470,48 @@ function spawnMeteor(){
             ? "A"
             : "B";
 
-    worldItems.push(
-        {
-            id:
-                "meteor_" +
-                itemCounter++,
-            type:"meteor",
+
+    worldItems.push({
+
+        id:
+            "meteor_" +
+            itemCounter++,
+
+        type:
+            "meteor",
+
+        rocket:
             rocket,
-            x:
-                (
-                    Math.random() *
-                    1.5
-                ) -
-                .75,
-            y:-.08,
-            speed:
-                .34 +
-                Math.random() *
-                .16,
-            life:4.5,
-            size:
-                18 +
-                Math.random() *
-                9
-        }
-    );
+
+        x:
+            Math.random() *
+            1.4 -
+            .7,
+
+        y:
+            -.08,
+
+        speed:
+            .30 +
+            Math.random() *
+            .12,
+
+        size:
+            27 +
+            Math.random() *
+            13,
+
+        life:
+            5
+
+    });
 
 }
 
+
+/* =========================================================
+   SPAWN ENERGY
+========================================================= */
 
 function spawnEnergy(){
 
@@ -3274,130 +4521,158 @@ function spawnEnergy(){
             ? "A"
             : "B";
 
-    worldItems.push(
-        {
-            id:
-                "energy_" +
-                itemCounter++,
-            type:"energy",
+
+    worldItems.push({
+
+        id:
+            "energy_" +
+            itemCounter++,
+
+        type:
+            "energy",
+
+        rocket:
             rocket,
-            x:
-                (
-                    Math.random() *
-                    1.4
-                ) -
-                .7,
-            y:-.06,
-            speed:
-                .25 +
-                Math.random() *
-                .08,
-            life:4,
-            size:10
-        }
-    );
+
+        x:
+            Math.random() *
+            1.3 -
+            .65,
+
+        y:
+            -.06,
+
+        speed:
+            .23 +
+            Math.random() *
+            .08,
+
+        size:
+            10,
+
+        life:
+            4
+
+    });
 
 }
 
 
 /* =========================================================
-   Collision
+   COLLISION
 ========================================================= */
 
 function processCollisions(){
 
     players.forEach(
-        p => {
+        player => {
 
             if(
-                p.status !==
+                player.status !==
                 "flying"
             ){
                 return;
             }
+
 
             worldItems.forEach(
                 item => {
 
                     if(
                         item.rocket !==
-                        p.rocket
+                        player.rocket
                     ){
                         return;
                     }
+
 
                     if(
                         item.y <
                         .72 ||
                         item.y >
-                        .91
+                        .92
                     ){
                         return;
                     }
 
-                    const dx =
+
+                    const distance =
                         Math.abs(
-                            p.x -
+                            player.x -
                             item.x
                         );
+
 
                     const hitRange =
                         item.type ===
                         "meteor"
-                            ? .21
+                            ? .22
                             : .14;
 
+
                     if(
-                        dx >
+                        distance >
                         hitRange
                     ){
                         return;
                     }
 
+
                     item.life =
                         0;
+
 
                     if(
                         item.type ===
                         "energy"
                     ){
 
-                        p.bonus =
-                            clamp(
-                                p.bonus +
-                                .08,
-                                0,
-                                1.5
+                        player.bonus =
+                            Math.min(
+                                1.5,
+                                player.bonus +
+                                .08
                             );
 
+
                         if(
-                            p.id ===
+                            player.id ===
                             user.id
                         ){
+
                             soundCollect();
+
                             showToast(
                                 "⚡ 能量 +0.08x"
                             );
+
                         }
 
                     }else{
 
-                        p.bonus =
-                            clamp(
-                                p.bonus -
-                                .11,
+                        player.bonus =
+                            Math.max(
                                 0,
-                                1.5
+                                player.bonus -
+                                .11
                             );
 
+
                         if(
-                            p.id ===
+                            player.id ===
                             user.id
                         ){
+
                             soundMeteorHit();
-                            showToast(
-                                "☄️ 撞到隕石！"
+
+                            screenShake(
+                                9
                             );
+
+                            showToast(
+                                "☄️ 隕石撞擊！"
+                            );
+
                         }
 
                     }
@@ -3412,7 +4687,7 @@ function processCollisions(){
 
 
 /* =========================================================
-   Player Input
+   INPUT
 ========================================================= */
 
 let localX =
@@ -3424,6 +4699,7 @@ let inputSeq =
 let lastInput =
     0;
 
+
 function sendInput(){
 
     if(
@@ -3433,30 +4709,39 @@ function sendInput(){
         return;
     }
 
+
     const now =
         Date.now();
+
 
     if(
         now -
         lastInput <
-        70
+        55
     ){
         return;
     }
 
+
     lastInput =
         now;
 
+
     inputSeq++;
+
 
     const me =
         players.get(
             user.id
         );
 
-    if(!me){
+
+    if(
+        !me
+    ){
         return;
     }
+
 
     me.x =
         clamp(
@@ -3465,13 +4750,23 @@ function sendInput(){
             1
         );
 
+
     sendEvent(
         "PLAYER_INPUT",
         {
-            gameId:GAME_ID,
-            roundId:currentRoundId,
-            seq:inputSeq,
-            x:localX
+
+            gameId:
+                GAME_ID,
+
+            roundId:
+                currentRoundId,
+
+            seq:
+                inputSeq,
+
+            x:
+                localX
+
         }
     );
 
@@ -3479,7 +4774,7 @@ function sendInput(){
 
 
 /* =========================================================
-   Host 接收 Input
+   HOST INPUT
 ========================================================= */
 
 function handlePlayerInput(
@@ -3489,10 +4784,12 @@ function handlePlayerInput(
 
     if(
         !isHost() ||
-        state !== "FLYING"
+        state !==
+        "FLYING"
     ){
         return;
     }
+
 
     if(
         String(
@@ -3505,29 +4802,39 @@ function handlePlayerInput(
         return;
     }
 
-    const p =
+
+    const player =
         players.get(
             String(sender)
         );
 
-    if(!p){
+
+    if(
+        !player
+    ){
         return;
     }
 
-    p.x =
+
+    player.x =
         clamp(
             Number(
-                payload.x || 0
+                payload.x ||
+                0
             ),
             -1,
             1
         );
 
+
+    player.lastSeen =
+        Date.now();
+
 }
 
 
 /* =========================================================
-   World Broadcast
+   WORLD BROADCAST
 ========================================================= */
 
 function broadcastWorld(){
@@ -3538,26 +4845,54 @@ function broadcastWorld(){
         return;
     }
 
+
     sendEvent(
         "WORLD_STATE",
         {
-            gameId:GAME_ID,
-            roundId:currentRoundId,
-            hostId:user.id,
-            crashPointA,
-            crashPointB,
-            crashedA,
-            crashedB,
+
+            gameId:
+                GAME_ID,
+
+            roundId:
+                currentRoundId,
+
+            hostId:
+                user.id,
+
+            crashPointA:
+                crashPointA,
+
+            crashPointB:
+                crashPointB,
+
+            crashedA:
+                crashedA,
+
+            crashedB:
+                crashedB,
 
             items:
                 worldItems.map(
                     item => ({
-                        id:item.id,
-                        type:item.type,
-                        rocket:item.rocket,
-                        x:item.x,
-                        y:item.y,
-                        size:item.size
+
+                        id:
+                            item.id,
+
+                        type:
+                            item.type,
+
+                        rocket:
+                            item.rocket,
+
+                        x:
+                            item.x,
+
+                        y:
+                            item.y,
+
+                        size:
+                            item.size
+
                     })
                 ),
 
@@ -3567,23 +4902,52 @@ function broadcastWorld(){
                 )
                 .map(
                     p => ({
-                        id:p.id,
-                        username:p.username,
-                        avatar:p.avatar,
-                        bet:p.bet,
-                        rocket:p.rocket,
-                        status:p.status,
-                        x:p.x,
-                        bonus:p.bonus,
-                        reward:p.reward,
-                        cashoutAt:p.cashoutAt
+
+                        id:
+                            p.id,
+
+                        username:
+                            p.username,
+
+                        avatar:
+                            p.avatar,
+
+                        bet:
+                            p.bet,
+
+                        rocket:
+                            p.rocket,
+
+                        status:
+                            p.status,
+
+                        x:
+                            p.x,
+
+                        bonus:
+                            p.bonus,
+
+                        reward:
+                            p.reward,
+
+                        cashoutAt:
+                            p.cashoutAt,
+
+                        roundId:
+                            p.roundId
+
                     })
                 )
+
         }
     );
 
 }
 
+
+/* =========================================================
+   RECEIVE WORLD
+========================================================= */
 
 function handleWorldState(
     sender,
@@ -3598,6 +4962,7 @@ function handleWorldState(
         return;
     }
 
+
     if(
         String(
             payload.roundId
@@ -3609,40 +4974,73 @@ function handleWorldState(
         return;
     }
 
+
     crashPointA =
         Number(
             payload.crashPointA
         );
+
 
     crashPointB =
         Number(
             payload.crashPointB
         );
 
+
     crashedA =
         !!payload.crashedA;
+
 
     crashedB =
         !!payload.crashedB;
 
-    worldItems =
+
+    if(
         Array.isArray(
             payload.items
         )
-            ? payload.items
-                .map(
-                    x => ({
-                        id:x.id,
-                        type:x.type,
-                        rocket:x.rocket,
-                        x:Number(x.x || 0),
-                        y:Number(x.y || 0),
-                        size:Number(x.size || 10),
-                        speed:0,
-                        life:2
-                    })
-                )
-            : [];
+    ){
+
+        worldItems =
+            payload.items.map(
+                item => ({
+
+                    id:
+                        item.id,
+
+                    type:
+                        item.type,
+
+                    rocket:
+                        item.rocket,
+
+                    x:
+                        Number(
+                            item.x ||
+                            0
+                        ),
+
+                    y:
+                        Number(
+                            item.y ||
+                            0
+                        ),
+
+                    size:
+                        Number(
+                            item.size ||
+                            25
+                        ),
+
+                    speed:0,
+
+                    life:2
+
+                })
+            );
+
+    }
+
 
     if(
         Array.isArray(
@@ -3658,46 +5056,57 @@ function handleWorldState(
                         incoming.id
                     );
 
-                const existing =
+
+                const old =
                     players.get(
                         id
                     );
 
+
                 players.set(
                     id,
                     {
+
                         id,
+
                         username:
                             String(
                                 incoming.username ||
-                                existing?.username ||
+                                old?.username ||
                                 "玩家"
                             ),
+
                         avatar:
                             String(
                                 incoming.avatar ||
-                                existing?.avatar ||
+                                old?.avatar ||
                                 ""
                             ),
+
                         joinedAt:
-                            existing?.joinedAt ||
+                            old?.joinedAt ||
                             Date.now(),
+
                         bet:
                             Number(
                                 incoming.bet ||
                                 0
                             ),
+
                         rocket:
                             incoming.rocket ===
                             "B"
                                 ? "B"
                                 : "A",
+
                         ready:true,
+
                         status:
                             String(
                                 incoming.status ||
                                 "flying"
                             ),
+
                         x:
                             clamp(
                                 Number(
@@ -3707,6 +5116,7 @@ function handleWorldState(
                                 -1,
                                 1
                             ),
+
                         bonus:
                             clamp(
                                 Number(
@@ -3716,16 +5126,26 @@ function handleWorldState(
                                 0,
                                 1.5
                             ),
+
                         reward:
                             Number(
                                 incoming.reward ||
                                 0
                             ),
+
                         cashoutAt:
                             Number(
                                 incoming.cashoutAt ||
                                 0
-                            )
+                            ),
+
+                        roundId:
+                            incoming.roundId ||
+                            currentRoundId,
+
+                        lastSeen:
+                            Date.now()
+
                     }
                 );
 
@@ -3733,6 +5153,9 @@ function handleWorldState(
         );
 
     }
+
+
+    updateRoomCount();
 
 }
 
@@ -3746,14 +5169,20 @@ function crashRocket(
 ){
 
     if(
-        rocketId === "A"
+        rocketId ===
+        "A"
     ){
+
         crashedA =
             true;
+
     }else{
+
         crashedB =
             true;
+
     }
+
 
     players.forEach(
         p => {
@@ -3765,12 +5194,14 @@ function crashRocket(
                 return;
             }
 
+
             if(
                 p.status !==
                 "flying"
             ){
                 return;
             }
+
 
             p.status =
                 "crashed";
@@ -3781,59 +5212,182 @@ function crashRocket(
             p.cashoutAt =
                 0;
 
+
             if(
                 p.id ===
                 user.id
             ){
-                if(
-                    !roundRewardSent &&
-                    sdkEnabled
-                ){
 
-                    roundRewardSent =
-                        true;
+                settleLoss();
 
-                    try{
-                        SDK.gameOver(
-                            0
-                        );
-                    }catch(e){}
-
-                }
             }
 
         }
     );
 
+
     sendEvent(
         "ROCKET_CRASHED",
         {
-            gameId:GAME_ID,
-            roundId:currentRoundId,
-            rocket:rocketId,
+
+            gameId:
+                GAME_ID,
+
+            roundId:
+                currentRoundId,
+
+            rocket:
+                rocketId,
+
             crashPoint:
                 rocketId === "A"
                     ? crashPointA
                     : crashPointB
+
         }
     );
 
+
     soundCrash();
+
 
     if(
         selectedRocket ===
         rocketId
     ){
+
         screenShake(
-            16
+            18
         );
+
+        meteorWarning.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+function handleRocketCrashed(
+    sender,
+    payload
+){
+
+    if(
+        hostId &&
+        String(sender) !==
+        String(hostId)
+    ){
+        return;
+    }
+
+
+    const rocket =
+        payload.rocket ===
+        "B"
+            ? "B"
+            : "A";
+
+
+    if(
+        rocket ===
+        "A"
+    ){
+
+        crashedA =
+            true;
+
+        crashPointA =
+            Number(
+                payload.crashPoint
+            );
+
+    }else{
+
+        crashedB =
+            true;
+
+        crashPointB =
+            Number(
+                payload.crashPoint
+            );
+
+    }
+
+
+    if(
+        rocket ===
+        selectedRocket
+    ){
+
+        soundCrash();
+
+        screenShake(
+            18
+        );
+
     }
 
 }
 
 
 /* =========================================================
-   Cashout
+   LOSS
+========================================================= */
+
+function settleLoss(){
+
+    if(
+        roundRewardSent
+    ){
+        return;
+    }
+
+
+    roundRewardSent =
+        true;
+
+
+    ejectButton.disabled =
+        true;
+
+
+    ejectButton.textContent =
+        "💥 火箭爆炸";
+
+
+    multiplierEl.className =
+        "crash";
+
+
+    statusEl.textContent =
+        "💥 你的火箭爆炸";
+
+
+    aliveText.textContent =
+        "💥 出局";
+
+
+    if(
+        SDK_READY
+    ){
+
+        try{
+
+            SDK.gameOver(
+                0
+            );
+
+        }catch(e){}
+
+    }
+
+}
+
+
+/* =========================================================
+   EJECT
 ========================================================= */
 
 ejectButton.addEventListener(
@@ -3841,13 +5395,6 @@ ejectButton.addEventListener(
     () => {
 
         initAudio();
-
-        if(
-            state !==
-            "FLYING"
-        ){
-            return;
-        }
 
         cashout();
 
@@ -3857,10 +5404,19 @@ ejectButton.addEventListener(
 
 function cashout(){
 
+    if(
+        state !==
+        "FLYING"
+    ){
+        return;
+    }
+
+
     const me =
         players.get(
             user.id
         );
+
 
     if(
         !me ||
@@ -3870,18 +5426,19 @@ function cashout(){
         return;
     }
 
+
+    const selectedCrashed =
+        selectedRocket === "A"
+            ? crashedA
+            : crashedB;
+
+
     if(
-        (
-            me.rocket === "A" &&
-            crashedA
-        ) ||
-        (
-            me.rocket === "B" &&
-            crashedB
-        )
+        selectedCrashed
     ){
         return;
     }
+
 
     if(
         isHost()
@@ -3896,9 +5453,16 @@ function cashout(){
         sendEvent(
             "PLAYER_CASHOUT",
             {
-                gameId:GAME_ID,
-                roundId:currentRoundId,
-                playerId:user.id
+
+                gameId:
+                    GAME_ID,
+
+                roundId:
+                    currentRoundId,
+
+                playerId:
+                    user.id
+
             }
         );
 
@@ -3906,6 +5470,10 @@ function cashout(){
 
 }
 
+
+/* =========================================================
+   HOST CASHOUT
+========================================================= */
 
 function handlePlayerCashout(
     sender,
@@ -3918,6 +5486,7 @@ function handlePlayerCashout(
         return;
     }
 
+
     if(
         String(
             payload.roundId
@@ -3928,6 +5497,7 @@ function handlePlayerCashout(
     ){
         return;
     }
+
 
     processCashout(
         String(
@@ -3950,23 +5520,27 @@ function processCashout(
         return;
     }
 
-    const p =
+
+    const player =
         players.get(
             playerId
         );
 
+
     if(
-        !p ||
-        p.status !==
+        !player ||
+        player.status !==
         "flying"
     ){
         return;
     }
 
+
     const crashed =
-        p.rocket === "A"
+        player.rocket === "A"
             ? crashedA
             : crashedB;
+
 
     if(
         crashed
@@ -3974,66 +5548,98 @@ function processCashout(
         return;
     }
 
-    const current =
+
+    const multiplier =
         Math.min(
-            MAX_PAYOUT_MULTIPLIER,
-            baseMultiplier(
-                p.rocket
-            ) +
-            clamp(
-                p.bonus,
-                0,
-                1.5
+            MAX_PAYOUT,
+
+            Math.max(
+                1.01,
+
+                getBaseMultiplier(
+                    player.rocket
+                ) +
+
+                Math.max(
+                    0,
+                    Math.min(
+                        1.5,
+                        player.bonus
+                    )
+                )
             )
         );
 
-    const multiplier =
-        Math.max(
-            1.01,
-            current
-        );
 
     const reward =
         Math.floor(
-            p.bet *
+            player.bet *
             multiplier
         );
 
-    p.status =
+
+    player.status =
         "cashed";
 
-    p.cashoutAt =
+
+    player.cashoutAt =
         multiplier;
 
-    p.reward =
+
+    player.reward =
         reward;
+
 
     sendEvent(
         "CASHOUT_CONFIRMED",
         {
-            gameId:GAME_ID,
-            roundId:currentRoundId,
-            playerId:p.id,
-            username:p.username,
-            rocket:p.rocket,
-            bet:p.bet,
-            multiplier,
-            reward
+
+            gameId:
+                GAME_ID,
+
+            roundId:
+                currentRoundId,
+
+            playerId:
+                player.id,
+
+            username:
+                player.username,
+
+            rocket:
+                player.rocket,
+
+            bet:
+                player.bet,
+
+            multiplier:
+                multiplier,
+
+            reward:
+                reward
+
         }
     );
 
+
     if(
-        p.id ===
+        player.id ===
         user.id
     ){
+
         applyCashout(
             multiplier,
             reward
         );
+
     }
 
 }
 
+
+/* =========================================================
+   CASHOUT RECEIVE
+========================================================= */
 
 function handleCashoutConfirmed(
     sender,
@@ -4046,38 +5652,48 @@ function handleCashoutConfirmed(
             sender
         );
 
-    const p =
+
+    const player =
         players.get(
             id
         );
 
-    if(!p){
+
+    if(
+        !player
+    ){
         return;
     }
 
-    p.status =
+
+    player.status =
         "cashed";
 
-    p.cashoutAt =
+
+    player.cashoutAt =
         Number(
             payload.multiplier ||
             1
         );
 
-    p.reward =
+
+    player.reward =
         Number(
             payload.reward ||
             0
         );
 
+
     if(
         id ===
         user.id
     ){
+
         applyCashout(
-            p.cashoutAt,
-            p.reward
+            player.cashoutAt,
+            player.reward
         );
+
     }
 
 }
@@ -4091,30 +5707,40 @@ function applyCashout(
     roundRewardSent =
         true;
 
+
     ejectButton.disabled =
         true;
+
 
     ejectButton.textContent =
         "✅ 已成功逃脫";
 
+
     aliveText.textContent =
         `✅ ${multiplier.toFixed(2)}x`;
+
 
     multiplierEl.className =
         "win";
 
+
     multiplierEl.textContent =
         `${multiplier.toFixed(2)}x`;
+
 
     statusEl.textContent =
         "成功逃脫！";
 
+
     soundCashout();
 
+
     if(
-        sdkEnabled
+        SDK_READY
     ){
+
         try{
+
             SDK.gameOver(
                 Math.max(
                     0,
@@ -4123,8 +5749,11 @@ function applyCashout(
                     )
                 )
             );
+
         }catch(e){}
+
     }
+
 
     showToast(
         `+${reward.toLocaleString()} 銀幣`,
@@ -4135,20 +5764,23 @@ function applyCashout(
 
 
 /* =========================================================
-   Round Finish
+   RESULT
 ========================================================= */
 
 function finishRound(){
 
     if(
         !isHost() ||
-        state === "RESULT"
+        state ===
+        "RESULT"
     ){
         return;
     }
 
+
     state =
         "RESULT";
+
 
     const results =
         Array.from(
@@ -4156,16 +5788,31 @@ function finishRound(){
         )
         .filter(
             p =>
-                p.ready
+                p.roundId ===
+                currentRoundId &&
+                p.bet > 0
         )
         .map(
             p => ({
-                id:p.id,
-                username:p.username,
-                avatar:p.avatar,
-                bet:p.bet,
-                rocket:p.rocket,
-                status:p.status,
+
+                id:
+                    p.id,
+
+                username:
+                    p.username,
+
+                avatar:
+                    p.avatar,
+
+                bet:
+                    p.bet,
+
+                rocket:
+                    p.rocket,
+
+                status:
+                    p.status,
+
                 reward:
                     Math.max(
                         0,
@@ -4173,10 +5820,13 @@ function finishRound(){
                             p.reward
                         )
                     ),
+
                 cashoutAt:
                     p.cashoutAt
+
             })
         );
+
 
     results.sort(
         (a,b) => {
@@ -4189,12 +5839,19 @@ function finishRound(){
                 b.reward -
                 b.bet;
 
+
             if(
                 netA !==
                 netB
             ){
-                return netB - netA;
+
+                return (
+                    netB -
+                    netA
+                );
+
             }
+
 
             return (
                 b.cashoutAt -
@@ -4204,18 +5861,27 @@ function finishRound(){
         }
     );
 
+
     sendEvent(
         "ROUND_RESULT",
         {
-            gameId:GAME_ID,
-            roundId:currentRoundId,
+
+            gameId:
+                GAME_ID,
+
+            roundId:
+                currentRoundId,
+
             crashPointA,
             crashPointB,
+
             results
+
         }
     );
 
-    applyRoundResult(
+
+    applyResult(
         results
     );
 
@@ -4235,6 +5901,7 @@ function handleRoundResult(
         return;
     }
 
+
     if(
         String(
             payload.roundId
@@ -4246,17 +5913,8 @@ function handleRoundResult(
         return;
     }
 
-    crashPointA =
-        Number(
-            payload.crashPointA
-        );
 
-    crashPointB =
-        Number(
-            payload.crashPointB
-        );
-
-    applyRoundResult(
+    applyResult(
         Array.isArray(
             payload.results
         )
@@ -4267,12 +5925,13 @@ function handleRoundResult(
 }
 
 
-function applyRoundResult(
+function applyResult(
     results
 ){
 
     state =
         "RESULT";
+
 
     const me =
         results.find(
@@ -4281,15 +5940,17 @@ function applyRoundResult(
                 user.id
         );
 
+
     const reward =
         me
             ? Number(
-                me.reward || 0
+                me.reward ||
+                0
             )
             : 0;
 
+
     if(
-        me &&
         reward <= 0 &&
         !roundRewardSent
     ){
@@ -4297,60 +5958,79 @@ function applyRoundResult(
         roundRewardSent =
             true;
 
+
         if(
-            sdkEnabled
+            SDK_READY
         ){
+
             try{
+
                 SDK.gameOver(
                     0
                 );
+
             }catch(e){}
+
         }
 
     }
+
 
     resultTitle.textContent =
         reward > 0
             ? "🚀 成功逃脫"
             : "💥 本局爆炸";
 
+
     resultMain.textContent =
         reward > 0
             ? `+${reward.toLocaleString()} 🪙`
             : "0 🪙";
 
+
     resultSub.textContent =
         me
             ? `${rocketName(me.rocket)} · ${
                 Number(
-                    me.cashoutAt || 0
+                    me.cashoutAt ||
+                    0
                 ).toFixed(2)
-            }x`
+              }x`
             : "—";
+
 
     leaderboard.innerHTML =
         "";
 
+
     results
-    .slice(0,5)
+    .slice(
+        0,
+        5
+    )
     .forEach(
-        (r,index) => {
+        (player,index) => {
 
             const row =
                 document.createElement(
                     "div"
                 );
 
+
             row.className =
                 "rank";
 
+
             const net =
                 Number(
-                    r.reward || 0
+                    player.reward ||
+                    0
                 ) -
                 Number(
-                    r.bet || 0
+                    player.bet ||
+                    0
                 );
+
 
             const medal =
                 index === 0
@@ -4361,43 +6041,55 @@ function applyRoundResult(
                             ? "🥉"
                             : String(
                                 index + 1
-                            );
+                              );
+
+
+            row.innerHTML =
+                `<div>${medal}</div>`;
+
 
             const name =
                 document.createElement(
                     "div"
                 );
 
+
             name.className =
                 "rank-name";
 
-            name.textContent =
-                String(
-                    r.username ||
-                    "玩家"
-                );
 
-            row.innerHTML =
-                `<div>${medal}</div>`;
+            name.textContent =
+                player.username ||
+                "玩家";
+
 
             row.appendChild(
                 name
             );
+
 
             const value =
                 document.createElement(
                     "div"
                 );
 
+
             value.className =
                 "rank-value";
 
+
             value.textContent =
-                `${net >= 0 ? "+" : ""}${net.toLocaleString()}`;
+                `${
+                    net >= 0
+                        ? "+"
+                        : ""
+                }${net.toLocaleString()}`;
+
 
             row.appendChild(
                 value
             );
+
 
             leaderboard.appendChild(
                 row
@@ -4406,15 +6098,20 @@ function applyRoundResult(
         }
     );
 
+
     resultOverlay.classList.add(
         "show"
     );
 
+
     if(
         reward > 0
     ){
+
         soundCashout();
+
     }
+
 
     setTimeout(
         () => {
@@ -4423,31 +6120,33 @@ function applyRoundResult(
                 state ===
                 "RESULT"
             ){
+
                 resetRound();
+
             }
 
         },
-        ROUND_RESULT_DELAY
+        RESULT_DELAY
     );
 
 }
 
 
 /* =========================================================
-   Reset
+   RESET
 ========================================================= */
 
 nextRound.addEventListener(
     "click",
     () => {
 
-        initAudio();
-
         if(
             state ===
             "RESULT"
         ){
+
             resetRound();
+
         }
 
     }
@@ -4460,120 +6159,121 @@ function resetRound(){
         "show"
     );
 
+
     state =
         "LOBBY";
+
 
     currentRoundId =
         null;
 
+
     roundStartAt =
         0;
+
 
     crashPointA =
         null;
 
+
     crashPointB =
         null;
+
 
     crashedA =
         false;
 
+
     crashedB =
         false;
 
-    localReady =
-        false;
-
-    roundRewardSent =
-        false;
 
     worldItems =
         [];
 
-    lastRoundAttempt =
-        0;
 
-    players.forEach(
-        p => {
+    localReady =
+        false;
 
-            if(
-                p.id ===
-                user.id
-            ){
 
-                p.ready =
-                    false;
+    roundRewardSent =
+        false;
 
-                p.status =
-                    "waiting";
 
-                p.bet =
-                    0;
+    const me =
+        players.get(
+            user.id
+        );
 
-                p.reward =
-                    0;
 
-                p.cashoutAt =
-                    0;
+    if(
+        me
+    ){
 
-                p.bonus =
-                    0;
+        me.ready =
+            false;
 
-            }else{
+        me.status =
+            "waiting";
 
-                p.ready =
-                    false;
+        me.bet =
+            0;
 
-                p.status =
-                    "waiting";
+        me.roundId =
+            null;
 
-                p.bet =
-                    0;
+        me.reward =
+            0;
 
-                p.reward =
-                    0;
+        me.cashoutAt =
+            0;
 
-                p.cashoutAt =
-                    0;
+        me.bonus =
+            0;
 
-                p.bonus =
-                    0;
-            }
+        me.x =
+            0;
 
-        }
-    );
+    }
 
-    exitGameplayScreen();
+
+    /*
+       遊戲結束才回大廳。
+       遊戲進行中完全不會出現雙火箭選擇。
+    */
+
+    exitGameplay();
+
 
     joinButton.disabled =
         false;
 
+
     joinButton.textContent =
         `支付 ${selectedBet} 銀幣加入`;
 
-    multiplierEl.textContent =
-        "1.00x";
 
-    multiplierEl.className =
-        selectedRocket === "A"
-            ? "a"
-            : "b";
+    updateRoomCount();
 
 }
 
 
 /* =========================================================
-   Tilt Control
+   DEVICE ORIENTATION
 ========================================================= */
 
 let tiltEnabled =
     false;
 
-let tiltCenter =
+let tiltCalibrating =
+    false;
+
+let tiltZero =
     0;
 
 let filteredTilt =
     0;
+
 
 function handleOrientation(
     event
@@ -4581,29 +6281,69 @@ function handleOrientation(
 
     if(
         !tiltEnabled ||
+        tiltCalibrating
+    ){
+        return;
+    }
+
+
+    if(
         typeof event.gamma !==
         "number"
     ){
         return;
     }
 
+
+    /*
+       Portrait 模式：
+       gamma = 左右傾斜角度
+    */
+
     let gamma =
         event.gamma;
 
+
+    /*
+       如果 WebView / 系統方向資訊出現反向，
+       仍然保持直覺：
+       左傾 = 左
+       右傾 = 右
+    */
+
     let delta =
         gamma -
-        tiltCenter;
+        tiltZero;
+
+
+    /*
+       小角度死區
+    */
+
+    if(
+        Math.abs(delta) <
+        2.2
+    ){
+
+        delta =
+            0;
+
+    }
+
 
     delta =
         clamp(
-            delta / 24,
+            delta /
+            20,
             -1,
             1
         );
 
+
     filteredTilt =
-        filteredTilt * .8 +
-        delta * .2;
+        filteredTilt * .78 +
+        delta * .22;
+
 
     localX =
         clamp(
@@ -4612,24 +6352,41 @@ function handleOrientation(
             1
         );
 
+
     sendInput();
 
 }
 
 
-async function startTilt(){
+/* =========================================================
+   體感啟用
+========================================================= */
 
-    if(
-        tiltEnabled
-    ){
-        return;
+tiltButton.addEventListener(
+    "click",
+    async () => {
+
+        initAudio();
+
+        await enableTilt();
+
     }
+);
+
+
+async function enableTilt(){
 
     try{
+
+        /*
+           iOS 必須從真正的 click
+           直接呼叫 requestPermission。
+        */
 
         if(
             typeof DeviceOrientationEvent !==
             "undefined" &&
+
             typeof DeviceOrientationEvent.requestPermission ===
             "function"
         ){
@@ -4638,21 +6395,102 @@ async function startTilt(){
                 await DeviceOrientationEvent
                     .requestPermission();
 
+
             if(
                 permission !==
                 "granted"
             ){
-                useTouchFallback();
+
+                showToast(
+                    "體感權限未開啟，使用左右按鍵"
+                );
+
+                manualControls.classList.remove(
+                    "hidden"
+                );
+
                 return;
+
             }
 
         }
 
-        tiltCenter =
-            0;
 
-        filteredTilt =
-            0;
+        tiltCalibrating =
+            true;
+
+
+        tiltButton.textContent =
+            "📱 校準中…";
+
+
+        const samples =
+            [];
+
+
+        const collector =
+            event => {
+
+                if(
+                    typeof event.gamma ===
+                    "number"
+                ){
+
+                    samples.push(
+                        event.gamma
+                    );
+
+                }
+
+            };
+
+
+        window.addEventListener(
+            "deviceorientation",
+            collector,
+            true
+        );
+
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    600
+                )
+        );
+
+
+        window.removeEventListener(
+            "deviceorientation",
+            collector,
+            true
+        );
+
+
+        if(
+            samples.length
+        ){
+
+            tiltZero =
+                samples.reduce(
+                    (
+                        total,
+                        value
+                    ) =>
+                        total +
+                        value,
+                    0
+                ) /
+                samples.length;
+
+        }else{
+
+            tiltZero =
+                0;
+
+        }
+
 
         window.addEventListener(
             "deviceorientation",
@@ -4660,61 +6498,294 @@ async function startTilt(){
             true
         );
 
+
         tiltEnabled =
             true;
 
-        tiltBadge.textContent =
-            "📱 體感 ON";
 
-        tiltHint.textContent =
-            "左右傾斜手機控制火箭";
-
-    }catch(e){
-
-        useTouchFallback();
-
-    }
-
-}
+        tiltCalibrating =
+            false;
 
 
-function stopTilt(){
+        filteredTilt =
+            0;
 
-    if(
-        tiltEnabled
-    ){
 
-        window.removeEventListener(
-            "deviceorientation",
-            handleOrientation,
-            true
+        localX =
+            0;
+
+
+        tiltButton.classList.add(
+            "enabled"
+        );
+
+
+        tiltButton.textContent =
+            "✅ 體感 ON";
+
+
+        /*
+           成功開啟後隱藏左右按鍵，
+           讓遊戲區更乾淨。
+        */
+
+        manualControls.classList.add(
+            "hidden"
+        );
+
+
+        controlHint.textContent =
+            "📱 左右傾斜控制火箭";
+
+
+        showToast(
+            "體感控制已啟用",
+            1200
+        );
+
+
+    }catch(error){
+
+        tiltCalibrating =
+            false;
+
+
+        tiltEnabled =
+            false;
+
+
+        manualControls.classList.remove(
+            "hidden"
+        );
+
+
+        tiltButton.textContent =
+            "📱 開啟體感";
+
+
+        showToast(
+            "無法使用體感，改用左右按鍵"
         );
 
     }
-
-    tiltEnabled =
-        false;
-
-}
-
-
-function useTouchFallback(){
-
-    tiltBadge.textContent =
-        "👆 觸控備用模式";
-
-    tiltHint.textContent =
-        "左右滑動螢幕控制火箭";
 
 }
 
 
 /* =========================================================
-   Touch Fallback
+   STOP TILT
+========================================================= */
+
+function stopTilt(){
+
+    window.removeEventListener(
+        "deviceorientation",
+        handleOrientation,
+        true
+    );
+
+
+    tiltEnabled =
+        false;
+
+
+    tiltCalibrating =
+        false;
+
+
+    manualControls.classList.remove(
+        "hidden"
+    );
+
+
+    tiltButton.classList.remove(
+        "enabled"
+    );
+
+
+    tiltButton.textContent =
+        "📱 開啟體感";
+
+}
+
+
+/* =========================================================
+   左右控制
+========================================================= */
+
+let manualDirection =
+    0;
+
+let manualTimer =
+    null;
+
+
+function startManualMove(
+    direction
+){
+
+    initAudio();
+
+
+    if(
+        state !==
+        "FLYING"
+    ){
+        return;
+    }
+
+
+    manualDirection =
+        direction;
+
+
+    /*
+       立即移動一次
+    */
+
+    localX =
+        clamp(
+            localX +
+            direction *
+            .11,
+            -1,
+            1
+        );
+
+
+    sendInput();
+
+
+    clearInterval(
+        manualTimer
+    );
+
+
+    manualTimer =
+        setInterval(
+            () => {
+
+                if(
+                    state !==
+                    "FLYING"
+                ){
+
+                    stopManualMove();
+
+                    return;
+
+                }
+
+
+                localX =
+                    clamp(
+                        localX +
+                        manualDirection *
+                        .055,
+                        -1,
+                        1
+                    );
+
+
+                sendInput();
+
+            },
+            45
+        );
+
+}
+
+
+function stopManualMove(){
+
+    manualDirection =
+        0;
+
+
+    clearInterval(
+        manualTimer
+    );
+
+
+    manualTimer =
+        null;
+
+}
+
+
+/*
+   pointer events：
+   手指長按左右鍵可以持續移動
+*/
+
+moveLeft.addEventListener(
+    "pointerdown",
+    event => {
+
+        event.preventDefault();
+
+        startManualMove(
+            -1
+        );
+
+    }
+);
+
+
+moveRight.addEventListener(
+    "pointerdown",
+    event => {
+
+        event.preventDefault();
+
+        startManualMove(
+            1
+        );
+
+    }
+);
+
+
+[
+    moveLeft,
+    moveRight
+]
+.forEach(
+    button => {
+
+        button.addEventListener(
+            "pointerup",
+            stopManualMove
+        );
+
+        button.addEventListener(
+            "pointercancel",
+            stopManualMove
+        );
+
+        button.addEventListener(
+            "pointerleave",
+            stopManualMove
+        );
+
+    }
+);
+
+
+window.addEventListener(
+    "pointerup",
+    stopManualMove
+);
+
+
+/* =========================================================
+   TOUCH FALLBACK
+   直接滑 Canvas 也可以控制
 ========================================================= */
 
 let dragging =
     false;
+
 
 canvas.addEventListener(
     "pointerdown",
@@ -4728,43 +6799,58 @@ canvas.addEventListener(
             return;
         }
 
+
+        if(
+            tiltEnabled
+        ){
+            return;
+        }
+
+
         dragging =
             true;
 
-        setTouchX(
+
+        updateTouchX(
             event.clientX
         );
 
     }
 );
+
 
 canvas.addEventListener(
     "pointermove",
     event => {
 
         if(
-            !dragging
+            !dragging ||
+            tiltEnabled
         ){
             return;
         }
 
-        setTouchX(
+
+        updateTouchX(
             event.clientX
         );
 
     }
 );
 
+
 window.addEventListener(
     "pointerup",
     () => {
+
         dragging =
             false;
+
     }
 );
 
 
-function setTouchX(
+function updateTouchX(
     clientX
 ){
 
@@ -4781,8 +6867,6 @@ function setTouchX(
             1
         );
 
-    filteredTilt =
-        localX;
 
     sendInput();
 
@@ -4790,475 +6874,32 @@ function setTouchX(
 
 
 /* =========================================================
-   Host 心跳與開局
-========================================================= */
-
-setInterval(
-    () => {
-
-        broadcastHello();
-
-        if(
-            !hostId
-        ){
-            electHost();
-        }
-
-        if(
-            isHost()
-        ){
-
-            sendEvent(
-                "HOST_ANNOUNCE",
-                {
-                    gameId:GAME_ID,
-                    hostId:user.id
-                }
-            );
-
-            if(
-                state ===
-                "LOBBY"
-            ){
-                sendLobbyState();
-            }
-
-            if(
-                state ===
-                "FLYING"
-            ){
-                hostWorldTick();
-            }
-
-        }else{
-
-            if(
-                Date.now() -
-                hostLastSeen >
-                7000
-            ){
-
-                hostId =
-                    null;
-
-                electHost();
-
-            }
-
-        }
-
-    },
-    100
-);
-
-
-/* =========================================================
-   Host hello
-========================================================= */
-
-broadcastHello();
-
-setTimeout(
-    () => {
-
-        electHost();
-
-        if(
-            isHost()
-        ){
-
-            sendEvent(
-                "HOST_ANNOUNCE",
-                {
-                    gameId:GAME_ID,
-                    hostId:user.id
-                }
-            );
-
-        }
-
-    },
-    500
-);
-
-
-/* =========================================================
-   Demo Mode
-========================================================= */
-
-if(
-    !sdkEnabled
-){
-
-    /*
-       本地測試用玩家。
-       正式 BoomRoom WebView 不會走這裡。
-    */
-
-    const demos = [
-
-        {
-            id:"demo1",
-            username:"CyberCat",
-            avatar:"",
-            joinedAt:
-                myJoinAt + 100,
-            bet:250,
-            rocket:"A"
-        },
-
-        {
-            id:"demo2",
-            username:"NeonFox",
-            avatar:"",
-            joinedAt:
-                myJoinAt + 200,
-            bet:500,
-            rocket:"B"
-        },
-
-        {
-            id:"demo3",
-            username:"RocketKid",
-            avatar:"",
-            joinedAt:
-                myJoinAt + 300,
-            bet:100,
-            rocket:"A"
-        }
-
-    ];
-
-    demos.forEach(
-        d => {
-
-            candidates.set(
-                d.id,
-                {
-                    id:d.id,
-                    joinedAt:d.joinedAt
-                }
-            );
-
-            players.set(
-                d.id,
-                {
-                    id:d.id,
-                    username:d.username,
-                    avatar:"",
-                    joinedAt:d.joinedAt,
-                    bet:d.bet,
-                    rocket:d.rocket,
-                    ready:true,
-                    status:"ready",
-                    x:
-                        Math.random() *
-                        1.2 -
-                        .6,
-                    bonus:0,
-                    reward:0,
-                    cashoutAt:0
-                }
-            );
-
-        }
-    );
-
-    electHost();
-
-    setTimeout(
-        () => {
-
-            if(
-                state ===
-                "LOBBY" &&
-                isHost() &&
-                localReady === false
-            ){
-
-                /* Demo 不會自動替玩家下注，
-                   保留給使用者操作 */
-
-            }
-
-        },
-        500
-    );
-
-}
-
-
-/* =========================================================
-   HUD
-========================================================= */
-
-function updateOnlineCount(){
-
-    onlineCount.textContent =
-        String(
-            Math.max(
-                1,
-                players.size
-            )
-        );
-
-}
-
-
-/* =========================================================
-   HUD Rendering
-========================================================= */
-
-function updatePlayHUD(){
-
-    if(
-        !body.classList.contains(
-            "playing"
-        )
-    ){
-        return;
-    }
-
-    if(
-        state ===
-        "COUNTDOWN"
-    ){
-
-        const remain =
-            Math.max(
-                0,
-                roundStartAt -
-                Date.now()
-            );
-
-        const sec =
-            Math.ceil(
-                remain / 1000
-            );
-
-        multiplierEl.className =
-            selectedRocket === "A"
-                ? "a"
-                : "b";
-
-        multiplierEl.textContent =
-            sec > 0
-                ? String(sec)
-                : "GO!";
-
-        statusEl.textContent =
-            "雙火箭即將升空";
-
-        aliveText.textContent =
-            "⏳ 準備";
-
-        return;
-    }
-
-    if(
-        state !==
-        "FLYING"
-    ){
-        return;
-    }
-
-    const me =
-        players.get(
-            user.id
-        );
-
-    if(!me){
-        return;
-    }
-
-    const multiplier =
-        getMyMultiplier();
-
-    multiplierEl.textContent =
-        `${multiplier.toFixed(2)}x`;
-
-    if(
-        me.status ===
-        "cashed"
-    ){
-
-        multiplierEl.className =
-            "win";
-
-        statusEl.textContent =
-            "✅ 你已成功逃脫";
-
-        aliveText.textContent =
-            "✅ 已逃脫";
-
-        return;
-    }
-
-    if(
-        me.status ===
-        "crashed"
-    ){
-
-        multiplierEl.className =
-            "crash";
-
-        statusEl.textContent =
-            "💥 火箭爆炸";
-
-        aliveText.textContent =
-            "💥 出局";
-
-        ejectButton.disabled =
-            true;
-
-        return;
-    }
-
-    if(
-        (
-            selectedRocket === "A" &&
-            crashedA
-        ) ||
-        (
-            selectedRocket === "B" &&
-            crashedB
-        )
-    ){
-
-        multiplierEl.className =
-            "crash";
-
-        statusEl.textContent =
-            "💥 你的航道已爆炸";
-
-        return;
-    }
-
-    if(
-        multiplier >= 5
-    ){
-
-        multiplierEl.className =
-            "danger";
-
-        statusEl.textContent =
-            "🔥 高風險區";
-
-    }else if(
-        multiplier >= 2
-    ){
-
-        multiplierEl.className =
-            "warning";
-
-        statusEl.textContent =
-            "⚠️ 開始加速";
-
-    }else{
-
-        multiplierEl.className =
-            selectedRocket === "A"
-                ? "a"
-                : "b";
-
-        statusEl.textContent =
-            "🚀 飛行中";
-
-    }
-
-    const alive =
-        Array.from(
-            players.values()
-        )
-        .filter(
-            p =>
-                p.ready &&
-                p.status ===
-                "flying"
-        )
-        .length;
-
-    aliveText.textContent =
-        `🚀 ${alive} 人還在飛`;
-
-}
-
-
-/* =========================================================
-   顯示隕石警告
-========================================================= */
-
-function updateMeteorWarning(){
-
-    if(
-        state !==
-        "FLYING"
-    ){
-        meteorWarning.classList.remove(
-            "show"
-        );
-        return;
-    }
-
-    const dangerous =
-        worldItems.some(
-            item =>
-                item.type ===
-                "meteor" &&
-                item.rocket ===
-                selectedRocket &&
-                item.y >
-                .36 &&
-                item.y <
-                .80
-        );
-
-    meteorWarning.classList.toggle(
-        "show",
-        dangerous
-    );
-
-    if(
-        dangerous &&
-        Date.now() -
-        lastWarning >
-        1000
-    ){
-
-        lastWarning =
-            Date.now();
-
-        soundWarning();
-
-    }
-
-}
-
-
-/* =========================================================
-   星星
+   WORLD DRAW
 ========================================================= */
 
 let stars =
     [];
+
 
 function createStars(){
 
     stars =
         [];
 
+
     const count =
         Math.min(
-            170,
+            160,
             Math.max(
-                100,
+                90,
                 Math.floor(
                     width *
                     height /
-                    9000
+                    9500
                 )
             )
         );
+
 
     for(
         let i=0;
@@ -5266,45 +6907,43 @@ function createStars(){
         i++
     ){
 
-        stars.push(
-            {
-                x:
-                    Math.random() *
-                    width,
-                y:
-                    Math.random() *
-                    height,
-                size:
-                    Math.random() *
-                    1.7 +
-                    .3,
-                alpha:
-                    Math.random() *
-                    .7 +
-                    .2,
-                speed:
-                    Math.random() *
-                    .6 +
-                    .25
-            }
-        );
+        stars.push({
+
+            x:
+                Math.random() *
+                width,
+
+            y:
+                Math.random() *
+                height,
+
+            size:
+                Math.random() *
+                1.7 +
+                .3,
+
+            alpha:
+                Math.random() *
+                .7 +
+                .2,
+
+            speed:
+                Math.random() *
+                .7 +
+                .2
+
+        });
 
     }
 
 }
 
 
-/* =========================================================
-   遊戲畫面
-   只有「選中的火箭」會畫出來
-========================================================= */
-
-function drawBackground(
-    time
-){
+function drawBackground(){
 
     ctx.fillStyle =
         "#02040b";
+
 
     ctx.fillRect(
         0,
@@ -5313,39 +6952,45 @@ function drawBackground(
         height
     );
 
-    const glow =
-        ctx.createRadialGradient(
-            width / 2,
-            height * .5,
-            20,
-            width / 2,
-            height * .5,
-            height * .8
-        );
 
-    const color =
-        selectedRocket ===
-        "A"
+    const rgb =
+        selectedRocket === "A"
             ? "35,232,255"
             : "255,56,209";
 
+
+    const glow =
+        ctx.createRadialGradient(
+            width / 2,
+            height * .48,
+            30,
+            width / 2,
+            height * .48,
+            height * .8
+        );
+
+
     glow.addColorStop(
         0,
-        `rgba(${color},.14)`
+        `rgba(${rgb},.14)`
     );
+
 
     glow.addColorStop(
         .55,
-        `rgba(${color},.035)`
+        `rgba(${rgb},.035)`
     );
+
 
     glow.addColorStop(
         1,
         "rgba(0,0,0,0)"
     );
 
+
     ctx.fillStyle =
         glow;
+
 
     ctx.fillRect(
         0,
@@ -5356,12 +7001,14 @@ function drawBackground(
 
 
     const speed =
-        state === "FLYING"
+        state ===
+        "FLYING"
             ? Math.min(
                 getMyMultiplier(),
                 9
             )
-            : 1;
+            : .8;
+
 
     stars.forEach(
         star => {
@@ -5370,25 +7017,32 @@ function drawBackground(
                 star.speed *
                 speed;
 
+
             if(
                 star.y >
                 height
             ){
+
                 star.y =
                     -2;
 
                 star.x =
                     Math.random() *
                     width;
+
             }
+
 
             ctx.globalAlpha =
                 star.alpha;
 
+
             ctx.fillStyle =
-                "#ffffff";
+                "#fff";
+
 
             ctx.beginPath();
+
 
             ctx.arc(
                 star.x,
@@ -5398,10 +7052,12 @@ function drawBackground(
                 Math.PI * 2
             );
 
+
             ctx.fill();
 
         }
     );
+
 
     ctx.globalAlpha =
         1;
@@ -5410,37 +7066,32 @@ function drawBackground(
 
 
 /* =========================================================
-   只畫選中的飛行航道
+   單火箭航道
 ========================================================= */
 
 function getLane(){
 
-    /*
-       遊玩模式不再分成左右兩台。
-       選中的火箭會放在畫面中央，
-       整個螢幕就是它的遊戲場。
-    */
-
     return {
+
         center:
             width / 2,
-        top:
-            height * .13,
-        bottom:
-            height * .92,
+
         width:
             Math.min(
-                width * .82,
-                440
-            )
+                width * .88,
+                470
+            ),
+
+        top:
+            height * .12,
+
+        bottom:
+            height * .94
+
     };
 
 }
 
-
-/* =========================================================
-   航道背景
-========================================================= */
 
 function drawLane(
     time
@@ -5449,16 +7100,28 @@ function drawLane(
     const lane =
         getLane();
 
-    const rgb =
-        selectedRocket === "A"
-            ? "35,232,255"
-            : "255,56,209";
 
     const left =
         lane.center -
         lane.width / 2;
 
-    const gradient =
+
+    const right =
+        lane.center +
+        lane.width / 2;
+
+
+    const rgb =
+        selectedRocket === "A"
+            ? "35,232,255"
+            : "255,56,209";
+
+
+    /*
+       透明航道
+    */
+
+    const laneGradient =
         ctx.createLinearGradient(
             lane.center,
             lane.top,
@@ -5466,23 +7129,28 @@ function drawLane(
             lane.bottom
         );
 
-    gradient.addColorStop(
+
+    laneGradient.addColorStop(
         0,
         `rgba(${rgb},0)`
     );
 
-    gradient.addColorStop(
-        .45,
+
+    laneGradient.addColorStop(
+        .5,
         `rgba(${rgb},.035)`
     );
 
-    gradient.addColorStop(
+
+    laneGradient.addColorStop(
         1,
-        `rgba(${rgb},.12)`
+        `rgba(${rgb},.13)`
     );
 
+
     ctx.fillStyle =
-        gradient;
+        laneGradient;
+
 
     ctx.fillRect(
         left,
@@ -5493,71 +7161,89 @@ function drawLane(
     );
 
 
+    /*
+       邊界
+    */
+
     ctx.strokeStyle =
-        `rgba(${rgb},.15)`;
+        `rgba(${rgb},.2)`;
+
 
     ctx.lineWidth =
-        1;
+        1.4;
+
 
     ctx.beginPath();
 
+
     ctx.moveTo(
         left,
         lane.top
     );
+
 
     ctx.lineTo(
         left,
         lane.bottom
     );
 
+
     ctx.moveTo(
-        left +
-        lane.width,
+        right,
         lane.top
     );
 
+
     ctx.lineTo(
-        left +
-        lane.width,
+        right,
         lane.bottom
     );
+
 
     ctx.stroke();
 
 
+    /*
+       流線
+    */
+
     const scroll =
         (
-            time *
-            .07
+            performance.now() *
+            .06
         ) %
         55;
 
+
     ctx.strokeStyle =
         `rgba(${rgb},.06)`;
+
 
     for(
         let y =
             lane.top +
             scroll;
+
         y <
         lane.bottom;
+
         y +=55
     ){
 
         ctx.beginPath();
 
+
         ctx.moveTo(
-            left + 14,
+            left + 13,
             y
         );
 
+
         ctx.lineTo(
-            left +
-            lane.width -
-            14,
+            right - 13,
             y
         );
+
 
         ctx.stroke();
 
@@ -5571,89 +7257,124 @@ function drawLane(
 ========================================================= */
 
 function drawMeteor(
-    item,
-    now
+    meteor,
+    time
 ){
 
     if(
-        item.rocket !==
+        meteor.rocket !==
         selectedRocket
     ){
         return;
     }
 
+
     const lane =
         getLane();
 
+
     const x =
         lane.center +
-        item.x *
+        meteor.x *
         (
             lane.width *
-            .42
+            .43
         );
+
 
     const y =
         lane.top +
-        item.y *
+        meteor.y *
         (
             lane.bottom -
             lane.top
         );
 
+
     const size =
-        item.size || 22;
+        meteor.size ||
+        32;
+
 
     ctx.save();
 
+
     /*
-       火焰尾巴
+       超明顯尾焰
     */
 
-    const trail =
+    const tail =
         ctx.createLinearGradient(
             x,
-            y - size * 2.8,
+            y -
+                size *
+                3.8,
+
             x,
             y
         );
 
-    trail.addColorStop(
+
+    tail.addColorStop(
         0,
-        "rgba(255,52,30,0)"
+        "rgba(255,25,15,0)"
     );
 
-    trail.addColorStop(
-        .45,
-        "rgba(255,82,35,.35)"
+
+    tail.addColorStop(
+        .38,
+        "rgba(255,62,20,.25)"
     );
 
-    trail.addColorStop(
+
+    tail.addColorStop(
+        .72,
+        "rgba(255,132,35,.75)"
+    );
+
+
+    tail.addColorStop(
         1,
-        "rgba(255,191,68,.9)"
+        "rgba(255,235,110,.98)"
     );
+
 
     ctx.fillStyle =
-        trail;
+        tail;
+
 
     ctx.beginPath();
 
+
     ctx.moveTo(
-        x - size * .34,
-        y - size * .15
+        x -
+        size *
+        .42,
+
+        y
     );
+
 
     ctx.lineTo(
         x,
-        y - size * 3
+
+        y -
+        size *
+        3.8
     );
+
 
     ctx.lineTo(
-        x + size * .34,
-        y - size * .15
+        x +
+        size *
+        .42,
+
+        y
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
@@ -5663,71 +7384,133 @@ function drawMeteor(
     */
 
     ctx.shadowBlur =
-        22;
+        28;
+
 
     ctx.shadowColor =
-        "#ff352f";
+        "#ff2d32";
+
 
     ctx.strokeStyle =
-        "rgba(255,72,60,.55)";
+        "rgba(255,56,68,.8)";
+
 
     ctx.lineWidth =
-        2;
+        3;
+
 
     ctx.beginPath();
+
 
     ctx.arc(
         x,
         y,
-        size * 1.65,
+        size *
+        1.7,
         0,
         Math.PI * 2
     );
+
 
     ctx.stroke();
 
 
     /*
-       主體
+       外圈閃爍
+    */
+
+    const ring =
+        size *
+        (
+            2.0 +
+            Math.sin(
+                time *
+                .01
+            ) *
+            .12
+        );
+
+
+    ctx.strokeStyle =
+        "rgba(255,106,50,.33)";
+
+
+    ctx.lineWidth =
+        2;
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+        x,
+        y,
+        ring,
+        0,
+        Math.PI * 2
+    );
+
+
+    ctx.stroke();
+
+
+    /*
+       隕石本體
     */
 
     const rock =
         ctx.createRadialGradient(
-            x - size * .3,
-            y - size * .3,
+            x -
+                size *
+                .3,
+
+            y -
+                size *
+                .3,
+
             2,
+
             x,
             y,
+
             size
         );
 
+
     rock.addColorStop(
         0,
-        "#ffbf6b"
+        "#ffd08a"
     );
 
-    rock.addColorStop(
-        .28,
-        "#ff7040"
-    );
 
     rock.addColorStop(
-        .72,
-        "#b52d27"
+        .25,
+        "#ff8a45"
     );
+
+
+    rock.addColorStop(
+        .62,
+        "#d6382b"
+    );
+
 
     rock.addColorStop(
         1,
-        "#4a1218"
+        "#58151a"
     );
+
 
     ctx.fillStyle =
         rock;
 
+
     ctx.beginPath();
+
 
     const points =
         9;
+
 
     for(
         let i=0;
@@ -5741,46 +7524,62 @@ function drawMeteor(
                 points
             ) *
             i +
-            now *
-            .0008;
+            time *
+            .001;
+
 
         const radius =
             size *
             (
-                .7 +
+                .75 +
                 Math.sin(
-                    i * 4.73
+                    i *
+                    4.73
                 ) *
-                .16 +
-                Math.random() *
-                .08
+                .13
             );
+
 
         const px =
             x +
-            Math.cos(angle) *
+            Math.cos(
+                angle
+            ) *
             radius;
+
 
         const py =
             y +
-            Math.sin(angle) *
+            Math.sin(
+                angle
+            ) *
             radius;
 
-        if(i === 0){
+
+        if(
+            i === 0
+        ){
+
             ctx.moveTo(
                 px,
                 py
             );
+
         }else{
+
             ctx.lineTo(
                 px,
                 py
             );
+
         }
 
     }
 
+
     ctx.closePath();
+
+
     ctx.fill();
 
 
@@ -5791,31 +7590,38 @@ function drawMeteor(
     ctx.shadowBlur =
         0;
 
+
     ctx.fillStyle =
-        "rgba(76,12,19,.7)";
+        "rgba(67,10,14,.72)";
+
 
     [
-        [-.28,-.18,.13],
-        [.27,-.06,.1],
-        [.04,.29,.12]
+        [-.28,-.18,.14],
+        [.28,-.08,.11],
+        [.02,.28,.12]
     ]
     .forEach(
         pit => {
 
             ctx.beginPath();
 
+
             ctx.arc(
                 x +
                 size *
                 pit[0],
+
                 y +
                 size *
                 pit[1],
+
                 size *
                 pit[2],
+
                 0,
                 Math.PI * 2
             );
+
 
             ctx.fill();
 
@@ -5824,23 +7630,27 @@ function drawMeteor(
 
 
     /*
-       「危險」符號
+       大型危險 !
     */
 
     ctx.fillStyle =
-        "#fff4dc";
+        "#ffffff";
+
 
     ctx.font =
         `900 ${Math.max(
-            9,
-            size * .42
+            14,
+            size * .52
         )}px Arial`;
+
 
     ctx.textAlign =
         "center";
 
+
     ctx.textBaseline =
         "middle";
+
 
     ctx.fillText(
         "!",
@@ -5848,13 +7658,14 @@ function drawMeteor(
         y
     );
 
+
     ctx.restore();
 
 }
 
 
 /* =========================================================
-   能量球
+   能量
 ========================================================= */
 
 function drawEnergy(
@@ -5868,16 +7679,19 @@ function drawEnergy(
         return;
     }
 
+
     const lane =
         getLane();
+
 
     const x =
         lane.center +
         item.x *
         (
             lane.width *
-            .42
+            .43
         );
+
 
     const y =
         lane.top +
@@ -5887,29 +7701,37 @@ function drawEnergy(
             lane.top
         );
 
+
     const pulse =
         10 +
         Math.sin(
-            Date.now() *
+            performance.now() *
             .008
         ) *
         2;
 
+
     ctx.save();
 
+
     ctx.shadowBlur =
-        20;
+        22;
+
 
     ctx.shadowColor =
         "#ffd84a";
 
+
     ctx.strokeStyle =
         "#ffd84a";
+
 
     ctx.lineWidth =
         2;
 
+
     ctx.beginPath();
+
 
     ctx.arc(
         x,
@@ -5919,27 +7741,36 @@ function drawEnergy(
         Math.PI * 2
     );
 
+
     ctx.stroke();
 
+
     ctx.fillStyle =
-        "rgba(255,216,74,.2)";
+        "rgba(255,216,74,.18)";
+
 
     ctx.beginPath();
+
 
     ctx.arc(
         x,
         y,
-        pulse * 1.65,
+        pulse *
+        1.6,
         0,
         Math.PI * 2
     );
 
+
     ctx.fill();
+
 
     ctx.fillStyle =
         "#fff6b8";
 
+
     ctx.beginPath();
+
 
     ctx.arc(
         x,
@@ -5949,7 +7780,9 @@ function drawEnergy(
         Math.PI * 2
     );
 
+
     ctx.fill();
+
 
     ctx.restore();
 
@@ -5957,17 +7790,16 @@ function drawEnergy(
 
 
 /* =========================================================
-   玩家自己的火箭
+   玩家火箭
 ========================================================= */
 
-function drawPlayerRocket(
-    now
-){
+function drawPlayerRocket(){
 
     const me =
         players.get(
             user.id
         );
+
 
     if(
         !me ||
@@ -5977,88 +7809,107 @@ function drawPlayerRocket(
         return;
     }
 
+
     const lane =
         getLane();
+
 
     const x =
         lane.center +
         me.x *
         (
             lane.width *
-            .42
+            .43
         );
+
 
     const y =
         height *
         .80;
+
 
     const color =
         selectedRocket === "A"
             ? "#23e8ff"
             : "#ff38d1";
 
+
     const glow =
         selectedRocket === "A"
-            ? "#007dff"
+            ? "#008cff"
             : "#7c24ff";
+
 
     ctx.save();
 
+
     /*
-       速度尾焰
+       超長火焰
     */
 
     const flame =
         ctx.createLinearGradient(
             x,
-            y + 20,
+            y + 15,
             x,
-            y + 95
+            y + 105
         );
+
 
     flame.addColorStop(
         0,
         "#ffffff"
     );
 
+
     flame.addColorStop(
-        .2,
+        .18,
         "#ffd84a"
     );
 
+
     flame.addColorStop(
-        .55,
-        "#ff7b2d"
+        .5,
+        "#ff742c"
     );
+
 
     flame.addColorStop(
         1,
-        "rgba(255,40,20,0)"
+        "rgba(255,30,20,0)"
     );
+
 
     ctx.fillStyle =
         flame;
 
+
     ctx.beginPath();
 
+
     ctx.moveTo(
-        x - 11,
+        x - 12,
         y + 14
     );
 
+
     ctx.lineTo(
-        x + 11,
+        x + 12,
         y + 14
     );
+
 
     ctx.lineTo(
         x,
-        y + 90 +
+        y +
+        88 +
         Math.random() *
-        18
+        22
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
@@ -6068,7 +7919,8 @@ function drawPlayerRocket(
     */
 
     ctx.shadowBlur =
-        26;
+        30;
+
 
     ctx.shadowColor =
         glow;
@@ -6079,48 +7931,57 @@ function drawPlayerRocket(
     */
 
     ctx.fillStyle =
-        "#eef7ff";
+        "#f1f8ff";
+
 
     ctx.beginPath();
 
+
     ctx.moveTo(
         x,
-        y - 44
+        y - 48
     );
 
+
     ctx.quadraticCurveTo(
-        x + 23,
+        x + 25,
         y - 8,
-        x + 21,
+        x + 22,
         y + 24
     );
+
 
     ctx.lineTo(
-        x - 21,
+        x - 22,
         y + 24
     );
 
+
     ctx.quadraticCurveTo(
-        x - 23,
+        x - 25,
         y - 8,
         x,
-        y - 44
+        y - 48
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
 
     /*
-       火箭彩色邊
+       外框
     */
 
     ctx.strokeStyle =
         color;
 
+
     ctx.lineWidth =
         3;
+
 
     ctx.stroke();
 
@@ -6132,26 +7993,33 @@ function drawPlayerRocket(
     ctx.shadowBlur =
         0;
 
+
     ctx.fillStyle =
         color;
 
+
     ctx.beginPath();
+
 
     ctx.arc(
         x,
-        y - 10,
-        8,
+        y - 11,
+        9,
         0,
         Math.PI * 2
     );
 
+
     ctx.fill();
+
 
     ctx.strokeStyle =
         "#ffffff";
 
+
     ctx.lineWidth =
         2;
+
 
     ctx.stroke();
 
@@ -6163,70 +8031,83 @@ function drawPlayerRocket(
     ctx.fillStyle =
         "#aab5c7";
 
+
     ctx.beginPath();
 
+
     ctx.moveTo(
-        x - 18,
+        x - 19,
         y + 8
     );
 
+
     ctx.lineTo(
-        x - 42,
-        y + 34
+        x - 44,
+        y + 36
     );
+
 
     ctx.lineTo(
         x - 16,
-        y + 26
+        y + 27
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
+
     ctx.beginPath();
 
+
     ctx.moveTo(
-        x + 18,
+        x + 19,
         y + 8
     );
 
+
     ctx.lineTo(
-        x + 42,
-        y + 34
+        x + 44,
+        y + 36
     );
+
 
     ctx.lineTo(
         x + 16,
-        y + 26
+        y + 27
     );
 
+
     ctx.closePath();
+
 
     ctx.fill();
 
 
     /*
-       玩家位置標記
+       YOU
     */
-
-    ctx.shadowBlur =
-        0;
 
     ctx.fillStyle =
         "#ffffff";
 
+
     ctx.font =
         "900 10px Arial";
+
 
     ctx.textAlign =
         "center";
 
+
     ctx.fillText(
         "YOU",
         x,
-        y + 48
+        y + 51
     );
+
 
     ctx.restore();
 
@@ -6234,63 +8115,7 @@ function drawPlayerRocket(
 
 
 /* =========================================================
-   雙火箭選擇後：
-   其他人的火箭不畫、另一航道不畫。
-========================================================= */
-
-function renderWorld(
-    time
-){
-
-    drawBackground(
-        time
-    );
-
-    if(
-        body.classList.contains(
-            "playing"
-        )
-    ){
-
-        drawLane(
-            time
-        );
-
-        /*
-           只顯示選中的火箭航道
-        */
-
-        worldItems.forEach(
-            item => {
-
-                if(
-                    item.type ===
-                    "meteor"
-                ){
-                    drawMeteor(
-                        item,
-                        time
-                    );
-                }else{
-                    drawEnergy(
-                        item
-                    );
-                }
-
-            }
-        );
-
-        drawPlayerRocket(
-            time
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   畫面震動
+   DRAW
 ========================================================= */
 
 let shakeX =
@@ -6299,8 +8124,9 @@ let shakeX =
 let shakeY =
     0;
 
+
 function screenShake(
-    strength=10
+    amount
 ){
 
     shakeX =
@@ -6308,51 +8134,77 @@ function screenShake(
             Math.random() -
             .5
         ) *
-        strength;
+        amount;
+
 
     shakeY =
         (
             Math.random() -
             .5
         ) *
-        strength;
+        amount;
 
 }
 
 
-/* =========================================================
-   Frame
-========================================================= */
-
-function frame(
+function drawGame(
     time
 ){
 
-    renderWorld(
+    drawBackground();
+
+
+    if(
+        !body.classList.contains(
+            "playing"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    drawLane(
         time
     );
 
-    updatePlayHUD();
 
-    updateMeteorWarning();
+    /*
+       只繪製玩家選中的航道物件
+    */
 
-    if(
-        state ===
-        "FLYING"
-    ){
+    worldItems.forEach(
+        item => {
 
-        if(
-            time -
-            lastWarning >
-            420
-        ){
-            lastWarning =
-                time;
+            if(
+                item.type ===
+                "meteor"
+            ){
 
-            soundTick();
+                drawMeteor(
+                    item,
+                    time
+                );
+
+            }else{
+
+                drawEnergy(
+                    item
+                );
+
+            }
+
         }
+    );
 
-    }
+
+    drawPlayerRocket();
+
+
+    /*
+       平滑震動
+    */
 
     if(
         Math.abs(shakeX) >
@@ -6383,76 +8235,501 @@ function frame(
 
     }
 
-    requestAnimationFrame(
-        frame
-    );
-
 }
 
 
 /* =========================================================
-   Utils
+   HUD
 ========================================================= */
 
-function clamp(
-    value,
-    min,
-    max
-){
-    return Math.max(
-        min,
-        Math.min(
-            max,
-            value
+let lastTickTone =
+    0;
+
+let lastMeteorWarning =
+    0;
+
+
+function updateHUD(){
+
+    updateRoomCount();
+
+
+    if(
+        !body.classList.contains(
+            "playing"
         )
-    );
-}
-
-function randomId(){
-
-    return (
-        "round_" +
-        Date.now().toString(36) +
-        "_" +
-        Math.random()
-            .toString(36)
-            .slice(2,8)
-    );
-
-}
-
-function rocketName(
-    id
-){
-
-    return id === "B"
-        ? "🩷 狂暴號"
-        : "🔵 穩定號";
-
-}
+    ){
+        return;
+    }
 
 
-/* =========================================================
-   Lobby Player Demo / Online
-========================================================= */
+    if(
+        state ===
+        "COUNTDOWN"
+    ){
 
-function updateLobbyPlayerCount(){
-
-    onlineCount.textContent =
-        String(
+        const remaining =
             Math.max(
-                1,
-                players.size
-            )
+                0,
+                roundStartAt -
+                Date.now()
+            );
+
+
+        const seconds =
+            Math.ceil(
+                remaining /
+                1000
+            );
+
+
+        multiplierEl.className =
+            selectedRocket;
+
+
+        multiplierEl.textContent =
+            seconds > 0
+                ? String(seconds)
+                : "GO!";
+
+
+        statusEl.textContent =
+            "雙火箭即將升空";
+
+
+        return;
+
+    }
+
+
+    if(
+        state !==
+        "FLYING"
+    ){
+        return;
+    }
+
+
+    const me =
+        players.get(
+            user.id
         );
 
-}
 
-updateOnlineCount();
+    if(
+        !me
+    ){
+        return;
+    }
+
+
+    const multiplier =
+        getMyMultiplier();
+
+
+    multiplierEl.textContent =
+        `${multiplier.toFixed(2)}x`;
+
+
+    if(
+        me.status ===
+        "cashed"
+    ){
+
+        multiplierEl.className =
+            "win";
+
+        statusEl.textContent =
+            "✅ 你已成功逃脫";
+
+        aliveText.textContent =
+            "✅ 已逃脫";
+
+        return;
+
+    }
+
+
+    if(
+        me.status ===
+        "crashed"
+    ){
+
+        multiplierEl.className =
+            "crash";
+
+        statusEl.textContent =
+            "💥 火箭爆炸";
+
+        aliveText.textContent =
+            "💥 出局";
+
+        return;
+
+    }
+
+
+    if(
+        multiplier >=
+        5
+    ){
+
+        multiplierEl.className =
+            "danger";
+
+        statusEl.textContent =
+            "🔥 高風險區";
+
+    }else if(
+        multiplier >=
+        2
+    ){
+
+        multiplierEl.className =
+            "warning";
+
+        statusEl.textContent =
+            "⚠️ 倍率快速上升";
+
+    }else{
+
+        multiplierEl.className =
+            selectedRocket;
+
+        statusEl.textContent =
+            "🚀 飛行中";
+
+    }
+
+
+    const activePlayers =
+        getRoundPlayerCount();
+
+
+    aliveText.textContent =
+        `🚀 本局 ${activePlayers} 人`;
+
+
+    /*
+       倍率音效
+    */
+
+    if(
+        Date.now() -
+        lastTickTone >
+        430
+    ){
+
+        lastTickTone =
+            Date.now();
+
+        soundTick();
+
+    }
+
+}
 
 
 /* =========================================================
-   Visibility Recovery
+   隕石警告
+========================================================= */
+
+function updateMeteorWarning(){
+
+    if(
+        state !==
+        "FLYING"
+    ){
+
+        meteorWarning.classList.remove(
+            "show"
+        );
+
+        return;
+
+    }
+
+
+    const dangerous =
+        worldItems.some(
+            item =>
+
+                item.type ===
+                "meteor" &&
+
+                item.rocket ===
+                selectedRocket &&
+
+                item.y >
+                .34 &&
+
+                item.y <
+                .82
+        );
+
+
+    if(
+        dangerous
+    ){
+
+        meteorWarning.classList.add(
+            "show"
+        );
+
+
+        if(
+            Date.now() -
+            lastMeteorWarning >
+            1100
+        ){
+
+            lastMeteorWarning =
+                Date.now();
+
+            soundWarning();
+
+        }
+
+    }else{
+
+        meteorWarning.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+function loop(
+    time
+){
+
+    drawGame(
+        time
+    );
+
+    updateHUD();
+
+    updateMeteorWarning();
+
+    requestAnimationFrame(
+        loop
+    );
+
+}
+
+
+/* =========================================================
+   EVENT ROUTER
+========================================================= */
+
+function handleEvent(
+    sender,
+    eventName,
+    payload
+){
+
+    switch(
+        eventName
+    ){
+
+        case "PLAYER_HELLO":
+
+            handleHello(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "PLAYER_READY":
+
+            handlePlayerReady(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "LOBBY_STATE":
+
+            handleLobbyState(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "ROUND_START":
+
+            handleRoundStart(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "PLAYER_INPUT":
+
+            handlePlayerInput(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "WORLD_STATE":
+
+            handleWorldState(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "PLAYER_CASHOUT":
+
+            handlePlayerCashout(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "CASHOUT_CONFIRMED":
+
+            handleCashoutConfirmed(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "ROCKET_CRASHED":
+
+            handleRocketCrashed(
+                sender,
+                payload
+            );
+
+            break;
+
+
+        case "ROUND_RESULT":
+
+            handleRoundResult(
+                sender,
+                payload
+            );
+
+            break;
+
+    }
+
+}
+
+
+/* =========================================================
+   HOST HEARTBEAT
+========================================================= */
+
+setInterval(
+    () => {
+
+        broadcastHello();
+
+
+        if(
+            !hostId
+        ){
+
+            electHost();
+
+        }
+
+
+        if(
+            isHost()
+        ){
+
+            sendEvent(
+                "HOST_ANNOUNCE",
+                {
+                    gameId:
+                        GAME_ID,
+
+                    hostId:
+                        user.id
+                }
+            );
+
+
+            if(
+                state ===
+                "LOBBY"
+            ){
+
+                sendLobbyState();
+
+            }
+
+
+            if(
+                state ===
+                "FLYING"
+            ){
+
+                hostWorldTick();
+
+            }
+
+        }else{
+
+            if(
+                Date.now() -
+                lastHostSeen >
+                7000
+            ){
+
+                hostId =
+                    null;
+
+                electHost();
+
+            }
+
+        }
+
+    },
+    100
+);
+
+
+/* =========================================================
+   PLAYER HELLO
+========================================================= */
+
+setInterval(
+    broadcastHello,
+    2300
+);
+
+
+/* =========================================================
+   Visibility
 ========================================================= */
 
 document.addEventListener(
@@ -6467,21 +8744,11 @@ document.addEventListener(
             broadcastHello();
 
             if(
-                isHost() &&
-                state === "FLYING"
+                isHost()
             ){
-                sendEvent(
-                    "WORLD_STATE",
-                    {
-                        gameId:GAME_ID,
-                        roundId:currentRoundId,
-                        hostId:user.id,
-                        crashPointA,
-                        crashPointB,
-                        crashedA,
-                        crashedB
-                    }
-                );
+
+                sendLobbyState();
+
             }
 
         }
@@ -6491,33 +8758,341 @@ document.addEventListener(
 
 
 /* =========================================================
-   Init
+   HOST EVENTS
+========================================================= */
+
+function handleHostEvent(
+    payload
+){
+
+    if(
+        payload &&
+        payload.hostId
+    ){
+
+        hostId =
+            String(
+                payload.hostId
+            );
+
+        lastHostSeen =
+            Date.now();
+
+    }
+
+}
+
+
+/* =========================================================
+   HOST ANNOUNCE
+========================================================= */
+
+const originalHandleEvent =
+    handleEvent;
+
+
+/*
+   重新包裝 HOST_ANNOUNCE，
+   避免改動前面的 router。
+*/
+
+window.addEventListener(
+    "message",
+    () => {}
+);
+
+
+/* =========================================================
+   小工具
+========================================================= */
+
+function rocketName(
+    rocket
+){
+
+    return rocket === "B"
+        ? "🩷 狂暴號"
+        : "🔵 穩定號";
+
+}
+
+
+function clamp(
+    value,
+    min,
+    max
+){
+
+    return Math.max(
+        min,
+        Math.min(
+            max,
+            value
+        )
+    );
+
+}
+
+
+/* =========================================================
+   補上 HOST_ANNOUNCE 處理
+========================================================= */
+
+const eventListenerPatch =
+    function(
+        sender,
+        eventName,
+        payload
+    ){
+
+        if(
+            eventName ===
+            "HOST_ANNOUNCE"
+        ){
+
+            if(
+                payload &&
+                payload.hostId
+            ){
+
+                hostId =
+                    String(
+                        payload.hostId
+                    );
+
+                lastHostSeen =
+                    Date.now();
+
+            }
+
+            return;
+
+        }
+
+    };
+
+
+/*
+   直接重新掛一個 message listener
+   只處理 HOST_ANNOUNCE，
+   其餘由上面的 router 處理。
+*/
+
+window.addEventListener(
+    "message",
+    event => {
+
+        let data = null;
+
+        try{
+
+            data =
+                typeof event.data ===
+                "string"
+                    ? JSON.parse(
+                        event.data
+                    )
+                    : event.data;
+
+        }catch(e){
+
+            return;
+
+        }
+
+
+        if(
+            !data ||
+            data.action !==
+            "gameEventReceived"
+        ){
+            return;
+        }
+
+
+        if(
+            data.eventName !==
+            "HOST_ANNOUNCE"
+        ){
+            return;
+        }
+
+
+        const sender =
+            String(
+                data.userId ||
+                ""
+            );
+
+
+        if(
+            sender ===
+            user.id
+        ){
+            return;
+        }
+
+
+        eventListenerPatch(
+            sender,
+            data.eventName,
+            data.payload || {}
+        );
+
+    }
+);
+
+
+/* =========================================================
+   DEMO MODE
+========================================================= */
+
+if(
+    !SDK_READY
+){
+
+    /*
+       瀏覽器直接測試用。
+       正式 BoomRoom WebView
+       不會走這一段。
+    */
+
+    const demoPlayers = [
+
+        {
+            id:"demo1",
+            username:"CyberCat",
+            joinedAt:
+                myJoinAt + 100
+        },
+
+        {
+            id:"demo2",
+            username:"NeonFox",
+            joinedAt:
+                myJoinAt + 200
+        },
+
+        {
+            id:"demo3",
+            username:"RocketKid",
+            joinedAt:
+                myJoinAt + 300
+        }
+
+    ];
+
+
+    demoPlayers.forEach(
+        p => {
+
+            candidates.set(
+                p.id,
+                {
+                    id:
+                        p.id,
+
+                    joinedAt:
+                        p.joinedAt
+                }
+            );
+
+
+            players.set(
+                p.id,
+                {
+
+                    id:
+                        p.id,
+
+                    username:
+                        p.username,
+
+                    avatar:"",
+
+                    joinedAt:
+                        p.joinedAt,
+
+                    bet:250,
+
+                    rocket:
+                        Math.random() <
+                        .5
+                            ? "A"
+                            : "B",
+
+                    ready:false,
+
+                    status:"waiting",
+
+                    x:0,
+
+                    bonus:0,
+
+                    reward:0,
+
+                    cashoutAt:0,
+
+                    roundId:null,
+
+                    lastSeen:
+                        Date.now()
+
+                }
+            );
+
+        }
+    );
+
+
+    electHost();
+
+}
+
+
+/* =========================================================
+   INIT
 ========================================================= */
 
 resizeCanvas();
 
 updateRocketSelection();
 
+updateRoomCount();
+
 broadcastHello();
 
 setTimeout(
     () => {
 
-        maybeElectHost();
+        electHost();
 
         if(
-            !hostId
+            isHost()
         ){
-            hostId =
-                user.id;
+
+            sendEvent(
+                "HOST_ANNOUNCE",
+                {
+
+                    gameId:
+                        GAME_ID,
+
+                    hostId:
+                        user.id
+
+                }
+            );
+
         }
 
     },
-    500
+    600
 );
 
+
 requestAnimationFrame(
-    frame
+    loop
 );
 
 })();
@@ -6525,4 +9100,3 @@ requestAnimationFrame(
 
 </body>
 </html>
-```
