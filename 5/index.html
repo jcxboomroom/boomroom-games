@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>爆爆左輪</title>
+    <style>
+        body {
+            margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+        }
+        .title { color: #ff3b30; font-size: 28px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 10px red; }
+        .cylinder {
+            width: 150px; height: 150px; border-radius: 50%; border: 10px solid #333;
+            margin: 30px 0; position: relative; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #1a1a1a;
+        }
+        .chamber {
+            width: 30px; height: 30px; background: #000; border-radius: 50%; position: absolute;
+            top: 50%; left: 50%; margin: -15px 0 0 -15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        /* 簡單的 6 個彈孔排版 */
+        .chamber:nth-child(1) { transform: rotate(0deg) translateY(-50px); }
+        .chamber:nth-child(2) { transform: rotate(60deg) translateY(-50px); }
+        .chamber:nth-child(3) { transform: rotate(120deg) translateY(-50px); }
+        .chamber:nth-child(4) { transform: rotate(180deg) translateY(-50px); }
+        .chamber:nth-child(5) { transform: rotate(240deg) translateY(-50px); }
+        .chamber:nth-child(6) { transform: rotate(300deg) translateY(-50px); }
+        
+        .pool { font-size: 24px; color: #FFD700; margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 15px; }
+        button {
+            padding: 15px 30px; font-size: 18px; font-weight: bold; border: none; border-radius: 12px;
+            cursor: pointer; color: white; text-transform: uppercase;
+        }
+        .btn-shoot { background: linear-gradient(45deg, #ff3b30, #ff9500); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.5); }
+        .btn-cashout { background: linear-gradient(45deg, #34c759, #30d158); box-shadow: 0 4px 15px rgba(52, 199, 89, 0.5); }
+        button:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
+        #status { margin-top: 20px; font-size: 16px; color: #aaa; text-align: center; padding: 0 20px; }
+    </style>
+</head>
+<body>
+    <div class="title">🔫 爆爆左輪</div>
+    <div class="cylinder" id="cylinder">
+        <div class="chamber"></div><div class="chamber"></div><div class="chamber"></div>
+        <div class="chamber"></div><div class="chamber"></div><div class="chamber"></div>
+    </div>
+    
+    <div class="pool">目前累積: <span id="prize">50</span> 銀幣</div>
+    
+    <div class="btn-group">
+        <button class="btn-shoot" id="btnShoot" onclick="shoot()">扣動扳機</button>
+        <button class="btn-cashout" id="btnCashout" onclick="cashOut()">見好就收</button>
+    </div>
+    <div id="status">1/6 的機率中槍，活下來獎金翻倍！</div>
+
+    <script>
+        let prize = 50;
+        let bulletChamber = Math.floor(Math.random() * 6);
+        let currentChamber = 0;
+        let rotation = 0;
+        let isGameOver = false;
+
+        function shoot() {
+            if (isGameOver) return;
+            
+            const cylinder = document.getElementById('cylinder');
+            const btnShoot = document.getElementById('btnShoot');
+            const btnCashout = document.getElementById('btnCashout');
+            
+            // 轉動動畫
+            rotation += 60;
+            cylinder.style.transform = `rotate(${rotation}deg)`;
+            btnShoot.disabled = true;
+            btnCashout.disabled = true;
+
+            setTimeout(() => {
+                if (currentChamber === bulletChamber) {
+                    // 中槍
+                    isGameOver = true;
+                    document.body.style.background = "#8b0000";
+                    document.getElementById('prize').innerText = "0";
+                    document.getElementById('status').innerText = "💥 砰！你被爆頭了，獎金歸零！";
+                    
+                    if (window.BoomRoomSDK) {
+                        window.BoomRoomSDK.sendRoomMessage(`💥 太衰了！在第 ${currentChamber + 1} 槍被爆頭出局，獎金全部噴光！`);
+                        setTimeout(() => window.BoomRoomSDK.gameOver(0), 3000);
+                    }
+                } else {
+                    // 活下來
+                    prize = Math.floor(prize * 1.8); // 獎金 1.8 倍成長
+                    currentChamber++;
+                    document.getElementById('prize').innerText = prize;
+                    document.getElementById('status').innerText = "😅 呼... 活下來了！獎金增加！";
+                    btnShoot.disabled = false;
+                    btnCashout.disabled = false;
+                    
+                    if (currentChamber === 5) {
+                        // 剩最後一發，強制拿錢
+                        document.getElementById('status').innerText = "只剩下一發子彈了！強制安全下莊！";
+                        setTimeout(cashOut, 2000);
+                    }
+                }
+            }, 500);
+        }
+
+        function cashOut() {
+            if (isGameOver) return;
+            isGameOver = true;
+            document.getElementById('btnShoot').disabled = true;
+            document.getElementById('btnCashout').disabled = true;
+            document.getElementById('status').innerText = `💰 恭喜！帶著 ${prize} 銀幣安全離開！`;
+            document.getElementById('status').style.color = "#34c759";
+
+            if (window.BoomRoomSDK) {
+                window.BoomRoomSDK.sendRoomMessage(`💰 心臟真大顆！連開 ${currentChamber} 槍沒死，帶著 ${prize} 銀幣安全下莊！`);
+                setTimeout(() => window.BoomRoomSDK.gameOver(prize), 2000);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>貪婪礦工</title>
+    <style>
+        body {
+            margin: 0; background: #2c3e50; color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+        }
+        h1 { color: #f1c40f; margin-bottom: 10px; }
+        .info { margin-bottom: 30px; color: #bdc3c7; text-align: center; padding: 0 20px; }
+        .chests { display: flex; gap: 20px; }
+        .chest {
+            width: 80px; height: 80px; background: #8e44ad; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+            cursor: pointer; box-shadow: 0 6px 0 #732d91; transition: transform 0.1s;
+        }
+        .chest:active { transform: translateY(6px); box-shadow: 0 0 0 #732d91; }
+        .chest.opened { background: #ecf0f1; cursor: default; box-shadow: none; transform: translateY(6px); }
+        .total-win { margin-top: 40px; font-size: 24px; font-weight: bold; color: #2ecc71; }
+        .btn-leave {
+            margin-top: 20px; padding: 12px 30px; background: #e74c3c; color: white;
+            border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>⛏️ 貪婪礦工</h1>
+    <div class="info" id="info">3 個寶箱中，有 2 個裝著銀幣，1 個是炸彈！<br>第一個寶箱免費開啟。</div>
+    
+    <div class="chests">
+        <div class="chest" onclick="openChest(0, this)">🎁</div>
+        <div class="chest" onclick="openChest(1, this)">🎁</div>
+        <div class="chest" onclick="openChest(2, this)">🎁</div>
+    </div>
+
+    <div class="total-win">目前獲得: <span id="winAmount">0</span> 銀幣</div>
+    <button class="btn-leave" onclick="leaveGame()">帶著獎勵離開</button>
+
+    <script>
+        let openedCount = 0;
+        let totalWin = 0;
+        let isGameOver = false;
+        
+        // 隨機設定寶箱內容：2個獎金(50~200)，1個炸彈
+        let contents = [
+            { type: 'coin', val: Math.floor(Math.random() * 150) + 50 },
+            { type: 'coin', val: Math.floor(Math.random() * 150) + 50 },
+            { type: 'bomb', val: 0 }
+        ];
+        contents.sort(() => Math.random() - 0.5); // 打亂順序
+
+        // 🌟 監聽 SDK 內購成功回呼
+        window.onPurchaseSuccess = function(itemId) {
+            if (itemId === 'extra_key') {
+                document.getElementById('info').innerText = "購買成功！請開啟下一個寶箱。";
+                // 允許開啟
+            }
+        };
+
+        window.onPurchaseFailed = function(itemId) {
+            document.getElementById('info').innerText = "購買失敗或銀幣不足！";
+            openedCount--; // 回溯開啟次數
+        };
+
+        function openChest(index, el) {
+            if (isGameOver || el.classList.contains('opened')) return;
+
+            if (openedCount === 1) {
+                // 第二次開啟需要花費銀幣
+                if (window.BoomRoomSDK) {
+                    document.getElementById('info').innerText = "正在購買鑰匙 (30 銀幣)...";
+                    window.BoomRoomSDK.requestPurchase('extra_key', 30);
+                } else {
+                    alert("請在 BoomRoom App 內執行以使用購買功能");
+                    return;
+                }
+            }
+
+            openedCount++;
+            el.classList.add('opened');
+            
+            const content = contents[index];
+            if (content.type === 'coin') {
+                el.innerText = "💰";
+                totalWin += content.val;
+                document.getElementById('winAmount').innerText = totalWin;
+                document.getElementById('info').innerText = `挖到寶了！獲得 ${content.val} 銀幣！`;
+                
+                if (openedCount === 2) {
+                    document.getElementById('info').innerText = "太幸運了！你已經避開了炸彈！";
+                    isGameOver = true;
+                }
+            } else {
+                el.innerText = "💣";
+                totalWin = 0; // 炸彈炸毀所有獎勵
+                document.getElementById('winAmount').innerText = totalWin;
+                document.getElementById('info').innerText = "轟！挖到炸彈，獎勵全部沒收！";
+                document.getElementById('info').style.color = "#e74c3c";
+                isGameOver = true;
+                
+                if (window.BoomRoomSDK) {
+                    window.BoomRoomSDK.sendRoomMessage(`💣 貪心必敗！挖礦挖到炸彈，被炸得灰頭土臉！`);
+                }
+            }
+        }
+
+        function leaveGame() {
+            if (window.BoomRoomSDK) {
+                if (totalWin > 0) {
+                    window.BoomRoomSDK.sendRoomMessage(`⛏️ 專業礦工！成功挖到了 ${totalWin} 銀幣滿載而歸！`);
+                }
+                window.BoomRoomSDK.gameOver(totalWin);
+            }
+        }
+    </script>
+</body>
+</html>

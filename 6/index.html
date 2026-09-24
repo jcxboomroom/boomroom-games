@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>爆爆手速王</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background: linear-gradient(135deg, #120E1F, #311B92);
+            color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+            overflow: hidden; user-select: none;
+        }
+        .container { text-align: center; width: 100%; padding: 20px; box-sizing: border-box; }
+        h1 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); margin-bottom: 5px; }
+        .stats { display: flex; justify-content: space-around; width: 100%; margin: 20px 0; font-size: 24px; font-weight: bold; }
+        .time { color: #00E676; }
+        .score { color: #FF4081; font-size: 36px; }
+        #tapBtn {
+            width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #FF4081, #C51162);
+            border: 8px solid #FF80AB; box-shadow: 0 10px 30px rgba(255, 64, 129, 0.6);
+            font-size: 32px; color: white; font-weight: bold; cursor: pointer; transition: transform 0.05s;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto;
+        }
+        #tapBtn:active { transform: scale(0.9); box-shadow: 0 5px 15px rgba(255, 64, 129, 0.4); }
+        #tapBtn:disabled { background: #555; border-color: #777; box-shadow: none; transform: scale(1); cursor: not-allowed; }
+        .message { margin-top: 20px; font-size: 16px; color: #B0BEC5; height: 40px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ 爆爆手速王 ⚡</h1>
+        <p>10秒內點擊超過 80 下即可贏得 150 銀幣！</p>
+        
+        <div class="stats">
+            <div class="time">⏳ <span id="timeLeft">10.0</span>s</div>
+            <div class="score">🔥 <span id="score">0</span></div>
+        </div>
+
+        <div id="tapBtn">準備開始</div>
+        <div class="message" id="msg">點擊按鈕開始倒數！</div>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 10.0;
+        let isPlaying = false;
+        let timer = null;
+        let user = null;
+
+        // 🌟 監聽 BoomRoom SDK 準備完畢
+        window.onBoomRoomSDKReady = function() {
+            user = window.BoomRoomSDK.getUser();
+            document.getElementById('msg').innerText = `歡迎 ${user.username}！點擊按鈕開始！`;
+        };
+
+        const tapBtn = document.getElementById('tapBtn');
+        const scoreEl = document.getElementById('score');
+        const timeEl = document.getElementById('timeLeft');
+        const msgEl = document.getElementById('msg');
+
+        tapBtn.addEventListener('touchstart', handleTap); // 手機端防延遲
+        tapBtn.addEventListener('mousedown', handleTap);
+
+        function handleTap(e) {
+            e.preventDefault();
+            if (timeLeft <= 0) return;
+
+            if (!isPlaying) {
+                isPlaying = true;
+                tapBtn.innerText = "點！";
+                timer = setInterval(() => {
+                    timeLeft -= 0.1;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        endGame();
+                    }
+                    timeEl.innerText = timeLeft.toFixed(1);
+                }, 100);
+            }
+
+            score++;
+            scoreEl.innerText = score;
+            
+            // 點擊特效
+            tapBtn.style.transform = `scale(${0.9 + Math.random() * 0.1})`;
+            setTimeout(() => tapBtn.style.transform = 'scale(1)', 50);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            isPlaying = false;
+            tapBtn.disabled = true;
+            tapBtn.innerText = "時間到";
+
+            let winAmount = 0;
+            let broadcastMsg = "";
+
+            if (score >= 80) {
+                winAmount = 150;
+                msgEl.innerText = `🎉 太神啦！贏得 ${winAmount} 銀幣！`;
+                msgEl.style.color = "#FFD700";
+                broadcastMsg = `太狂了！以單身 20 年的手速狂點了 ${score} 下，抱走 150 銀幣！`;
+            } else {
+                msgEl.innerText = `💥 挑戰失敗，手速太慢囉！`;
+                msgEl.style.color = "#FF5252";
+                broadcastMsg = `手速挑戰失敗，只點了 ${score} 下，大家快來笑他！`;
+            }
+
+            // 🌟 呼叫 SDK：發送戰況到語音房
+            if (window.BoomRoomSDK) {
+                window.BoomRoomSDK.sendRoomMessage(broadcastMsg);
+                
+                // 延遲 3 秒後結算並關閉遊戲
+                setTimeout(() => {
+                    window.BoomRoomSDK.gameOver(winAmount);
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

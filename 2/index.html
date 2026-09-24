@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>霓虹疊塔：極限巔峰</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
+        body { margin: 0; overflow: hidden; background: #0f0c29; background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29); font-family: 'Montserrat', sans-serif; touch-action: none; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; box-sizing: border-box; }
+        .score-board { text-align: center; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #score { font-size: 60px; font-weight: 900; line-height: 1; }
+        #combo { font-size: 20px; color: #00e5ff; opacity: 0; transition: opacity 0.2s, transform 0.2s; }
+        .combo-active { opacity: 1 !important; transform: scale(1.2); }
+        #startScreen, #gameOverScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 10; backdrop-filter: blur(5px); }
+        h1 { color: #fff; font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px #e91e63; text-align: center; }
+        p { color: #aaa; margin-bottom: 30px; text-align: center; }
+        button { background: linear-gradient(45deg, #e91e63, #9c27b0); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 20px rgba(233, 30, 99, 0.4); transition: transform 0.1s; }
+        button:active { transform: scale(0.95); }
+        #gameOverScreen { display: none; }
+        .reward-text { color: #ffd700; font-size: 24px; font-weight: bold; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <div class="score-board">
+            <div id="score">0</div>
+            <div id="combo">PERFECT x1</div>
+        </div>
+    </div>
+
+    <div id="startScreen">
+        <h1>霓虹疊塔<br>極限巔峰</h1>
+        <p>點擊螢幕放置方塊<br>每 10 層可獲得 50 銀幣！</p>
+        <button onclick="startGame()">開始挑戰</button>
+    </div>
+
+    <div id="gameOverScreen">
+        <h1>大樓倒塌！</h1>
+        <p>最終層數: <span id="finalScore" style="color:white; font-size: 24px; font-weight:bold;">0</span></p>
+        <div class="reward-text" id="rewardText">獲得 0 銀幣</div>
+        <button onclick="leaveGame()">領獎並離開</button>
+        <button onclick="resetGame()" style="margin-top: 15px; background: #333; box-shadow: none;">再玩一次</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        // 遊戲狀態
+        let state = 'START'; // START, PLAYING, GAMEOVER
+        let score = 0;
+        let combo = 0;
+        let cameraY = 0;
+        let targetCameraY = 0;
+
+        // 物理與方塊
+        const boxHeight = 40;
+        const initialWidth = 200;
+        let boxes = [];
+        let debris = [];
+        let currentBox = null;
+        let speed = 4;
+        let hue = 0;
+
+        function resize() {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Box {
+            constructor(x, y, w, h, color, isMoving = false) {
+                this.x = x; this.y = y; this.w = w; this.h = h;
+                this.color = color; this.isMoving = isMoving;
+                this.dir = Math.random() > 0.5 ? 1 : -1;
+            }
+            update() {
+                if (this.isMoving) {
+                    this.x += speed * this.dir;
+                    if (this.x <= 0 || this.x + this.w >= width) this.dir *= -1;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y - cameraY, this.w, this.h);
+                ctx.shadowBlur = 0;
+                // 畫高光
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fillRect(this.x, this.y - cameraY, this.w, 5);
+            }
+        }
+
+        class Debris {
+            constructor(x, y, w, h, color) {
+                this.x = x; this.y = y; this.w = w; this.h = h; this.color = color;
+                this.vy = 0; this.vx = (Math.random() - 0.5) * 5;
+                this.angle = 0; this.va = (Math.random() - 0.5) * 0.2;
+            }
+            update() {
+                this.vy += 0.5; // 重力
+                this.y += this.vy; this.x += this.vx; this.angle += this.va;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.w/2, this.y - cameraY + this.h/2);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+                ctx.restore();
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            resetGame();
+        }
+
+        function resetGame() {
+            state = 'PLAYING';
+            score = 0; combo = 0; speed = 4; hue = 200;
+            cameraY = 0; targetCameraY = 0;
+            boxes = []; debris = [];
+            document.getElementById('score').innerText = score;
+            
+            // 初始基座
+            boxes.push(new Box(width/2 - initialWidth/2, height - 100, initialWidth, boxHeight, `hsl(${hue}, 100%, 60%)`));
+            spawnBox();
+            
+            document.getElementById('gameOverScreen').style.display = 'none';
+        }
+
+        function spawnBox() {
+            const lastBox = boxes[boxes.length - 1];
+            hue = (hue + 10) % 360;
+            currentBox = new Box(0, lastBox.y - boxHeight, lastBox.w, boxHeight, `hsl(${hue}, 100%, 60%)`, true);
+            currentBox.y = lastBox.y - boxHeight;
+            
+            // 攝影機跟隨
+            if (currentBox.y < height / 2) {
+                targetCameraY = (height / 2) - currentBox.y;
+            }
+        }
+
+        // 點擊事件
+        window.addEventListener('pointerdown', () => {
+            if (state !== 'PLAYING') return;
+
+            const lastBox = boxes[boxes.length - 1];
+            currentBox.isMoving = false;
+
+            // 計算裁切
+            const diff = currentBox.x - lastBox.x;
+            const overlap = currentBox.w - Math.abs(diff);
+
+            if (overlap > 0) {
+                // 成功疊上
+                score++;
+                document.getElementById('score').innerText = score;
+                speed += 0.1; // 越來越快
+
+                if (Math.abs(diff) < 5) {
+                    // Perfect!
+                    combo++;
+                    currentBox.x = lastBox.x; // 自動對齊
+                    currentBox.w = lastBox.w;
+                    showCombo(`PERFECT x${combo}`);
+                    if (combo > 3 && currentBox.w < initialWidth) currentBox.w += 10; // 獎勵變寬
+                } else {
+                    // 切割
+                    combo = 0;
+                    const chopW = Math.abs(diff);
+                    const chopX = diff > 0 ? currentBox.x + overlap : currentBox.x;
+                    
+                    // 掉落的碎塊
+                    debris.push(new Debris(chopX, currentBox.y, chopW, boxHeight, currentBox.color));
+                    
+                    // 留在塔上的部分
+                    currentBox.w = overlap;
+                    currentBox.x = diff > 0 ? currentBox.x : lastBox.x;
+                }
+
+                boxes.push(currentBox);
+                spawnBox();
+            } else {
+                // 失敗掉落
+                debris.push(new Debris(currentBox.x, currentBox.y, currentBox.w, boxHeight, currentBox.color));
+                gameOver();
+            }
+        });
+
+        function showCombo(text) {
+            const el = document.getElementById('combo');
+            el.innerText = text;
+            el.classList.add('combo-active');
+            setTimeout(() => el.classList.remove('combo-active'), 500);
+        }
+
+        function gameOver() {
+            state = 'GAMEOVER';
+            const winCoins = Math.floor(score / 10) * 50;
+            
+            setTimeout(() => {
+                document.getElementById('gameOverScreen').style.display = 'flex';
+                document.getElementById('finalScore').innerText = score;
+                document.getElementById('rewardText').innerText = `獲得 ${winCoins} 銀幣`;
+
+                if (window.BoomRoomSDK && score >= 20) {
+                    window.BoomRoomSDK.sendRoomMessage(`🏗️ 建築大師！蓋到了 ${score} 層高樓，抱走 ${winCoins} 銀幣！`);
+                }
+            }, 1000);
+        }
+
+        function leaveGame() {
+            const winCoins = Math.floor(score / 10) * 50;
+            if (window.BoomRoomSDK) {
+                window.BoomRoomSDK.gameOver(winCoins);
+            }
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 平滑攝影機
+            cameraY += (targetCameraY - cameraY) * 0.1;
+
+            // 畫基底線
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, height - 100 + boxHeight - cameraY, width, height);
+
+            boxes.forEach(b => b.draw());
+            if (currentBox && state === 'PLAYING') {
+                currentBox.update();
+                currentBox.draw();
+            }
+
+            for (let i = debris.length - 1; i >= 0; i--) {
+                debris[i].update();
+                debris[i].draw();
+                if (debris[i].y - cameraY > height) debris.splice(i, 1);
+            }
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+</html>

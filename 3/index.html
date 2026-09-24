@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>霓虹駭客戰：核心拔河</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { box-sizing: border-box; user-select: none; -webkit-touch-callout: none; }
+        body {
+            margin: 0; padding: 0; background-color: #050510; color: #fff;
+            font-family: 'Orbitron', sans-serif; overflow: hidden;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        
+        /* CRT 掃描線特效 */
+        body::after {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* UI 層 */
+        #uiLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+        
+        /* 頂部隊伍資訊 */
+        .team-info { display: flex; justify-content: space-between; padding: 20px; width: 100%; }
+        .team { display: flex; flex-direction: column; gap: 10px; }
+        .team.blue { align-items: flex-start; }
+        .team.red { align-items: flex-end; }
+        .player-slot { 
+            display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); 
+            padding: 5px 10px; border-radius: 20px; border: 1px solid #333;
+        }
+        .blue .player-slot { border-color: #00f3ff; box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+        .red .player-slot { border-color: #ff003c; box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); flex-direction: row-reverse; }
+        .avatar { width: 30px; height: 30px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .name { font-size: 12px; font-weight: bold; }
+
+        /* 中間戰況提示 */
+        #centerMsg { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 900; text-align: center; text-shadow: 0 0 20px #fff; opacity: 0; transition: opacity 0.2s; }
+
+        /* 底部操作區 */
+        .controls { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: auto; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
+        
+        /* QTE 判定條 */
+        .qte-bar-container { width: 100%; max-width: 400px; height: 30px; background: #222; border-radius: 15px; position: relative; border: 2px solid #555; overflow: hidden; }
+        .qte-zone-perfect { position: absolute; top: 0; height: 100%; background: #00f3ff; box-shadow: 0 0 15px #00f3ff; }
+        .qte-zone-good { position: absolute; top: 0; height: 100%; background: #ffea00; }
+        .qte-cursor { position: absolute; top: -5px; width: 4px; height: 40px; background: #fff; box-shadow: 0 0 10px #fff; border-radius: 2px; }
+
+        /* 按鈕區 */
+        .btn-group { display: flex; gap: 20px; width: 100%; max-width: 400px; }
+        .btn-hack { 
+            flex: 2; height: 60px; border-radius: 30px; border: none; background: #00f3ff; color: #000; 
+            font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6); transition: transform 0.1s;
+        }
+        .btn-hack:active { transform: scale(0.95); }
+        
+        .btn-ult {
+            flex: 1; height: 60px; border-radius: 30px; border: none; background: #333; color: #777;
+            font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900; cursor: pointer;
+            position: relative; overflow: hidden; transition: all 0.3s;
+        }
+        .btn-ult.ready { background: #ff003c; color: #fff; box-shadow: 0 0 20px rgba(255, 0, 60, 0.8); animation: pulse 1s infinite; }
+        .ult-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(255, 0, 60, 0.5); transition: height 0.2s; z-index: 0; }
+        .btn-ult span { position: relative; z-index: 1; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* 選單畫面 */
+        #menuScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,16,0.95); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
+        .menu-title { font-size: 40px; color: #00f3ff; text-shadow: 0 0 20px #00f3ff; margin-bottom: 10px; text-align: center; }
+        .menu-subtitle { color: #aaa; margin-bottom: 40px; text-align: center; }
+        .mode-btn { 
+            width: 200px; padding: 15px; margin: 10px; background: transparent; border: 2px solid #00f3ff; 
+            color: #00f3ff; font-family: 'Orbitron'; font-size: 18px; font-weight: bold; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .mode-btn:hover { background: #00f3ff; color: #000; box-shadow: 0 0 20px #00f3ff; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 遊戲選單 -->
+    <div id="menuScreen">
+        <div class="menu-title">NEON CYBER-CLASH</div>
+        <div class="menu-subtitle">選擇對戰規模 (將自動配對 AI 隊友與對手)</div>
+        <button class="mode-btn" onclick="startGame(1)">1 V 1 決鬥</button>
+        <button class="mode-btn" onclick="startGame(3)">3 V 3 團戰</button>
+        <button class="mode-btn" onclick="startGame(5)">5 V 5 史詩戰役</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 遊戲 UI -->
+    <div id="uiLayer" style="display: none;">
+        <div class="team-info">
+            <div class="team blue" id="blueTeam"></div>
+            <div class="team red" id="redTeam"></div>
+        </div>
+
+        <div id="centerMsg">PERFECT!</div>
+
+        <div class="controls">
+            <div class="qte-bar-container">
+                <div class="qte-zone-good" style="left: 20%; width: 60%;"></div>
+                <div class="qte-zone-perfect" style="left: 40%; width: 20%;"></div>
+                <div class="qte-cursor" id="qteCursor"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-hack" id="btnHack">HACK (攻擊)</button>
+                <button class="btn-ult" id="btnUlt"><div class="ult-fill" id="ultFill" style="height: 0%;"></div><span>ULTIMATE</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. 遊戲核心變數與設定
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        let gameMode = 1; // 1v1, 3v3, 5v5
+        let isPlaying = false;
+        let balance = 50; // 核心位置 0~100 (50為正中間，0藍贏，100紅贏)
+        let particles = [];
+        let floatingTexts = [];
+        
+        // QTE 系統
+        let cursorX = 0;
+        let cursorSpeed = 2;
+        let cursorDir = 1;
+        
+        // 玩家狀態
+        let ultCharge = 0;
+        const ULT_MAX = 100;
+        let myName = "玩家";
+
+        // 隊伍資料
+        let blueTeamData = [];
+        let redTeamData = [];
+        const avatars = ['🤖','👽','👻','👾','💀','🤡','👹','👺','🎃','😺'];
+
+        // ==========================================
+        // 2. 初始化與視窗調整
+        // ==========================================
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // 嘗試獲取 BoomRoom SDK 玩家資訊
+        if (window.BoomRoomSDK) {
+            try {
+                const user = window.BoomRoomSDK.getUser();
+                if (user && user.username) myName = user.username;
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // 3. 遊戲流程控制
+        // ==========================================
+        function startGame(mode) {
+            gameMode = mode;
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('uiLayer').style.display = 'flex';
+            
+            balance = 50;
+            ultCharge = 0;
+            updateUltUI();
+            
+            generateTeams();
+            renderTeamsUI();
+            
+            isPlaying = true;
+            cursorSpeed = 1.5 + (mode * 0.2); // 人越多速度越快
+            
+            requestAnimationFrame(gameLoop);
+            
+            // 啟動 AI 機器人
+            setInterval(botLogic, 800);
+        }
+
+        function generateTeams() {
+            blueTeamData = [{ name: myName, avatar: '😎', isMe: true }];
+            redTeamData = [];
+            
+            for(let i=1; i<gameMode; i++) {
+                blueTeamData.push({ name: `AI_藍_${i}`, avatar: avatars[Math.floor(Math.random()*avatars.length)] });
+            }
+            for(let i=0; i<gameMode; i++) {
+                redTeamData.push({ name: `AI_紅_${i+1}`, avatar: avatars[Math.floor(Math.random()*avatars.length)] });
+            }
+        }
+
+        function renderTeamsUI() {
+            const bTeam = document.getElementById('blueTeam');
+            const rTeam = document.getElementById('redTeam');
+            bTeam.innerHTML = ''; rTeam.innerHTML = '';
+
+            blueTeamData.forEach(p => {
+                bTeam.innerHTML += `<div class="player-slot"><div class="avatar">${p.avatar}</div><div class="name" style="color:${p.isMe?'#00f3ff':'#fff'}">${p.name}</div></div>`;
+            });
+            redTeamData.forEach(p => {
+                rTeam.innerHTML += `<div class="player-slot"><div class="avatar">${p.avatar}</div><div class="name">${p.name}</div></div>`;
+            });
+        }
+
+        // ==========================================
+        // 4. 玩家操作與戰鬥邏輯
+        // ==========================================
+        document.getElementById('btnHack').addEventListener('touchstart', handleHack);
+        document.getElementById('btnHack').addEventListener('mousedown', handleHack);
+        
+        document.getElementById('btnUlt').addEventListener('touchstart', handleUlt);
+        document.getElementById('btnUlt').addEventListener('mousedown', handleUlt);
+
+        function handleHack(e) {
+            e.preventDefault();
+            if (!isPlaying) return;
+
+            // 判斷 QTE 位置 (0~100)
+            let damage = 0;
+            let msg = "";
+            let color = "";
+
+            if (cursorX >= 40 && cursorX <= 60) {
+                damage = 3; msg = "PERFECT!"; color = "#00f3ff";
+                ultCharge += 15;
+            } else if (cursorX >= 20 && cursorX <= 80) {
+                damage = 1; msg = "GOOD"; color = "#ffea00";
+                ultCharge += 5;
+            } else {
+                damage = -0.5; msg = "MISS"; color = "#ff003c"; // 失誤會反噬
+            }
+
+            applyDamage('blue', damage);
+            showCenterMsg(msg, color);
+            spawnParticles('blue', damage > 0 ? (damage === 3 ? 20 : 10) : 0);
+            updateUltUI();
+            
+            // 隨機改變游標速度增加難度
+            cursorSpeed = (Math.random() * 2 + 1.5);
+        }
+
+        function handleUlt(e) {
+            e.preventDefault();
+            if (!isPlaying || ultCharge < ULT_MAX) return;
+
+            ultCharge = 0;
+            updateUltUI();
+            
+            applyDamage('blue', 15); // 大招巨量傷害
+            showCenterMsg("ULTIMATE HACK!", "#ff003c");
+            spawnParticles('blue', 50);
+            
+            // 畫面震動
+            canvas.style.transform = "translate(10px, 10px)";
+            setTimeout(() => canvas.style.transform = "translate(-10px, -10px)", 50);
+            setTimeout(() => canvas.style.transform = "translate(10px, -10px)", 100);
+            setTimeout(() => canvas.style.transform = "translate(0, 0)", 150);
+        }
+
+        function applyDamage(team, amount) {
+            if (team === 'blue') balance += amount;
+            else balance -= amount;
+            
+            if (balance >= 100) endGame('blue');
+            if (balance <= 0) endGame('red');
+        }
+
+        function updateUltUI() {
+            if (ultCharge > ULT_MAX) ultCharge = ULT_MAX;
+            const btn = document.getElementById('btnUlt');
+            const fill = document.getElementById('ultFill');
+            fill.style.height = `${ultCharge}%`;
+            
+            if (ultCharge === ULT_MAX) btn.classList.add('ready');
+            else btn.classList.remove('ready');
+        }
+
+        function showCenterMsg(text, color) {
+            const msgEl = document.getElementById('centerMsg');
+            msgEl.innerText = text;
+            msgEl.style.color = color;
+            msgEl.style.textShadow = `0 0 20px ${color}`;
+            msgEl.style.opacity = 1;
+            msgEl.style.transform = "translate(-50%, -50%) scale(1.2)";
+            
+            setTimeout(() => {
+                msgEl.style.opacity = 0;
+                msgEl.style.transform = "translate(-50%, -50%) scale(1)";
+            }, 500);
+        }
+
+        // ==========================================
+        // 5. AI 機器人邏輯
+        // ==========================================
+        function botLogic() {
+            if (!isPlaying) return;
+            
+            // 藍隊 AI
+            for(let i=1; i<gameMode; i++) {
+                if (Math.random() > 0.3) {
+                    let dmg = Math.random() > 0.8 ? 3 : 1;
+                    applyDamage('blue', dmg);
+                    spawnParticles('blue', 5);
+                }
+            }
+            
+            // 紅隊 AI (稍微強一點點製造壓力)
+            for(let i=0; i<gameMode; i++) {
+                if (Math.random() > 0.25) {
+                    let dmg = Math.random() > 0.75 ? 3 : 1;
+                    applyDamage('red', dmg);
+                    spawnParticles('red', 5);
+                }
+            }
+        }
+
+        // ==========================================
+        // 6. Canvas 渲染與特效引擎
+        // ==========================================
+        function spawnParticles(team, count) {
+            const startX = team === 'blue' ? 0 : width;
+            const startY = height / 2;
+            const color = team === 'blue' ? '#00f3ff' : '#ff003c';
+            const dir = team === 'blue' ? 1 : -1;
+
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: startX, y: startY + (Math.random() * 200 - 100),
+                    vx: (Math.random() * 15 + 5) * dir,
+                    vy: Math.random() * 4 - 2,
+                    life: 1,
+                    color: color,
+                    size: Math.random() * 4 + 2
+                });
+            }
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            // 清除畫面
+            ctx.fillStyle = 'rgba(5, 5, 16, 0.3)'; // 殘影效果
+            ctx.fillRect(0, 0, width, height);
+
+            // 更新 QTE 游標
+            cursorX += cursorSpeed * cursorDir;
+            if (cursorX >= 100) { cursorX = 100; cursorDir = -1; }
+            if (cursorX <= 0) { cursorX = 0; cursorDir = 1; }
+            document.getElementById('qteCursor').style.left = `${cursorX}%`;
+
+            // 繪製中心能量線
+            const centerPos = width - (balance / 100) * width; // balance 100 = 藍贏 = 線在最右邊
+            
+            // 畫藍色雷射
+            ctx.beginPath();
+            ctx.moveTo(0, height/2);
+            ctx.lineTo(centerPos, height/2);
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 10;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00f3ff';
+            ctx.stroke();
+
+            // 畫紅色雷射
+            ctx.beginPath();
+            ctx.moveTo(width, height/2);
+            ctx.lineTo(centerPos, height/2);
+            ctx.strokeStyle = '#ff003c';
+            ctx.lineWidth = 10;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff003c';
+            ctx.stroke();
+
+            // 畫交界處能量球
+            ctx.beginPath();
+            ctx.arc(centerPos, height/2, 30 + Math.random()*10, 0, Math.PI*2);
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 50;
+            ctx.shadowColor = balance > 50 ? '#00f3ff' : '#ff003c';
+            ctx.fill();
+
+            // 更新與繪製粒子
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ==========================================
+        // 7. 遊戲結算與 SDK 整合
+        // ==========================================
+        function endGame(winner) {
+            isPlaying = false;
+            
+            const isWin = winner === 'blue';
+            const winAmount = isWin ? gameMode * 100 : 0; // 5v5 贏了拿 500，1v1 拿 100
+            
+            showCenterMsg(isWin ? "VICTORY!" : "DEFEAT", isWin ? "#00f3ff" : "#ff003c");
+            
+            setTimeout(() => {
+                if (window.BoomRoomSDK) {
+                    const modeText = `${gameMode}v${gameMode}`;
+                    if (isWin) {
+                        window.BoomRoomSDK.sendRoomMessage(`🏆 【霓虹駭客戰】太神啦！${myName} 帶領藍隊在 ${modeText} 激戰中擊潰紅隊，贏得 ${winAmount} 銀幣！`);
+                    } else {
+                        window.BoomRoomSDK.sendRoomMessage(`💀 【霓虹駭客戰】慘遭滑鐵盧... ${myName} 的隊伍在 ${modeText} 對決中被紅隊碾壓了。`);
+                    }
+                    
+                    // 延遲關閉遊戲並派彩
+                    setTimeout(() => {
+                        window.BoomRoomSDK.gameOver(winAmount);
+                    }, 3000);
+                } else {
+                    alert(isWin ? `你贏了！獲得 ${winAmount} 分` : "你輸了！");
+                    location.reload();
+                }
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>
