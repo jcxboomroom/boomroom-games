@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Dice Battle</title>
+    <title>Cyber Piggy Run</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         :root {
-            --bg-color: #05050a;
-            --neon-cyan: #00f3ff;
-            --neon-magenta: #ff00ff;
-            --neon-yellow: #fcee0a;
-            --panel-bg: rgba(10, 10, 20, 0.85);
+            --bg-color: #0a0a12;
+            --panel-bg: rgba(15, 15, 25, 0.9);
+            --neon-red: #ff2a2a;
+            --neon-green: #00ff66;
+            --neon-blue: #00e5ff;
+            --neon-yellow: #ffea00;
+            --neon-purple: #b700ff;
         }
 
         * {
@@ -21,12 +23,12 @@
             padding: 0;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            font-family: 'Orbitron', sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
             color: #fff;
-            font-family: 'Orbitron', sans-serif;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
@@ -34,19 +36,8 @@
             flex-direction: column;
         }
 
-        #canvas-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-
         #game-container {
             position: relative;
-            z-index: 1;
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -54,6 +45,7 @@
             margin: 0 auto;
             width: 100%;
             padding: 10px;
+            z-index: 1;
         }
 
         /* Header */
@@ -63,197 +55,114 @@
             align-items: center;
             padding: 10px;
             background: var(--panel-bg);
-            border: 1px solid var(--neon-cyan);
+            border: 1px solid var(--neon-purple);
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-            margin-bottom: 15px;
+            box-shadow: 0 0 10px rgba(183, 0, 255, 0.3);
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
-        .user-info {
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--neon-blue); }
+        .username { font-size: 14px; font-weight: bold; color: var(--neon-blue); }
+        .host-badge { font-size: 10px; background: var(--neon-yellow); color: #000; padding: 2px 5px; border-radius: 3px; display: none; margin-left: 5px;}
+        
+        .status-area { text-align: right; }
+        .phase-text { font-size: 12px; color: var(--neon-purple); font-weight: bold; }
+        .timer-text { font-size: 24px; color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 10px var(--neon-yellow); }
+
+        /* Track Area */
+        .track-container {
+            flex: 1;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(255,255,255,0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
         }
 
-        .avatar {
+        .finish-line {
+            position: absolute;
+            top: 10%;
+            width: 100%;
+            height: 4px;
+            background: repeating-linear-gradient(90deg, #fff, #fff 10px, #000 10px, #000 20px);
+            z-index: 0;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .lane {
+            flex: 1;
+            border-right: 1px dashed rgba(255, 255, 255, 0.1);
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        .lane:last-child { border-right: none; }
+
+        .pig {
+            position: absolute;
+            bottom: 5%; /* 5% to 90% */
             width: 40px;
             height: 40px;
+            background: #222;
             border-radius: 50%;
-            border: 2px solid var(--neon-magenta);
-            box-shadow: 0 0 8px var(--neon-magenta);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            transition: bottom 0.1s linear;
+            z-index: 2;
+            box-shadow: 0 0 15px currentColor;
+            border: 2px solid currentColor;
         }
 
-        .username {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 5px var(--neon-cyan);
+        .pig-effect {
+            position: absolute;
+            top: -25px;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
-        .host-badge {
-            font-size: 10px;
-            background: var(--neon-yellow);
-            color: #000;
-            padding: 2px 5px;
-            border-radius: 3px;
-            margin-left: 5px;
-            display: none;
+        /* Bottom Panel */
+        .control-panel {
+            height: 120px;
+            flex-shrink: 0;
+            display: flex;
+            gap: 5px;
         }
 
-        /* Main Display */
-        .display-area {
+        .action-btn {
             flex: 1;
+            background: var(--panel-bg);
+            border: 2px solid;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle, rgba(255,0,255,0.1) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 0, 255, 0.3);
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .status-text {
-            font-size: 24px;
-            font-weight: 900;
-            color: var(--neon-yellow);
-            text-shadow: 0 0 10px var(--neon-yellow);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .timer {
-            font-size: 40px;
-            font-weight: 900;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 15px var(--neon-cyan);
-            position: absolute;
-            top: 10px;
-            right: 15px;
-        }
-
-        .dice-container {
-            display: flex;
-            gap: 15px;
-        }
-
-        .die {
-            font-size: 70px;
-            line-height: 1;
-            color: #fff;
-            text-shadow: 0 0 20px var(--neon-magenta), 0 0 40px var(--neon-magenta);
-            transition: transform 0.1s;
-        }
-
-        .die.rolling {
-            animation: shake 0.3s infinite;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 20px var(--neon-cyan);
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            25% { transform: translate(-1px, -2px) rotate(-10deg); }
-            50% { transform: translate(-3px, 0px) rotate(10deg); }
-            75% { transform: translate(2px, 2px) rotate(-10deg); }
-            100% { transform: translate(1px, -1px) rotate(0deg); }
-        }
-
-        .result-sum {
-            margin-top: 15px;
-            font-size: 20px;
-            color: var(--neon-yellow);
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-
-        /* Betting Area */
-        .betting-area {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .bet-btn {
-            background: var(--panel-bg);
-            border: 2px solid var(--neon-cyan);
-            border-radius: 10px;
-            padding: 15px 5px;
-            text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: transform 0.1s, filter 0.2s;
             position: relative;
             overflow: hidden;
         }
+        .action-btn:active { transform: scale(0.95); }
+        .action-btn.disabled { filter: grayscale(1); pointer-events: none; opacity: 0.5; }
 
-        .bet-btn:active {
-            transform: scale(0.95);
-        }
-
-        .bet-btn.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            border-color: #555;
-        }
-
-        .bet-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
-            text-shadow: 0 0 5px #fff;
-        }
-
-        .bet-multiplier {
-            font-size: 12px;
-            color: var(--neon-magenta);
-        }
-
-        .bet-amount {
-            margin-top: 10px;
-            font-size: 16px;
-            color: var(--neon-yellow);
-            font-weight: bold;
-        }
-
-        .total-pool {
-            font-size: 10px;
-            color: #aaa;
-            margin-top: 5px;
-        }
-
-        /* Action Feed */
-        .action-feed {
-            height: 80px;
-            background: var(--panel-bg);
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            border-radius: 10px;
-            padding: 5px 10px;
-            overflow-y: auto;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .feed-item {
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .feed-item span.name { color: var(--neon-cyan); }
-        .feed-item span.amount { color: var(--neon-yellow); }
-        .feed-item span.zone { color: var(--neon-magenta); font-weight: bold; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        .btn-title { font-size: 14px; font-weight: bold; margin-bottom: 2px; }
+        .btn-odds { font-size: 12px; margin-bottom: 5px; }
+        .btn-mybet { font-size: 14px; font-weight: bold; color: #fff; }
+        
+        /* Dynamic Button States */
+        .btn-state-bet .btn-action-text { display: none; }
+        .btn-state-item .btn-odds, .btn-state-item .btn-mybet { display: none; }
+        .btn-state-item .btn-action-text { display: block; font-size: 14px; font-weight: bold; margin-top: 5px; }
 
         /* Overlays */
-        #start-overlay, #leaderboard-overlay {
+        .overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9);
@@ -265,83 +174,76 @@
             padding: 20px;
             text-align: center;
         }
+        .hidden { display: none !important; }
 
         .glowing-btn {
             background: transparent;
-            border: 2px solid var(--neon-magenta);
-            color: var(--neon-magenta);
+            border: 2px solid var(--neon-purple);
+            color: var(--neon-purple);
             padding: 15px 40px;
             font-size: 20px;
-            font-family: 'Orbitron', sans-serif;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 0 15px var(--neon-magenta) inset, 0 0 15px var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-purple) inset, 0 0 15px var(--neon-purple);
             text-transform: uppercase;
-            transition: all 0.3s;
         }
 
-        .glowing-btn:hover {
-            background: var(--neon-magenta);
-            color: #000;
-        }
+        .leaderboard-title { font-size: 30px; color: var(--neon-yellow); margin-bottom: 20px; text-shadow: 0 0 10px var(--neon-yellow); }
+        .lb-entry { display: flex; justify-content: space-between; width: 100%; max-width: 300px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .lb-entry.me { color: var(--neon-blue); font-weight: bold; }
 
-        .leaderboard-title {
-            font-size: 30px;
-            color: var(--neon-yellow);
-            text-shadow: 0 0 15px var(--neon-yellow);
-            margin-bottom: 20px;
-        }
-
-        .lb-entry {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 300px;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            font-size: 16px;
-        }
-        .lb-entry.me {
-            color: var(--neon-cyan);
-            font-weight: bold;
-        }
-
-        .hidden { display: none !important; }
-
-        /* Floating text animation */
+        /* Floating Text */
         .floating-text {
             position: absolute;
-            color: var(--neon-yellow);
             font-weight: bold;
-            font-size: 20px;
+            font-size: 18px;
             pointer-events: none;
             animation: floatUp 1s forwards;
-            text-shadow: 0 0 10px var(--neon-yellow);
             z-index: 50;
         }
-
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+            100% { opacity: 0; transform: translateY(-40px) scale(1.5); }
         }
+
+        /* Action Feed */
+        .feed {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            width: 200px;
+            height: 100px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 2px;
+            z-index: 10;
+        }
+        .feed-item {
+            font-size: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #fff;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas-bg"></canvas>
-
-    <div id="start-overlay">
-        <h1 style="color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan); margin-bottom: 10px; font-size: 40px;">NEON DICE</h1>
-        <h2 style="color: var(--neon-magenta); margin-bottom: 40px; letter-spacing: 5px;">BATTLE</h2>
-        <button class="glowing-btn" id="btn-join">Enter Room</button>
+    <div id="start-overlay" class="overlay">
+        <h1 style="color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); font-size: 36px;">CYBER PIGGY</h1>
+        <h2 style="color: var(--neon-purple); margin-bottom: 40px; letter-spacing: 5px;">RUN</h2>
+        <button class="glowing-btn" id="btn-join">Enter Arena</button>
     </div>
 
-    <div id="leaderboard-overlay" class="hidden">
-        <div class="leaderboard-title">ROUND RESULTS</div>
-        <div id="lb-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;">
-            <!-- Entries injected here -->
-        </div>
+    <div id="leaderboard-overlay" class="overlay hidden">
+        <div class="leaderboard-title">RACE RESULTS</div>
+        <div id="winner-announce" style="font-size: 20px; margin-bottom: 10px; color: #fff;"></div>
+        <div id="lb-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;"></div>
         <div id="my-result" style="font-size: 24px; margin-bottom: 20px;"></div>
     </div>
 
@@ -354,70 +256,62 @@
                     <span id="host-badge" class="host-badge">HOST</span>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <div style="font-size: 10px; color: #aaa;">BET AMOUNT</div>
-                <div style="color: var(--neon-yellow); font-weight: bold;">100 COINS</div>
+            <div class="status-area">
+                <div id="phase-text" class="phase-text">WAITING</div>
+                <div id="timer-text" class="timer-text">--</div>
             </div>
         </header>
 
-        <div class="display-area">
-            <div id="timer" class="timer">--</div>
-            <div id="status-text" class="status-text">WAITING...</div>
-            
-            <div class="dice-container">
-                <div class="die" id="die1">&#x2680;</div>
-                <div class="die" id="die2">&#x2680;</div>
-                <div class="die" id="die3">&#x2680;</div>
-            </div>
-            <div id="result-sum" class="result-sum">SUM: 3</div>
-        </div>
+        <div class="feed" id="feed"></div>
 
-        <div class="betting-area">
-            <div class="bet-btn disabled" id="btn-small" onclick="placeBet('small')">
-                <div class="bet-title">SMALL</div>
-                <div class="bet-multiplier">4-10 (1:1)</div>
-                <div class="bet-amount" id="my-bet-small">0</div>
-                <div class="total-pool">Pool: <span id="pool-small">0</span></div>
+        <div class="track-container">
+            <div class="finish-line"></div>
+            <!-- Lanes and Pigs -->
+            <div class="lane">
+                <div class="pig" id="pig-0" style="color: var(--neon-red);">
+                    🐷<div class="pig-effect" id="effect-0"></div>
+                </div>
             </div>
-            <div class="bet-btn disabled" id="btn-triple" onclick="placeBet('triple')">
-                <div class="bet-title">TRIPLE</div>
-                <div class="bet-multiplier">ANY (24:1)</div>
-                <div class="bet-amount" id="my-bet-triple">0</div>
-                <div class="total-pool">Pool: <span id="pool-triple">0</span></div>
+            <div class="lane">
+                <div class="pig" id="pig-1" style="color: var(--neon-green);">
+                    🐷<div class="pig-effect" id="effect-1"></div>
+                </div>
             </div>
-            <div class="bet-btn disabled" id="btn-big" onclick="placeBet('big')">
-                <div class="bet-title">BIG</div>
-                <div class="bet-multiplier">11-17 (1:1)</div>
-                <div class="bet-amount" id="my-bet-big">0</div>
-                <div class="total-pool">Pool: <span id="pool-big">0</span></div>
+            <div class="lane">
+                <div class="pig" id="pig-2" style="color: var(--neon-blue);">
+                    🐷<div class="pig-effect" id="effect-2"></div>
+                </div>
+            </div>
+            <div class="lane">
+                <div class="pig" id="pig-3" style="color: var(--neon-yellow);">
+                    🐷<div class="pig-effect" id="effect-3"></div>
+                </div>
             </div>
         </div>
 
-        <div class="action-feed" id="action-feed">
-            <!-- Feed items injected here -->
+        <div class="control-panel">
+            <!-- Buttons generated by JS -->
         </div>
     </div>
 
     <script>
-        // --- MOCK SDK FOR TESTING OUTSIDE BOOMROOM APP ---
+        // ==========================================
+        // 1. BOOMROOM SDK MOCK (For local testing)
+        // ==========================================
         if (typeof window.BoomRoomSDK === 'undefined') {
             window.BoomRoomSDK = {
                 getUser: () => ({ 
                     id: 'u_' + Math.floor(Math.random()*10000), 
-                    username: 'CyberPunk' + Math.floor(Math.random()*100), 
+                    username: 'Cyber' + Math.floor(Math.random()*100), 
                     avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random() 
                 }),
                 requestPurchase: (itemId, cost) => {
-                    // Simulate network delay and success
                     setTimeout(() => {
                         if(window.onPurchaseSuccess) window.onPurchaseSuccess(itemId);
-                    }, 300);
+                    }, 200);
                 },
-                gameOver: (winAmount) => {
-                    console.log("[Mock SDK] Game Over. Win Amount:", winAmount);
-                },
+                gameOver: (winAmount) => console.log("[SDK] Game Over. Win:", winAmount),
                 sendGameEvent: (eventName, payload) => {
-                    // Loopback for local testing
                     const msg = JSON.stringify({
                         action: "gameEventReceived",
                         eventName: eventName,
@@ -429,30 +323,48 @@
             };
         }
 
-        // --- GAME VARIABLES ---
+        // ==========================================
+        // 2. GAME CONFIG & STATE
+        // ==========================================
         const user = window.BoomRoomSDK.getUser();
         let isHost = false;
         let hostId = null;
-        let currentPhase = "WAITING"; // WAITING, BETTING, ROLLING, RESULT
-        let phaseTimer = 0;
-        let diceResults = [1, 1, 1];
+        
+        let gameState = "WAITING"; // WAITING, BETTING, RACING, RESULT
+        let phaseTime = 0;
         
         const BET_COST = 100;
-        let myBets = { small: 0, triple: 0, big: 0 };
-        let poolBets = { small: 0, triple: 0, big: 0 };
-        let roundLeaderboard = [];
+        const BOOST_COST = 10;
+        const TRAP_COST = 20;
 
-        // --- AUDIO SYSTEM ---
+        const PIG_CONFIG = [
+            { id: 0, name: "穩健紅", color: "var(--neon-red)", odds: 2.0, baseSpeed: [0.6, 1.2] },
+            { id: 1, name: "神經綠", color: "var(--neon-green)", odds: 3.0, baseSpeed: [0.2, 1.8] },
+            { id: 2, name: "重裝藍", color: "var(--neon-blue)", odds: 5.0, baseSpeed: [0.4, 1.0] },
+            { id: 3, name: "奇蹟黃", color: "var(--neon-yellow)", odds: 10.0, baseSpeed: [0.1, 0.7] }
+        ];
+
+        // Host Physics State
+        let hostPigs = [
+            { y: 5, speedMod: 1, effectTimer: 0 },
+            { y: 5, speedMod: 1, effectTimer: 0 },
+            { y: 5, speedMod: 1, effectTimer: 0 },
+            { y: 5, speedMod: 1, effectTimer: 0 }
+        ];
+
+        // Client State
+        let myBets = [0, 0, 0, 0];
+        let roundLeaderboard = [];
+        let pendingAction = null; // { type: 'bet'|'boost'|'trap', pigId: 0 }
+
+        // ==========================================
+        // 3. AUDIO SYSTEM
+        // ==========================================
         let audioCtx;
         function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
-
         function playTone(freq, type, duration, vol=0.1) {
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator();
@@ -466,328 +378,309 @@
             gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
             osc.stop(audioCtx.currentTime + duration);
         }
-
-        function playBetSound() { playTone(800, 'sine', 0.1, 0.2); playTone(1200, 'sine', 0.15, 0.2); }
-        function playWinSound() { 
-            playTone(400, 'square', 0.1, 0.1); 
-            setTimeout(()=>playTone(600, 'square', 0.1, 0.1), 100);
-            setTimeout(()=>playTone(800, 'square', 0.3, 0.1), 200);
-        }
-        function playLoseSound() { playTone(200, 'sawtooth', 0.4, 0.1); }
-        function playTickSound() { playTone(1000, 'sine', 0.05, 0.05); }
-
-        // --- UI ELEMENTS ---
-        const elTimer = document.getElementById('timer');
-        const elStatus = document.getElementById('status-text');
-        const elDice = [document.getElementById('die1'), document.getElementById('die2'), document.getElementById('die3')];
-        const elResultSum = document.getElementById('result-sum');
-        const elFeed = document.getElementById('action-feed');
-        const btns = {
-            small: document.getElementById('btn-small'),
-            triple: document.getElementById('btn-triple'),
-            big: document.getElementById('btn-big')
+        const Sounds = {
+            bet: () => { playTone(600, 'sine', 0.1); playTone(800, 'sine', 0.15); },
+            boost: () => playTone(1200, 'square', 0.2, 0.05),
+            trap: () => playTone(200, 'sawtooth', 0.3, 0.1),
+            win: () => { playTone(400, 'square', 0.1); setTimeout(()=>playTone(600, 'square', 0.2), 100); },
+            lose: () => playTone(150, 'sawtooth', 0.5),
+            tick: () => playTone(1000, 'sine', 0.05, 0.02)
         };
 
-        // --- INITIALIZATION ---
+        // ==========================================
+        // 4. INITIALIZATION & UI SETUP
+        // ==========================================
         document.getElementById('my-username').innerText = user.username;
         document.getElementById('my-avatar').src = user.avatar;
+
+        const panel = document.querySelector('.control-panel');
+        PIG_CONFIG.forEach(pig => {
+            const btn = document.createElement('div');
+            btn.className = 'action-btn disabled btn-state-bet';
+            btn.style.borderColor = pig.color;
+            btn.id = `btn-${pig.id}`;
+            btn.innerHTML = `
+                <div class="btn-title" style="color:${pig.color}">${pig.name}</div>
+                <div class="btn-odds">${pig.odds}x</div>
+                <div class="btn-mybet" id="mybet-${pig.id}">0</div>
+                <div class="btn-action-text" id="action-text-${pig.id}"></div>
+            `;
+            btn.onclick = () => handleBtnClick(pig.id);
+            panel.appendChild(btn);
+        });
 
         document.getElementById('btn-join').addEventListener('click', () => {
             initAudio();
             document.getElementById('start-overlay').classList.add('hidden');
-            joinRoom();
-        });
-
-        function joinRoom() {
-            // Broadcast join
             window.BoomRoomSDK.sendGameEvent("PLAYER_JOIN", { username: user.username });
             
-            // Host election logic: if no host ping received in 2 seconds, become host
-            setTimeout(() => {
-                if (!hostId) {
-                    becomeHost();
-                }
-            }, 2000);
-        }
+            // Host election
+            setTimeout(() => { if (!hostId) becomeHost(); }, 2000);
+        });
 
         function becomeHost() {
             isHost = true;
             hostId = user.id;
             document.getElementById('host-badge').style.display = 'inline-block';
-            addFeedItem("SYSTEM", "You are the Host", "sys");
+            showFeed("SYSTEM", "You are the Host");
             startHostLoop();
         }
 
-        // --- HOST LOGIC ---
+        // ==========================================
+        // 5. HOST LOGIC (Game Loop & Physics)
+        // ==========================================
         async function startHostLoop() {
             while (isHost) {
-                // 1. BETTING PHASE (12s)
-                setPhase("BETTING", 12);
-                for(let i=12; i>0; i--) {
-                    broadcastState(i);
+                // 1. BETTING PHASE (10s)
+                setGameState("BETTING", 10);
+                hostPigs = hostPigs.map(p => ({ y: 5, speedMod: 1, effectTimer: 0 }));
+                for(let i=10; i>0; i--) {
+                    broadcastSync(i);
                     await sleep(1000);
                 }
 
-                // 2. ROLLING PHASE (3s)
-                diceResults = [rand(1,6), rand(1,6), rand(1,6)];
-                setPhase("ROLLING", 3);
-                for(let i=3; i>0; i--) {
-                    broadcastState(i);
-                    await sleep(1000);
+                // 2. RACING PHASE (Max 15s)
+                setGameState("RACING", 15);
+                let raceFinished = false;
+                let winnerId = -1;
+                let raceTicks = 150; // 15s * 10 ticks/sec
+
+                while(!raceFinished && raceTicks > 0) {
+                    // Physics Update (10 times per second)
+                    hostPigs.forEach((p, idx) => {
+                        // Base random speed
+                        let speed = randFloat(PIG_CONFIG[idx].baseSpeed[0], PIG_CONFIG[idx].baseSpeed[1]);
+                        
+                        // Yellow Pig Miracle Jump (2% chance per tick)
+                        if(idx === 3 && Math.random() < 0.02) speed += 5;
+
+                        // Apply Item Effects
+                        if(p.effectTimer > 0) {
+                            p.effectTimer--;
+                            speed *= p.speedMod;
+                        }
+
+                        p.y += speed;
+                        if(p.y >= 90 && !raceFinished) {
+                            p.y = 90;
+                            raceFinished = true;
+                            winnerId = idx;
+                        }
+                    });
+
+                    broadcastSync(Math.ceil(raceTicks/10));
+                    raceTicks--;
+                    await sleep(100);
                 }
 
-                // 3. RESULT PHASE (6s)
-                setPhase("RESULT", 6);
-                for(let i=6; i>0; i--) {
-                    broadcastState(i);
+                // 3. RESULT PHASE (5s)
+                setGameState("RESULT", 5);
+                window.BoomRoomSDK.sendGameEvent("RACE_FINISH", { winner: winnerId });
+                for(let i=5; i>0; i--) {
+                    broadcastSync(i);
                     await sleep(1000);
                 }
                 
-                // Reset pools for next round
-                poolBets = { small: 0, triple: 0, big: 0 };
                 roundLeaderboard = [];
             }
         }
 
-        function broadcastState(time) {
+        function broadcastSync(time) {
             window.BoomRoomSDK.sendGameEvent("HOST_SYNC", {
                 hostId: user.id,
-                phase: currentPhase,
+                state: gameState,
                 time: time,
-                dice: diceResults,
-                pools: poolBets
+                pigs: hostPigs.map(p => p.y)
             });
         }
 
-        // --- CLIENT LOGIC & SYNC ---
+        // ==========================================
+        // 6. CLIENT LOGIC & SYNC
+        // ==========================================
         window.addEventListener("message", (e) => {
             try {
                 const data = JSON.parse(e.data);
                 if (data.action === "gameEventReceived") {
-                    handleGameEvent(data.eventName, data.payload, data.userId);
+                    handleEvent(data.eventName, data.payload, data.userId);
                 }
             } catch(err) {}
         });
 
-        function handleGameEvent(eventName, payload, senderId) {
+        function handleEvent(eventName, payload, senderId) {
             switch(eventName) {
                 case "HOST_SYNC":
                     if (!hostId || hostId === senderId) {
                         hostId = senderId;
-                        syncState(payload);
+                        syncClientState(payload);
                     }
                     break;
-                case "PLAYER_BET":
-                    handleRemoteBet(payload);
+                case "ITEM_USED":
+                    handleRemoteItem(payload);
+                    break;
+                case "RACE_FINISH":
+                    handleRaceFinish(payload.winner);
                     break;
                 case "PLAYER_RESULT":
-                    handleRemoteResult(payload);
+                    roundLeaderboard.push(payload);
+                    updateLeaderboardUI();
                     break;
             }
         }
 
-        function syncState(payload) {
-            // Update pools
-            if(!isHost) poolBets = payload.pools;
-            updatePoolUI();
-
-            // Phase transition
-            if (currentPhase !== payload.phase) {
-                currentPhase = payload.phase;
-                triggerPhaseChange(currentPhase, payload.dice);
+        function syncClientState(payload) {
+            if (gameState !== payload.state) {
+                gameState = payload.state;
+                triggerStateChange(gameState);
             }
-
-            // Timer update
-            phaseTimer = payload.time;
-            elTimer.innerText = phaseTimer;
-            if(phaseTimer <= 3 && currentPhase === "BETTING") playTickSound();
-        }
-
-        let diceAnimInterval;
-        function triggerPhaseChange(phase, dice) {
-            elStatus.innerText = phase + "...";
             
-            if (phase === "BETTING") {
-                elStatus.style.color = "var(--neon-cyan)";
-                elResultSum.style.opacity = 0;
-                document.getElementById('leaderboard-overlay').classList.add('hidden');
-                
-                // Reset local bets
-                myBets = { small: 0, triple: 0, big: 0 };
-                updateMyBetsUI();
-                
-                // Enable buttons
-                Object.values(btns).forEach(b => b.classList.remove('disabled'));
-                
-                // Reset Dice UI
-                elDice.forEach(d => { d.classList.remove('rolling'); d.style.color = '#fff'; });
-                
-            } else if (phase === "ROLLING") {
-                elStatus.style.color = "var(--neon-magenta)";
-                // Disable buttons
-                Object.values(btns).forEach(b => b.classList.add('disabled'));
-                
-                // Animate dice
-                elDice.forEach(d => d.classList.add('rolling'));
-                diceAnimInterval = setInterval(() => {
-                    elDice[0].innerHTML = getDieChar(rand(1,6));
-                    elDice[1].innerHTML = getDieChar(rand(1,6));
-                    elDice[2].innerHTML = getDieChar(rand(1,6));
-                }, 100);
-                
-            } else if (phase === "RESULT") {
-                elStatus.style.color = "var(--neon-yellow)";
-                clearInterval(diceAnimInterval);
-                elDice.forEach(d => d.classList.remove('rolling'));
-                
-                // Set final dice
-                elDice[0].innerHTML = getDieChar(dice[0]);
-                elDice[1].innerHTML = getDieChar(dice[1]);
-                elDice[2].innerHTML = getDieChar(dice[2]);
-                
-                // Highlight winning dice
-                elDice.forEach(d => d.style.color = 'var(--neon-yellow)');
-                
-                const sum = dice[0] + dice[1] + dice[2];
-                elResultSum.innerText = `SUM: ${sum}`;
-                elResultSum.style.opacity = 1;
+            phaseTime = payload.time;
+            document.getElementById('timer-text').innerText = phaseTime;
+            if(gameState === "BETTING" && phaseTime <= 3) Sounds.tick();
 
-                calculateMyResult(dice);
+            // Update Pig Positions
+            payload.pigs.forEach((y, idx) => {
+                document.getElementById(`pig-${idx}`).style.bottom = `${y}%`;
+            });
+        }
+
+        function triggerStateChange(state) {
+            document.getElementById('phase-text').innerText = state;
+            const btns = document.querySelectorAll('.action-btn');
+
+            if (state === "BETTING") {
+                document.getElementById('leaderboard-overlay').classList.add('hidden');
+                myBets = [0, 0, 0, 0];
+                btns.forEach((btn, idx) => {
+                    btn.classList.remove('disabled', 'btn-state-item');
+                    btn.classList.add('btn-state-bet');
+                    document.getElementById(`mybet-${idx}`).innerText = '0';
+                });
+            } 
+            else if (state === "RACING") {
+                btns.forEach((btn, idx) => {
+                    btn.classList.remove('btn-state-bet');
+                    btn.classList.add('btn-state-item');
+                    const actText = document.getElementById(`action-text-${idx}`);
+                    if (myBets[idx] > 0) {
+                        actText.innerText = `⚡ BOOST (${BOOST_COST})`;
+                        actText.style.color = 'var(--neon-yellow)';
+                    } else {
+                        actText.innerText = `🍌 TRAP (${TRAP_COST})`;
+                        actText.style.color = 'var(--neon-red)';
+                    }
+                });
+            }
+            else if (state === "RESULT") {
+                btns.forEach(btn => btn.classList.add('disabled'));
             }
         }
 
-        // --- BETTING SYSTEM ---
-        let pendingBetType = null;
-        function placeBet(type) {
-            if(currentPhase !== "BETTING") return;
-            pendingBetType = type;
-            const itemId = `bet_${type}_${BET_COST}_${Date.now()}`;
-            window.BoomRoomSDK.requestPurchase(itemId, BET_COST);
+        // ==========================================
+        // 7. INTERACTION & ECONOMY
+        // ==========================================
+        function handleBtnClick(pigId) {
+            if (gameState === "BETTING") {
+                pendingAction = { type: 'bet', pigId: pigId, cost: BET_COST };
+                window.BoomRoomSDK.requestPurchase(`bet_${pigId}_${Date.now()}`, BET_COST);
+            } 
+            else if (gameState === "RACING") {
+                const isMyPig = myBets[pigId] > 0;
+                const type = isMyPig ? 'boost' : 'trap';
+                const cost = isMyPig ? BOOST_COST : TRAP_COST;
+                pendingAction = { type: type, pigId: pigId, cost: cost };
+                window.BoomRoomSDK.requestPurchase(`item_${type}_${pigId}_${Date.now()}`, cost);
+            }
         }
 
         window.onPurchaseSuccess = function(itemId) {
-            if(itemId.startsWith("bet_") && pendingBetType) {
-                const type = pendingBetType;
-                myBets[type] += BET_COST;
-                poolBets[type] += BET_COST; // Optimistic local update
-                
-                playBetSound();
-                updateMyBetsUI();
-                updatePoolUI();
-                showFloatingText(btns[type], `-100`);
-
-                window.BoomRoomSDK.sendGameEvent("PLAYER_BET", {
+            if (!pendingAction) return;
+            const { type, pigId, cost } = pendingAction;
+            
+            if (type === 'bet') {
+                myBets[pigId] += cost;
+                document.getElementById(`mybet-${pigId}`).innerText = myBets[pigId];
+                Sounds.bet();
+                showFloatingText(document.getElementById(`btn-${pigId}`), `-100`, '#fff');
+                showFeed(user.username, `bet on ${PIG_CONFIG[pigId].name}`);
+            } 
+            else {
+                // Broadcast item usage
+                window.BoomRoomSDK.sendGameEvent("ITEM_USED", {
                     username: user.username,
                     type: type,
-                    amount: BET_COST
+                    pigId: pigId
                 });
-                
-                pendingBetType = null;
+                showFloatingText(document.getElementById(`btn-${pigId}`), `-${cost}`, type==='boost'?'var(--neon-yellow)':'var(--neon-red)');
             }
+            pendingAction = null;
         };
 
-        function handleRemoteBet(payload) {
-            if(isHost) {
-                poolBets[payload.type] += payload.amount;
+        function handleRemoteItem(payload) {
+            const { type, pigId, username } = payload;
+            
+            // Visual Effect
+            const effectEl = document.getElementById(`effect-${pigId}`);
+            effectEl.innerText = type === 'boost' ? '⚡' : '🍌';
+            effectEl.style.opacity = 1;
+            setTimeout(() => effectEl.style.opacity = 0, 500);
+
+            if(type === 'boost') Sounds.boost();
+            else Sounds.trap();
+
+            showFeed(username, `used ${type} on ${PIG_CONFIG[pigId].name}`);
+
+            // Host applies physics
+            if (isHost) {
+                const pig = hostPigs[pigId];
+                pig.effectTimer = 5; // 0.5 seconds (5 ticks)
+                if (type === 'boost') pig.speedMod = 3.0;
+                if (type === 'trap') {
+                    // Blue pig resistance
+                    pig.speedMod = (pigId === 2) ? 0.5 : 0.1; 
+                }
             }
-            addFeedItem(payload.username, `bet ${payload.amount} on`, payload.type.toUpperCase());
         }
 
-        // --- RESULT CALCULATION ---
-        function calculateMyResult(dice) {
-            const sum = dice[0] + dice[1] + dice[2];
-            const isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
-            const isSmall = (sum >= 4 && sum <= 10 && !isTriple);
-            const isBig = (sum >= 11 && sum <= 17 && !isTriple);
-
-            let winAmount = 0;
-            if (isSmall) winAmount += myBets.small * 2;
-            if (isBig) winAmount += myBets.big * 2;
-            if (isTriple) winAmount += myBets.triple * 25;
-
-            // Call SDK
+        // ==========================================
+        // 8. RESULT & LEADERBOARD
+        // ==========================================
+        function handleRaceFinish(winnerId) {
+            if (winnerId === -1) return; // Tie or timeout
+            
+            const winPig = PIG_CONFIG[winnerId];
+            let winAmount = myBets[winnerId] * winPig.odds;
+            
             window.BoomRoomSDK.gameOver(winAmount);
-
-            // Broadcast for leaderboard
+            
             window.BoomRoomSDK.sendGameEvent("PLAYER_RESULT", {
                 username: user.username,
-                win: winAmount,
-                totalBet: myBets.small + myBets.big + myBets.triple
+                win: winAmount
             });
 
-            // Local UI
             setTimeout(() => {
-                showLeaderboard(winAmount);
-                if(winAmount > 0) playWinSound();
-                else if(myBets.small + myBets.big + myBets.triple > 0) playLoseSound();
-            }, 1500);
-        }
-
-        function handleRemoteResult(payload) {
-            roundLeaderboard.push(payload);
-            updateLeaderboardUI();
-        }
-
-        // --- UI UPDATES ---
-        function updateMyBetsUI() {
-            document.getElementById('my-bet-small').innerText = myBets.small;
-            document.getElementById('my-bet-triple').innerText = myBets.triple;
-            document.getElementById('my-bet-big').innerText = myBets.big;
-        }
-
-        function updatePoolUI() {
-            document.getElementById('pool-small').innerText = poolBets.small;
-            document.getElementById('pool-triple').innerText = poolBets.triple;
-            document.getElementById('pool-big').innerText = poolBets.big;
-        }
-
-        function addFeedItem(name, action, zone) {
-            const div = document.createElement('div');
-            div.className = 'feed-item';
-            div.innerHTML = `<span class="name">${name}</span> ${action} <span class="zone">${zone}</span>`;
-            elFeed.appendChild(div);
-            elFeed.scrollTop = elFeed.scrollHeight;
-            if(elFeed.children.length > 20) elFeed.removeChild(elFeed.firstChild);
-        }
-
-        function showFloatingText(element, text) {
-            const rect = element.getBoundingClientRect();
-            const div = document.createElement('div');
-            div.className = 'floating-text';
-            div.innerText = text;
-            div.style.left = (rect.left + rect.width/2 - 20) + 'px';
-            div.style.top = (rect.top + 10) + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1000);
-        }
-
-        function showLeaderboard(myWin) {
-            const lb = document.getElementById('leaderboard-overlay');
-            lb.classList.remove('hidden');
-            
-            const resText = document.getElementById('my-result');
-            if(myWin > 0) {
-                resText.innerText = `YOU WON ${myWin} COINS!`;
-                resText.style.color = 'var(--neon-cyan)';
-            } else {
-                resText.innerText = `NO LUCK THIS ROUND`;
-                resText.style.color = '#aaa';
-            }
-            updateLeaderboardUI();
+                document.getElementById('winner-announce').innerText = `${winPig.name} WINS! (${winPig.odds}x)`;
+                document.getElementById('winner-announce').style.color = winPig.color;
+                
+                const resText = document.getElementById('my-result');
+                if(winAmount > 0) {
+                    resText.innerText = `YOU WON ${winAmount} COINS!`;
+                    resText.style.color = 'var(--neon-green)';
+                    Sounds.win();
+                } else {
+                    resText.innerText = `NO LUCK THIS ROUND`;
+                    resText.style.color = '#aaa';
+                    if(myBets.some(b=>b>0)) Sounds.lose();
+                }
+                
+                document.getElementById('leaderboard-overlay').classList.remove('hidden');
+            }, 1000);
         }
 
         function updateLeaderboardUI() {
             const container = document.getElementById('lb-content');
             container.innerHTML = '';
-            
-            // Sort by win amount desc
             const sorted = [...roundLeaderboard].sort((a,b) => b.win - a.win).slice(0, 5);
             
-            if(sorted.length === 0) {
-                container.innerHTML = '<div style="color:#aaa">Waiting for results...</div>';
-                return;
-            }
-
             sorted.forEach(entry => {
                 const div = document.createElement('div');
                 div.className = `lb-entry ${entry.username === user.username ? 'me' : ''}`;
@@ -796,59 +689,34 @@
             });
         }
 
-        // --- UTILS ---
-        function getDieChar(num) {
-            return ['&#x2680;','&#x2681;','&#x2682;','&#x2683;','&#x2684;','&#x2685;'][num-1];
-        }
-        function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        // ==========================================
+        // 9. UTILS & EFFECTS
+        // ==========================================
+        function randFloat(min, max) { return Math.random() * (max - min) + min; }
         function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-        function setPhase(p, t) { currentPhase = p; phaseTimer = t; }
+        function setGameState(s, t) { gameState = s; phaseTime = t; }
 
-        // --- BACKGROUND PARTICLES ---
-        const canvas = document.getElementById('canvas-bg');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = canvas.height + Math.random() * 100;
-                this.size = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 1 + 0.5;
-                this.color = Math.random() > 0.5 ? '#00f3ff' : '#ff00ff';
-                this.opacity = Math.random() * 0.5 + 0.1;
-            }
-            update() {
-                this.y -= this.speedY;
-                if (this.y < -10) {
-                    this.y = canvas.height + 10;
-                    this.x = Math.random() * canvas.width;
-                }
-            }
-            draw() {
-                ctx.globalAlpha = this.opacity;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        function showFloatingText(element, text, color) {
+            const rect = element.getBoundingClientRect();
+            const div = document.createElement('div');
+            div.className = 'floating-text';
+            div.innerText = text;
+            div.style.color = color;
+            div.style.left = (rect.left + rect.width/2 - 10) + 'px';
+            div.style.top = (rect.top) + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 1000);
         }
 
-        for(let i=0; i<50; i++) particles.push(new Particle());
-
-        function animateBg() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animateBg);
+        const feedEl = document.getElementById('feed');
+        function showFeed(name, action) {
+            const div = document.createElement('div');
+            div.className = 'feed-item';
+            div.innerHTML = `<span style="color:var(--neon-blue)">${name}</span> ${action}`;
+            feedEl.appendChild(div);
+            if(feedEl.children.length > 5) feedEl.removeChild(feedEl.firstChild);
+            setTimeout(() => { if(div.parentNode) div.remove(); }, 3000);
         }
-        animateBg();
 
     </script>
 </body>
