@@ -109,8 +109,9 @@ button{
     padding:
         max(10px,env(safe-area-inset-top))
         12px
-        calc(84px + env(safe-area-inset-bottom));
+        calc(86px + env(safe-area-inset-bottom));
 
+    gap:9px;
     overflow:hidden;
 
     background:
@@ -190,7 +191,8 @@ body.playing #lobby{
 
     gap:8px;
 
-    flex-shrink:0;
+    flex:0 1 clamp(300px, 44dvh, 390px);
+    min-height:290px;
 }
 
 .rocket-card{
@@ -199,9 +201,9 @@ body.playing #lobby{
 
     position:relative;
 
-    min-height:195px;
+    min-height:290px;
 
-    padding:13px;
+    padding:14px;
 
     overflow:hidden;
 
@@ -321,9 +323,9 @@ body.playing #lobby{
     position:relative;
     z-index:4;
 
-    margin-top:9px;
+    margin-top:10px;
 
-    width:66%;
+    width:64%;
 
     display:grid;
     gap:5px;
@@ -352,11 +354,11 @@ body.playing #lobby{
 .mini-rocket{
     position:absolute;
 
-    right:16px;
-    bottom:-4px;
+    right:10px;
+    bottom:-6px;
 
-    width:82px;
-    height:124px;
+    width:94px;
+    height:146px;
 
     transform:rotate(-8deg);
 }
@@ -498,7 +500,7 @@ body.playing #lobby{
     width:100%;
     max-width:660px;
 
-    margin-top:8px;
+    margin-top:0;
 
     flex-shrink:0;
 }
@@ -571,7 +573,7 @@ body.playing #lobby{
     width:100%;
     max-width:660px;
 
-    margin-top:8px;
+    margin-top:0;
 
     flex-shrink:0;
 }
@@ -626,14 +628,54 @@ body.playing #lobby{
     width:100%;
     max-width:660px;
 
-    margin-top:6px;
+    margin-top:0;
+    padding:6px 10px;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:999px;
+    background:rgba(255,255,255,.025);
 
     text-align:center;
 
-    color:#58627b;
+    color:#69738b;
 
     font-size:8px;
-    line-height:1.4;
+    line-height:1.35;
+}
+
+ .lobby-features{
+    width:100%;
+    max-width:660px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+}
+
+.lobby-feature{
+    min-height:52px;
+    padding:7px 8px;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:13px;
+    background:linear-gradient(145deg,rgba(14,20,41,.78),rgba(5,8,20,.88));
+    display:grid;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:auto auto;
+    column-gap:6px;
+    align-items:center;
+}
+
+.lobby-feature span{
+    grid-row:1 / span 2;
+    font-size:18px;
+}
+
+.lobby-feature strong{
+    font-size:8px;
+    line-height:1;
+}
+
+.lobby-feature small{
+    font-size:7px;
+    color:#69738b;
 }
 
 #joinButton{
@@ -1481,6 +1523,11 @@ body.playing #playUI{
     font-weight:1000;
 }
 
+#nextRound:disabled{
+    opacity:.55;
+    cursor:default;
+}
+
 
 /* =========================================================
    TOAST
@@ -1531,8 +1578,17 @@ body.playing #playUI{
 
 @media(max-height:700px){
 
+    #lobby{
+        gap:6px;
+    }
+
+    #rocketChoices{
+        flex-basis:215px;
+        min-height:210px;
+    }
+
     .rocket-card{
-        min-height:170px;
+        min-height:210px;
     }
 
     .rocket-stats{
@@ -1549,6 +1605,11 @@ body.playing #playUI{
         transform:
             rotate(8deg)
             scale(.83);
+    }
+
+    .lobby-feature{
+        min-height:44px;
+        padding:6px;
     }
 
     #topHud{
@@ -1777,7 +1838,30 @@ body.playing #playUI{
 
 
     <div id="lobbyTip">
-        前 10 秒為保護期，10 秒後才可 EJECT 領取獎勵。
+        前 10 秒為保護期 · 隕石持續落下 · 收集能量可加速分數
+    </div>
+
+
+    <div class="lobby-features">
+
+        <div class="lobby-feature">
+            <span>☄️</span>
+            <strong>隕石雨</strong>
+            <small>左右閃避</small>
+        </div>
+
+        <div class="lobby-feature">
+            <span>⚡</span>
+            <strong>能量</strong>
+            <small>提升倍率</small>
+        </div>
+
+        <div class="lobby-feature">
+            <span>♾️</span>
+            <strong>累積分數</strong>
+            <small>不設 20x 硬上限</small>
+        </div>
+
     </div>
 
 
@@ -1928,8 +2012,8 @@ body.playing #playUI{
 
         <div id="leaderboard"></div>
 
-        <button id="nextRound">
-            下一局
+        <button id="nextRound" disabled>
+            等待房主重新開啟
         </button>
 
     </div>
@@ -2406,10 +2490,6 @@ const ROCKETS = {
 const MAX_HEALTH =
     3;
 
-const MAX_PAYOUT =
-    20;
-
-
 /*
    核心修改：
 
@@ -2608,6 +2688,9 @@ function createPlayer(
             0,
 
         reward:
+            0,
+
+        score:
             0,
 
         cashoutAt:
@@ -3507,6 +3590,9 @@ function handlePurchaseSuccess(
     me.reward =
         0;
 
+    me.score =
+        0;
+
     me.cashoutAt =
         0;
 
@@ -3982,6 +4068,9 @@ function applyRoundStart(
             player.reward =
                 0;
 
+            player.score =
+                0;
+
             player.cashoutAt =
                 0;
 
@@ -4125,21 +4214,21 @@ function getPlayerMultiplier(
 
     }
 
-    return Math.min(
-        MAX_PAYOUT,
-
+    const rawMultiplier =
         getBaseMultiplier(
             player.rocket
         ) +
-
         Math.min(
             1.5,
             Math.max(
                 0,
                 player.bonus
             )
-        )
-    );
+        );
+
+    return Number.isFinite(rawMultiplier)
+        ? Math.max(0, rawMultiplier)
+        : 1;
 
 }
 
@@ -4147,6 +4236,44 @@ function getPlayerMultiplier(
 /* =========================================================
    SCORE
 ========================================================= */
+
+function getLiveScore(
+    player,
+    now=Date.now()
+){
+
+    if(
+        !player ||
+        player.bet <= 0
+    ){
+
+        return 0;
+
+    }
+
+    const multiplier =
+        getBaseMultiplier(
+            player.rocket,
+            now
+        ) +
+        Math.min(
+            1.5,
+            Math.max(
+                0,
+                player.bonus
+            )
+        );
+
+    const rawScore =
+        player.bet *
+        multiplier;
+
+    return Number.isFinite(rawScore)
+        ? Math.max(0, Math.floor(rawScore))
+        : 0;
+
+}
+
 
 function getPlayerScore(
     player
@@ -4163,36 +4290,21 @@ function getPlayerScore(
 
     if(
         player.status ===
-        "cashed"
-    ){
-
-        return Math.floor(
-            player.reward
-        );
-
-    }
-
-    if(
+        "cashed" ||
         player.status ===
         "crashed"
     ){
 
-        return 0;
+        const frozen =
+            Number(player.score);
+
+        return Number.isFinite(frozen)
+            ? Math.max(0, Math.floor(frozen))
+            : 0;
 
     }
 
-    /*
-       10 秒前畫面可以看到
-       潛在分數，
-       但實際不能 EJECT。
-    */
-
-    return Math.floor(
-        player.bet *
-        getPlayerMultiplier(
-            player
-        )
-    );
+    return getLiveScore(player);
 
 }
 
@@ -4916,6 +5028,9 @@ function maybeBroadcastWorld(
                         reward:
                             player.reward,
 
+                        score:
+                            getPlayerScore(player),
+
                         cashoutAt:
                             player.cashoutAt,
 
@@ -5204,6 +5319,9 @@ function processHostCollisions(){
                             player.health <=
                             0
                         ){
+
+                            player.score =
+                                getLiveScore(player);
 
                             player.status =
                                 "crashed";
@@ -6778,6 +6896,11 @@ function onWorldState(
                         0
                     );
 
+                player.score =
+                    Number.isFinite(Number(incoming.score))
+                        ? Math.max(0, Math.floor(Number(incoming.score)))
+                        : getPlayerScore(player);
+
                 player.cashoutAt =
                     Number(
                         incoming.cashoutAt ||
@@ -6888,6 +7011,14 @@ function onPlayerCrashed(
 
     }
 
+    const incomingScore =
+        Number(payload.score);
+
+    player.score =
+        Number.isFinite(incomingScore)
+            ? Math.max(0, Math.floor(incomingScore))
+            : getLiveScore(player);
+
     player.status =
         "crashed";
 
@@ -6956,6 +7087,9 @@ function crashRocket(
                 return;
 
             }
+
+            player.score =
+                getLiveScore(player);
 
             player.status =
                 "crashed";
@@ -7349,28 +7483,31 @@ function processCashout(
     */
 
     const multiplier =
-        Math.min(
-            MAX_PAYOUT,
-            Math.max(
-                1.01,
-                getBaseMultiplier(
-                    player.rocket
-                ) +
-                Math.min(
-                    1.5,
-                    Math.max(
-                        0,
-                        player.bonus
-                    )
+        Math.max(
+            1.01,
+            getBaseMultiplier(
+                player.rocket
+            ) +
+            Math.min(
+                1.5,
+                Math.max(
+                    0,
+                    player.bonus
                 )
             )
         );
 
+    const rewardRaw =
+        player.bet *
+        multiplier;
+
     const reward =
-        Math.floor(
-            player.bet *
-            multiplier
-        );
+        Number.isFinite(rewardRaw)
+            ? Math.max(0, Math.min(Math.floor(rewardRaw), 1000000000))
+            : 0;
+
+    player.score =
+        getLiveScore(player);
 
 
     player.status =
@@ -7413,6 +7550,9 @@ function processCashout(
 
             reward:
                 reward,
+
+            score:
+                player.score,
 
             cashoutTime:
                 player.cashoutTime
@@ -7478,6 +7618,11 @@ function onCashoutConfirmed(
             payload.reward ||
             0
         );
+
+    player.score =
+        Number.isFinite(Number(payload.score))
+            ? Math.max(0, Math.floor(Number(payload.score)))
+            : player.reward;
 
     player.cashoutTime =
         Number(
@@ -7764,6 +7909,9 @@ function finishRound(){
                         0
                     ),
 
+                score:
+                    getPlayerScore(player),
+
                 cashoutAt:
                     player.cashoutAt ||
                     0
@@ -7875,6 +8023,11 @@ function applyRoundResult(
             )
             : 0;
 
+    const finalScore =
+        me
+            ? Number(me.score || 0)
+            : 0;
+
     resultTitle.textContent =
         reward > 0
             ? "🚀 成功逃脫"
@@ -7889,7 +8042,7 @@ function applyRoundResult(
         me
             ? `${rocketName(
                 me.rocket
-            )} · ${Number(
+            )} · ${finalScore.toLocaleString()} 分 · ${Number(
                 me.cashoutAt ||
                 0
             ).toFixed(2)}x`
@@ -7979,6 +8132,12 @@ function applyRoundResult(
         }
     );
 
+    nextRound.disabled =
+        true;
+
+    nextRound.textContent =
+        "等待房主重新開啟";
+
     resultOverlay.classList.add(
         "show"
     );
@@ -7990,13 +8149,12 @@ function applyRoundResult(
    RESET
 ========================================================= */
 
-nextRound.addEventListener(
-    "click",
-    resetRound
-);
-
-
 function resetRound(){
+
+    // 本版本不允許在同一個遊戲實例直接重玩；
+    // 結果畫面等待房主關閉並重新開啟遊戲。
+
+    return;
 
     resultOverlay.classList.remove(
         "show"
@@ -8050,6 +8208,9 @@ function resetRound(){
                 0;
 
             player.reward =
+                0;
+
+            player.score =
                 0;
 
             player.cashoutAt =
@@ -10109,7 +10270,7 @@ function frame(
 
         simulateHost(
             dt,
-            now
+            Date.now()
         );
 
         maybeBroadcastWorld(

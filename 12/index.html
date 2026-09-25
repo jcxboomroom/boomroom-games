@@ -2044,6 +2044,247 @@ button:active{
     .45s
     ease;
 }
+
+/* =========================================================
+   2.1 UX / ONE-SHOT ECONOMY OVERRIDES
+   ========================================================= */
+
+.topbar{
+  position:relative;
+}
+
+.brand{
+  padding-right:96px;
+}
+
+.top-actions{
+  position:absolute;
+  top:8px;
+  right:12px;
+  z-index:30;
+}
+
+.icon-btn{
+  min-width:42px;
+  min-height:42px;
+}
+
+.economy-strip{
+  flex:none;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  padding:6px;
+  border-radius:15px;
+  background:rgba(10,11,19,.90);
+  border:1px solid var(--line);
+}
+
+.economy-item{
+  min-width:0;
+  padding:6px 4px;
+  border-radius:10px;
+  background:rgba(255,255,255,.028);
+  text-align:center;
+}
+
+.economy-item span{
+  display:block;
+  color:var(--muted);
+  font-size:7px;
+  font-weight:850;
+}
+
+.economy-item strong{
+  display:block;
+  margin-top:2px;
+  font-size:9px;
+  font-weight:1000;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.economy-prize{
+  border:1px solid rgba(57,246,173,.12);
+  background:rgba(57,246,173,.035);
+}
+
+.economy-prize strong{
+  color:var(--green2);
+}
+
+.entry-card{
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 10px;
+  border-radius:13px;
+  background:linear-gradient(135deg,rgba(255,216,90,.055),rgba(255,255,255,.025));
+  border:1px solid rgba(255,216,90,.12);
+}
+
+.entry-card-title{
+  font-size:10px;
+  font-weight:950;
+}
+
+.entry-card-sub{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:7px;
+  line-height:1.35;
+}
+
+.entry-price{
+  flex:none;
+  color:var(--gold);
+  font-size:16px;
+  font-weight:1000;
+}
+
+.control-hint{
+  min-height:14px;
+  margin-top:6px;
+  color:var(--muted);
+  text-align:center;
+  font-size:8px;
+  line-height:1.4;
+}
+
+.main-action.waiting{
+  background:linear-gradient(135deg,#2b2746,#1d1a2e);
+  color:#c0b6de;
+  box-shadow:none;
+}
+
+.main-action.done{
+  background:linear-gradient(135deg,#242938,#171b27);
+  color:#9299ac;
+  box-shadow:none;
+}
+
+.result-economy{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+}
+
+.result-economy > div{
+  padding:7px 5px;
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.055);
+  text-align:center;
+}
+
+.result-economy span{
+  display:block;
+  color:var(--muted);
+  font-size:7px;
+}
+
+.result-economy strong{
+  display:block;
+  margin-top:2px;
+  font-size:9px;
+}
+
+.result-finished{
+  margin-top:10px;
+  padding:10px;
+  border-radius:13px;
+  background:rgba(255,76,104,.05);
+  border:1px solid rgba(255,76,104,.10);
+  text-align:center;
+}
+
+.result-finished strong{
+  display:block;
+  font-size:11px;
+  color:#ffadb8;
+}
+
+.result-finished span{
+  display:block;
+  margin-top:3px;
+  font-size:8px;
+  color:#9b8e99;
+}
+
+.player-row.participant{
+  border-color:rgba(37,231,255,.10);
+}
+
+.player-row.spectator{
+  opacity:.56;
+}
+
+.player-row.host-row{
+  box-shadow:inset 0 0 0 1px rgba(137,92,255,.08);
+}
+
+.dev-badge{
+  max-width:calc(100% - 20px);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media(max-width:390px){
+  .economy-strip{
+    gap:3px;
+    padding:4px;
+  }
+
+  .economy-item{
+    padding:5px 2px;
+  }
+
+  .economy-item strong{
+    font-size:8px;
+  }
+
+  .entry-card-sub{
+    font-size:6.5px;
+  }
+
+  .result-economy strong{
+    font-size:8px;
+  }
+}
+
+@media(min-width:760px){
+  .app{
+    border-left:1px solid rgba(255,255,255,.04);
+    border-right:1px solid rgba(255,255,255,.04);
+  }
+}
+
+
+.particle{
+  position:absolute;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 8px rgba(37,231,255,.72);
+  pointer-events:none;
+  animation:particleFly linear forwards;
+}
+
+@keyframes particleFly{
+  from{
+    opacity:1;
+    transform:translate(0,0) scale(1);
+  }
+  to{
+    opacity:0;
+    transform:translate(var(--dx),var(--dy)) scale(.2);
+  }
+}
+
 </style>
 </head>
 
@@ -2056,7127 +2297,3281 @@ button:active{
   <div class="scanline"></div>
   <div class="star-layer" id="starLayer"></div>
 
-  <!-- ======================================================
-       TOP
-       ====================================================== -->
-
   <header class="topbar">
-
     <div class="brand">
-
-      <div class="brand-logo">
-        🚀
-      </div>
-
+      <div class="brand-logo">🚀</div>
       <div class="brand-text">
-
-        <div class="brand-title">
-          霓虹電梯
-        </div>
-
-        <div class="brand-sub">
-          CRASH LIFT · RISK & TIMING
-        </div>
-
+        <div class="brand-title">霓虹電梯</div>
+        <div class="brand-sub">CRASH LIFT · RISK & TIMING</div>
       </div>
-
     </div>
 
-    <div class="top-actions">
-
-      <button
-        class="icon-btn"
-        id="soundBtn"
-        aria-label="音效">
-        🔊
-      </button>
-
-      <button
-        class="icon-btn"
-        id="helpBtn"
-        aria-label="玩法">
-        ❔
-      </button>
-
+    <div class="top-actions" aria-label="遊戲工具">
+      <button class="icon-btn" id="soundBtn" aria-label="切換音效" aria-pressed="true">🔊</button>
+      <button class="icon-btn" id="helpBtn" aria-label="查看玩法">❔</button>
     </div>
-
   </header>
-
-  <!-- ======================================================
-       MAIN
-       ====================================================== -->
 
   <main class="main">
 
     <div class="status-row">
-
-      <div
-        class="phase"
-        id="phaseLabel">
-        💰 等待下注
-      </div>
-
-      <div
-        class="round-chip"
-        id="roundLabel">
-        第 1 局
-      </div>
-
+      <div class="phase" id="phaseLabel">🏠 選擇 Entry</div>
+      <div class="round-chip" id="roundLabel">第 1 局實例</div>
     </div>
 
-    <!-- ====================================================
-         GAMEPLAY
-         ==================================================== -->
-
-    <section
-      class="game-stage"
-      id="gameStage">
+    <section class="game-stage" id="gameStage" aria-label="遊戲區">
 
       <div class="multiplier-zone">
-
         <div class="multiplier-card">
-
-          <div
-            class="multiplier"
-            id="multiplier">
-            1.00x
-          </div>
-
-          <div
-            class="multiplier-caption"
-            id="multiplierCaption">
-            等待玩家下注
-          </div>
-
+          <div class="multiplier" id="multiplier">1.00x</div>
+          <div class="multiplier-caption" id="multiplierCaption">先完成 Entry 才能開始</div>
         </div>
-
       </div>
 
       <div class="track">
-
         <div class="track-lines"></div>
+        <div class="floor f1">10F</div>
+        <div class="floor f2">20F</div>
+        <div class="floor f3">30F</div>
+        <div class="floor f4">40F</div>
 
-        <div class="floor f1">
-          10F
-        </div>
-
-        <div class="floor f2">
-          20F
-        </div>
-
-        <div class="floor f3">
-          30F
-        </div>
-
-        <div class="floor f4">
-          40F
-        </div>
-
-        <div
-          class="elevator"
-          id="elevator">
-
+        <div class="elevator" id="elevator">
           <div class="elevator-top">
             <span class="light"></span>
             <span class="light"></span>
             <span class="light"></span>
           </div>
-
-          <div class="cabin">
-            🛗
-          </div>
-
+          <div class="cabin">🛗</div>
           <div class="engine"></div>
-
         </div>
-
       </div>
 
-      <div
-        class="stage-message"
-        id="stageMessage">
-
+      <div class="stage-message" id="stageMessage">
         <div class="stage-message-inner">
-
-          <div
-            class="stage-message-big"
-            id="stageMessageBig">
-          </div>
-
-          <div
-            class="stage-message-small"
-            id="stageMessageSmall">
-          </div>
-
+          <div class="stage-message-big" id="stageMessageBig"></div>
+          <div class="stage-message-small" id="stageMessageSmall"></div>
         </div>
-
       </div>
 
-      <div
-        class="crash-flash"
-        id="crashFlash">
-      </div>
-
-      <div
-        class="particle-layer"
-        id="particleLayer">
-      </div>
-
+      <div class="crash-flash" id="crashFlash"></div>
+      <div class="particle-layer" id="particleLayer"></div>
     </section>
 
-    <!-- ====================================================
-         PLAYERS
-         ==================================================== -->
+    <section class="economy-strip" aria-label="本局經濟資訊">
+      <div class="economy-item">
+        <span>Entry</span>
+        <strong id="economyEntry">100 🪙</strong>
+      </div>
+      <div class="economy-item">
+        <span>參賽</span>
+        <strong id="economyPlayers">0 人</strong>
+      </div>
+      <div class="economy-item">
+        <span>總獎池</span>
+        <strong id="economyTotal">0 🪙</strong>
+      </div>
+      <div class="economy-item">
+        <span>平台手續費</span>
+        <strong id="economyFee">0 🪙</strong>
+      </div>
+      <div class="economy-item economy-prize">
+        <span>最終獎池</span>
+        <strong id="economyPrize">0 🪙</strong>
+      </div>
+    </section>
 
     <section class="player-panel">
-
       <div class="panel-header">
-
-        <div class="panel-title">
-          👥 房間玩家
-        </div>
-
-        <div
-          class="panel-info"
-          id="playerInfo">
-          1 / 6 人
-        </div>
-
+        <div class="panel-title">👥 房間玩家</div>
+        <div class="panel-info" id="playerInfo">1 / 10 人</div>
       </div>
-
-      <div
-        class="player-list"
-        id="playerList">
-      </div>
-
+      <div class="player-list" id="playerList"></div>
     </section>
 
-    <!-- ====================================================
-         CONTROLS
-         ==================================================== -->
-
     <section class="control-panel">
-
       <div class="control-title">
+        <strong id="controlTitle">Entry 入場</strong>
+        <div class="my-status" id="myStatus">尚未付款</div>
+      </div>
 
-        <strong>
-          Entry 下注銀幣
-        </strong>
-
-        <div
-          class="my-status"
-          id="myStatus">
-          尚未下注
+      <div class="entry-card" id="entryCard">
+        <div>
+          <div class="entry-card-title">本局固定 Entry</div>
+          <div class="entry-card-sub">每位正式參賽玩家每局只能支付一次</div>
         </div>
-
+        <div class="entry-price">100 🪙</div>
       </div>
 
-      <div class="bet-buttons">
-
-        <button
-          class="bet-button"
-          data-bet="100">
-          100 🪙
-        </button>
-
-        <button
-          class="bet-button"
-          data-bet="500">
-          500 🪙
-        </button>
-
-        <button
-          class="bet-button"
-          data-bet="1000">
-          1000 🪙
-        </button>
-
-      </div>
-
-      <button
-        class="main-action"
-        id="mainAction"
-        disabled>
-
-        <span>
-          請先選擇下注
-        </span>
-
+      <button class="main-action" id="mainAction" disabled>
+        <span>支付 Entry 100 🪙</span>
       </button>
 
+      <div class="control-hint" id="controlHint">
+        先支付 Entry；付款成功後等待主持人開始本局。
+      </div>
     </section>
 
   </main>
 
-  <!-- ======================================================
-       TOAST
-       ====================================================== -->
+  <div class="toast-layer" id="toastLayer"></div>
 
-  <div
-    class="toast-layer"
-    id="toastLayer">
-  </div>
-
-  <!-- ======================================================
-       HELP
-       ====================================================== -->
-
-  <section
-    class="help-panel"
-    id="helpPanel">
-
+  <section class="help-panel" id="helpPanel" aria-label="遊戲玩法">
     <div class="help-header">
-
-      <div class="help-title">
-        🚀 霓虹電梯玩法
-      </div>
-
-      <button
-        class="icon-btn"
-        id="closeHelp">
-        ✕
-      </button>
-
+      <div class="help-title">🚀 霓虹電梯玩法</div>
+      <button class="icon-btn" id="closeHelp" aria-label="關閉玩法">✕</button>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ① 下注
-      </strong>
-
-      <p>
-        選擇 100、500 或 1000 銀幣。
-        必須成功完成 Entry 才能加入本局。
-      </p>
-
+      <strong>① 先付 Entry</strong>
+      <p>本局固定 Entry 100 銀幣。每位玩家每局只能支付一次，付款成功後才算正式參賽。</p>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ② 電梯起飛
-      </strong>
-
-      <p>
-        電梯升高時倍率持續增加。
-        其他玩家的下注與狀態會即時顯示。
-      </p>
-
+      <strong>② 主持人開始</strong>
+      <p>至少 2 名已成功付款的玩家即可開局。本局開始後禁止新玩家加入，也不再增加獎池。</p>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ③ 收錢
-      </strong>
-
-      <p>
-        電梯爆掉之前可以選擇「收錢」。
-        收錢後獎勵會立即固定，不會再增加。
-      </p>
-
+      <strong>③ 盯住倍率</strong>
+      <p>電梯持續上升，倍率越高風險越大。你的目標是在 CRASH 前按下「收錢」。</p>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ④ 10 秒資格
-      </strong>
-
-      <p>
-        為避免極短時間取得不合理獎勵，
-        本遊戲前 10 秒不開放有效獎勵結算。
-        10 秒後才可以收錢。
-      </p>
-
+      <strong>④ 10 秒資格</strong>
+      <p>前 10 秒不開放有效收錢，避免極短操作取得不合理獎勵。10 秒後才可提交 Cash Out。</p>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ⑤ CRASH
-      </strong>
-
-      <p>
-        每局由房主產生唯一的爆炸倍率，
-        再同步到房內玩家。
-        爆炸時尚未收錢者本局獎勵為 0。
-      </p>
-
+      <strong>⑤ 收錢與獎池</strong>
+      <p>成功收錢者會立即鎖定自己的收錢倍率。CRASH 後，所有成功收錢者平均分配本局「最終獎池」；沒收錢者獲得 0。</p>
     </div>
 
     <div class="help-block">
-
-      <strong>
-        ⑥ 再玩一次
-      </strong>
-
-      <p>
-        本局結束後自動進入下一局，
-        適合一邊語音聊天一邊連續挑戰。
-      </p>
-
+      <strong>⑥ CRASH 與結束</strong>
+      <p>每局的重要 Crash 結果由主持人產生並同步。結算後本局永久結束，畫面停留在結果頁，等待市長／房主關閉並重新開啟新的遊戲實例。</p>
     </div>
 
     <div class="help-note">
-      本遊戲中的銀幣僅供 BoomRoom
-      娛樂遊戲使用，不提供現金提領、
-      現金兌換或投資功能。
+      本遊戲中的銀幣僅供 BoomRoom 娛樂遊戲使用，不代表現金、台幣、美元、USDT、投資或可提款資產。
+      未連接 SDK 時只進入「開發測試模式」，Entry／獎池／獎勵皆為模擬，不會假裝實際扣款。
     </div>
-
   </section>
 
-  <!-- ======================================================
-       RESULT
-       ====================================================== -->
-
-  <section
-    class="result-modal"
-    id="resultModal">
-
+  <section class="result-modal" id="resultModal" aria-label="本局結果">
     <div class="result-card">
-
       <div class="result-header">
-
-        <div
-          class="result-icon"
-          id="resultIcon">
-          💥
-        </div>
-
-        <div
-          class="result-title"
-          id="resultTitle">
-          CRASH!
-        </div>
-
-        <div
-          class="result-subtitle"
-          id="resultSubtitle">
-          本局結束
-        </div>
-
+        <div class="result-icon" id="resultIcon">💥</div>
+        <div class="result-title" id="resultTitle">本局已結束</div>
+        <div class="result-subtitle" id="resultSubtitle">等待市長／房主關閉目前遊戲</div>
       </div>
 
       <div class="result-highlight">
-
-        <div
-          class="highlight-name"
-          id="highlightName">
-          —
-        </div>
-
-        <div
-          class="highlight-payout"
-          id="highlightPayout">
-          0 🪙
-        </div>
-
+        <div class="highlight-name" id="highlightName">—</div>
+        <div class="highlight-payout" id="highlightPayout">0 🪙</div>
       </div>
 
-      <div
-        class="result-list"
-        id="resultList">
+      <div class="result-economy" id="resultEconomy"></div>
+      <div class="result-list" id="resultList"></div>
+
+      <div class="result-finished">
+        <strong>本局已結束</strong>
+        <span>等待市長／房主重新開啟遊戲</span>
       </div>
-
-      <button
-        class="result-close"
-        id="resultClose">
-        繼續下一局
-      </button>
-
     </div>
-
   </section>
 
-  <!-- DEVELOPMENT MODE -->
-  <div class="dev-badge">
-    開發測試模式 · 未連接 BoomRoom SDK
+  <div class="dev-badge" id="devBadge">
+    開發測試模式 · 未連接 BoomRoom SDK · Entry／獎勵皆為模擬
   </div>
-
 </div>
 
 <div class="landscape-warning">
   <div>
-    <strong>
-      📱 請轉回手機直向
-    </strong>
-
-    <span>
-      霓虹電梯針對直向手機畫面設計
-    </span>
+    <strong>📱 請轉回手機直向</strong>
+    <span>霓虹電梯針對直向手機畫面設計</span>
   </div>
 </div>
 
-
 <script>
+/* =========================================================
+   BOOMROOM CRASH LIFT · ONE-SHOT MATCH
+   Complete single-file HTML5 implementation
+   ========================================================= */
+
 "use strict";
 
 /* =========================================================
-   GAME INFO
+   GAME INFO / CONFIG
    ========================================================= */
 
-const GAME_INFO = {
+const GAME_INFO = Object.freeze({
   id: "crash_lift",
   category: "多人風險競技",
   name: "霓虹電梯",
-  description: "下注後等待電梯升高，在 CRASH 前選擇收錢。",
-  version: "2.0.0",
-  entryCost: [100, 500, 1000],
-  maxPlayers: 6,
-  controlModes: ["Touch", "Pointer"],
-  duration: "約 20～70 秒",
+  description: "先付 100 銀幣；10 秒後在 CRASH 前收錢。成功者平分本局最終獎池。",
+  version: "3.0.0",
+  entryCost: 100,
+  maxPlayers: 10,
+  controlModes: ["Pointer", "Touch", "Keyboard"],
+  duration: "約 15～90 秒",
   multiplayer: true,
   rewardEnabled: true
-};
-
-
-/* =========================================================
-   CONFIG
-   ========================================================= */
-
-const CONFIG = {
-
-  DEBUG:false,
-
-  MAX_PLAYERS:6,
-
-  BET_OPTIONS:[100,500,1000],
-
-  BETTING_SECONDS:8,
-
-  MIN_REWARD_QUALIFICATION_SECONDS:10,
-
-  MIN_CRASH_MULTIPLIER:1.45,
-
-  MAX_CRASH_MULTIPLIER:15,
-
-  MAX_PAYOUT:15000,
-
-  HEARTBEAT_INTERVAL:4000,
-
-  PLAYER_TIMEOUT:12000,
-
-  HOST_TIMEOUT:10000,
-
-  MAX_EVENT_CACHE:1200,
-
-  MAX_PARTICLES:44,
-
-  PARTICLE_LOW_FPS:24,
-
-  ROUND_END_DELAY:4200
-
-};
-
-
-/* =========================================================
-   STATE MACHINE
-   ========================================================= */
-
-const STATES = Object.freeze({
-
-  LOBBY:"LOBBY",
-
-  BETTING:"BETTING",
-
-  COUNTDOWN:"COUNTDOWN",
-
-  PLAYING:"PLAYING",
-
-  RESULT:"RESULT"
-
 });
 
-let gameState = STATES.LOBBY;
+const CONFIG = Object.freeze({
+  DEBUG: false,
+  ENTRY_FEE: 100,
+  MAX_PLAYERS: 10,
+  MIN_PLAYERS: 2,
+  PLATFORM_FEE_RATE: 0.10,
 
+  BETTING_SECONDS: 45,
+  COUNTDOWN_SECONDS: 3,
+
+  MIN_REWARD_QUALIFICATION_SECONDS: 10,
+
+  MIN_CRASH_MULTIPLIER: 1.78,
+  MAX_CRASH_MULTIPLIER: 12.00,
+
+  MAX_REWARD: 100000,
+  MAX_PRIZE_POOL: 1000000,
+
+  HEARTBEAT_INTERVAL: 4000,
+  PLAYER_TIMEOUT: 12000,
+  HOST_TIMEOUT: 10000,
+
+  MAX_EVENT_CACHE: 1200,
+  MAX_PARTICLES: 36,
+  LOW_FPS_PARTICLES: 18,
+  CRITICAL_FPS_PARTICLES: 8,
+
+  RESULT_FEEDBACK_MS: 900
+});
+
+const STATES = Object.freeze({
+  LOBBY: "LOBBY",
+  SELECT: "SELECT",
+  PURCHASING: "PURCHASING",
+  READY: "READY",
+  COUNTDOWN: "COUNTDOWN",
+  PLAYING: "PLAYING",
+  RESULT: "RESULT",
+  WAITING_FOR_MAYOR_CLOSE: "WAITING_FOR_MAYOR_CLOSE",
+  GAME_CLOSED: "GAME_CLOSED"
+});
+
+const VALID_EVENTS = new Set([
+  "PLAYER_HELLO",
+  "PLAYER_HEARTBEAT",
+  "PLAYER_END",
+  "ROOM_STATE",
+  "ROUND_START",
+  "PLAYER_STATE",
+  "PLAYER_CASHOUT",
+  "ROUND_END",
+  "GAME_CLOSED",
+  "HOST_CHANGED"
+]);
 
 /* =========================================================
-   BOOMROOM SDK
+   SDK / USER
    ========================================================= */
 
-const SDK_AVAILABLE =
-  !!window.BoomRoomSDK &&
-  typeof window.BoomRoomSDK.getUser === "function";
+const SDK = window.BoomRoomSDK;
+const SDK_AVAILABLE = !!(
+  SDK &&
+  typeof SDK.getUser === "function"
+);
 
 let user = {
-
-  id:
-    "local_" +
-    Math.random()
-      .toString(36)
-      .slice(2,10),
-
-  username:"示範玩家",
-
-  avatar:""
-
+  id: "LOCAL_USER",
+  username: "本機玩家",
+  avatar: ""
 };
 
-if(SDK_AVAILABLE){
-
-  try{
-
-    const sdkUser =
-      window.BoomRoomSDK.getUser();
-
-    if(sdkUser){
-
-      user.id =
-        String(
-          sdkUser.id ||
-          user.id
-        );
-
-      user.username =
-        String(
-          sdkUser.username ||
-          "玩家"
-        );
-
-      user.avatar =
-        String(
-          sdkUser.avatar ||
-          ""
-        );
+if (SDK_AVAILABLE) {
+  try {
+    const sdkUser = SDK.getUser();
+    if (sdkUser && sdkUser.id) {
+      user = {
+        id: String(sdkUser.id).slice(0, 120),
+        username: String(sdkUser.username || "BoomRoom 玩家").slice(0, 40),
+        avatar: typeof sdkUser.avatar === "string"
+          ? sdkUser.avatar.slice(0, 400)
+          : ""
+      };
     }
-
-  }catch(error){
-
-    console.warn(
-      "BoomRoomSDK.getUser() failed",
-      error
-    );
-
+  } catch (error) {
+    console.warn("BoomRoomSDK.getUser() failed", error);
   }
 }
 
 const ME = String(user.id);
 
-
 /* =========================================================
    DOM
    ========================================================= */
 
-const $ = id =>
-  document.getElementById(id);
+const app = document.getElementById("app");
+const soundBtn = document.getElementById("soundBtn");
+const helpBtn = document.getElementById("helpBtn");
+const closeHelp = document.getElementById("closeHelp");
 
-const app =
-  $("app");
+const phaseLabel = document.getElementById("phaseLabel");
+const roundLabel = document.getElementById("roundLabel");
 
-const gameStage =
-  $("gameStage");
+const gameStage = document.getElementById("gameStage");
+const multiplier = document.getElementById("multiplier");
+const multiplierCaption = document.getElementById("multiplierCaption");
+const elevator = document.getElementById("elevator");
+const stageMessage = document.getElementById("stageMessage");
+const stageMessageBig = document.getElementById("stageMessageBig");
+const stageMessageSmall = document.getElementById("stageMessageSmall");
+const crashFlash = document.getElementById("crashFlash");
+const particleLayer = document.getElementById("particleLayer");
 
-const phaseLabel =
-  $("phaseLabel");
+const economyEntry = document.getElementById("economyEntry");
+const economyPlayers = document.getElementById("economyPlayers");
+const economyTotal = document.getElementById("economyTotal");
+const economyFee = document.getElementById("economyFee");
+const economyPrize = document.getElementById("economyPrize");
 
-const roundLabel =
-  $("roundLabel");
+const playerInfo = document.getElementById("playerInfo");
+const playerList = document.getElementById("playerList");
 
-const multiplier =
-  $("multiplier");
+const controlTitle = document.getElementById("controlTitle");
+const myStatus = document.getElementById("myStatus");
+const entryCard = document.getElementById("entryCard");
+const mainAction = document.getElementById("mainAction");
+const controlHint = document.getElementById("controlHint");
 
-const multiplierCaption =
-  $("multiplierCaption");
+const toastLayer = document.getElementById("toastLayer");
 
-const elevator =
-  $("elevator");
+const helpPanel = document.getElementById("helpPanel");
+const resultModal = document.getElementById("resultModal");
+const resultIcon = document.getElementById("resultIcon");
+const resultTitle = document.getElementById("resultTitle");
+const resultSubtitle = document.getElementById("resultSubtitle");
+const highlightName = document.getElementById("highlightName");
+const highlightPayout = document.getElementById("highlightPayout");
+const resultEconomy = document.getElementById("resultEconomy");
+const resultList = document.getElementById("resultList");
 
-const stageMessage =
-  $("stageMessage");
+const devBadge = document.getElementById("devBadge");
 
-const stageMessageBig =
-  $("stageMessageBig");
-
-const stageMessageSmall =
-  $("stageMessageSmall");
-
-const crashFlash =
-  $("crashFlash");
-
-const particleLayer =
-  $("particleLayer");
-
-const playerList =
-  $("playerList");
-
-const playerInfo =
-  $("playerInfo");
-
-const myStatus =
-  $("myStatus");
-
-const mainAction =
-  $("mainAction");
-
-const toastLayer =
-  $("toastLayer");
-
-const soundBtn =
-  $("soundBtn");
-
-const helpBtn =
-  $("helpBtn");
-
-const closeHelp =
-  $("closeHelp");
-
-const helpPanel =
-  $("helpPanel");
-
-const resultModal =
-  $("resultModal");
-
-const resultIcon =
-  $("resultIcon");
-
-const resultTitle =
-  $("resultTitle");
-
-const resultSubtitle =
-  $("resultSubtitle");
-
-const highlightName =
-  $("highlightName");
-
-const highlightPayout =
-  $("highlightPayout");
-
-const resultList =
-  $("resultList");
-
-const resultClose =
-  $("resultClose");
-
-const starLayer =
-  $("starLayer");
-
+if (devBadge) {
+  devBadge.hidden = SDK_AVAILABLE;
+}
 
 /* =========================================================
-   ROUND STATE
+   STATE
    ========================================================= */
 
+let gameState = STATES.LOBBY;
+
 let roundId = 1;
-
-let stateVersion = 0;
-
+let roundStartedAt = 0;
 let bettingDeadline = 0;
-
-let roundStartTime = 0;
-
+let countdownDeadline = 0;
 let crashDeadline = 0;
 
 let currentMultiplier = 1;
-
 let publicCrashPoint = null;
 
-let selectedBet = null;
+let selectedEntry = CONFIG.ENTRY_FEE;
 
 let isPurchasing = false;
-
 let purchaseRequest = null;
 
-let resultData = null;
-
-let resultModalShown = false;
-
-
-/* =========================================================
-   PLAYER REGISTRY
-   ========================================================= */
-
-const players = {};
-
-
-players[ME] = {
-
-  id:ME,
-
-  username:
-    user.username ||
-
-    "玩家",
-
-  avatar:
-    user.avatar ||
-
-    "",
-
-  joinedAt:
-    Date.now(),
-
-  lastSeen:
-    Date.now(),
-
-  bet:0,
-
-  status:"waiting",
-
-  cashoutMultiplier:0,
-
-  payout:0
-
-};
-
-
-/* =========================================================
-   HOST STATE
-   ========================================================= */
-
-let hostId = null;
-
+let hostId = "";
 let hostGeneration = 0;
-
-let hostLocked = false;
-
+let hostElectionLocked = false;
 let isHost = false;
 
-let hostElectionInProgress = false;
+let matchParticipants = [];
+let prizePoolLocked = false;
+let lockedTotalPool = 0;
+let lockedPlatformFee = 0;
+let lockedPrizePool = 0;
 
-const hostSecret = {
+let resultData = null;
+let resultModalShown = false;
 
-  crashPoint:null,
+let gameOverCalled = false;
+let gameOverReward = 0;
 
-  startTime:0,
-
-  settled:false
-
+let localCashout = {
+  status: "none",
+  lockedMultiplier: 0,
+  lockedAt: 0
 };
 
+let lastWarningSecond = -1;
+let pausedByVisibility = document.hidden;
 
-/* =========================================================
-   LOCAL REWARD STATE
-   ========================================================= */
+let eventCache = new Set();
+let eventCacheQueue = [];
 
-const rewardClaimedRounds =
-  new Set();
+const players = Object.create(null);
 
-const localCashoutLock = {
-
-  locked:false,
-
-  multiplier:0,
-
-  payout:0,
-
-  time:0
-
+/* Host-authoritative round data */
+const hostState = {
+  seed: 0,
+  crashPoint: null,
+  startTime: 0,
+  crashDeadline: 0,
+  settled: false,
+  participants: [],
+  totalPool: 0,
+  platformFee: 0,
+  prizePool: 0
 };
-
-
-/* =========================================================
-   EVENT SAFETY
-   ========================================================= */
-
-const seenEventIds =
-  new Set();
-
-
-const VALID_EVENTS = new Set([
-
-  "PLAYER_HELLO",
-
-  "PLAYER_HEARTBEAT",
-
-  "PLAYER_END",
-
-  "ROOM_REQUEST",
-
-  "ROOM_STATE",
-
-  "BET_PLACED",
-
-  "BETTING_START",
-
-  "ROUND_START",
-
-  "PLAYER_CASHOUT",
-
-  "CASHOUT_RESULT",
-
-  "ROUND_END",
-
-  "NEW_ROUND",
-
-  "HOST_TAKEOVER"
-
-]);
-
-
-function createEventId(){
-
-  return (
-    ME +
-    "_" +
-    Date.now().toString(36) +
-    "_" +
-    Math.random()
-      .toString(36)
-      .slice(2,8)
-  );
-
-}
-
-
-function rememberEvent(eventId){
-
-  if(!eventId){
-    return true;
-  }
-
-  if(
-    typeof eventId !== "string" ||
-    eventId.length > 160
-  ){
-    return false;
-  }
-
-  if(seenEventIds.has(eventId)){
-
-    return false;
-
-  }
-
-  seenEventIds.add(eventId);
-
-  if(
-    seenEventIds.size >
-    CONFIG.MAX_EVENT_CACHE
-  ){
-
-    const first =
-      seenEventIds
-        .values()
-        .next()
-        .value;
-
-    seenEventIds.delete(first);
-
-  }
-
-  return true;
-
-}
-
 
 /* =========================================================
    UTILS
    ========================================================= */
 
-function finiteNumber(
-  value,
-  fallback = 0
-){
-
-  const n =
-    Number(value);
-
-  return Number.isFinite(n)
-    ? n
-    : fallback;
-
+function finiteNumber(value, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
-
-function clamp(
-  value,
-  min,
-  max
-){
-
-  const n =
-    finiteNumber(
-      value,
-      min
-    );
-
-  return Math.max(
-    min,
-    Math.min(
-      max,
-      n
-    )
-  );
-
+function clamp(value, min, max) {
+  const n = finiteNumber(value, min);
+  return Math.min(max, Math.max(min, n));
 }
 
-
-function clampInt(
-  value,
-  min,
-  max
-){
-
-  return Math.floor(
-    clamp(
-      value,
-      min,
-      max
-    )
-  );
-
+function clampInt(value, min, max) {
+  const n = Math.floor(finiteNumber(value, min));
+  return Math.min(max, Math.max(min, n));
 }
 
-
-function money(value){
-
-  return clampInt(
-    value,
-    0,
-    CONFIG.MAX_PAYOUT
-  ).toLocaleString(
-    "zh-TW"
-  );
-
+function money(value) {
+  return clampInt(value, 0, CONFIG.MAX_REWARD).toLocaleString("en-US");
 }
 
-
-function safeName(name){
-
-  const value =
-    String(name || "玩家")
-      .trim();
-
-  if(value.length <= 11){
-    return value;
-  }
-
-  return (
-    value.slice(0,10) +
-    "…"
-  );
-
+function safeName(value) {
+  const text = String(value || "玩家").trim();
+  return text.slice(0, 40) || "玩家";
 }
 
-
-function escapeHtml(value){
-
+function escapeHtml(value) {
   return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-
-function playerName(id){
-
-  return (
-    players[id]?.username ||
-    "玩家"
-  );
-
+function nowMs() {
+  return Date.now();
 }
 
+function createEventId(prefix = "evt") {
+  const randomPart = Math.random().toString(36).slice(2, 10);
+  return `${prefix}_${nowMs()}_${randomPart}`;
+}
 
-function vibration(pattern){
+function vibration(pattern) {
+  try {
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate(pattern);
+    }
+  } catch (_) {}
+}
 
-  if(
-    navigator.vibrate
-  ){
+function ensureSerializable(value) {
+  try {
+    const copy = JSON.parse(JSON.stringify(value));
+    return copy;
+  } catch (_) {
+    return null;
+  }
+}
 
-    try{
+function validRoundId(value) {
+  return Number.isFinite(Number(value)) && Number(value) >= 1;
+}
 
-      navigator.vibrate(
-        pattern
-      );
+function rememberEvent(eventId) {
+  const id = String(eventId || "");
+  if (!id) return false;
+  if (eventCache.has(id)) return false;
 
-    }catch(_){}
+  eventCache.add(id);
+  eventCacheQueue.push(id);
 
+  while (eventCacheQueue.length > CONFIG.MAX_EVENT_CACHE) {
+    const old = eventCacheQueue.shift();
+    eventCache.delete(old);
   }
 
+  return true;
 }
 
+function clearMatchTimerHandles() {
+  // All gameplay uses wall-clock deadlines, not frame timers.
+}
 
 /* =========================================================
-   TOAST / FEEDBACK
+   TOAST / STAGE FEEDBACK
    ========================================================= */
 
-function toast(
-  message,
-  duration=3000
-){
+let toastSerial = 0;
 
-  const el =
-    document.createElement(
-      "div"
-    );
+function toast(message, duration = 2200) {
+  const serial = ++toastSerial;
 
-  el.className =
-    "toast";
+  const node = document.createElement("div");
+  node.className = "toast";
+  node.textContent = String(message).slice(0, 160);
 
-  el.textContent =
-    String(message);
-
-  toastLayer.appendChild(el);
+  toastLayer.appendChild(node);
 
   setTimeout(() => {
-
-    try{
-      el.remove();
-    }catch(_){}
-
-  }, duration);
-
+    if (serial === toastSerial || node.isConnected) {
+      node.classList.add("hide");
+      setTimeout(() => node.remove(), 220);
+    }
+  }, Math.max(700, duration));
 }
 
+let stageMessageTimer = 0;
 
-let messageTimer = null;
+function showStageMessage(big, small, duration = 900) {
+  stageMessageBig.textContent = big;
+  stageMessageSmall.textContent = small;
+  stageMessage.classList.add("show");
 
+  stageMessageTimer++;
+  const token = stageMessageTimer;
 
-function showStageMessage(
-  big,
-  small="",
-  duration=900
-){
-
-  stageMessageBig.textContent =
-    big;
-
-  stageMessageSmall.textContent =
-    small;
-
-  stageMessage.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    messageTimer
-  );
-
-  messageTimer =
-    setTimeout(() => {
-
-      stageMessage.classList.remove(
-        "show"
-      );
-
-    }, duration);
-
+  setTimeout(() => {
+    if (token === stageMessageTimer) {
+      stageMessage.classList.remove("show");
+    }
+  }, Math.max(250, duration));
 }
-
 
 /* =========================================================
-   WEB AUDIO
+   AUDIO
    ========================================================= */
 
 let audioContext = null;
-
 let soundEnabled = true;
+let audioActiveVoices = 0;
 
+function ensureAudio() {
+  if (!soundEnabled) return;
 
-function ensureAudio(){
-
-  if(!soundEnabled){
-    return;
-  }
-
-  try{
-
-    if(!audioContext){
-
-      audioContext =
-        new (
-          window.AudioContext ||
-          window.webkitAudioContext
-        )();
-
+  try {
+    if (!audioContext) {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return;
+      audioContext = new AudioCtor();
     }
 
-    if(
-      audioContext.state ===
-      "suspended"
-    ){
-
-      audioContext.resume();
-
+    if (audioContext.state === "suspended") {
+      audioContext.resume().catch(() => {});
     }
-
-  }catch(_){}
-
+  } catch (_) {}
 }
 
-
-function playTone(
-  frequency,
-  duration,
-  type="sine",
-  volume=.03,
-  delay=0
-){
-
-  if(!soundEnabled){
-    return;
-  }
+function playTone(frequency, duration, type = "sine", volume = 0.035) {
+  if (!soundEnabled) return;
+  if (audioActiveVoices >= 4) return;
 
   ensureAudio();
+  if (!audioContext) return;
 
-  if(!audioContext){
-    return;
-  }
+  audioActiveVoices++;
 
-  try{
+  try {
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
 
-    const now =
-      audioContext.currentTime +
-      delay;
+    osc.type = type;
+    osc.frequency.value = clamp(frequency, 80, 1800);
 
-    const osc =
-      audioContext.createOscillator();
+    const t = audioContext.currentTime;
+    const d = clamp(duration, 0.04, 0.6);
 
-    const gain =
-      audioContext.createGain();
-
-    osc.type =
-      type;
-
-    osc.frequency.setValueAtTime(
-      frequency,
-      now
-    );
-
-    gain.gain.setValueAtTime(
-      .0001,
-      now
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      volume,
-      now + .01
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      .0001,
-      now + duration
-    );
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), t + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
 
     osc.connect(gain);
-    gain.connect(
-      audioContext.destination
-    );
+    gain.connect(audioContext.destination);
 
-    osc.start(now);
+    osc.start(t);
+    osc.stop(t + d + 0.02);
 
-    osc.stop(
-      now +
-      duration +
-      .02
-    );
-
-  }catch(_){}
-
-}
-
-
-function soundClick(){
-
-  playTone(
-    680,
-    .055,
-    "triangle",
-    .028
-  );
-
-}
-
-
-function soundBet(){
-
-  playTone(
-    420,
-    .075,
-    "triangle",
-    .035
-  );
-
-  playTone(
-    620,
-    .08,
-    "triangle",
-    .028,
-    .065
-  );
-
-}
-
-
-function soundStart(){
-
-  playTone(
-    360,
-    .07,
-    "triangle",
-    .028
-  );
-
-  playTone(
-    520,
-    .08,
-    "triangle",
-    .03,
-    .07
-  );
-
-  playTone(
-    780,
-    .13,
-    "triangle",
-    .038,
-    .15
-  );
-
-}
-
-
-function soundWarning(){
-
-  playTone(
-    540,
-    .055,
-    "square",
-    .022
-  );
-
-}
-
-
-function soundCashout(){
-
-  playTone(
-    620,
-    .075,
-    "triangle",
-    .04
-  );
-
-  playTone(
-    830,
-    .09,
-    "triangle",
-    .036,
-    .065
-  );
-
-  playTone(
-    1100,
-    .13,
-    "triangle",
-    .03,
-    .145
-  );
-
-}
-
-
-function soundCrash(){
-
-  playTone(
-    110,
-    .24,
-    "sawtooth",
-    .055
-  );
-
-  playTone(
-    62,
-    .35,
-    "square",
-    .032,
-    .035
-  );
-
-  playTone(
-    180,
-    .11,
-    "sawtooth",
-    .024,
-    .10
-  );
-
-  vibration([
-    80,
-    40,
-    140
-  ]);
-
-}
-
-
-function soundVictory(){
-
-  [
-    523.25,
-    659.25,
-    783.99,
-    1046.50
-  ].forEach(
-    (freq,index) => {
-
-      playTone(
-        freq,
-        .14,
-        "triangle",
-        .04,
-        index*.10
-      );
-
-    }
-  );
-
-}
-
-
-soundBtn.addEventListener(
-  "pointerdown",
-  () => {
-
-    soundEnabled =
-      !soundEnabled;
-
-    soundBtn.textContent =
-      soundEnabled
-        ? "🔊"
-        : "🔇";
-
-    if(soundEnabled){
-
-      ensureAudio();
-      soundClick();
-
-    }
-
+    osc.onended = () => {
+      audioActiveVoices = Math.max(0, audioActiveVoices - 1);
+    };
+  } catch (_) {
+    audioActiveVoices = Math.max(0, audioActiveVoices - 1);
   }
-);
+}
 
+function soundClick() { playTone(460, 0.07, "square", 0.022); }
+function soundStart() {
+  playTone(330, 0.08, "triangle", 0.025);
+  setTimeout(() => playTone(520, 0.11, "triangle", 0.030), 70);
+}
+function soundWarning() { playTone(760, 0.09, "sine", 0.028); }
+function soundCashout() {
+  playTone(610, 0.08, "triangle", 0.030);
+  setTimeout(() => playTone(920, 0.12, "triangle", 0.035), 70);
+}
+function soundCrash() {
+  playTone(110, 0.24, "sawtooth", 0.040);
+  setTimeout(() => playTone(70, 0.28, "sawtooth", 0.035), 80);
+}
+function soundVictory() {
+  playTone(520, 0.10, "triangle", 0.030);
+  setTimeout(() => playTone(690, 0.10, "triangle", 0.032), 90);
+  setTimeout(() => playTone(880, 0.18, "triangle", 0.038), 180);
+}
+function soundFailure() { playTone(170, 0.18, "sawtooth", 0.028); }
 
-document.addEventListener(
-  "pointerdown",
-  ensureAudio,
-  {
-    passive:true
+soundBtn.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  soundEnabled = !soundEnabled;
+  soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
+  soundBtn.setAttribute("aria-pressed", String(soundEnabled));
+  if (soundEnabled) {
+    ensureAudio();
+    soundClick();
   }
-);
-
+});
 
 /* =========================================================
-   PARTICLES
+   PARTICLE POOL
    ========================================================= */
 
-let particleLevel =
-  CONFIG.MAX_PARTICLES;
+const particles = [];
+let particleLevel = CONFIG.MAX_PARTICLES;
 
+function resetParticles() {
+  while (particleLayer.firstChild) {
+    particleLayer.removeChild(particleLayer.firstChild);
+  }
+  particles.length = 0;
+}
 
-function spawnParticles(
-  amount = particleLevel
-){
+function spawnParticles(requested = particleLevel) {
+  const count = clampInt(requested, 0, particleLevel);
 
-  const count =
-    Math.min(
-      particleLevel,
-      Math.max(
-        0,
-        amount
-      )
-    );
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
 
-  const rect =
-    gameStage.getBoundingClientRect();
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 36 + Math.random() * 150;
+    const size = 2 + Math.random() * 5;
+    const life = 420 + Math.random() * 430;
 
-  const cx =
-    rect.width / 2;
-
-  const cy =
-    rect.height * .47;
-
-  const palette = [
-
-    "#ff2995",
-    "#895cff",
-    "#25e7ff",
-    "#ffd85a",
-    "#ffffff",
-    "#ff4c68"
-
-  ];
-
-  for(
-    let i=0;
-    i<count;
-    i++
-  ){
-
-    const p =
-      document.createElement(
-        "div"
-      );
-
-    p.className =
-      "star";
-
-    p.style.width =
-      (
-        3 +
-        Math.random()*4
-      ) +
-      "px";
-
-    p.style.height =
-      p.style.width;
-
-    p.style.left =
-      cx +
-      "px";
-
-    p.style.top =
-      cy +
-      "px";
-
-    p.style.background =
-      palette[
-        Math.floor(
-          Math.random() *
-          palette.length
-        )
-      ];
-
-    p.style.opacity =
-      "0.95";
-
-    p.style.animation =
-      "none";
-
-    const angle =
-      Math.random() *
-      Math.PI *
-      2;
-
-    const distance =
-      50 +
-      Math.random()*180;
-
-    p.animate(
-      [
-        {
-          opacity:1,
-          transform:"translate(0,0) scale(1)"
-        },
-        {
-          opacity:0,
-          transform:
-            "translate(" +
-            (
-              Math.cos(angle) *
-              distance
-            ) +
-            "px," +
-            (
-              Math.sin(angle) *
-              distance
-            ) +
-            "px) scale(.15)"
-        }
-      ],
-      {
-        duration:
-          500 +
-          Math.random()*450,
-
-        easing:
-          "cubic-bezier(.15,.75,.25,1)"
-      }
-    );
+    p.style.width = `${size}px`;
+    p.style.height = `${size}px`;
+    p.style.left = "50%";
+    p.style.top = "48%";
+    p.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    p.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    p.style.animationDuration = `${life}ms`;
 
     particleLayer.appendChild(p);
 
-    setTimeout(
-      () => {
-        p.remove();
-      },
-      1000
-    );
-
+    setTimeout(() => p.remove(), life + 50);
   }
-
 }
 
-
-function crashVisuals(){
-
-  crashFlash.classList.remove(
-    "play"
-  );
-
+function crashVisuals() {
+  crashFlash.classList.remove("play");
   void crashFlash.offsetWidth;
+  crashFlash.classList.add("play");
 
-  crashFlash.classList.add(
-    "play"
-  );
+  gameStage.classList.remove("shake");
+  void gameStage.offsetWidth;
+  gameStage.classList.add("shake");
 
-  app.classList.remove(
-    "shake"
-  );
-
-  void app.offsetWidth;
-
-  app.classList.add(
-    "shake"
-  );
-
-  elevator.classList.add(
-    "crashed"
-  );
-
-  spawnParticles(
-    particleLevel
-  );
-
-  soundCrash();
-
+  spawnParticles(particleLevel);
+  vibration([25, 18, 35]);
 }
-
 
 /* =========================================================
    BACKGROUND STARS
    ========================================================= */
 
-function createStars(){
+function createStars() {
+  const frag = document.createDocumentFragment();
 
-  starLayer.innerHTML = "";
-
-  for(
-    let i=0;
-    i<34;
-    i++
-  ){
-
-    const star =
-      document.createElement(
-        "div"
-      );
-
-    star.className =
-      "star";
-
-    star.style.left =
-      (
-        Math.random()*100
-      ) +
-      "%";
-
-    star.style.top =
-      (
-        Math.random()*100
-      ) +
-      "%";
-
-    const size =
-      .6 +
-      Math.random()*1.7;
-
-    star.style.width =
-      size +
-      "px";
-
-    star.style.height =
-      size +
-      "px";
-
-    star.style.animationDuration =
-      (
-        2.8 +
-        Math.random()*4
-      ) +
-      "s";
-
-    star.style.animationDelay =
-      (
-        -Math.random()*5
-      ) +
-      "s";
-
-    starLayer.appendChild(
-      star
-    );
-
+  for (let i = 0; i < 22; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.style.left = `${Math.random() * 100}%`;
+    star.style.top = `${Math.random() * 100}%`;
+    star.style.animationDuration = `${5 + Math.random() * 8}s`;
+    star.style.animationDelay = `${-Math.random() * 8}s`;
+    frag.appendChild(star);
   }
 
+  document.getElementById("starLayer").appendChild(frag);
 }
-
 
 /* =========================================================
-   PLAYER DATA
+   PLAYER REGISTRY
    ========================================================= */
 
-function touchPlayer(id){
+function normalizePlayer(raw) {
+  if (!raw || !raw.id) return null;
 
-  if(
-    players[id]
-  ){
+  const id = String(raw.id).slice(0, 120);
+  const existing = players[id];
 
-    players[id].lastSeen =
-      Date.now();
-
-  }
-
+  return {
+    id,
+    username: safeName(raw.username || existing?.username || "玩家"),
+    avatar: typeof raw.avatar === "string"
+      ? raw.avatar.slice(0, 400)
+      : (existing?.avatar || ""),
+    joinedAt: finiteNumber(raw.joinedAt, existing?.joinedAt || nowMs()),
+    lastSeen: nowMs(),
+    paid: !!raw.paid,
+    entry: clampInt(raw.entry, 0, CONFIG.ENTRY_FEE),
+    status: String(raw.status || existing?.status || "waiting").slice(0, 24),
+    cashoutMultiplier: clamp(raw.cashoutMultiplier, 0, CONFIG.MAX_CRASH_MULTIPLIER),
+    cashoutAt: finiteNumber(raw.cashoutAt, existing?.cashoutAt || 0),
+    reward: clampInt(raw.reward, 0, CONFIG.MAX_REWARD),
+    reason: String(raw.reason || existing?.reason || "").slice(0, 80)
+  };
 }
 
+function addPlayer(raw) {
+  const p = normalizePlayer(raw);
+  if (!p) return null;
 
-function addPlayer(data){
+  const existing = players[p.id];
 
-  if(
-    !data ||
-    data.id == null
-  ){
+  players[p.id] = existing
+    ? {
+        ...existing,
+        ...p,
+        lastSeen: nowMs()
+      }
+    : p;
 
-    return;
+  return players[p.id];
+}
 
+function touchPlayer(id) {
+  if (players[id]) {
+    players[id].lastSeen = nowMs();
   }
+}
 
-  const id =
-    String(data.id);
+function activePlayers() {
+  const now = nowMs();
 
-  if(
-    id.length < 1 ||
-    id.length > 128
-  ){
+  return Object.values(players)
+    .filter(p =>
+      p &&
+      p.id &&
+      (p.id === ME || now - p.lastSeen <= CONFIG.PLAYER_TIMEOUT)
+    )
+    .sort((a, b) => {
+      if (a.joinedAt !== b.joinedAt) return a.joinedAt - b.joinedAt;
+      return a.id.localeCompare(b.id);
+    });
+}
 
-    return;
-
-  }
-
-  const joinedAt =
-    clampInt(
-      data.joinedAt,
-      0,
-      Date.now() + 60000
+function paidPlayers() {
+  return Object.values(players)
+    .filter(p =>
+      p &&
+      p.paid === true &&
+      p.entry === CONFIG.ENTRY_FEE
     );
-
-  if(
-    !players[id]
-  ){
-
-    players[id] = {
-
-      id,
-
-      username:
-        String(
-          data.username ||
-          "玩家"
-        ).slice(0,32),
-
-      avatar:
-        String(
-          data.avatar ||
-          ""
-        ).slice(0,1000),
-
-      joinedAt:
-        joinedAt ||
-        Date.now(),
-
-      lastSeen:
-        Date.now(),
-
-      bet:0,
-
-      status:"waiting",
-
-      cashoutMultiplier:0,
-
-      payout:0
-
-    };
-
-  }else{
-
-    players[id].username =
-      String(
-        data.username ||
-        players[id].username ||
-        "玩家"
-      ).slice(0,32);
-
-    players[id].avatar =
-      String(
-        data.avatar ||
-        players[id].avatar ||
-        ""
-      ).slice(0,1000);
-
-    players[id].lastSeen =
-      Date.now();
-
-  }
-
 }
 
-
-function activePlayers(){
-
-  const now =
-    Date.now();
-
-  return Object.values(
-    players
-  ).filter(
-    p =>
-      now -
-      p.lastSeen <=
-      CONFIG.PLAYER_TIMEOUT
-  );
-
+function currentPaidIds() {
+  return paidPlayers()
+    .slice(0, CONFIG.MAX_PLAYERS)
+    .map(p => p.id);
 }
 
-
-function bettingPlayers(){
-
-  return Object.values(
-    players
-  ).filter(
-    p =>
-      p.bet > 0 &&
-      p.status !== "watching"
-  );
-
+function resetPlayerForNewInstance() {
+  Object.values(players).forEach(p => {
+    p.paid = false;
+    p.entry = 0;
+    p.status = "waiting";
+    p.cashoutMultiplier = 0;
+    p.cashoutAt = 0;
+    p.reward = 0;
+    p.reason = "";
+  });
 }
-
-
-function participantIds(){
-
-  return Object.values(
-    players
-  )
-  .filter(
-    p =>
-      p.bet > 0
-  )
-  .slice(
-    0,
-    CONFIG.MAX_PLAYERS
-  )
-  .map(
-    p => p.id
-  );
-
-}
-
 
 /* =========================================================
    HOST ELECTION
    ========================================================= */
 
-function electHost(){
+function hostIsAlive() {
+  if (!hostId) return false;
 
-  if(
-    hostElectionInProgress ||
-    hostLocked
-  ){
+  if (hostId === ME) return true;
 
+  const p = players[hostId];
+  return !!p && nowMs() - p.lastSeen <= CONFIG.HOST_TIMEOUT;
+}
+
+function candidateHostId() {
+  const candidates = activePlayers();
+
+  if (!candidates.length) return "";
+
+  return candidates[0].id;
+}
+
+function electHost(force = false) {
+  if (gameState === STATES.PLAYING && !force && hostIsAlive()) {
     return;
-
   }
 
-  hostElectionInProgress =
-    true;
-
-  const list =
-    activePlayers()
-      .slice()
-      .sort(
-        (a,b) => {
-
-          const ta =
-            Number(a.joinedAt);
-
-          const tb =
-            Number(b.joinedAt);
-
-          if(
-            ta !== tb
-          ){
-
-            return ta - tb;
-
-          }
-
-          return a.id.localeCompare(
-            b.id
-          );
-
-        }
-      );
-
-  if(
-    list.length === 0
-  ){
-
-    hostElectionInProgress =
-      false;
-
+  if (!force && hostElectionLocked && hostIsAlive()) {
     return;
-
   }
 
-  hostId =
-    list[0].id;
+  const nextHost = candidateHostId();
+  if (!nextHost) return;
 
-  isHost =
-    hostId === ME;
+  if (hostId === nextHost && hostId) {
+    isHost = hostId === ME;
+    return;
+  }
 
-  hostElectionInProgress =
-    false;
+  hostId = nextHost;
+  isHost = hostId === ME;
 
-  if(
-    isHost
-  ){
+  hostGeneration = clampInt(hostGeneration + 1, 1, 999999999);
+  hostElectionLocked = true;
 
-    toast(
-      "👑 你是本房房主"
-    );
-
+  if (isHost) {
+    toast("👑 你是本局主持人候選");
+    sendHostEvent("HOST_CHANGED", {
+      hostId,
+      hostGeneration
+    });
   }
 
   renderAll();
-
 }
 
+function tryHostTakeover() {
+  if (hostIsAlive()) return;
 
-function hostIsAlive(){
+  const nextHost = candidateHostId();
+  if (!nextHost) return;
 
-  if(
-    !hostId
-  ){
+  hostId = nextHost;
+  isHost = hostId === ME;
+  hostGeneration = clampInt(hostGeneration + 1, 1, 999999999);
+  hostElectionLocked = true;
 
-    return false;
+  if (isHost) {
+    toast("👑 主持人離線，已由穩定候選人接手");
+    sendHostEvent("HOST_CHANGED", {
+      hostId,
+      hostGeneration
+    });
 
-  }
+    if (gameState === STATES.PLAYING && !hostState.settled) {
+      const now = nowMs();
+      const current = currentMultiplierAt(now);
+      currentMultiplier = current;
 
-  if(
-    hostId === ME
-  ){
-
-    return true;
-
-  }
-
-  const host =
-    players[hostId];
-
-  if(!host){
-    return false;
-  }
-
-  return (
-    Date.now() -
-    host.lastSeen
-  ) <=
-  CONFIG.HOST_TIMEOUT;
-
-}
-
-
-function tryHostTakeover(){
-
-  if(
-    !hostId ||
-    hostIsAlive()
-  ){
-
-    return;
-
-  }
-
-  const candidates =
-    activePlayers()
-      .slice()
-      .sort(
-        (a,b) => {
-
-          const ta =
-            Number(a.joinedAt);
-
-          const tb =
-            Number(b.joinedAt);
-
-          if(
-            ta !== tb
-          ){
-
-            return ta - tb;
-
-          }
-
-          return a.id.localeCompare(
-            b.id
-          );
-
-        }
-      );
-
-  if(
-    candidates.length === 0
-  ){
-
-    return;
-
-  }
-
-  const candidate =
-    candidates[0];
-
-  if(
-    candidate.id !== ME
-  ){
-
-    return;
-
-  }
-
-  hostGeneration += 1;
-
-  hostId =
-    ME;
-
-  isHost =
-    true;
-
-  sendEvent(
-    "HOST_TAKEOVER",
-    {
-
-      roundId,
-
-      hostId:ME,
-
-      generation:
-        hostGeneration
-
+      if (hostState.crashPoint != null && current >= hostState.crashPoint) {
+        hostCrash();
+      }
     }
-  );
+  }
 
-  toast(
-    "👑 房主已切換"
-  );
-
+  renderAll();
 }
-
 
 /* =========================================================
-   BOOMROOM SEND
+   EVENT BUS / VALIDATION
    ========================================================= */
 
-function sendEvent(
-  eventName,
-  payload={}
-){
+function validateIncomingEvent(eventName, payload, senderId) {
+  if (!VALID_EVENTS.has(eventName)) return false;
+  if (!payload || typeof payload !== "object") return false;
 
-  if(
-    !VALID_EVENTS.has(
-      eventName
-    )
-  ){
+  const eid = String(payload.eventId || "");
+  if (!eid || eid.length > 120) return false;
 
-    return;
+  if (!validRoundId(payload.roundId)) return false;
+  if (Number(payload.roundId) !== roundId) return false;
 
-  }
+  const sid = String(senderId || payload.from || "");
+  if (sid.length > 120) return false;
 
-  const safePayload = {
+  if (payload.username != null && String(payload.username).length > 40) return false;
 
-    eventId:
-      createEventId(),
+  const numericKeys = [
+    "roundId", "startTime", "crashDeadline", "crashPoint",
+    "cashoutMultiplier", "cashoutAt", "reward",
+    "totalPool", "platformFee", "prizePool"
+  ];
 
-    roundId,
-
-    from:ME,
-
-    sentAt:Date.now(),
-
-    ...payload
-
-  };
-
-  markAndDispatchLocal(
-    eventName,
-    safePayload,
-    true
-  );
-
-  if(
-    !SDK_AVAILABLE ||
-    typeof
-      window.BoomRoomSDK
-        .sendGameEvent !==
-        "function"
-  ){
-
-    return;
-
-  }
-
-  try{
-
-    window.BoomRoomSDK.sendGameEvent(
-      eventName,
-      safePayload
-    );
-
-  }catch(error){
-
-    console.warn(
-      "sendGameEvent failed",
-      error
-    );
-
-  }
-
-}
-
-
-function sendHostEvent(
-  eventName,
-  payload={}
-){
-
-  if(!isHost){
-    return;
-  }
-
-  sendEvent(
-    eventName,
-    payload
-  );
-
-}
-
-
-/* =========================================================
-   EVENT RECEIVE
-   ========================================================= */
-
-function isValidEventPayload(
-  eventName,
-  payload,
-  userId
-){
-
-  if(
-    !VALID_EVENTS.has(
-      eventName
-    )
-  ){
-
-    return false;
-
-  }
-
-  if(
-    !payload ||
-    typeof payload !==
-      "object"
-  ){
-
-    return false;
-
-  }
-
-  if(
-    userId &&
-    String(userId).length >
-      128
-  ){
-
-    return false;
-
-  }
-
-  const eventsWithoutRound =
-    new Set([
-      "PLAYER_HELLO"
-    ]);
-
-  if(
-    !eventsWithoutRound.has(
-      eventName
-    )
-  ){
-
-    const incomingRound =
-      Number(
-        payload.roundId
-      );
-
-    if(
-      !Number.isFinite(
-        incomingRound
-      )
-    ){
-
+  for (const key of numericKeys) {
+    if (payload[key] != null && !Number.isFinite(Number(payload[key]))) {
       return false;
-
     }
-
   }
 
   return true;
-
 }
 
+function buildEvent(eventName, payload = {}) {
+  const safePayload = ensureSerializable(payload) || {};
 
-function markAndDispatchLocal(
-  eventName,
-  payload,
-  local=false
-){
-
-  if(
-    !rememberEvent(
-      payload.eventId
-    )
-  ){
-
-    return;
-
-  }
-
-  handleEvent(
-    eventName,
-    payload,
-    ME,
-    local
-  );
-
+  return {
+    eventId: createEventId(eventName.toLowerCase()),
+    roundId,
+    from: ME,
+    sentAt: nowMs(),
+    ...safePayload
+  };
 }
 
-
-window.addEventListener(
-  "message",
-  event => {
-
-    let data =
-      event.data;
-
-    if(
-      typeof data ===
-      "string"
-    ){
-
-      try{
-
-        data =
-          JSON.parse(
-            data
-          );
-
-      }catch(_){
-
-        return;
-
-      }
-
-    }
-
-    if(
-      !data ||
-      data.action !==
-        "gameEventReceived"
-    ){
-
-      return;
-
-    }
-
-    const eventName =
-      String(
-        data.eventName ||
-        ""
-      );
-
-    const payload =
-      data.payload ||
-      {};
-
-    const userId =
-      String(
-        data.userId ||
-        payload.from ||
-        ""
-      );
-
-    if(
-      !isValidEventPayload(
-        eventName,
-        payload,
-        userId
-      )
-    ){
-
-      return;
-
-    }
-
-    if(
-      !rememberEvent(
-        payload.eventId
-      )
-    ){
-
-      return;
-
-    }
-
-    handleEvent(
-      eventName,
-      payload,
-      userId,
-      false
-    );
-
-  }
-);
-
-
-/* =========================================================
-   GAME EVENT HANDLER
-   ========================================================= */
-
-function handleEvent(
-  eventName,
-  payload,
-  senderId,
-  local=false
-){
-
-  switch(eventName){
-
-    /* -----------------------------------------------
-       PLAYER_HELLO
-       ----------------------------------------------- */
-
-    case "PLAYER_HELLO":{
-
-      const p =
-        payload.user;
-
-      if(
-        !p ||
-        !p.id
-      ){
-
-        return;
-
-      }
-
-      addPlayer({
-
-        id:String(p.id),
-
-        username:
-          p.username,
-
-        avatar:
-          p.avatar,
-
-        joinedAt:
-          finiteNumber(
-            p.joinedAt,
-            Date.now()
-          )
-
-      });
-
-      if(
-        !hostLocked
-      ){
-
-        setTimeout(
-          electHost,
-          50
-        );
-
-      }
-
-      if(
-        isHost &&
-        String(p.id) !== ME
-      ){
-
-        setTimeout(
-          () => {
-
-            sendEvent(
-              "ROOM_REQUEST",
-              {
-                requesterId:
-                  String(p.id)
-              }
-            );
-
-          },
-          80
-        );
-
-      }
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       PLAYER_HEARTBEAT
-       ----------------------------------------------- */
-
-    case "PLAYER_HEARTBEAT":{
-
-      const id =
-        String(
-          payload.playerId ||
-          senderId ||
-          ""
-        );
-
-      if(!id){
-        return;
-      }
-
-      if(
-        players[id]
-      ){
-
-        players[id].lastSeen =
-          Date.now();
-
-      }
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       PLAYER_END
-       ----------------------------------------------- */
-
-    case "PLAYER_END":{
-
-      const id =
-        String(
-          payload.playerId ||
-          senderId ||
-          ""
-        );
-
-      if(
-        !players[id]
-      ){
-
-        return;
-
-      }
-
-      players[id].lastSeen =
-        0;
-
-      if(
-        gameState ===
-          STATES.PLAYING &&
-        players[id].status ===
-          "running"
-      ){
-
-        players[id].status =
-          "crashed";
-
-        players[id].payout =
-          0;
-
-      }
-
-      if(
-        id === hostId
-      ){
-
-        setTimeout(
-          tryHostTakeover,
-          200
-        );
-
-      }
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       ROOM_REQUEST
-       ----------------------------------------------- */
-
-    case "ROOM_REQUEST":{
-
-      if(!isHost){
-        return;
-      }
-
-      const targetId =
-        String(
-          payload.requesterId ||
-          senderId ||
-          ""
-        );
-
-      if(!targetId){
-        return;
-      }
-
-      sendHostEvent(
-        "ROOM_STATE",
-        {
-
-          targetId,
-
-          hostId,
-
-          hostGeneration,
-
-          state:gameState,
-
-          roundId,
-
-          bettingDeadline,
-
-          roundStartTime,
-
-          crashDeadline,
-
-          currentMultiplier,
-
-          crashPoint:
-            gameState ===
-            STATES.PLAYING
-              ? hostState.crashPoint
-              : null,
-
-          players:
-            Object.values(
-              players
-            )
-            .slice(
-              0,
-              CONFIG.MAX_PLAYERS
-            )
-            .map(
-              p => ({
-
-                id:p.id,
-
-                username:p.username,
-
-                avatar:p.avatar,
-
-                joinedAt:p.joinedAt,
-
-                lastSeen:p.lastSeen,
-
-                bet:p.bet,
-
-                status:p.status,
-
-                cashoutMultiplier:
-                  p.cashoutMultiplier,
-
-                payout:p.payout
-
-              })
-            )
-
-        }
-      );
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       ROOM_STATE
-       ----------------------------------------------- */
-
-    case "ROOM_STATE":{
-
-      if(
-        payload.targetId &&
-        String(
-          payload.targetId
-        ) !== ME
-      ){
-
-        return;
-
-      }
-
-      if(
-        payload.hostId
-      ){
-
-        hostId =
-          String(
-            payload.hostId
-          );
-
-        isHost =
-          hostId === ME;
-
-        hostLocked =
-          true;
-
-      }
-
-      if(
-        Number.isFinite(
-          Number(
-            payload.hostGeneration
-          )
-        )
-      ){
-
-        hostGeneration =
-          Math.max(
-            hostGeneration,
-            Number(
-              payload.hostGeneration
-            )
-          );
-
-      }
-
-      if(
-        Array.isArray(
-          payload.players
-        )
-      ){
-
-        payload.players.forEach(
-          p => {
-
-            if(
-              p &&
-              p.id
-            ){
-
-              addPlayer(p);
-
-              if(
-                players[
-                  String(p.id)
-                ]
-              ){
-
-                players[
-                  String(p.id)
-                ].bet =
-                  clampInt(
-                    p.bet,
-                    0,
-                    1000
-                  );
-
-                players[
-                  String(p.id)
-                ].status =
-                  String(
-                    p.status ||
-                    "waiting"
-                  ).slice(
-                    0,
-                    20
-                  );
-
-                players[
-                  String(p.id)
-                ].cashoutMultiplier =
-                  clamp(
-                    p.cashoutMultiplier,
-                    0,
-                    CONFIG.MAX_CRASH_MULTIPLIER
-                  );
-
-                players[
-                  String(p.id)
-                ].payout =
-                  clampInt(
-                    p.payout,
-                    0,
-                    CONFIG.MAX_PAYOUT
-                  );
-
-              }
-
-            }
-
-          }
-        );
-
-      }
-
-      if(
-        payload.roundId <
-        roundId
-      ){
-
-        return;
-
-      }
-
-      roundId =
-        clampInt(
-          payload.roundId,
-          1,
-          999999999
-        );
-
-      gameState =
-        Object.values(
-          STATES
-        ).includes(
-          payload.state
-        )
-          ? payload.state
-          : gameState;
-
-      bettingDeadline =
-        finiteNumber(
-          payload.bettingDeadline,
-          0
-        );
-
-      roundStartTime =
-        finiteNumber(
-          payload.roundStartTime,
-          0
-        );
-
-      crashDeadline =
-        finiteNumber(
-          payload.crashDeadline,
-          0
-        );
-
-      currentMultiplier =
-        clamp(
-          payload.currentMultiplier,
-          1,
-          CONFIG.MAX_CRASH_MULTIPLIER
-        );
-
-      if(
-        gameState ===
-        STATES.PLAYING &&
-        payload.crashPoint != null
-      ){
-
-        publicCrashPoint =
-          clamp(
-            payload.crashPoint,
-            CONFIG.MIN_CRASH_MULTIPLIER,
-            CONFIG.MAX_CRASH_MULTIPLIER
-          );
-
-      }
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       BET_PLACED
-       ----------------------------------------------- */
-
-    case "BET_PLACED":{
-
-      if(
-        payload.roundId !==
-        roundId
-      ){
-
-        return;
-
-      }
-
-      if(
-        gameState !==
-        STATES.BETTING &&
-        gameState !==
-        STATES.LOBBY
-      ){
-
-        return;
-
-      }
-
-      const id =
-        String(
-          payload.playerId ||
-          senderId ||
-          ""
-        );
-
-      if(!id){
-        return;
-      }
-
-      addPlayer({
-
-        id,
-
-        username:
-          payload.username ||
-
-          "玩家",
-
-        avatar:
-          payload.avatar ||
-
-          "",
-
-        joinedAt:
-          finiteNumber(
-            payload.joinedAt,
-            Date.now()
-          )
-
-      });
-
-      const amount =
-        clampInt(
-          payload.amount,
-          0,
-          1000
-        );
-
-      if(
-        !CONFIG.BET_OPTIONS.includes(
-          amount
-        )
-      ){
-
-        return;
-
-      }
-
-      if(
-        bettingPlayers().some(
-          p =>
-            p.id === id
-        )
-      ){
-
-        return;
-
-      }
-
-      players[id].bet =
-        amount;
-
-      players[id].status =
-        "ready";
-
-      players[id].cashoutMultiplier =
-        0;
-
-      players[id].payout =
-        0;
-
-      touchPlayer(id);
-
-      if(
-        gameState ===
-        STATES.LOBBY
-      ){
-
-        gameState =
-          STATES.BETTING;
-
-      }
-
-      renderAll();
-
-      if(
-        isHost
-      ){
-
-        maybeStartCountdown();
-
-      }
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       BETTING_START
-       ----------------------------------------------- */
-
-    case "BETTING_START":{
-
-      if(
-        Number(
-          payload.roundId
-        ) !==
-        roundId
-      ){
-
-        return;
-
-      }
-
-      if(
-        gameState !==
-          STATES.BETTING &&
-        gameState !==
-          STATES.COUNTDOWN
-      ){
-
-        return;
-
-      }
-
-      bettingDeadline =
-        finiteNumber(
-          payload.deadline,
-          0
-        );
-
-      gameState =
-        STATES.COUNTDOWN;
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       ROUND_START
-       ----------------------------------------------- */
-
-    case "ROUND_START":{
-
-      const incomingRound =
-        Number(
-          payload.roundId
-        );
-
-      if(
-        !Number.isFinite(
-          incomingRound
-        )
-      ){
-
-        return;
-
-      }
-
-      if(
-        incomingRound <
-        roundId
-      ){
-
-        return;
-
-      }
-
-      roundId =
-        incomingRound;
-
-      hostLocked =
-        true;
-
-      if(
-        payload.hostId
-      ){
-
-        hostId =
-          String(
-            payload.hostId
-          );
-
-        isHost =
-          hostId === ME;
-
-      }
-
-      if(
-        Array.isArray(
-          payload.participants
-        )
-      ){
-
-        const ids =
-          new Set(
-            payload.participants
-              .map(
-                p =>
-                  String(
-                    p.id
-                  )
-              )
-          );
-
-        Object.values(
-          players
-        ).forEach(
-          p => {
-
-            if(
-              !ids.has(
-                p.id
-              )
-            ){
-
-              p.status =
-                "watching";
-
-              p.bet = 0;
-
-            }
-
-          }
-        );
-
-        payload.participants
-          .forEach(
-            p => {
-
-              addPlayer({
-
-                id:String(p.id),
-
-                username:p.username,
-
-                avatar:p.avatar,
-
-                joinedAt:
-                  finiteNumber(
-                    p.joinedAt,
-                    Date.now()
-                  )
-
-              });
-
-              players[
-                String(p.id)
-              ].bet =
-                clampInt(
-                  p.bet,
-                  0,
-                  1000
-                );
-
-              players[
-                String(p.id)
-              ].status =
-                "running";
-
-              players[
-                String(p.id)
-              ].cashoutMultiplier =
-                0;
-
-              players[
-                String(p.id)
-              ].payout =
-                0;
-
-            }
-          );
-
-      }
-
-      gameState =
-        STATES.PLAYING;
-
-      roundStartTime =
-        finiteNumber(
-          payload.startTime,
-          Date.now()
-        );
-
-      crashDeadline =
-        finiteNumber(
-          payload.crashDeadline,
-          0
-        );
-
-      publicCrashPoint =
-        clamp(
-          payload.crashPoint,
-          CONFIG.MIN_CRASH_MULTIPLIER,
-          CONFIG.MAX_CRASH_MULTIPLIER
-        );
-
-      currentMultiplier =
-        1;
-
-      bettingDeadline =
-        0;
-
-      localCashoutLock.locked =
-        false;
-
-      localCashoutLock.multiplier =
-        0;
-
-      localCashoutLock.payout =
-        0;
-
-      elevator.classList.remove(
-        "crashed"
-      );
-
-      elevator.classList.add(
-        "active"
-      );
-
-      showStageMessage(
-        "🚀 起飛！",
-        "10 秒後開放有效收錢",
-        1050
-      );
-
-      soundStart();
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       PLAYER_CASHOUT
-       ----------------------------------------------- */
-
-    case "PLAYER_CASHOUT":{
-
-      if(!isHost){
-        return;
-      }
-
-      if(
-        Number(
-          payload.roundId
-        ) !==
-        roundId
-      ){
-
-        return;
-
-      }
-
-      if(
-        gameState !==
-        STATES.PLAYING
-      ){
-
-        return;
-
-      }
-
-      const id =
-        String(
-          payload.playerId ||
-          senderId ||
-          ""
-        );
-
-      const p =
-        players[id];
-
-      if(!p){
-        return;
-      }
-
-      if(
-        p.bet <= 0 ||
-        p.status !==
-          "running"
-      ){
-
-        return;
-
-      }
-
-      const now =
-        Date.now();
-
-      const elapsed =
-        Math.max(
-          0,
-          now -
-          roundStartTime
-        );
-
-      const qualified =
-        elapsed >=
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-        1000;
-
-      /*
-        Host authoritative multiplier.
-      */
-      const liveMultiplier =
-        currentMultiplierAt(
-          now
-        );
-
-      if(
-        !qualified
-      ){
-
-        sendHostEvent(
-          "CASHOUT_RESULT",
-          {
-
-            playerId:id,
-
-            multiplier:0,
-
-            payout:0,
-
-            qualified:false,
-
-            reason:
-              "REWARD_NOT_UNLOCKED"
-
-          }
-        );
-
-        return;
-
-      }
-
-      if(
-        hostState.crashPoint != null &&
-        liveMultiplier >=
-        hostState.crashPoint
-      ){
-
-        return;
-
-      }
-
-      const payout =
-        calculatePayout(
-          p.bet,
-          liveMultiplier
-        );
-
-      /*
-        Cash-out Freeze:
-        reward is calculated,
-        then immediately locked.
-      */
-      p.status =
-        "cashed";
-
-      p.cashoutMultiplier =
-        liveMultiplier;
-
-      p.payout =
-        payout;
-
-      sendHostEvent(
-        "CASHOUT_RESULT",
-        {
-
-          playerId:id,
-
-          multiplier:
-            liveMultiplier,
-
-          payout,
-
-          qualified:true
-
-        }
-      );
-
-      renderAll();
-
-      if(
-        id === ME
-      ){
-
-        soundCashout();
-
-      }
-
-      toast(
-        "💰 " +
-        safeName(
-          p.username
-        ) +
-        " 收錢 " +
-        liveMultiplier.toFixed(2) +
-        "x"
-      );
-
-      checkHostAllCashed();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       CASHOUT_RESULT
-       ----------------------------------------------- */
-
-    case "CASHOUT_RESULT":{
-
-      if(
-        Number(
-          payload.roundId
-        ) !==
-        roundId
-      ){
-
-        return;
-
-      }
-
-      const id =
-        String(
-          payload.playerId ||
-          senderId ||
-          ""
-        );
-
-      if(
-        !players[id]
-      ){
-
-        return;
-
-      }
-
-      const qualified =
-        payload.qualified !==
-        false;
-
-      const safeMultiplier =
-        qualified
-          ? clamp(
-              payload.multiplier,
-              1,
-              CONFIG.MAX_CRASH_MULTIPLIER
-            )
-          : 0;
-
-      const safePayout =
-        qualified
-          ? clampInt(
-              payload.payout,
-              0,
-              CONFIG.MAX_PAYOUT
-            )
-          : 0;
-
-      /*
-        Once cashout result arrives,
-        it is frozen forever.
-      */
-
-      players[id].status =
-        qualified
-          ? "cashed"
-          : "crashed";
-
-      players[id].cashoutMultiplier =
-        safeMultiplier;
-
-      players[id].payout =
-        safePayout;
-
-      if(
-        id === ME
-      ){
-
-        localCashoutLock.locked =
-          qualified;
-
-        localCashoutLock.multiplier =
-          safeMultiplier;
-
-        localCashoutLock.payout =
-          safePayout;
-
-        localCashoutLock.time =
-          Date.now();
-
-        /*
-          gameOver exactly once
-          for this round.
-        */
-
-        requestGameOverOnce(
-          roundId,
-          safePayout
-        );
-
-        if(
-          qualified
-        ){
-
-          soundCashout();
-
-        }
-
-      }
-
-      renderAll();
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       ROUND_END
-       ----------------------------------------------- */
-
-    case "ROUND_END":{
-
-      if(
-        Number(
-          payload.roundId
-        ) !==
-        roundId
-      ){
-
-        return;
-
-      }
-
-      if(
-        gameState ===
-        STATES.RESULT
-      ){
-
-        return;
-
-      }
-
-      gameState =
-        STATES.RESULT;
-
-      publicCrashPoint =
-        clamp(
-          payload.crashPoint,
-          CONFIG.MIN_CRASH_MULTIPLIER,
-          CONFIG.MAX_CRASH_MULTIPLIER
-        );
-
-      currentMultiplier =
-        publicCrashPoint;
-
-      resultData =
-        payload.result || null;
-
-      renderAll();
-
-      showResult();
-
-      setTimeout(
-        beginNextRound,
-        CONFIG.ROUND_END_DELAY
-      );
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       NEW_ROUND
-       ----------------------------------------------- */
-
-    case "NEW_ROUND":{
-
-      const nextRound =
-        Number(
-          payload.nextRoundId ||
-          payload.roundId
-        );
-
-      if(
-        !Number.isFinite(
-          nextRound
-        ) ||
-        nextRound <=
-        roundId
-      ){
-
-        return;
-
-      }
-
-      resetRound(
-        nextRound
-      );
-
-      break;
-
-    }
-
-
-    /* -----------------------------------------------
-       HOST_TAKEOVER
-       ----------------------------------------------- */
-
-    case "HOST_TAKEOVER":{
-
-      const generation =
-        clampInt(
-          payload.generation,
-          0,
-          999999
-        );
-
-      const incomingHost =
-        String(
-          payload.hostId ||
-          senderId ||
-          ""
-        );
-
-      if(
-        !incomingHost
-      ){
-
-        return;
-
-      }
-
-      /*
-        Higher generation wins.
-        Same generation uses deterministic ID tie-break.
-      */
-
-      if(
-        generation >
-        hostGeneration ||
-        (
-          generation ===
-          hostGeneration &&
-          (
-            !hostId ||
-            incomingHost <
-            hostId
-          )
-        )
-      ){
-
-        hostGeneration =
-          generation;
-
-        hostId =
-          incomingHost;
-
-        isHost =
-          hostId === ME;
-
-        hostLocked =
-          true;
-
-        if(
-          isHost &&
-          gameState ===
-            STATES.PLAYING
-        ){
-
-          hostState.crashPoint =
-            clamp(
-              publicCrashPoint,
-              CONFIG.MIN_CRASH_MULTIPLIER,
-              CONFIG.MAX_CRASH_MULTIPLIER
-            );
-
-          hostState.startTime =
-            roundStartTime;
-
-          hostState.settled =
-            false;
-
-        }
-
-        renderAll();
-
-      }
-
-      break;
-
-    }
-
-  }
-
+function dispatchLocal(eventName, payload, senderId = ME) {
+  handleEvent(eventName, payload, senderId, true);
 }
 
+function sendEvent(eventName, payload = {}) {
+  if (!VALID_EVENTS.has(eventName)) return;
+
+  const event = buildEvent(eventName, payload);
+
+  dispatchLocal(eventName, event, ME);
+
+  if (
+    !SDK ||
+    typeof SDK.sendGameEvent !== "function"
+  ) {
+    return;
+  }
+
+  try {
+    SDK.sendGameEvent(eventName, event);
+  } catch (error) {
+    console.warn("BoomRoomSDK.sendGameEvent() failed", error);
+  }
+}
+
+function sendHostEvent(eventName, payload = {}) {
+  if (!isHost) return;
+  sendEvent(eventName, payload);
+}
 
 /* =========================================================
-   PURCHASE
+   PURCHASE / ENTRY
    ========================================================= */
 
-window.onPurchaseSuccess =
-function(itemId){
-
-  if(
-    !purchaseRequest ||
-    !isPurchasing
-  ){
-
-    return;
-
-  }
-
-  if(
-    String(itemId) !==
-    purchaseRequest.itemId
-  ){
-
-    return;
-
-  }
-
-  const request =
-    purchaseRequest;
-
-  isPurchasing =
-    false;
-
-  purchaseRequest =
-    null;
-
-  if(
-    request.roundId !==
-    roundId
-  ){
-
-    toast(
-      "下注回合已改變"
-    );
-
-    renderAll();
-
-    return;
-
-  }
-
-  if(
-    gameState !==
-    STATES.BETTING &&
-    gameState !==
-    STATES.LOBBY
-  ){
-
-    toast(
-      "本局下注時間已結束"
-    );
-
-    renderAll();
-
-    return;
-
-  }
-
-  if(
-    players[ME].bet > 0
-  ){
-
-    renderAll();
-
-    return;
-
-  }
-
-  players[ME].bet =
-    request.amount;
-
-  players[ME].status =
-    "ready";
-
-  players[ME].cashoutMultiplier =
-    0;
-
-  players[ME].payout =
-    0;
-
-  selectedBet =
-    request.amount;
-
-  if(
-    gameState ===
-    STATES.LOBBY
-  ){
-
-    gameState =
-      STATES.BETTING;
-
-  }
-
-  sendEvent(
-    "BET_PLACED",
-    {
-
-      playerId:ME,
-
-      username:
-        user.username,
-
-      avatar:
-        user.avatar,
-
-      joinedAt:
-        players[ME].joinedAt,
-
-      amount:
-        request.amount,
-
-      itemId:
-        request.itemId
-
-    }
-  );
-
-  soundBet();
-
-  toast(
-    "✅ Entry 成功：" +
-    money(
-      request.amount
-    ) +
-    " 銀幣"
-  );
-
-  renderAll();
-
-  if(
-    isHost
-  ){
-
-    maybeStartCountdown();
-
-  }
-
-};
-
-
-window.onPurchaseFailed =
-function(itemId){
-
-  if(
-    !purchaseRequest ||
-    String(itemId) !==
-    purchaseRequest.itemId
-  ){
-
-    return;
-
-  }
-
-  isPurchasing =
-    false;
-
-  purchaseRequest =
-    null;
-
-  toast(
-    "❌ Entry 沒有成功"
-  );
-
-  renderAll();
-
-};
-
-
-/* =========================================================
-   REQUEST PURCHASE
-   ========================================================= */
-
-function requestBet(
-  amount
-){
-
+function beginPurchase() {
   ensureAudio();
   soundClick();
 
-  if(
-    isPurchasing
-  ){
-
+  if (gameState !== STATES.LOBBY && gameState !== STATES.SELECT && gameState !== STATES.READY) {
     return;
-
   }
 
-  if(
-    gameState !==
-      STATES.LOBBY &&
-    gameState !==
-      STATES.BETTING
-  ){
+  const me = players[ME];
+  if (!me) return;
 
-    toast(
-      "現在不是下注階段"
-    );
-
+  if (me.paid) {
+    toast("本局你已完成 Entry");
     return;
-
   }
 
-  if(
-    players[ME].bet > 0
-  ){
+  if (isPurchasing) return;
 
-    toast(
-      "本局你已經下注"
-    );
-
-    return;
-
-  }
-
-  if(
-    !CONFIG.BET_OPTIONS.includes(
-      amount
-    )
-  ){
-
-    return;
-
-  }
-
-  const itemId =
-    "crash_lift_entry_" +
-    amount;
-
-  isPurchasing =
-    true;
-
+  selectedEntry = CONFIG.ENTRY_FEE;
+  isPurchasing = true;
   purchaseRequest = {
-
-    itemId,
-
-    amount,
-
+    itemId: "crash_lift_entry_100",
+    amount: CONFIG.ENTRY_FEE,
     roundId
-
   };
 
+  gameState = STATES.PURCHASING;
   renderAll();
 
-  if(
-    SDK_AVAILABLE &&
-    typeof
-      window.BoomRoomSDK
-        .requestPurchase ===
-      "function"
-  ){
-
-    try{
-
-      window.BoomRoomSDK.requestPurchase(
-        itemId,
-        amount
+  if (
+    SDK &&
+    typeof SDK.requestPurchase === "function"
+  ) {
+    try {
+      SDK.requestPurchase(
+        purchaseRequest.itemId,
+        purchaseRequest.amount
       );
-
-    }catch(error){
-
-      isPurchasing =
-        false;
-
-      purchaseRequest =
-        null;
-
-      toast(
-        "無法發起 Entry"
-      );
-
+    } catch (error) {
+      isPurchasing = false;
+      purchaseRequest = null;
+      gameState = STATES.LOBBY;
+      toast("無法發起 Entry");
       renderAll();
-
     }
-
-  }else{
-
-    /*
-      明確 Dev Mode。
-      不偽裝成真實交易。
-    */
-
-    setTimeout(
-      () => {
-
-        if(
-          purchaseRequest &&
-          purchaseRequest.itemId ===
-            itemId
-        ){
-
-          window.onPurchaseSuccess(
-            itemId
-          );
-
-        }
-
-      },
-      250
-    );
-
+    return;
   }
 
+  // 明確的本機開發模擬，不冒充真實扣款。
+  if (!SDK_AVAILABLE) {
+    toast("🧪 開發測試：模擬 Entry 流程", 2400);
+
+    setTimeout(() => {
+      const req = purchaseRequest;
+      if (!req || req.roundId !== roundId) return;
+
+      window.onPurchaseSuccess(req.itemId);
+    }, 350);
+  }
 }
 
+window.onPurchaseSuccess = function(itemId) {
+  if (!purchaseRequest || isPurchasing !== true) return;
+  if (String(itemId) !== purchaseRequest.itemId) return;
+  if (purchaseRequest.roundId !== roundId) return;
 
-/* =========================================================
-   BET BUTTONS
-   ========================================================= */
+  isPurchasing = false;
+  purchaseRequest = null;
 
-document
-  .querySelectorAll(
-    ".bet-button"
-  )
-  .forEach(
-    button => {
+  const me = players[ME];
+  if (!me) return;
 
-      button.addEventListener(
-        "pointerdown",
-        () => {
+  me.paid = true;
+  me.entry = CONFIG.ENTRY_FEE;
+  me.status = "ready";
+  me.reward = 0;
+  me.cashoutMultiplier = 0;
+  me.cashoutAt = 0;
+  touchPlayer(ME);
 
-          requestBet(
-            Number(
-              button.dataset.bet
-            )
-          );
+  localCashout.status = "none";
+  localCashout.lockedMultiplier = 0;
+  localCashout.lockedAt = 0;
 
-        }
-      );
+  gameState = STATES.READY;
 
-    }
-  );
+  sendEvent("PLAYER_STATE", {
+    playerId: ME,
+    status: "ready",
+    paid: true,
+    entry: CONFIG.ENTRY_FEE
+  });
 
-
-/* =========================================================
-   COUNTDOWN
-   ========================================================= */
-
-let countdownStarted =
-  false;
-
-
-function maybeStartCountdown(){
-
-  if(!isHost){
-    return;
-  }
-
-  if(
-    gameState !==
-      STATES.BETTING &&
-    gameState !==
-      STATES.LOBBY
-  ){
-
-    return;
-
-  }
-
-  const bettors =
-    bettingPlayers();
-
-  if(
-    bettors.length < 2
-  ){
-
-    return;
-
-  }
-
-  if(
-    countdownStarted
-  ){
-
-    return;
-
-  }
-
-  countdownStarted =
-    true;
-
-  gameState =
-    STATES.COUNTDOWN;
-
-  bettingDeadline =
-    Date.now() +
-    CONFIG.BETTING_SECONDS *
-    1000;
-
-  sendHostEvent(
-    "BETTING_START",
-    {
-
-      deadline:
-        bettingDeadline
-
-    }
-  );
-
-  showStageMessage(
-    "⏱️ 倒數開始",
-    "還有 " +
-      CONFIG.BETTING_SECONDS +
-      " 秒",
-    900
+  vibration(16);
+  toast(
+    SDK_AVAILABLE
+      ? "✅ Entry 付款完成，等待主持人開始"
+      : "🧪 開發測試：Entry 已模擬完成",
+    2200
   );
 
   renderAll();
+};
 
-}
+window.onPurchaseFailed = function(itemId) {
+  if (!purchaseRequest || !isPurchasing) return;
+  if (String(itemId) !== purchaseRequest.itemId) return;
 
+  isPurchasing = false;
+  purchaseRequest = null;
+  gameState = STATES.LOBBY;
+
+  toast("Entry 付款未完成，本局不會開始", 2600);
+  renderAll();
+};
+
+mainAction.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  ensureAudio();
+
+  if (gameState === STATES.LOBBY || gameState === STATES.SELECT || gameState === STATES.READY) {
+    if (!players[ME]?.paid) {
+      beginPurchase();
+      return;
+    }
+
+    if (isHost && gameState === STATES.READY) {
+      startCountdownAsHost();
+      return;
+    }
+
+    if (gameState === STATES.PLAYING) {
+      submitCashout();
+    }
+  } else if (gameState === STATES.PLAYING) {
+    submitCashout();
+  }
+});
+
+entryCard.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  if (!players[ME]?.paid) {
+    selectedEntry = CONFIG.ENTRY_FEE;
+    gameState = STATES.SELECT;
+    soundClick();
+    renderAll();
+  }
+});
 
 /* =========================================================
-   MULTIPLIER CURVE
+   ROUND START / PRIZE POOL
    ========================================================= */
 
-/*
-  前 10 秒採比較平滑的成長曲線，
-  讓玩家有時間觀察。
-  10 秒後再逐漸加速。
-*/
+function calculateLockedEconomy(ids) {
+  const participantIds = ids.filter(id => {
+    const p = players[id];
+    return !!p && p.paid === true && p.entry === CONFIG.ENTRY_FEE;
+  });
 
-function multiplierFromElapsed(
-  milliseconds
-){
+  const cappedIds = participantIds.slice(0, CONFIG.MAX_PLAYERS);
 
-  const seconds =
-    Math.max(
-      0,
-      milliseconds / 1000
-    );
+  const totalPool = clampInt(
+    cappedIds.length * CONFIG.ENTRY_FEE,
+    0,
+    CONFIG.MAX_PRIZE_POOL
+  );
 
-  let value;
+  const platformFee = clampInt(
+    Math.floor(totalPool * CONFIG.PLATFORM_FEE_RATE),
+    0,
+    totalPool
+  );
 
-  if(
-    seconds <=
-    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS
-  ){
+  const prizePool = clampInt(
+    totalPool - platformFee,
+    0,
+    CONFIG.MAX_PRIZE_POOL
+  );
 
-    value =
-      1 +
-      seconds * .035 +
-      seconds *
-      seconds *
-      .0009;
+  return {
+    ids: cappedIds,
+    totalPool,
+    platformFee,
+    prizePool
+  };
+}
 
-  }else{
+function lockPrizePool(ids) {
+  const economy = calculateLockedEconomy(ids);
 
-    const base =
-      1 +
-      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-      .035 +
-      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-      .0009;
+  matchParticipants = economy.ids.slice();
 
-    value =
-      base *
-      Math.exp(
-        (seconds -
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) *
-        .115
-      );
+  lockedTotalPool = economy.totalPool;
+  lockedPlatformFee = economy.platformFee;
+  lockedPrizePool = economy.prizePool;
 
+  prizePoolLocked = true;
+
+  hostState.totalPool = lockedTotalPool;
+  hostState.platformFee = lockedPlatformFee;
+  hostState.prizePool = lockedPrizePool;
+
+  return economy;
+}
+
+function seedFromString(text) {
+  let h = 2166136261;
+
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
 
-  return clamp(
-    Math.floor(
-      value * 100
-    ) / 100,
+  return (h >>> 0) || 1;
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+
+  return function() {
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function multiplierFromElapsed(seconds) {
+  const s = Math.max(0, finiteNumber(seconds, 0));
+
+  // Readable early curve, rising tension later.
+  const value =
+    1 +
+    s * 0.072 +
+    s * s * 0.0008 +
+    Math.max(0, s - 22) * 0.026;
+
+  return clamp(value, 1, CONFIG.MAX_CRASH_MULTIPLIER);
+}
+
+function secondsForMultiplier(multiplierValue) {
+  const target = clamp(
+    multiplierValue,
     1,
     CONFIG.MAX_CRASH_MULTIPLIER
   );
 
-}
+  // Monotonic numeric search keeps client math deterministic.
+  let lo = 0;
+  let hi = 120;
 
-
-function secondsForMultiplier(
-  target
-){
-
-  const m =
-    clamp(
-      target,
-      CONFIG.MIN_CRASH_MULTIPLIER,
-      CONFIG.MAX_CRASH_MULTIPLIER
-    );
-
-  const qualification =
-    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS;
-
-  const base =
-    1 +
-    qualification * .035 +
-    qualification *
-    qualification *
-    .0009;
-
-  const earlyAt =
-    1 +
-    qualification * .035 +
-    qualification *
-    qualification *
-    .0009;
-
-  if(
-    m <= earlyAt
-  ){
-
-    let low = 0;
-    let high = qualification;
-
-    for(
-      let i=0;
-      i<28;
-      i++
-    ){
-
-      const mid =
-        (low + high) / 2;
-
-      if(
-        multiplierFromElapsed(
-          mid*1000
-        ) < m
-      ){
-
-        low = mid;
-
-      }else{
-
-        high = mid;
-
-      }
-
+  for (let i = 0; i < 28; i++) {
+    const mid = (lo + hi) / 2;
+    if (multiplierFromElapsed(mid) < target) {
+      lo = mid;
+    } else {
+      hi = mid;
     }
-
-    return high;
-
   }
 
-  return (
-    qualification +
-    Math.log(
-      m / base
-    ) / .115
+  return hi;
+}
+
+function randomCrashPoint() {
+  // Host only calls this. Min is above the 10-second qualification window.
+  const rawSeed = seedFromString(
+    `${roundId}|${hostId}|${nowMs()}|${GAME_INFO.version}`
   );
 
-}
+  const rng = mulberry32(rawSeed);
 
+  const u = clamp(rng(), 0, 0.999999);
+  const shaped = Math.pow(u, 1.35);
 
-/* =========================================================
-   CRASH POINT
-   ========================================================= */
-
-function randomCrashPoint(){
-
-  const r =
-    Math.random();
-
-  let value;
-
-  if(
-    r < .34
-  ){
-
-    value =
-      1.45 +
-      Math.random() *
-      .40;
-
-  }else if(
-    r < .67
-  ){
-
-    value =
-      1.85 +
-      Math.random() *
-      .90;
-
-  }else if(
-    r < .87
-  ){
-
-    value =
-      2.75 +
-      Math.random() *
-      1.70;
-
-  }else if(
-    r < .97
-  ){
-
-    value =
-      4.45 +
-      Math.random() *
-      3.55;
-
-  }else{
-
-    value =
-      8 +
-      Math.random() *
-      7;
-
-  }
+  const value =
+    CONFIG.MIN_CRASH_MULTIPLIER +
+    shaped *
+      (CONFIG.MAX_CRASH_MULTIPLIER - CONFIG.MIN_CRASH_MULTIPLIER);
 
   return clamp(
-    Math.floor(
-      value * 100
-    ) / 100,
+    value,
+    CONFIG.MIN_CRASH_MULTIPLIER,
+    CONFIG.MAX_CRASH_MULTIPLIER
+  );
+}
+
+function startCountdownAsHost() {
+  if (!isHost) return;
+
+  if (gameState !== STATES.READY && gameState !== STATES.LOBBY) {
+    return;
+  }
+
+  const ids = currentPaidIds();
+
+  if (ids.length < CONFIG.MIN_PLAYERS) {
+    toast(`至少需要 ${CONFIG.MIN_PLAYERS} 名已付款玩家`);
+    return;
+  }
+
+  const economy = calculateLockedEconomy(ids);
+
+  if (!economy.ids.includes(ME) && DEV_MODE === false) {
+    toast("你不是本局正式參賽玩家");
+    return;
+  }
+
+  lockPrizePool(economy.ids);
+
+  const count = CONFIG.COUNTDOWN_SECONDS;
+  countdownDeadline = nowMs() + count * 1000;
+  gameState = STATES.COUNTDOWN;
+
+  economy.ids.forEach(id => {
+    if (players[id]) players[id].status = "ready";
+  });
+
+  sendHostEvent("ROUND_START", {
+    phase: "COUNTDOWN",
+    hostId,
+    hostGeneration,
+    countdownDeadline,
+    participants: economy.ids.map(id => serializeParticipant(id)),
+    totalPool: lockedTotalPool,
+    platformFee: lockedPlatformFee,
+    prizePool: lockedPrizePool
+  });
+
+  showStageMessage(
+    "⏱️ 準備",
+    `Entry ${money(CONFIG.ENTRY_FEE)} · 獎池 ${money(lockedPrizePool)} 🪙`,
+    850
+  );
+
+  soundStart();
+  renderAll();
+}
+
+function startPlayingAsHost() {
+  if (!isHost) return;
+  if (gameState !== STATES.COUNTDOWN) return;
+  if (!prizePoolLocked) return;
+
+  const seed = seedFromString(
+    `${roundId}|${hostId}|${nowMs()}|${GAME_INFO.id}`
+  );
+
+  const crashPoint = randomCrashPoint();
+  const elapsed = Math.max(
+    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS + 0.35,
+    secondsForMultiplier(crashPoint)
+  );
+
+  const startTime = nowMs();
+  const deadline = startTime + Math.ceil(elapsed * 1000);
+
+  hostState.seed = seed;
+  hostState.crashPoint = crashPoint;
+  hostState.startTime = startTime;
+  hostState.crashDeadline = deadline;
+  hostState.settled = false;
+  hostState.participants = matchParticipants.slice();
+  hostState.totalPool = lockedTotalPool;
+  hostState.platformFee = lockedPlatformFee;
+  hostState.prizePool = lockedPrizePool;
+
+  roundStartedAt = startTime;
+  crashDeadline = deadline;
+  publicCrashPoint = crashPoint;
+  currentMultiplier = 1;
+
+  gameState = STATES.PLAYING;
+
+  matchParticipants.forEach(id => {
+    const p = players[id];
+    if (!p) return;
+
+    p.status = "running";
+    p.cashoutMultiplier = 0;
+    p.cashoutAt = 0;
+    p.reward = 0;
+    p.reason = "";
+  });
+
+  localCashout.status = players[ME]?.paid ? "running" : "none";
+  localCashout.lockedMultiplier = 0;
+  localCashout.lockedAt = 0;
+
+  sendHostEvent("ROUND_START", {
+    phase: "PLAYING",
+    hostId,
+    hostGeneration,
+    seed,
+    startTime,
+    crashDeadline: deadline,
+    crashPoint,
+    participants: matchParticipants.map(id => serializeParticipant(id)),
+    totalPool: lockedTotalPool,
+    platformFee: lockedPlatformFee,
+    prizePool: lockedPrizePool
+  });
+
+  showStageMessage(
+    "🚀 起飛！",
+    "10 秒後開放收錢",
+    850
+  );
+
+  soundStart();
+  renderAll();
+}
+
+function serializeParticipant(id) {
+  const p = players[id];
+  if (!p) return null;
+
+  return {
+    id: p.id,
+    username: safeName(p.username),
+    avatar: p.avatar || "",
+    joinedAt: finiteNumber(p.joinedAt, nowMs()),
+    paid: p.paid === true,
+    entry: CONFIG.ENTRY_FEE,
+    status: String(p.status || "ready").slice(0, 20),
+    cashoutMultiplier: clamp(
+      p.cashoutMultiplier,
+      0,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    ),
+    cashoutAt: finiteNumber(p.cashoutAt, 0),
+    reward: clampInt(p.reward, 0, CONFIG.MAX_REWARD)
+  };
+}
+
+/* =========================================================
+   CASH OUT
+   ========================================================= */
+
+function submitCashout() {
+  ensureAudio();
+
+  if (gameState !== STATES.PLAYING) return;
+  if (localCashout.status !== "running") return;
+
+  const me = players[ME];
+  if (!me || !me.paid || me.status !== "running") return;
+
+  const elapsed = (nowMs() - roundStartedAt) / 1000;
+
+  if (elapsed < CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) {
+    const remaining = Math.max(
+      0,
+      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS - Math.floor(elapsed)
+    );
+
+    toast(`⏱️ 還要 ${remaining} 秒才能有效收錢`);
+    return;
+  }
+
+  const lockedMultiplier = clamp(
+    currentMultiplierAt(nowMs()),
+    1,
+    CONFIG.MAX_CRASH_MULTIPLIER
+  );
+
+  // Reward is NOT calculated here. It is a pooled final settlement.
+  localCashout.status = "pending";
+  localCashout.lockedMultiplier = lockedMultiplier;
+  localCashout.lockedAt = nowMs();
+
+  me.status = "cashoutPending";
+  me.cashoutMultiplier = lockedMultiplier;
+  me.cashoutAt = localCashout.lockedAt;
+
+  soundCashout();
+  vibration(18);
+
+  sendEvent("PLAYER_CASHOUT", {
+    playerId: ME,
+    cashoutMultiplier: lockedMultiplier,
+    cashoutAt: localCashout.lockedAt
+  });
+
+  toast(`💰 已鎖定 ${lockedMultiplier.toFixed(2)}x，等待主持人結算`);
+  renderAll();
+}
+
+/* =========================================================
+   ROUND SETTLEMENT
+   ========================================================= */
+
+function successfulCashouts() {
+  return matchParticipants
+    .map(id => players[id])
+    .filter(p =>
+      p &&
+      p.status === "cashed" &&
+      p.cashoutAt > 0
+    )
+    .sort((a, b) => {
+      if (a.cashoutAt !== b.cashoutAt) {
+        return a.cashoutAt - b.cashoutAt;
+      }
+
+      return a.id.localeCompare(b.id);
+    });
+}
+
+function calculateFinalRewards() {
+  const winners = successfulCashouts();
+
+  const safePrizePool = clampInt(
+    prizePoolLocked ? lockedPrizePool : 0,
+    0,
+    CONFIG.MAX_PRIZE_POOL
+  );
+
+  if (winners.length === 0 || safePrizePool <= 0) {
+    matchParticipants.forEach(id => {
+      if (players[id]) players[id].reward = 0;
+    });
+    return {
+      winners: [],
+      rewardEach: 0,
+      totalAwarded: 0,
+      prizePool: safePrizePool
+    };
+  }
+
+  const rewardEach = clampInt(
+    Math.floor(safePrizePool / winners.length),
+    0,
+    CONFIG.MAX_REWARD
+  );
+
+  let awarded = 0;
+
+  winners.forEach((p, index) => {
+    const reward = clampInt(
+      rewardEach,
+      0,
+      Math.max(0, safePrizePool - awarded)
+    );
+
+    p.reward = reward;
+    awarded += reward;
+
+    if (index >= winners.length) return;
+  });
+
+  // All non-winners receive zero.
+  matchParticipants.forEach(id => {
+    const p = players[id];
+    if (!p) return;
+
+    if (!winners.some(w => w.id === p.id)) {
+      p.reward = 0;
+    }
+  });
+
+  return {
+    winners: winners.map(p => p.id),
+    rewardEach,
+    totalAwarded: clampInt(awarded, 0, safePrizePool),
+    prizePool: safePrizePool
+  };
+}
+
+function buildRoundResult() {
+  const rewardInfo = calculateFinalRewards();
+
+  const rows = matchParticipants
+    .map(id => {
+      const p = players[id];
+      if (!p) return null;
+
+      const status = p.status === "cashed"
+        ? "cashed"
+        : "crashed";
+
+      return {
+        id: p.id,
+        username: safeName(p.username),
+        avatar: p.avatar || "",
+        entry: CONFIG.ENTRY_FEE,
+        status,
+        cashoutMultiplier: clamp(
+          p.cashoutMultiplier,
+          0,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        ),
+        cashoutAt: finiteNumber(p.cashoutAt, 0),
+        reward: clampInt(p.reward, 0, CONFIG.MAX_REWARD),
+        reason: p.reason || (
+          status === "cashed"
+            ? "成功收錢"
+            : "CRASH 前未完成收錢"
+        )
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      const statusOrder = { cashed: 0, crashed: 1 };
+
+      if (statusOrder[a.status] !== statusOrder[b.status]) {
+        return statusOrder[a.status] - statusOrder[b.status];
+      }
+
+      if (a.status === "cashed" && a.cashoutAt !== b.cashoutAt) {
+        return a.cashoutAt - b.cashoutAt;
+      }
+
+      return a.id.localeCompare(b.id);
+    });
+
+  return {
+    roundId,
+    crashPoint: clamp(
+      hostState.crashPoint,
+      CONFIG.MIN_CRASH_MULTIPLIER,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    ),
+    totalPool: clampInt(lockedTotalPool, 0, CONFIG.MAX_PRIZE_POOL),
+    platformFee: clampInt(lockedPlatformFee, 0, CONFIG.MAX_PRIZE_POOL),
+    prizePool: clampInt(lockedPrizePool, 0, CONFIG.MAX_PRIZE_POOL),
+    rewardEach: clampInt(rewardInfo.rewardEach, 0, CONFIG.MAX_REWARD),
+    totalAwarded: clampInt(
+      rewardInfo.totalAwarded,
+      0,
+      lockedPrizePool
+    ),
+    distribution: "成功收錢者平均分配最終獎池",
+    rows
+  };
+}
+
+function hostCrash() {
+  if (!isHost) return;
+  if (gameState !== STATES.PLAYING) return;
+  if (hostState.settled) return;
+
+  hostState.settled = true;
+
+  currentMultiplier = clamp(
+    hostState.crashPoint,
     CONFIG.MIN_CRASH_MULTIPLIER,
     CONFIG.MAX_CRASH_MULTIPLIER
   );
 
+  matchParticipants.forEach(id => {
+    const p = players[id];
+    if (!p) return;
+
+    if (p.status === "running" || p.status === "cashoutPending") {
+      p.status = "crashed";
+      p.reward = 0;
+      p.reason = "CRASH 前未完成收錢";
+    } else if (p.status === "cashed") {
+      p.reason = "成功收錢";
+    }
+  });
+
+  const result = buildRoundResult();
+
+  sendHostEvent("ROUND_END", {
+    crashPoint: result.crashPoint,
+    totalPool: result.totalPool,
+    platformFee: result.platformFee,
+    prizePool: result.prizePool,
+    rewardEach: result.rewardEach,
+    totalAwarded: result.totalAwarded,
+    distribution: result.distribution,
+    rows: result.rows
+  });
+
+  // Host also applies the exact result locally.
+  dispatchLocal("ROUND_END", buildEvent("ROUND_END", {
+    crashPoint: result.crashPoint,
+    totalPool: result.totalPool,
+    platformFee: result.platformFee,
+    prizePool: result.prizePool,
+    rewardEach: result.rewardEach,
+    totalAwarded: result.totalAwarded,
+    distribution: result.distribution,
+    rows: result.rows
+  }), ME);
 }
 
-
 /* =========================================================
-   PAYOUT
+   GAME OVER / REWARD LOCK
    ========================================================= */
 
-function calculatePayout(
-  bet,
-  multiplierValue
-){
-
-  const safeBet =
-    clampInt(
-      bet,
-      0,
-      1000
-    );
-
-  const safeMultiplier =
-    clamp(
-      multiplierValue,
-      1,
-      CONFIG.MAX_CRASH_MULTIPLIER
-    );
-
-  const reward =
-    Math.floor(
-      safeBet *
-      safeMultiplier
-    );
-
-  return clampInt(
+function requestGameOverOnce(reward) {
+  const safeReward = clampInt(
     reward,
     0,
-    CONFIG.MAX_PAYOUT
+    Math.min(CONFIG.MAX_REWARD, lockedPrizePool || CONFIG.MAX_REWARD)
   );
 
+  gameOverReward = safeReward;
+
+  if (gameOverCalled) return;
+
+  gameOverCalled = true;
+
+  if (
+    !SDK ||
+    typeof SDK.gameOver !== "function"
+  ) {
+    return;
+  }
+
+  try {
+    SDK.gameOver(safeReward);
+  } catch (error) {
+    console.warn("BoomRoomSDK.gameOver() failed", error);
+  }
 }
 
-
 /* =========================================================
-   HOST START ROUND
+   SETTLEMENT VALIDATION
    ========================================================= */
 
-function startRoundAsHost(){
+function validateResultSettlement(result) {
+  if (!result || !Array.isArray(result.rows)) return false;
 
-  if(!isHost){
-    return;
-  }
-
-  if(
-    gameState !==
-      STATES.COUNTDOWN &&
-    gameState !==
-      STATES.BETTING
-  ){
-
-    return;
-
-  }
-
-  const participants =
-    bettingPlayers()
-      .slice(
-        0,
-        CONFIG.MAX_PLAYERS
-      );
-
-  if(
-    participants.length < 2
-  ){
-
-    gameState =
-      STATES.BETTING;
-
-    countdownStarted =
-      false;
-
-    return;
-
-  }
-
-  hostLocked =
-    true;
-
-  gameState =
-    STATES.PLAYING;
-
-  hostState.crashPoint =
-    randomCrashPoint();
-
-  hostState.startTime =
-    Date.now();
-
-  hostState.settled =
-    false;
-
-  roundStartTime =
-    hostState.startTime;
-
-  currentMultiplier =
-    1;
-
-  publicCrashPoint =
-    hostState.crashPoint;
-
-  const crashSeconds =
-    secondsForMultiplier(
-      hostState.crashPoint
-    );
-
-  crashDeadline =
-    roundStartTime +
-    Math.max(
-      CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-      1000 +
-      50,
-      crashSeconds *
-      1000
-    );
-
-  participants.forEach(
-    p => {
-
-      p.status =
-        "running";
-
-      p.cashoutMultiplier =
-        0;
-
-      p.payout =
-        0;
-
-    }
+  const totalPool = clampInt(
+    result.totalPool,
+    0,
+    CONFIG.MAX_PRIZE_POOL
   );
 
-  sendHostEvent(
-    "ROUND_START",
-    {
-
-      hostId,
-
-      participants:
-        participants.map(
-          p => ({
-
-            id:p.id,
-
-            username:p.username,
-
-            avatar:p.avatar,
-
-            joinedAt:p.joinedAt,
-
-            bet:p.bet
-
-          })
-        ),
-
-      startTime:
-        roundStartTime,
-
-      crashDeadline,
-
-      crashPoint:
-        hostState.crashPoint
-
-    }
+  const platformFee = clampInt(
+    result.platformFee,
+    0,
+    totalPool
   );
 
-  soundStart();
-
-  renderAll();
-
-}
-
-
-/* =========================================================
-   CURRENT HOST MULTIPLIER
-   ========================================================= */
-
-function currentMultiplierAt(
-  timestamp
-){
-
-  if(
-    !roundStartTime
-  ){
-
-    return 1;
-
-  }
-
-  return multiplierFromElapsed(
-    timestamp -
-    roundStartTime
+  const prizePool = clampInt(
+    result.prizePool,
+    0,
+    CONFIG.MAX_PRIZE_POOL
   );
 
-}
+  if (platformFee > totalPool) return false;
+  if (prizePool !== totalPool - platformFee) return false;
 
+  let rewardSum = 0;
 
-/* =========================================================
-   HOST CASHOUT ALL
-   ========================================================= */
-
-function checkHostAllCashed(){
-
-  if(!isHost){
-    return;
-  }
-
-  if(
-    gameState !==
-    STATES.PLAYING
-  ){
-
-    return;
-
-  }
-
-  const stillRunning =
-    hostParticipants()
-      .filter(
-        p =>
-          p.status ===
-          "running"
-      );
-
-  if(
-    stillRunning.length === 0
-  ){
-
-    /*
-      All players already locked
-      their rewards.
-      We can end the round
-      without waiting for CRASH.
-    */
-
-    hostState.crashPoint =
-      clamp(
-        currentMultiplier,
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS >
-        0 ? 1 : 1,
-        CONFIG.MAX_CRASH_MULTIPLIER
-      );
-
-    hostCrash(
-      true
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   HOST PARTICIPANTS
-   ========================================================= */
-
-function hostParticipants(){
-
-  return hostState
-    .participants
-    ? hostState
-        .participants
-        .map(
-          id =>
-            players[id]
-        )
-        .filter(Boolean)
-    : bettingPlayers();
-
-}
-
-
-/* =========================================================
-   BUILD RESULT
-   ========================================================= */
-
-function buildRoundResult(){
-
-  const rows =
-    hostParticipants()
-      .map(
-        p => ({
-
-          id:p.id,
-
-          username:p.username,
-
-          avatar:p.avatar,
-
-          bet:clampInt(
-            p.bet,
-            0,
-            1000
-          ),
-
-          status:
-            p.status,
-
-          multiplier:
-            clamp(
-              p.cashoutMultiplier,
-              0,
-              CONFIG.MAX_CRASH_MULTIPLIER
-            ),
-
-          payout:
-            clampInt(
-              p.payout,
-              0,
-              CONFIG.MAX_PAYOUT
-            )
-
-        })
-      );
-
-  rows.sort(
-    (a,b) => {
-
-      if(
-        b.payout !==
-        a.payout
-      ){
-
-        return (
-          b.payout -
-          a.payout
-        );
-
-      }
-
-      return (
-        b.multiplier -
-        a.multiplier
-      );
-
-    }
-  );
-
-  return {
-
-    rows,
-
-    crashPoint:
-      clamp(
-        hostState.crashPoint,
-        CONFIG.MIN_CRASH_MULTIPLIER,
-        CONFIG.MAX_CRASH_MULTIPLIER
-      )
-
-  };
-
-}
-
-
-/* =========================================================
-   HOST CRASH
-   ========================================================= */
-
-function hostCrash(
-  allCashed=false
-){
-
-  if(!isHost){
-    return;
-  }
-
-  if(
-    gameState !==
-    STATES.PLAYING
-  ){
-
-    return;
-
-  }
-
-  if(
-    hostState.settled
-  ){
-
-    return;
-
-  }
-
-  hostState.settled =
-    true;
-
-  if(
-    allCashed
-  ){
-
-    hostState.crashPoint =
-      clamp(
-        currentMultiplier,
-        CONFIG.MIN_CRASH_MULTIPLIER,
-        CONFIG.MAX_CRASH_MULTIPLIER
-      );
-
-  }
-
-  currentMultiplier =
-    clamp(
-      hostState.crashPoint,
-      CONFIG.MIN_CRASH_MULTIPLIER,
-      CONFIG.MAX_CRASH_MULTIPLIER
-    );
-
-  /*
-    Everyone still running
-    loses the round.
-  */
-
-  hostParticipants()
-    .forEach(
-      p => {
-
-        if(
-          p.status ===
-          "running"
-        ){
-
-          p.status =
-            "crashed";
-
-          p.cashoutMultiplier =
-            0;
-
-          p.payout =
-            0;
-
-        }
-
-      }
-    );
-
-  const result =
-    buildRoundResult();
-
-  sendHostEvent(
-    "ROUND_END",
-    {
-
-      crashPoint:
-        hostState.crashPoint,
-
-      result
-
-    }
-  );
-
-  /*
-    Local handling.
-  */
-
-  handleEvent(
-    "ROUND_END",
-    {
-
-      roundId,
-
-      eventId:
-        createEventId(),
-
-      crashPoint:
-        hostState.crashPoint,
-
-      result
-
-    },
-
-    ME,
-
-    true
-  );
-
-}
-
-
-/* =========================================================
-   GAME OVER
-   ========================================================= */
-
-function requestGameOverOnce(
-  rid,
-  reward
-){
-
-  if(
-    rewardClaimedRounds.has(
-      rid
-    )
-  ){
-
-    return;
-
-  }
-
-  rewardClaimedRounds.add(
-    rid
-  );
-
-  const safeReward =
-    clampInt(
-      reward,
+  for (const row of result.rows.slice(0, CONFIG.MAX_PLAYERS)) {
+    const reward = clampInt(
+      row?.reward,
       0,
-      CONFIG.MAX_PAYOUT
+      CONFIG.MAX_REWARD
     );
 
-  if(
-    !SDK_AVAILABLE ||
-    typeof
-      window.BoomRoomSDK
-        .gameOver !==
-      "function"
-  ){
+    rewardSum += reward;
 
-    return;
+    if (!Number.isFinite(rewardSum)) return false;
+    if (rewardSum > prizePool) return false;
 
-  }
-
-  try{
-
-    window.BoomRoomSDK.gameOver(
-      safeReward
-    );
-
-  }catch(error){
-
-    console.warn(
-      "BoomRoomSDK.gameOver() failed",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   LOCAL PLAYER CASHOUT
-   ========================================================= */
-
-function cashout(){
-
-  ensureAudio();
-
-  if(
-    localCashoutLock.locked
-  ){
-
-    return;
-
-  }
-
-  if(
-    gameState !==
-    STATES.PLAYING
-  ){
-
-    return;
-
-  }
-
-  const me =
-    players[ME];
-
-  if(
-    !me ||
-    me.bet <= 0 ||
-    me.status !==
-      "running"
-  ){
-
-    return;
-
-  }
-
-  const elapsed =
-    Date.now() -
-    roundStartTime;
-
-  if(
-    elapsed <
-    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-    1000
-  ){
-
-    toast(
-      "⏱️ 還要等到 10 秒才能有效收錢"
-    );
-
-    return;
-
-  }
-
-  /*
-    Local freeze:
-    after button press, the visible
-    potential reward for the player
-    is locked while waiting for
-    Host authoritative result.
-  */
-
-  const lockedMultiplier =
-    clamp(
-      currentMultiplierAt(
-        Date.now()
-      ),
-      1,
+    const cashout = clamp(
+      row?.cashoutMultiplier,
+      0,
       CONFIG.MAX_CRASH_MULTIPLIER
     );
 
-  const lockedPayout =
-    calculatePayout(
-      me.bet,
-      lockedMultiplier
-    );
+    if (!Number.isFinite(cashout)) return false;
+  }
 
-  localCashoutLock.locked =
-    true;
-
-  localCashoutLock.multiplier =
-    lockedMultiplier;
-
-  localCashoutLock.payout =
-    lockedPayout;
-
-  me.status =
-    "cashoutPending";
-
-  me.cashoutMultiplier =
-    lockedMultiplier;
-
-  me.payout =
-    lockedPayout;
-
-  soundClick();
-
-  sendEvent(
-    "PLAYER_CASHOUT",
-    {
-
-      playerId:ME,
-
-      lockedMultiplier,
-
-      lockedPayout
-
-    }
-  );
-
-  toast(
-    "💰 已送出收錢，等待房主確認"
-  );
-
-  renderAll();
-
+  return true;
 }
 
-
 /* =========================================================
-   MAIN ACTION
+   EVENT HANDLER
    ========================================================= */
 
-mainAction.addEventListener(
-  "pointerdown",
-  () => {
+function handleEvent(eventName, payload, senderId, local = false) {
+  if (!validateIncomingEvent(eventName, payload, senderId)) return;
 
-    if(
-      gameState ===
-      STATES.PLAYING
-    ){
+  if (!rememberEvent(payload.eventId)) return;
 
-      cashout();
+  const sender = String(senderId || payload.from || "");
 
+  const authoritativeEvent =
+    eventName === "ROOM_STATE" ||
+    eventName === "ROUND_START" ||
+    eventName === "ROUND_END" ||
+    eventName === "GAME_CLOSED" ||
+    eventName === "HOST_CHANGED";
+
+  if (
+    authoritativeEvent &&
+    hostId &&
+    sender !== hostId &&
+    !(local && sender === ME && isHost)
+  ) {
+    return;
+  }
+
+  if (
+    eventName === "PLAYER_STATE" &&
+    payload.playerId &&
+    sender !== String(payload.playerId) &&
+    sender !== hostId &&
+    !(local && sender === ME && isHost)
+  ) {
+    return;
+  }
+
+  switch (eventName) {
+    case "PLAYER_HELLO": {
+      const id = String(payload.playerId || sender || "");
+      if (!id) return;
+
+      addPlayer({
+        id,
+        username: payload.username || "玩家",
+        avatar: payload.avatar || "",
+        joinedAt: finiteNumber(payload.joinedAt, nowMs()),
+        paid: false,
+        entry: 0,
+        status: "waiting"
+      });
+
+      if (!hostId || !hostIsAlive()) {
+        electHost(true);
+      }
+
+      if (isHost && sender !== ME && gameState !== STATES.GAME_CLOSED) {
+        sendEvent("ROOM_STATE", {
+          targetId: id,
+          hostId,
+          hostGeneration,
+          state: gameState,
+          roundId,
+          participants: matchParticipants.map(serializeParticipant).filter(Boolean),
+          totalPool: prizePoolLocked ? lockedTotalPool : calculateLockedEconomy(currentPaidIds()).totalPool,
+          platformFee: prizePoolLocked ? lockedPlatformFee : calculateLockedEconomy(currentPaidIds()).platformFee,
+          prizePool: prizePoolLocked ? lockedPrizePool : calculateLockedEconomy(currentPaidIds()).prizePool,
+          roundStartedAt,
+          bettingDeadline,
+          countdownDeadline,
+          crashDeadline,
+          currentMultiplier,
+          crashPoint: gameState === STATES.PLAYING ? publicCrashPoint : null
+        });
+      }
+
+      renderAll();
       return;
-
     }
 
-    if(
-      gameState ===
-        STATES.BETTING ||
-      gameState ===
-        STATES.COUNTDOWN
-    ){
-
-      if(
-        !players[ME].bet
-      ){
-
-        toast(
-          "請先選擇 Entry"
-        );
-
-        return;
-
+    case "PLAYER_HEARTBEAT": {
+      const id = String(payload.playerId || sender || "");
+      if (!id) return;
+      if (!players[id]) {
+        addPlayer({
+          id,
+          username: payload.username || "玩家",
+          avatar: payload.avatar || "",
+          joinedAt: finiteNumber(payload.joinedAt, nowMs())
+        });
       }
-
-      if(
-        isHost &&
-        bettingPlayers().length >=
-          2
-      ){
-
-        startRoundAsHost();
-
-      }else{
-
-        toast(
-          "等待房主開始本局"
-        );
-
-      }
-
+      touchPlayer(id);
+      return;
     }
 
-  }
-);
-
-
-/* =========================================================
-   NEXT ROUND
-   ========================================================= */
-
-function beginNextRound(){
-
-  if(
-    !isHost
-  ){
-
-    return;
-
-  }
-
-  const nextRound =
-    roundId + 1;
-
-  sendHostEvent(
-    "NEW_ROUND",
-    {
-
-      nextRoundId:
-        nextRound
-
-    }
-  );
-
-  resetRound(
-    nextRound
-  );
-
-}
-
-
-function resetRound(
-  newRoundId
-){
-
-  gameState =
-    STATES.BETTING;
-
-  roundId =
-    clampInt(
-      newRoundId,
-      1,
-      999999999
-    );
-
-  bettingDeadline =
-    0;
-
-  roundStartTime =
-    0;
-
-  crashDeadline =
-    0;
-
-  currentMultiplier =
-    1;
-
-  publicCrashPoint =
-    null;
-
-  selectedBet =
-    null;
-
-  isPurchasing =
-    false;
-
-  purchaseRequest =
-    null;
-
-  resultData =
-    null;
-
-  resultModalShown =
-    false;
-
-  countdownStarted =
-    false;
-
-  localCashoutLock.locked =
-    false;
-
-  localCashoutLock.multiplier =
-    0;
-
-  localCashoutLock.payout =
-    0;
-
-  hostState.crashPoint =
-    null;
-
-  hostState.startTime =
-    0;
-
-  hostState.settled =
-    false;
-
-  hostState.participants =
-    [];
-
-  elevator.classList.remove(
-    "active",
-    "crashed"
-  );
-
-  multiplier.className =
-    "multiplier";
-
-  multiplier.textContent =
-    "1.00x";
-
-  multiplierCaption.textContent =
-    "等待玩家下注";
-
-  Object.values(
-    players
-  ).forEach(
-    p => {
-
-      p.bet = 0;
-
-      p.status =
-        "waiting";
-
-      p.cashoutMultiplier =
-        0;
-
-      p.payout =
-        0;
-
-    }
-  );
-
-  resultModal.classList.remove(
-    "show"
-  );
-
-  renderAll();
-
-  showStageMessage(
-    "✨ 新的一局",
-    "選擇 Entry 準備起飛",
-    850
-  );
-
-}
-
-
-/* =========================================================
-   PRESENCE / HELLO
-   ========================================================= */
-
-function sendHello(){
-
-  sendEvent(
-    "PLAYER_HELLO",
-    {
-
-      user:{
-
-        id:ME,
-
-        username:
-          user.username,
-
-        avatar:
-          user.avatar,
-
-        joinedAt:
-          players[ME].joinedAt
-
-      }
-
-    }
-  );
-
-}
-
-
-function sendHeartbeat(){
-
-  sendEvent(
-    "PLAYER_HEARTBEAT",
-    {
-
-      playerId:ME,
-
-      status:
-        gameState,
-
-      timestamp:
-        Date.now()
-
-    }
-  );
-
-}
-
-
-const heartbeatTimer =
-  setInterval(
-    () => {
-
-      touchPlayer(
-        ME
-      );
-
-      sendHeartbeat();
-
-      if(
-        !hostIsAlive()
-      ){
-
-        tryHostTakeover();
-
-      }
-
-      cleanupInactivePlayers();
-
-    },
-    CONFIG.HEARTBEAT_INTERVAL
-  );
-
-
-/* =========================================================
-   CLEANUP PRESENCE
-   ========================================================= */
-
-function cleanupInactivePlayers(){
-
-  const now =
-    Date.now();
-
-  Object.values(
-    players
-  ).forEach(
-    p => {
-
-      if(
-        p.id === ME
-      ){
-
-        return;
-
-      }
-
-      if(
-        now -
-        p.lastSeen >
-        CONFIG.PLAYER_TIMEOUT
-      ){
-
-        if(
-          gameState ===
-            STATES.BETTING ||
-          gameState ===
-            STATES.COUNTDOWN
-        ){
-
-          p.status =
-            "watching";
-
-          p.bet = 0;
-
-        }else if(
-          gameState ===
-          STATES.PLAYING &&
-          p.status ===
-          "running"
-        ){
-
-          p.status =
-            "crashed";
-
-          p.payout =
-            0;
-
+    case "PLAYER_END": {
+      const id = String(payload.playerId || sender || "");
+      const p = players[id];
+      if (!p) return;
+
+      p.lastSeen = 0;
+
+      if (gameState === STATES.PLAYING && matchParticipants.includes(id)) {
+        if (p.status === "running" || p.status === "cashoutPending") {
+          p.status = "crashed";
+          p.reward = 0;
+          p.reason = "玩家離開／放棄";
         }
-
       }
 
-    }
-  );
-
-}
-
-
-/* =========================================================
-   PAGE EXIT
-   ========================================================= */
-
-window.addEventListener(
-  "pagehide",
-  () => {
-
-    try{
-
-      sendEvent(
-        "PLAYER_END",
-        {
-          playerId:ME,
-
-          status:
-            gameState
-
-        }
-      );
-
-    }catch(_){}
-
-  }
-);
-
-
-/* =========================================================
-   RENDER
-   ========================================================= */
-
-function renderAll(){
-
-  renderPhase();
-
-  renderPlayers();
-
-  renderControls();
-
-}
-
-
-function renderPhase(){
-
-  roundLabel.textContent =
-    "第 " +
-    roundId +
-    " 局";
-
-  phaseLabel.className =
-    "phase";
-
-  if(
-    gameState ===
-    STATES.LOBBY
-  ){
-
-    phaseLabel.textContent =
-      "🏠 等待玩家";
-
-  }
-  else if(
-    gameState ===
-    STATES.BETTING
-  ){
-
-    phaseLabel.textContent =
-      "💰 等待下注";
-
-  }
-  else if(
-    gameState ===
-    STATES.COUNTDOWN
-  ){
-
-    phaseLabel.textContent =
-      "⏱️ 即將起飛";
-
-  }
-  else if(
-    gameState ===
-    STATES.PLAYING
-  ){
-
-    phaseLabel.classList.add(
-      "running"
-    );
-
-    phaseLabel.textContent =
-      "🚀 電梯上升中";
-
-  }
-  else if(
-    gameState ===
-    STATES.RESULT
-  ){
-
-    phaseLabel.classList.add(
-      "crashed"
-    );
-
-    phaseLabel.textContent =
-      "💥 本局結算";
-
-  }
-
-}
-
-
-function avatarHtml(player){
-
-  if(
-    player.avatar
-  ){
-
-    return `
-      <img
-        src="${escapeHtml(player.avatar)}"
-        alt=""
-      >
-    `;
-
-  }
-
-  return escapeHtml(
-    (
-      player.username ||
-      "?"
-    ).charAt(0)
-  );
-
-}
-
-
-function renderPlayers(){
-
-  const list =
-    Object.values(
-      players
-    )
-    .sort(
-      (a,b) => {
-
-        const order = {
-
-          running:0,
-
-          cashoutPending:1,
-
-          cashed:2,
-
-          ready:3,
-
-          crashed:4,
-
-          waiting:5,
-
-          watching:6
-
-        };
-
-        const oa =
-          order[a.status] ??
-          9;
-
-        const ob =
-          order[b.status] ??
-          9;
-
-        if(
-          oa !== ob
-        ){
-
-          return oa - ob;
-
-        }
-
-        return (
-          a.joinedAt -
-          b.joinedAt
-        );
-
-      }
-    )
-    .slice(
-      0,
-      CONFIG.MAX_PLAYERS
-    );
-
-  playerInfo.textContent =
-    list.length +
-    " / " +
-    CONFIG.MAX_PLAYERS +
-    " 人";
-
-  playerList.innerHTML =
-    "";
-
-  if(
-    !list.length
-  ){
-
-    playerList.innerHTML = `
-      <div style="
-        padding:18px;
-        text-align:center;
-        color:#70758a;
-        font-size:10px;
-      ">
-        等待玩家加入……
-      </div>
-    `;
-
-    return;
-
-  }
-
-  list.forEach(
-    p => {
-
-      const row =
-        document.createElement(
-          "div"
-        );
-
-      row.className =
-        "player-row";
-
-      if(
-        p.id === ME
-      ){
-
-        row.classList.add(
-          "self"
-        );
-
+      if (id === hostId) {
+        setTimeout(tryHostTakeover, 50);
       }
 
-      if(
-        p.status ===
-        "running"
-      ){
-
-        row.classList.add(
-          "running"
-        );
-
-      }
-
-      if(
-        p.status ===
-        "cashed"
-      ){
-
-        row.classList.add(
-          "cashed"
-        );
-
-      }
-
-      if(
-        p.status ===
-        "crashed"
-      ){
-
-        row.classList.add(
-          "crashed"
-        );
-
-      }
-
-      let statusText =
-        "等待下注";
-
-      if(
-        p.status ===
-        "ready"
-      ){
-
-        statusText =
-          "已下注 · 等待起飛";
-
-      }
-      else if(
-        p.status ===
-        "running"
-      ){
-
-        statusText =
-          "🚀 上升中";
-
-      }
-      else if(
-        p.status ===
-        "cashoutPending"
-      ){
-
-        statusText =
-          "💰 收錢確認中";
-
-      }
-      else if(
-        p.status ===
-        "cashed"
-      ){
-
-        statusText =
-          "✅ 已收錢 · " +
-          p.cashoutMultiplier.toFixed(2) +
-          "x";
-
-      }
-      else if(
-        p.status ===
-        "crashed"
-      ){
-
-        statusText =
-          "💥 CRASH";
-
-      }
-      else if(
-        p.status ===
-        "watching"
-      ){
-
-        statusText =
-          "觀戰 · 下一局可加入";
-
-      }
-
-      let payoutHtml =
-        "";
-
-      if(
-        p.status ===
-        "cashed"
-      ){
-
-        payoutHtml =
-          `
-            <div
-              class="player-payout win">
-              +${money(p.payout)} 🪙
-            </div>
-          `;
-
-      }
-      else if(
-        p.status ===
-        "crashed"
-      ){
-
-        payoutHtml =
-          `
-            <div
-              class="player-payout loss">
-              0 🪙
-            </div>
-          `;
-
-      }
-
-      row.innerHTML = `
-
-        <div class="avatar">
-          ${avatarHtml(p)}
-        </div>
-
-        <div
-          class="player-main">
-
-          <div class="player-name">
-
-            <div class="name-text">
-              ${escapeHtml(
-                safeName(
-                  p.username
-                )
-              )}
-            </div>
-
-            ${
-              p.id === ME
-              ? `
-                <span class="badge">
-                  你
-                </span>
-              `
-              : ""
-            }
-
-            ${
-              p.id === hostId
-              ? `
-                <span class="badge">
-                  房主
-                </span>
-              `
-              : ""
-            }
-
-          </div>
-
-          <div class="player-meta">
-            ${escapeHtml(
-              statusText
-            )}
-          </div>
-
-          ${payoutHtml}
-
-        </div>
-
-        <div
-          class="player-right">
-
-          ${
-            p.bet > 0
-            ? `
-              <div class="player-bet">
-                ${money(p.bet)} 🪙
-              </div>
-            `
-            : `
-              <div
-                class="player-bet"
-                style="color:#555b70">
-                —
-              </div>
-            `
-          }
-
-        </div>
-
-      `;
-
-      playerList.appendChild(
-        row
-      );
-
-    }
-  );
-
-}
-
-
-function renderControls(){
-
-  const me =
-    players[ME];
-
-  const bet =
-    me?.bet || 0;
-
-  myStatus.textContent =
-    bet
-      ? "Entry " +
-        money(bet) +
-        " 🪙"
-      : "尚未下注";
-
-  document
-    .querySelectorAll(
-      ".bet-button"
-    )
-    .forEach(
-      button => {
-
-        const amount =
-          Number(
-            button.dataset.bet
-          );
-
-        button.classList.toggle(
-          "selected",
-          selectedBet === amount
-        );
-
-        button.disabled =
-          isPurchasing ||
-          !!bet ||
-          !(
-            gameState ===
-              STATES.LOBBY ||
-            gameState ===
-              STATES.BETTING
-          );
-
-      }
-    );
-
-
-  mainAction.className =
-    "main-action";
-
-  let label =
-    "請先選擇 Entry";
-
-  let disabled =
-    true;
-
-
-  if(
-    isPurchasing
-  ){
-
-    label =
-      "正在確認 Entry…";
-
-  }
-  else if(
-    gameState ===
-      STATES.LOBBY ||
-    gameState ===
-      STATES.BETTING ||
-    gameState ===
-      STATES.COUNTDOWN
-  ){
-
-    if(!bet){
-
-      label =
-        "請選擇下注";
-
-      disabled =
-        true;
-
-    }
-    else if(
-      isHost &&
-      bettingPlayers().length >= 2
-    ){
-
-      label =
-        gameState ===
-        STATES.COUNTDOWN
-          ? "🚀 立即起飛"
-          : "🚀 開始本局";
-
-      disabled =
-        false;
-
-    }
-    else{
-
-      label =
-        "等待其他玩家／房主…";
-
-      disabled =
-        true;
-
+      renderAll();
+      return;
     }
 
-  }
-  else if(
-    gameState ===
-    STATES.PLAYING
-  ){
-
-    if(
-      localCashoutLock.locked ||
-      me.status ===
-        "cashed"
-    ){
-
-      mainAction.classList.add(
-        "frozen"
-      );
-
-      label =
-        "✅ 已收錢 · " +
-        money(
-          localCashoutLock.payout ||
-          me.payout
-        ) +
-        " 🪙";
-
-      disabled =
-        true;
-
-    }
-    else if(
-      me.bet > 0 &&
-      me.status ===
-        "running"
-    ){
-
-      const elapsed =
-        Date.now() -
-        roundStartTime;
-
-      const qualified =
-        elapsed >=
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-        1000;
-
-      if(!qualified){
-
-        const remain =
-          Math.max(
-            0,
-            CONFIG.MIN_REWARD_QUALIFICATION_SECONDS -
-            Math.floor(
-              elapsed/1000
-            )
-          );
-
-        label =
-          "⏱️ " +
-          remain +
-          " 秒後開放收錢";
-
-        disabled =
-          true;
-
-      }
-      else{
-
-        mainAction.classList.add(
-          "cashout"
-        );
-
-        const potential =
-          calculatePayout(
-            me.bet,
-            currentMultiplier
-          );
-
-        label =
-          "💰 收錢 · " +
-          money(
-            potential
-          ) +
-          " 🪙";
-
-        disabled =
-          false;
-
-      }
-
-    }
-    else{
-
-      label =
-        "觀戰中";
-
-      disabled =
-        true;
-
-    }
-
-  }
-  else if(
-    gameState ===
-    STATES.RESULT
-  ){
-
-    mainAction.classList.add(
-      "crashed"
-    );
-
-    label =
-      "本局已結束";
-
-    disabled =
-      true;
-
-  }
-
-
-  mainAction.querySelector(
-    "span"
-  ).textContent =
-    label;
-
-  mainAction.disabled =
-    disabled;
-
-}
-
-
-/* =========================================================
-   GAME RENDER LOOP
-   ========================================================= */
-
-let lastFrame =
-  performance.now();
-
-let fpsTimer =
-  performance.now();
-
-let frameCounter =
-  0;
-
-let measuredFPS =
-  60;
-
-
-function gameFrame(
-  timestamp
-){
-
-  const rawDt =
-    (
-      timestamp -
-      lastFrame
-    ) / 1000;
-
-  const dt =
-    Math.min(
-      Math.max(
-        rawDt,
-        0
-      ),
-      .033
-    );
-
-  lastFrame =
-    timestamp;
-
-  frameCounter++;
-
-  if(
-    timestamp -
-    fpsTimer >=
-    1000
-  ){
-
-    measuredFPS =
-      frameCounter;
-
-    frameCounter =
-      0;
-
-    fpsTimer =
-      timestamp;
-
-    /*
-      Adaptive visual effects.
-      Gameplay logic remains unchanged.
-    */
-
-    if(
-      measuredFPS < 40
-    ){
-
-      particleLevel =
-        12;
-
-    }
-    else if(
-      measuredFPS < 50
-    ){
-
-      particleLevel =
-        24;
-
-    }
-    else{
-
-      particleLevel =
-        CONFIG.MAX_PARTICLES;
-
-    }
-
-  }
-
-  updateGame(
-    timestamp,
-    dt
-  );
-
-  requestAnimationFrame(
-    gameFrame
-  );
-
-}
-
-
-function updateGame(
-  timestamp,
-  dt
-){
-
-  const now =
-    Date.now();
-
-  if(
-    gameState ===
-      STATES.COUNTDOWN ||
-    gameState ===
-      STATES.BETTING
-  ){
-
-    if(
-      bettingDeadline &&
-      now >=
-        bettingDeadline
-    ){
-
-      bettingDeadline =
-        0;
-
-      if(
-        isHost &&
-        bettingPlayers().length >= 2
-      ){
-
-        countdownStarted =
-          false;
-
-        startRoundAsHost();
-
-      }else{
-
-        countdownStarted =
-          false;
-
-        gameState =
-          STATES.BETTING;
-
-      }
-
-    }
-
-  }
-
-
-  if(
-    gameState ===
-    STATES.PLAYING
-  ){
-
-    /*
-      Host authoritative time check.
-      This still works after FPS drops
-      because it uses Date.now().
-    */
-
-    currentMultiplier =
-      currentMultiplierAt(
-        now
-      );
-
-    if(
-      isHost &&
-      hostState.crashPoint != null &&
-      !hostState.settled
-    ){
-
-      if(
-        currentMultiplier >=
-        hostState.crashPoint
-      ){
-
-        hostCrash();
-
-      }
-      else if(
-        crashDeadline &&
-        now >=
-          crashDeadline
-      ){
-
-        hostCrash();
-
-      }
-
-    }
-
-    updateMultiplierUI();
-
-  }
-
-
-  cleanupInactivePlayersLight();
-
-}
-
-
-let cleanupCounter =
-  0;
-
-
-function cleanupInactivePlayersLight(){
-
-  cleanupCounter++;
-
-  if(
-    cleanupCounter <
-    45
-  ){
-
-    return;
-
-  }
-
-  cleanupCounter =
-    0;
-
-  cleanupInactivePlayers();
-
-}
-
-
-/* =========================================================
-   MULTIPLIER UI
-   ========================================================= */
-
-let lastWarningSecond =
-  -1;
-
-
-function updateMultiplierUI(){
-
-  if(
-    gameState !==
-    STATES.PLAYING
-  ){
-
-    return;
-
-  }
-
-  const value =
-    clamp(
-      currentMultiplier,
-      1,
-      CONFIG.MAX_CRASH_MULTIPLIER
-    );
-
-  multiplier.textContent =
-    value.toFixed(2) +
-    "x";
-
-  multiplier.className =
-    "multiplier";
-
-  if(
-    value >= 5
-  ){
-
-    multiplier.classList.add(
-      "danger"
-    );
-
-  }
-  else if(
-    value >= 2.5
-  ){
-
-    multiplier.classList.add(
-      "warning"
-    );
-
-  }
-
-  const elapsed =
-    Math.max(
-      0,
-      Date.now() -
-      roundStartTime
-    );
-
-  const qualified =
-    elapsed >=
-    CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-    1000;
-
-  if(
-    !qualified
-  ){
-
-    const remaining =
-      Math.max(
+    case "HOST_CHANGED": {
+      const incomingGeneration = clampInt(
+        payload.hostGeneration,
         0,
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS -
-        Math.floor(
-          elapsed / 1000
-        )
+        999999999
       );
 
-    multiplierCaption.textContent =
-      "⏱️ " +
-      remaining +
-      " 秒後開放收錢";
+      if (incomingGeneration < hostGeneration) return;
 
-    if(
-      remaining !==
-      lastWarningSecond
-    ){
+      hostGeneration = incomingGeneration;
+      hostId = String(payload.hostId || sender || "");
+      isHost = hostId === ME;
+      hostElectionLocked = true;
 
-      lastWarningSecond =
-        remaining;
-
-      if(
-        remaining <= 3 &&
-        remaining >= 1
-      ){
-
-        soundWarning();
-
-      }
-
+      renderAll();
+      return;
     }
 
-  }
-  else{
+    case "ROOM_STATE": {
+      if (payload.targetId && String(payload.targetId) !== ME) return;
 
-    multiplierCaption.textContent =
-      players[ME]?.status ===
-      "running"
-
-        ? "現在可以收錢"
-
-        : "電梯正在升空";
-
-  }
-
-
-  /*
-    Cosmetic elevator movement.
-  */
-
-  const seconds =
-    elapsed / 1000;
-
-  const progress =
-    Math.min(
-      84,
-      8 +
-      seconds * 6.2
-    );
-
-  elevator.style.bottom =
-    progress +
-    "%";
-
-}
-
-
-/* =========================================================
-   RESULT SCREEN
-   ========================================================= */
-
-function showResult(){
-
-  if(
-    resultModalShown
-  ){
-
-    return;
-
-  }
-
-  resultModalShown =
-    true;
-
-  const result =
-    resultData || {
-      rows:[],
-      crashPoint:
-        publicCrashPoint || 1
-    };
-
-  const rows =
-    Array.isArray(
-      result.rows
-    )
-      ? result.rows
-      : [];
-
-  const me =
-    rows.find(
-      r =>
-        String(r.id) ===
-        ME
-    );
-
-  const winner =
-    rows.find(
-      r =>
-        Number(r.payout) > 0
-    );
-
-  const crash =
-    clamp(
-      result.crashPoint,
-      CONFIG.MIN_CRASH_MULTIPLIER,
-      CONFIG.MAX_CRASH_MULTIPLIER
-    );
-
-  if(
-    me &&
-    me.payout > 0
-  ){
-
-    resultIcon.textContent =
-      "🏆";
-
-    resultTitle.textContent =
-      "你成功收錢！";
-
-    resultSubtitle.textContent =
-      "本局爆在 " +
-      crash.toFixed(2) +
-      "x";
-
-    highlightName.textContent =
-      "🎉 " +
-      safeName(
-        me.username
+      const incomingHostGeneration = clampInt(
+        payload.hostGeneration,
+        0,
+        999999999
       );
 
-    highlightPayout.textContent =
-      "+" +
-      money(me.payout) +
-      " 🪙";
-
-    soundVictory();
-
-    spawnParticles(
-      particleLevel
-    );
-
-  }else{
-
-    resultIcon.textContent =
-      "💥";
-
-    resultTitle.textContent =
-      "電梯 CRASH！";
-
-    resultSubtitle.textContent =
-      "本局爆在 " +
-      crash.toFixed(2) +
-      "x";
-
-    if(
-      winner
-    ){
-
-      highlightName.textContent =
-        "🏆 " +
-        safeName(
-          winner.username
-        );
-
-      highlightPayout.textContent =
-        "+" +
-        money(
-          winner.payout
-        ) +
-        " 🪙";
-
-    }else{
-
-      highlightName.textContent =
-        "本局沒有成功收錢";
-
-      highlightPayout.textContent =
-        "0 🪙";
-
-    }
-
-  }
-
-  resultList.innerHTML =
-    "";
-
-  rows.forEach(
-    (r,index) => {
-
-      const row =
-        document.createElement(
-          "div"
-        );
-
-      row.className =
-        "result-row";
-
-      let rank;
-
-      if(index === 0){
-        rank = "🥇";
-      }else if(index === 1){
-        rank = "🥈";
-      }else if(index === 2){
-        rank = "🥉";
-      }else{
-        rank =
-          String(index + 1);
+      if (incomingHostGeneration >= hostGeneration && payload.hostId) {
+        hostGeneration = incomingHostGeneration;
+        hostId = String(payload.hostId);
+        isHost = hostId === ME;
+        hostElectionLocked = true;
       }
 
-      const payout =
-        clampInt(
-          r.payout,
-          0,
-          CONFIG.MAX_PAYOUT
-        );
+      if (Array.isArray(payload.participants)) {
+        payload.participants.forEach(p => {
+          if (p && p.id) {
+            addPlayer(p);
+          }
+        });
+      }
 
-      const cashout =
-        clamp(
-          r.multiplier,
+      gameState = Object.values(STATES).includes(payload.state)
+        ? payload.state
+        : gameState;
+
+      roundStartedAt = finiteNumber(payload.roundStartedAt, roundStartedAt);
+      bettingDeadline = finiteNumber(payload.bettingDeadline, bettingDeadline);
+      countdownDeadline = finiteNumber(payload.countdownDeadline, countdownDeadline);
+      crashDeadline = finiteNumber(payload.crashDeadline, crashDeadline);
+      currentMultiplier = clamp(
+        payload.currentMultiplier,
+        1,
+        CONFIG.MAX_CRASH_MULTIPLIER
+      );
+
+      if (payload.totalPool != null) lockedTotalPool = clampInt(payload.totalPool, 0, CONFIG.MAX_PRIZE_POOL);
+      if (payload.platformFee != null) lockedPlatformFee = clampInt(payload.platformFee, 0, CONFIG.MAX_PRIZE_POOL);
+      if (payload.prizePool != null) lockedPrizePool = clampInt(payload.prizePool, 0, CONFIG.MAX_PRIZE_POOL);
+
+      if (gameState === STATES.PLAYING && payload.crashPoint != null) {
+        publicCrashPoint = clamp(
+          payload.crashPoint,
+          CONFIG.MIN_CRASH_MULTIPLIER,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+      }
+
+      renderAll();
+      return;
+    }
+
+    case "PLAYER_STATE": {
+      const id = String(payload.playerId || sender || "");
+      if (!id) return;
+
+      if (!players[id]) {
+        addPlayer({
+          id,
+          username: payload.username || "玩家",
+          avatar: payload.avatar || "",
+          joinedAt: finiteNumber(payload.joinedAt, nowMs())
+        });
+      }
+
+      const p = players[id];
+
+      if (payload.paid != null) {
+        p.paid = payload.paid === true;
+      }
+
+      if (p.paid) {
+        p.entry = CONFIG.ENTRY_FEE;
+      }
+
+      if (payload.status) {
+        const allowedStatuses = new Set([
+          "waiting", "ready", "running", "cashoutPending", "cashed", "crashed", "watching"
+        ]);
+
+        if (allowedStatuses.has(String(payload.status))) {
+          p.status = String(payload.status);
+        }
+      }
+
+      if (payload.cashoutMultiplier != null) {
+        p.cashoutMultiplier = clamp(
+          payload.cashoutMultiplier,
           0,
           CONFIG.MAX_CRASH_MULTIPLIER
         );
+      }
 
-      const payoutText =
-        payout > 0
-          ? "+" +
-            money(payout) +
-            " 🪙"
-          : "0 🪙";
+      if (payload.cashoutAt != null) {
+        p.cashoutAt = Math.max(0, finiteNumber(payload.cashoutAt, 0));
+      }
 
-      const payoutClass =
-        payout > 0
-          ? "win"
-          : "zero";
+      if (payload.reward != null && gameState === STATES.RESULT) {
+        p.reward = clampInt(payload.reward, 0, CONFIG.MAX_REWARD);
+      }
 
-      row.innerHTML = `
+      touchPlayer(id);
 
-        <div class="result-rank">
-          ${rank}
-        </div>
+      if (id === ME) {
+        if (p.status === "running") {
+          localCashout.status = "running";
+        } else if (p.status === "cashed") {
+          localCashout.status = "cashed";
+          localCashout.lockedMultiplier = p.cashoutMultiplier;
+          localCashout.lockedAt = p.cashoutAt;
+        } else if (p.status === "crashed") {
+          localCashout.status = "crashed";
+        }
+      }
 
-        <div class="avatar">
+      renderAll();
+      return;
+    }
 
-          ${
-            r.avatar
-            ? `
-              <img
-                src="${escapeHtml(r.avatar)}"
-                alt="">
-            `
-            : escapeHtml(
-                String(
-                  r.username ||
-                  "?"
-                ).charAt(0)
-              )
-          }
+    case "PLAYER_CASHOUT": {
+      if (!isHost) return;
+      if (gameState !== STATES.PLAYING) return;
+      if (!matchParticipants.includes(sender)) return;
 
-        </div>
+      const p = players[sender];
+      if (!p || !p.paid || p.status !== "running") return;
 
-        <div
-          style="min-width:0">
+      const elapsed = (nowMs() - roundStartedAt) / 1000;
+      if (elapsed < CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) return;
 
-          <div class="result-name">
-            ${escapeHtml(
-              safeName(
-                r.username
-              )
-            )}
-          </div>
-
-          <div class="result-detail">
-            Entry ${money(r.bet)} 🪙
-            ${
-              cashout > 0
-                ? " · 收在 " +
-                  cashout.toFixed(2) +
-                  "x"
-                : " · CRASH"
-            }
-          </div>
-
-        </div>
-
-        <div
-          class="result-money ${payoutClass}">
-          ${payoutText}
-        </div>
-
-      `;
-
-      resultList.appendChild(
-        row
+      const authoritativeMultiplier = clamp(
+        currentMultiplierAt(nowMs()),
+        1,
+        CONFIG.MAX_CRASH_MULTIPLIER
       );
 
+      if (hostState.crashPoint != null && authoritativeMultiplier >= hostState.crashPoint) {
+        hostCrash();
+        return;
+      }
+
+      p.status = "cashed";
+      p.cashoutMultiplier = authoritativeMultiplier;
+      p.cashoutAt = nowMs();
+      p.reward = 0;
+      p.reason = "成功收錢";
+
+      sendHostEvent("PLAYER_STATE", {
+        playerId: p.id,
+        username: p.username,
+        avatar: p.avatar,
+        status: "cashed",
+        paid: true,
+        entry: CONFIG.ENTRY_FEE,
+        cashoutMultiplier: p.cashoutMultiplier,
+        cashoutAt: p.cashoutAt,
+        reward: 0
+      });
+
+      vibration(14);
+      renderAll();
+      return;
     }
-  );
 
-  resultModal.classList.add(
-    "show"
-  );
+    case "ROUND_START": {
+      const incomingRound = clampInt(payload.roundId, 1, 999999999);
+      if (incomingRound !== roundId) return;
 
+      if (payload.hostId) {
+        hostId = String(payload.hostId);
+        isHost = hostId === ME;
+        hostElectionLocked = true;
+      }
+
+      if (Array.isArray(payload.participants)) {
+        matchParticipants = payload.participants
+          .filter(Boolean)
+          .map(p => String(p.id))
+          .slice(0, CONFIG.MAX_PLAYERS);
+
+        payload.participants.forEach(p => {
+          if (p && p.id) {
+            addPlayer(p);
+            players[String(p.id)].paid = true;
+            players[String(p.id)].entry = CONFIG.ENTRY_FEE;
+            players[String(p.id)].status = p.status || "ready";
+            players[String(p.id)].cashoutMultiplier = clamp(
+              p.cashoutMultiplier,
+              0,
+              CONFIG.MAX_CRASH_MULTIPLIER
+            );
+            players[String(p.id)].cashoutAt = finiteNumber(p.cashoutAt, 0);
+            players[String(p.id)].reward = clampInt(p.reward, 0, CONFIG.MAX_REWARD);
+          }
+        });
+      }
+
+      if (payload.totalPool != null) lockedTotalPool = clampInt(payload.totalPool, 0, CONFIG.MAX_PRIZE_POOL);
+      if (payload.platformFee != null) lockedPlatformFee = clampInt(payload.platformFee, 0, CONFIG.MAX_PRIZE_POOL);
+      if (payload.prizePool != null) lockedPrizePool = clampInt(payload.prizePool, 0, CONFIG.MAX_PRIZE_POOL);
+
+      if (payload.phase === "COUNTDOWN") {
+        prizePoolLocked = true;
+        countdownDeadline = finiteNumber(payload.countdownDeadline, nowMs() + 3000);
+        gameState = STATES.COUNTDOWN;
+        renderAll();
+        return;
+      }
+
+      if (payload.phase === "PLAYING") {
+        prizePoolLocked = true;
+
+        hostState.seed = finiteNumber(payload.seed, 1);
+        hostState.startTime = finiteNumber(payload.startTime, nowMs());
+        hostState.crashDeadline = finiteNumber(payload.crashDeadline, 0);
+        hostState.crashPoint = clamp(
+          payload.crashPoint,
+          CONFIG.MIN_CRASH_MULTIPLIER,
+          CONFIG.MAX_CRASH_MULTIPLIER
+        );
+        hostState.settled = false;
+        hostState.participants = matchParticipants.slice();
+        hostState.totalPool = lockedTotalPool;
+        hostState.platformFee = lockedPlatformFee;
+        hostState.prizePool = lockedPrizePool;
+
+        roundStartedAt = hostState.startTime;
+        crashDeadline = hostState.crashDeadline;
+        publicCrashPoint = hostState.crashPoint;
+        currentMultiplier = 1;
+        gameState = STATES.PLAYING;
+
+        matchParticipants.forEach(id => {
+          if (!players[id]) return;
+          if (players[id].status !== "cashed") {
+            players[id].status = "running";
+          }
+          players[id].reward = 0;
+        });
+
+        localCashout.status = players[ME]?.paid ? "running" : "none";
+        localCashout.lockedMultiplier = 0;
+        localCashout.lockedAt = 0;
+
+        soundStart();
+        renderAll();
+      }
+
+      return;
+    }
+
+    case "ROUND_END": {
+      if (gameState === STATES.RESULT || gameState === STATES.WAITING_FOR_MAYOR_CLOSE) {
+        return;
+      }
+
+      if (payload.rows && Array.isArray(payload.rows)) {
+        const incomingResult = {
+          roundId,
+          crashPoint: clamp(
+            payload.crashPoint,
+            CONFIG.MIN_CRASH_MULTIPLIER,
+            CONFIG.MAX_CRASH_MULTIPLIER
+          ),
+          totalPool: clampInt(payload.totalPool, 0, CONFIG.MAX_PRIZE_POOL),
+          platformFee: clampInt(payload.platformFee, 0, CONFIG.MAX_PRIZE_POOL),
+          prizePool: clampInt(payload.prizePool, 0, CONFIG.MAX_PRIZE_POOL),
+          rewardEach: clampInt(payload.rewardEach, 0, CONFIG.MAX_REWARD),
+          totalAwarded: clampInt(
+            payload.totalAwarded,
+            0,
+            clampInt(payload.prizePool, 0, CONFIG.MAX_PRIZE_POOL)
+          ),
+          distribution: String(
+            payload.distribution || "成功收錢者平均分配最終獎池"
+          ).slice(0, 100),
+          rows: payload.rows.slice(0, CONFIG.MAX_PLAYERS)
+        };
+
+        if (!validateResultSettlement(incomingResult)) {
+          return;
+        }
+
+        resultData = {
+          ...incomingResult
+        };
+      } else {
+        resultData = buildRoundResult();
+      }
+
+      // Apply authoritative final rewards.
+      if (resultData?.rows) {
+        resultData.rows.forEach(row => {
+          const p = players[row.id];
+          if (!p) return;
+
+          p.status = row.status === "cashed" ? "cashed" : "crashed";
+          p.cashoutMultiplier = clamp(
+            row.cashoutMultiplier,
+            0,
+            CONFIG.MAX_CRASH_MULTIPLIER
+          );
+          p.cashoutAt = finiteNumber(row.cashoutAt, 0);
+          p.reward = clampInt(row.reward, 0, CONFIG.MAX_REWARD);
+          p.reason = String(row.reason || "").slice(0, 80);
+        });
+      }
+
+      lockedTotalPool = resultData.totalPool;
+      lockedPlatformFee = resultData.platformFee;
+      lockedPrizePool = resultData.prizePool;
+      prizePoolLocked = true;
+
+      publicCrashPoint = resultData.crashPoint;
+      currentMultiplier = resultData.crashPoint;
+
+      gameState = STATES.RESULT;
+      resultModalShown = false;
+
+      if (players[ME]) {
+        const meRow = resultData.rows?.find(r => String(r.id) === ME);
+        if (meRow) {
+          gameOverReward = clampInt(
+            meRow.reward,
+            0,
+            Math.min(CONFIG.MAX_REWARD, lockedPrizePool)
+          );
+        }
+      }
+
+      requestGameOverOnce(gameOverReward);
+      renderAll();
+      showResult();
+
+      if (gameOverReward > 0) {
+        soundVictory();
+      } else {
+        soundCrash();
+      }
+
+      crashVisuals();
+      return;
+    }
+
+    case "GAME_CLOSED": {
+      gameState = STATES.GAME_CLOSED;
+      renderAll();
+      return;
+    }
+
+    default:
+      return;
+  }
 }
 
-
 /* =========================================================
-   RESULT CLOSE
+   RESULT
    ========================================================= */
 
-resultClose.addEventListener(
-  "pointerdown",
-  () => {
+function showResult() {
+  if (resultModalShown) return;
+  resultModalShown = true;
 
-    ensureAudio();
+  const result = resultData || buildRoundResult();
+  const rows = Array.isArray(result.rows) ? result.rows : [];
 
-    soundClick();
+  const me = rows.find(r => String(r.id) === ME);
+  const successful = rows.filter(r => r.status === "cashed");
 
-    resultModal.classList.remove(
-      "show"
-    );
+  if (me && Number(me.reward) > 0) {
+    resultIcon.textContent = "🏆";
+    resultTitle.textContent = "成功收錢！";
+    resultSubtitle.textContent =
+      `CRASH ${clamp(result.crashPoint, 1, CONFIG.MAX_CRASH_MULTIPLIER).toFixed(2)}x · 本局已結束`;
 
+    highlightName.textContent = `你在 ${clamp(me.cashoutMultiplier, 1, CONFIG.MAX_CRASH_MULTIPLIER).toFixed(2)}x 收錢`;
+    highlightPayout.textContent = `+${money(me.reward)} 🪙`;
+  } else {
+    resultIcon.textContent = "💥";
+    resultTitle.textContent = "電梯 CRASH！";
+    resultSubtitle.textContent =
+      `本局爆在 ${clamp(result.crashPoint, 1, CONFIG.MAX_CRASH_MULTIPLIER).toFixed(2)}x · 本局已結束`;
+
+    if (successful.length > 0) {
+      highlightName.textContent =
+        successful.length === 1
+          ? `唯一成功收錢：${safeName(successful[0].username)}`
+          : `${successful.length} 位玩家成功收錢`;
+
+      highlightPayout.textContent =
+        `每人 +${money(result.rewardEach)} 🪙`;
+    } else {
+      highlightName.textContent = "本局沒有人在 CRASH 前完成收錢";
+      highlightPayout.textContent = "0 🪙";
+    }
   }
-);
 
+  resultEconomy.innerHTML = `
+    <div><span>總獎池</span><strong>${money(result.totalPool)} 🪙</strong></div>
+    <div><span>平台手續費</span><strong>${money(result.platformFee)} 🪙</strong></div>
+    <div><span>最終獎池</span><strong>${money(result.prizePool)} 🪙</strong></div>
+  `;
+
+  resultList.innerHTML = "";
+
+  rows.forEach((r, index) => {
+    const row = document.createElement("div");
+    row.className = "result-row";
+
+    const rank = index < 3
+      ? ["🥇", "🥈", "🥉"][index]
+      : String(index + 1);
+
+    const statusText = r.status === "cashed"
+      ? `✅ ${clamp(r.cashoutMultiplier, 1, CONFIG.MAX_CRASH_MULTIPLIER).toFixed(2)}x 收錢`
+      : "💥 CRASH";
+
+    const reward = clampInt(r.reward, 0, CONFIG.MAX_REWARD);
+
+    row.innerHTML = `
+      <div class="result-rank">${rank}</div>
+      <div class="avatar">
+        ${
+          r.avatar
+            ? `<img src="${escapeHtml(r.avatar)}" alt="">`
+            : escapeHtml((safeName(r.username).charAt(0) || "?"))
+        }
+      </div>
+      <div style="min-width:0">
+        <div class="result-name">${escapeHtml(safeName(r.username))}</div>
+        <div class="result-detail">${escapeHtml(statusText)} · Entry ${money(CONFIG.ENTRY_FEE)} 🪙</div>
+      </div>
+      <div class="result-money ${reward > 0 ? "win" : "zero"}">
+        ${reward > 0 ? "+" + money(reward) + " 🪙" : "0 🪙"}
+      </div>
+    `;
+
+    resultList.appendChild(row);
+  });
+
+  resultModal.classList.add("show");
+
+  // One-shot: keep result visible. No replay/next-round button.
+  gameState = STATES.WAITING_FOR_MAYOR_CLOSE;
+  phaseLabel.className = "phase crashed";
+  phaseLabel.textContent = "🏁 本局已結束";
+  controlHint.textContent = "等待市長／房主關閉目前遊戲，再重新開啟新的遊戲實例。";
+}
 
 /* =========================================================
    HELP
    ========================================================= */
 
-helpBtn.addEventListener(
-  "pointerdown",
-  () => {
+helpBtn.addEventListener("pointerdown", event => {
+  event.preventDefault();
+  ensureAudio();
+  soundClick();
+  helpPanel.classList.add("show");
+});
 
-    ensureAudio();
-
-    soundClick();
-
-    helpPanel.classList.add(
-      "show"
-    );
-
-  }
-);
-
-
-closeHelp.addEventListener(
-  "pointerdown",
-  () => {
-
-    soundClick();
-
-    helpPanel.classList.remove(
-      "show"
-    );
-
-  }
-);
-
+closeHelp.addEventListener("pointerdown", event => {
+  event.preventDefault();
+  ensureAudio();
+  soundClick();
+  helpPanel.classList.remove("show");
+});
 
 /* =========================================================
-   DEBUG
+   RENDER
    ========================================================= */
 
-function debugInfo(){
+function renderEconomy() {
+  economyEntry.textContent = `${money(CONFIG.ENTRY_FEE)} 🪙`;
 
-  if(!CONFIG.DEBUG){
+  const econ = prizePoolLocked
+    ? {
+        players: matchParticipants.length,
+        totalPool: lockedTotalPool,
+        platformFee: lockedPlatformFee,
+        prizePool: lockedPrizePool
+      }
+    : (() => {
+        const live = calculateLockedEconomy(currentPaidIds());
+        return {
+          players: live.ids.length,
+          totalPool: live.totalPool,
+          platformFee: live.platformFee,
+          prizePool: live.prizePool
+        };
+      })();
 
-    return;
+  economyPlayers.textContent = `${clampInt(econ.players, 0, CONFIG.MAX_PLAYERS)} 人`;
+  economyTotal.textContent = `${money(econ.totalPool)} 🪙`;
+  economyFee.textContent = `${money(econ.platformFee)} 🪙`;
+  economyPrize.textContent = `${money(econ.prizePool)} 🪙`;
+}
 
+function renderPhase() {
+  roundLabel.textContent = `第 ${roundId} 局實例`;
+  phaseLabel.className = "phase";
+
+  switch (gameState) {
+    case STATES.LOBBY:
+    case STATES.SELECT:
+      phaseLabel.textContent = "🏠 選擇 Entry";
+      break;
+
+    case STATES.PURCHASING:
+      phaseLabel.textContent = "💳 正在確認 Entry";
+      phaseLabel.classList.add("running");
+      break;
+
+    case STATES.READY:
+      phaseLabel.textContent = isHost ? "👑 可以開始本局" : "✅ 已準備";
+      break;
+
+    case STATES.COUNTDOWN:
+      phaseLabel.textContent = "⏱️ 即將起飛";
+      phaseLabel.classList.add("running");
+      break;
+
+    case STATES.PLAYING:
+      phaseLabel.textContent = "🚀 電梯上升中";
+      phaseLabel.classList.add("running");
+      break;
+
+    case STATES.RESULT:
+    case STATES.WAITING_FOR_MAYOR_CLOSE:
+      phaseLabel.textContent = "🏁 本局已結束";
+      phaseLabel.classList.add("crashed");
+      break;
+
+    case STATES.GAME_CLOSED:
+      phaseLabel.textContent = "🔒 遊戲已關閉";
+      phaseLabel.classList.add("crashed");
+      break;
+
+    default:
+      phaseLabel.textContent = "遊戲";
+  }
+}
+
+function avatarHtml(player) {
+  if (player.avatar) {
+    return `<img src="${escapeHtml(player.avatar)}" alt="">`;
   }
 
-  console.log({
-    GAME_INFO,
+  return escapeHtml(
+    safeName(player.username).charAt(0) || "?"
+  );
+}
 
-    gameState,
+function statusTextForPlayer(p) {
+  if (p.status === "ready") return p.paid ? "✅ 已付款 · 等待開始" : "等待 Entry";
+  if (p.status === "running") return "🚀 上升中";
+  if (p.status === "cashoutPending") return "💰 收錢確認中";
+  if (p.status === "cashed") return `✅ 已收錢 · ${clamp(p.cashoutMultiplier, 1, CONFIG.MAX_CRASH_MULTIPLIER).toFixed(2)}x`;
+  if (p.status === "crashed") return `💥 ${p.reason || "CRASH"}`;
+  if (p.status === "watching") return "👀 觀戰";
+  return p.paid ? "✅ 已付款" : "等待 Entry";
+}
 
-    roundId,
+function renderPlayers() {
+  const list = activePlayers().slice(0, CONFIG.MAX_PLAYERS);
 
-    hostId,
+  playerInfo.textContent = `${list.length} / ${CONFIG.MAX_PLAYERS} 人`;
+  playerList.innerHTML = "";
 
-    isHost,
+  if (!list.length) {
+    playerList.innerHTML = `
+      <div style="padding:18px;text-align:center;color:#70758a;font-size:10px">
+        等待玩家加入……
+      </div>
+    `;
+    return;
+  }
 
-    playerCount:
-      Object.keys(players).length,
+  list.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "player-row";
 
-    multiplier:
-      currentMultiplier,
+    if (p.id === ME) row.classList.add("self");
+    if (p.id === hostId) row.classList.add("host-row");
+    if (matchParticipants.includes(p.id)) row.classList.add("participant");
+    else if (gameState === STATES.PLAYING || gameState === STATES.RESULT || gameState === STATES.WAITING_FOR_MAYOR_CLOSE) row.classList.add("spectator");
 
-    crashPoint:
-      publicCrashPoint,
+    if (p.status === "running") row.classList.add("running");
+    if (p.status === "cashed") row.classList.add("cashed");
+    if (p.status === "crashed") row.classList.add("crashed");
 
-    fps:
-      measuredFPS
+    const reward = clampInt(p.reward, 0, CONFIG.MAX_REWARD);
 
+    const payoutHtml =
+      p.status === "cashed" || gameState === STATES.RESULT || gameState === STATES.WAITING_FOR_MAYOR_CLOSE
+        ? `<div class="player-payout ${reward > 0 ? "win" : "loss"}">${reward > 0 ? "+" + money(reward) + " 🪙" : "0 🪙"}</div>`
+        : "";
+
+    const badges = [
+      p.id === ME ? `<span class="badge">你</span>` : "",
+      p.id === hostId ? `<span class="badge">主持人</span>` : "",
+      p.id.startsWith("BOT_TEST_") ? `<span class="badge" style="color:#ffb679">測試</span>` : ""
+    ].join("");
+
+    row.innerHTML = `
+      <div class="avatar">${avatarHtml(p)}</div>
+      <div class="player-main">
+        <div class="player-name">
+          <div class="name-text">${escapeHtml(safeName(p.username))}</div>
+          ${badges}
+        </div>
+        <div class="player-meta">${escapeHtml(statusTextForPlayer(p))}</div>
+        ${payoutHtml}
+      </div>
+      <div class="player-right">
+        ${
+          p.paid
+            ? `<div class="player-bet">${money(CONFIG.ENTRY_FEE)} 🪙</div>`
+            : `<div class="player-bet" style="color:#555b70">—</div>`
+        }
+      </div>
+    `;
+
+    playerList.appendChild(row);
   });
 
+  if (Object.values(players).some(p => p.id.startsWith("BOT_TEST_"))) {
+    const note = document.createElement("div");
+    note.style.cssText = "padding:3px 7px;color:#777d92;font-size:7px;text-align:center";
+    note.textContent = "開發測試玩家只用於本機測試，不計入正式 BoomRoom 房間資料";
+    playerList.appendChild(note);
+  }
 }
 
+function renderControls() {
+  const me = players[ME];
 
-setInterval(
-  debugInfo,
-  3000
-);
+  mainAction.className = "main-action";
 
+  if (!me) {
+    mainAction.disabled = true;
+    mainAction.querySelector("span").textContent = "載入玩家資料…";
+    return;
+  }
 
-/* =========================================================
-   VISIBILITY
-   ========================================================= */
+  const paidCount = currentPaidIds().length;
 
-document.addEventListener(
-  "visibilitychange",
-  () => {
+  if (gameState === STATES.LOBBY || gameState === STATES.SELECT) {
+    controlTitle.textContent = "Entry 入場";
+    myStatus.textContent = me.paid ? "已付款" : `Entry ${money(CONFIG.ENTRY_FEE)} 🪙`;
 
-    if(
-      !document.hidden
-    ){
+    if (!me.paid) {
+      entryCard.classList.remove("locked");
+      mainAction.disabled = false;
+      mainAction.querySelector("span").textContent = `支付 Entry ${money(CONFIG.ENTRY_FEE)} 🪙`;
+      controlHint.textContent = "付款成功後才會加入本局參賽名單。";
+    } else {
+      mainAction.disabled = true;
+      mainAction.classList.add("done");
+      mainAction.querySelector("span").textContent = "✅ Entry 已完成";
+      controlHint.textContent = isHost
+        ? `目前 ${paidCount} 名已付款；至少 ${CONFIG.MIN_PLAYERS} 人即可開始。`
+        : "已付款，等待主持人開始本局。";
+    }
 
-      /*
-        Catch up immediately
-        after background throttling.
-      */
+    return;
+  }
 
-      if(
-        isHost &&
-        gameState ===
-          STATES.PLAYING
-      ){
+  if (gameState === STATES.PURCHASING) {
+    myStatus.textContent = "正在確認…";
+    mainAction.disabled = true;
+    mainAction.classList.add("waiting");
+    mainAction.querySelector("span").textContent = "正在確認 Entry…";
+    controlHint.textContent = "請勿重複點擊，正在等待 BoomRoom 付款結果。";
+    return;
+  }
 
-        const now =
-          Date.now();
+  if (gameState === STATES.READY) {
+    myStatus.textContent = me.paid ? "✅ 已付款" : "尚未付款";
 
-        currentMultiplier =
-          currentMultiplierAt(
-            now
-          );
+    if (isHost) {
+      const canStart = paidCount >= CONFIG.MIN_PLAYERS && me.paid;
+      mainAction.disabled = !canStart;
+      if (canStart) {
+        mainAction.querySelector("span").textContent = `🚀 開始本局 · ${paidCount} 人`;
+        controlHint.textContent = `正式開始後立即鎖定獎池 ${money(calculateLockedEconomy(currentPaidIds()).prizePool)} 🪙，之後不再變動。`;
+      } else {
+        mainAction.classList.add("waiting");
+        mainAction.querySelector("span").textContent = `還需 ${Math.max(0, CONFIG.MIN_PLAYERS - paidCount)} 名玩家`;
+        controlHint.textContent = `目前 ${paidCount} 名已付款，等待其他玩家。`;
+      }
+    } else {
+      mainAction.disabled = true;
+      mainAction.classList.add("waiting");
+      mainAction.querySelector("span").textContent = "等待主持人開始";
+      controlHint.textContent = `目前 ${paidCount} 名已付款。正式開始後禁止新玩家加入。`;
+    }
 
-        if(
-          hostState.crashPoint != null &&
-          currentMultiplier >=
-            hostState.crashPoint
-        ){
+    return;
+  }
 
-          hostCrash();
+  if (gameState === STATES.COUNTDOWN) {
+    mainAction.disabled = true;
+    mainAction.classList.add("waiting");
+    mainAction.querySelector("span").textContent = "⏱️ 即將起飛";
+    controlHint.textContent = `獎池已鎖定：${money(lockedPrizePool)} 🪙`;
+    return;
+  }
 
+  if (gameState === STATES.PLAYING) {
+    if (!me.paid || !matchParticipants.includes(ME)) {
+      mainAction.disabled = true;
+      mainAction.classList.add("waiting");
+      mainAction.querySelector("span").textContent = "觀戰中";
+      controlHint.textContent = "本局已開始，不能中途加入參賽。";
+      return;
+    }
+
+    if (localCashout.status === "pending" || me.status === "cashoutPending") {
+      mainAction.disabled = true;
+      mainAction.classList.add("frozen");
+      mainAction.querySelector("span").textContent =
+        `✅ 已鎖定 ${localCashout.lockedMultiplier.toFixed(2)}x`;
+      controlHint.textContent = "收錢倍率已鎖定，實際 Reward 等 CRASH 後依規則結算。";
+      return;
+    }
+
+    if (me.status === "cashed") {
+      mainAction.disabled = true;
+      mainAction.classList.add("frozen");
+      mainAction.querySelector("span").textContent =
+        `✅ 已收錢 · ${me.cashoutMultiplier.toFixed(2)}x`;
+      controlHint.textContent = "你的收錢倍率已永久固定。";
+      return;
+    }
+
+    if (me.status === "crashed") {
+      mainAction.disabled = true;
+      mainAction.classList.add("crashed");
+      mainAction.querySelector("span").textContent = "💥 本局已出局";
+      controlHint.textContent = "本局已結束你的參賽狀態。";
+      return;
+    }
+
+    const elapsed = Math.max(
+      0,
+      (nowMs() - roundStartedAt) / 1000
+    );
+
+    const qualified =
+      elapsed >= CONFIG.MIN_REWARD_QUALIFICATION_SECONDS;
+
+    if (!qualified) {
+      const remain = Math.max(
+        0,
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS - Math.floor(elapsed)
+      );
+
+      mainAction.disabled = true;
+      mainAction.classList.add("waiting");
+      mainAction.querySelector("span").textContent =
+        `⏱️ ${remain} 秒後可收錢`;
+      controlHint.textContent = "10 秒資格期內可以觀察倍率，但不可以有效收錢。";
+    } else {
+      mainAction.disabled = false;
+      mainAction.classList.add("cashout");
+      mainAction.querySelector("span").textContent =
+        `💰 收錢 · ${currentMultiplier.toFixed(2)}x`;
+      controlHint.textContent =
+        "按下後倍率立即鎖定；本局結束後由所有成功者平均分配最終獎池。";
+    }
+
+    return;
+  }
+
+  if (
+    gameState === STATES.RESULT ||
+    gameState === STATES.WAITING_FOR_MAYOR_CLOSE ||
+    gameState === STATES.GAME_CLOSED
+  ) {
+    mainAction.disabled = true;
+    mainAction.classList.add("done");
+    mainAction.querySelector("span").textContent = "本局已結束";
+    controlHint.textContent = "等待市長／房主關閉目前遊戲，再開啟新的遊戲實例。";
+  }
+}
+
+function renderMultiplier() {
+  if (gameState === STATES.PLAYING) {
+    const value = clamp(
+      currentMultiplier,
+      1,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+    multiplier.textContent = `${value.toFixed(2)}x`;
+    multiplier.className = "multiplier";
+
+    if (value >= 5) {
+      multiplier.classList.add("danger");
+    } else if (value >= 2.5) {
+      multiplier.classList.add("warning");
+    }
+
+    const elapsed = Math.max(
+      0,
+      (nowMs() - roundStartedAt) / 1000
+    );
+
+    if (elapsed < CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) {
+      const remain = Math.max(
+        0,
+        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS - Math.floor(elapsed)
+      );
+
+      multiplierCaption.textContent = `⏱️ ${remain} 秒後開放收錢`;
+
+      if (remain !== lastWarningSecond) {
+        lastWarningSecond = remain;
+        if (remain <= 3 && remain >= 1) {
+          soundWarning();
+          vibration(8);
         }
-
       }
-
-      renderAll();
-
+    } else {
+      multiplierCaption.textContent = localCashout.status === "pending"
+        ? "✅ 收錢倍率已鎖定"
+        : "現在可以收錢";
     }
 
-  }
-);
+    const progress = Math.min(
+      84,
+      8 + Math.max(0, elapsed) * 4.4
+    );
 
+    elevator.style.bottom = `${progress}%`;
+    elevator.classList.add("active");
+
+    return;
+  }
+
+  if (gameState === STATES.COUNTDOWN) {
+    const remain = Math.max(
+      0,
+      Math.ceil((countdownDeadline - nowMs()) / 1000)
+    );
+
+    multiplier.textContent = String(remain || 1);
+    multiplier.className = "multiplier warning";
+    multiplierCaption.textContent = "準備起飛";
+    elevator.classList.remove("crashed");
+    return;
+  }
+
+  if (gameState === STATES.RESULT || gameState === STATES.WAITING_FOR_MAYOR_CLOSE) {
+    const crash = clamp(
+      publicCrashPoint || 1,
+      1,
+      CONFIG.MAX_CRASH_MULTIPLIER
+    );
+
+    multiplier.textContent = `${crash.toFixed(2)}x`;
+    multiplier.className = "multiplier crash";
+    multiplierCaption.textContent = "CRASH · 倍率已固定";
+    elevator.classList.remove("active");
+    elevator.classList.add("crashed");
+    return;
+  }
+
+  multiplier.textContent = "1.00x";
+  multiplier.className = "multiplier";
+  multiplierCaption.textContent = "先完成 Entry 才能開始";
+  elevator.classList.remove("active", "crashed");
+  elevator.style.bottom = "8%";
+}
+
+function renderAll() {
+  renderPhase();
+  renderEconomy();
+  renderPlayers();
+  renderControls();
+  renderMultiplier();
+
+  if (gameState === STATES.WAITING_FOR_MAYOR_CLOSE) {
+    resultModal.classList.add("show");
+  }
+}
 
 /* =========================================================
-   DEV MODE
+   TIME / GAME LOOP
    ========================================================= */
 
-const DEV_MODE =
-  !SDK_AVAILABLE;
+let lastFrame = performance.now();
+let fpsTimer = performance.now();
+let frameCounter = 0;
+let measuredFPS = 60;
+let lastDebugAt = 0;
 
-if(
-  DEV_MODE
-){
+function currentMultiplierAt(time) {
+  if (!roundStartedAt) return 1;
 
-  app.classList.add(
-    "dev-mode"
+  const elapsed = Math.max(
+    0,
+    (time - roundStartedAt) / 1000
   );
 
+  return clamp(
+    multiplierFromElapsed(elapsed),
+    1,
+    CONFIG.MAX_CRASH_MULTIPLIER
+  );
 }
 
+function updateGame(dt) {
+  // dt is capped and only used for visual state / FPS measurement.
+  // Match authority uses wall-clock deadlines to remain stable after throttling.
 
-/*
-  明確的開發測試機器人。
-  不冒充真人，不顯示假玩家身份。
-*/
-
-function createDevBots(){
-
-  if(
-    !DEV_MODE
-  ){
-
+  if (pausedByVisibility) {
     return;
-
   }
 
-  setTimeout(
-    () => {
+  if (gameState === STATES.COUNTDOWN) {
+    if (countdownDeadline > 0 && nowMs() >= countdownDeadline) {
+      if (isHost) {
+        startPlayingAsHost();
+      }
+      return;
+    }
+  }
 
-      addPlayer({
+  if (gameState === STATES.PLAYING) {
+    currentMultiplier = currentMultiplierAt(nowMs());
 
-        id:
-          "BOT_TEST_1",
+    if (
+      isHost &&
+      hostState.crashPoint != null &&
+      !hostState.settled &&
+      currentMultiplier >= hostState.crashPoint
+    ) {
+      hostCrash();
+      return;
+    }
 
-        username:
-          "測試機器人 A",
+    // Hard deadline safety.
+    if (
+      isHost &&
+      hostState.crashDeadline > 0 &&
+      !hostState.settled &&
+      nowMs() >= hostState.crashDeadline
+    ) {
+      hostCrash();
+      return;
+    }
 
-        avatar:"",
+    renderMultiplier();
+    renderControls();
+  }
 
-        joinedAt:
-          players[ME].joinedAt + 1
+  // Host timeout is checked only on heartbeat / lifecycle events.
+}
 
-      });
-
-      addPlayer({
-
-        id:
-          "BOT_TEST_2",
-
-        username:
-          "測試機器人 B",
-
-        avatar:"",
-
-        joinedAt:
-          players[ME].joinedAt + 2
-
-      });
-
-      renderAll();
-
-    },
-    600
+function gameFrame(timestamp) {
+  const rawDt = Math.max(
+    0,
+    (timestamp - lastFrame) / 1000
   );
 
+  const dt = Math.min(rawDt, 0.033);
+  lastFrame = timestamp;
+
+  frameCounter++;
+
+  if (timestamp - fpsTimer >= 1000) {
+    measuredFPS = frameCounter;
+    frameCounter = 0;
+    fpsTimer = timestamp;
+
+    if (measuredFPS < 40) {
+      particleLevel = CONFIG.CRITICAL_FPS_PARTICLES;
+    } else if (measuredFPS < 50) {
+      particleLevel = CONFIG.LOW_FPS_PARTICLES;
+    } else {
+      particleLevel = CONFIG.MAX_PARTICLES;
+    }
+
+    if (CONFIG.DEBUG && timestamp - lastDebugAt > 1000) {
+      lastDebugAt = timestamp;
+      console.log(debugSnapshot());
+    }
+  }
+
+  updateGame(dt);
+
+  requestAnimationFrame(gameFrame);
 }
 
-
-function devBotBet(){
-
-  if(
-    !DEV_MODE
-  ){
-
-    return;
-
-  }
-
-  if(
-    gameState !==
-      STATES.BETTING &&
-    gameState !==
-      STATES.LOBBY
-  ){
-
-    return;
-
-  }
-
-  const botA =
-    players.BOT_TEST_1;
-
-  const botB =
-    players.BOT_TEST_2;
-
-  if(
-    botA &&
-    botA.bet <= 0
-  ){
-
-    botA.bet =
-      500;
-
-    botA.status =
-      "ready";
-
-    sendDevLocalBet(
-      botA,
-      500
-    );
-
-  }
-
-  if(
-    botB &&
-    botB.bet <= 0
-  ){
-
-    botB.bet =
-      1000;
-
-    botB.status =
-      "ready";
-
-    sendDevLocalBet(
-      botB,
-      1000
-    );
-
-  }
-
-  renderAll();
-
-  if(
-    isHost
-  ){
-
-    maybeStartCountdown();
-
-  }
-
+function debugSnapshot() {
+  return {
+    fps: measuredFPS,
+    playerId: ME,
+    roundId,
+    hostId,
+    gameState,
+    inputMode: "Pointer/Touch",
+    sensorState: "N/A",
+    score: 0,
+    multiplier: currentMultiplier,
+    entityCount: particles.length,
+    participants: matchParticipants.length,
+    prizePool: lockedPrizePool,
+    gameOverCalled
+  };
 }
 
+/* =========================================================
+   HEARTBEAT / PRESENCE
+   ========================================================= */
 
-function sendDevLocalBet(
-  bot,
-  amount
-){
+let heartbeatTimer = 0;
 
-  handleEvent(
-    "BET_PLACED",
+function sendHello() {
+  touchPlayer(ME);
+
+  sendEvent("PLAYER_HELLO", {
+    playerId: ME,
+    username: safeName(user.username),
+    avatar: user.avatar || "",
+    joinedAt: players[ME]?.joinedAt || nowMs()
+  });
+}
+
+function sendHeartbeat() {
+  touchPlayer(ME);
+
+  sendEvent("PLAYER_HEARTBEAT", {
+    playerId: ME,
+    username: safeName(user.username),
+    joinedAt: players[ME]?.joinedAt || nowMs(),
+    status: gameState
+  });
+}
+
+function heartbeatTick() {
+  sendHeartbeat();
+
+  if (!hostIsAlive()) {
+    tryHostTakeover();
+  }
+
+  cleanupInactivePlayers();
+}
+
+function cleanupInactivePlayers() {
+  const now = nowMs();
+
+  Object.values(players).forEach(p => {
+    if (!p || p.id === ME) return;
+
+    if (now - p.lastSeen > CONFIG.PLAYER_TIMEOUT) {
+      if (gameState === STATES.LOBBY || gameState === STATES.SELECT || gameState === STATES.READY) {
+        if (p.paid !== true) {
+          p.status = "watching";
+        }
+      }
+
+      if (gameState === STATES.PLAYING && matchParticipants.includes(p.id)) {
+        if (p.status === "running" || p.status === "cashoutPending") {
+          p.status = "crashed";
+          p.reward = 0;
+          p.reason = "連線中斷";
+        }
+      }
+    }
+  });
+}
+
+/* =========================================================
+   PAGE / VISIBILITY
+   ========================================================= */
+
+document.addEventListener("visibilitychange", () => {
+  pausedByVisibility = document.hidden;
+
+  if (!document.hidden) {
+    lastFrame = performance.now();
+
+    if (gameState === STATES.PLAYING) {
+      currentMultiplier = currentMultiplierAt(nowMs());
+
+      if (
+        isHost &&
+        hostState.crashPoint != null &&
+        currentMultiplier >= hostState.crashPoint &&
+        !hostState.settled
+      ) {
+        hostCrash();
+      }
+    }
+
+    renderAll();
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  try {
+    sendEvent("PLAYER_END", {
+      playerId: ME,
+      username: safeName(user.username),
+      status: gameState
+    });
+  } catch (_) {}
+
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = 0;
+  }
+
+  resetParticles();
+});
+
+/* =========================================================
+   INCOMING SDK EVENTS
+   ========================================================= */
+
+window.addEventListener("message", event => {
+  try {
+    const data = typeof event.data === "string"
+      ? JSON.parse(event.data)
+      : event.data;
+
+    if (!data || data.action !== "gameEventReceived") {
+      return;
+    }
+
+    const eventName = String(data.eventName || "");
+    const payload =
+      data.payload && typeof data.payload === "object"
+        ? data.payload
+        : null;
+
+    if (!payload) return;
+
+    const senderId = String(
+      data.userId ||
+      payload.from ||
+      ""
+    );
+
+    handleEvent(eventName, payload, senderId, false);
+  } catch (_) {
+    // Ignore malformed postMessage payloads.
+  }
+});
+
+/* =========================================================
+   DEV TEST MODE
+   ========================================================= */
+
+const DEV_MODE = !SDK_AVAILABLE;
+
+function createDevParticipants() {
+  if (!DEV_MODE) return;
+
+  const baseJoined = players[ME]?.joinedAt || nowMs();
+
+  const testPlayers = [
     {
-
-      eventId:
-        createEventId(),
-
-      roundId,
-
-      playerId:
-        bot.id,
-
-      username:
-        bot.username,
-
-      avatar:"",
-
-      joinedAt:
-        bot.joinedAt,
-
-      amount
-
+      id: "BOT_TEST_1",
+      username: "測試機器人 A",
+      avatar: "",
+      joinedAt: baseJoined + 1,
+      paid: true,
+      entry: CONFIG.ENTRY_FEE,
+      status: "ready"
     },
-    bot.id,
-    true
-  );
-
-}
-
-
-/* =========================================================
-   DEV BOT CASHOUT
-   ========================================================= */
-
-let devBotActionAt =
-  0;
-
-
-function updateDevBots(){
-
-  if(
-    !DEV_MODE ||
-    !isHost ||
-    gameState !==
-    STATES.PLAYING
-  ){
-
-    return;
-
-  }
-
-  const now =
-    Date.now();
-
-  if(
-    now -
-    devBotActionAt <
-    600
-  ){
-
-    return;
-
-  }
-
-  devBotActionAt =
-    now;
-
-  [
-    "BOT_TEST_1",
-    "BOT_TEST_2"
-
-  ].forEach(
-    id => {
-
-      const bot =
-        players[id];
-
-      if(
-        !bot ||
-        bot.status !==
-          "running"
-      ){
-
-        return;
-
-      }
-
-      const elapsed =
-        now -
-        roundStartTime;
-
-      if(
-        elapsed <
-        CONFIG.MIN_REWARD_QUALIFICATION_SECONDS *
-        1000
-      ){
-
-        return;
-
-      }
-
-      /*
-        Development-only behavior.
-      */
-
-      let chance =
-        .015;
-
-      if(
-        currentMultiplier >
-        2
-      ){
-
-        chance =
-          .05;
-
-      }
-
-      if(
-        currentMultiplier >
-        4
-      ){
-
-        chance =
-          .12;
-
-      }
-
-      if(
-        Math.random() <
-        chance
-      ){
-
-        handleEvent(
-          "PLAYER_CASHOUT",
-          {
-
-            eventId:
-              createEventId(),
-
-            roundId,
-
-            playerId:id
-
-          },
-          id,
-          true
-        );
-
-      }
-
+    {
+      id: "BOT_TEST_2",
+      username: "測試機器人 B",
+      avatar: "",
+      joinedAt: baseJoined + 2,
+      paid: true,
+      entry: CONFIG.ENTRY_FEE,
+      status: "ready"
     }
-  );
+  ];
 
+  testPlayers.forEach(addPlayer);
+  toast("🧪 已建立 2 名本機測試玩家；不會冒充 BoomRoom 真人", 2600);
+  renderAll();
 }
 
+/* DEV-only automated cashout.
+   It changes only simulated test players and never awards SDK coins. */
+let devBotActionAt = 0;
+
+function updateDevBots() {
+  if (!DEV_MODE || !isHost || gameState !== STATES.PLAYING) return;
+
+  const now = nowMs();
+
+  if (now - devBotActionAt < 750) return;
+  devBotActionAt = now;
+
+  const elapsed = (now - roundStartedAt) / 1000;
+  if (elapsed < CONFIG.MIN_REWARD_QUALIFICATION_SECONDS) return;
+
+  ["BOT_TEST_1", "BOT_TEST_2"].forEach((id, index) => {
+    const bot = players[id];
+
+    if (!bot || bot.status !== "running") return;
+
+    const target =
+      index === 0
+        ? 1.95 + Math.sin(elapsed * 0.24) * 0.25
+        : 2.55 + Math.sin(elapsed * 0.19 + 1.5) * 0.35;
+
+    if (currentMultiplier >= target) {
+      handleEvent(
+        "PLAYER_CASHOUT",
+        buildEvent("PLAYER_CASHOUT", {
+          playerId: id,
+          cashoutMultiplier: currentMultiplier,
+          cashoutAt: now
+        }),
+        id,
+        true
+      );
+    }
+  });
+}
 
 /* =========================================================
-   MAIN FRAME
+   INPUT / KEYBOARD
    ========================================================= */
 
-function wrappedFrame(
-  timestamp
-){
+window.addEventListener("keydown", event => {
+  if (event.repeat) return;
 
-  if(
-    !document.hidden
-  ){
-
-    updateDevBots();
-
+  if (event.key === "?" || event.key === "/") {
+    helpPanel.classList.add("show");
+    ensureAudio();
+    return;
   }
 
-  gameFrame(
-    timestamp
-  );
+  if (event.key === "Escape") {
+    helpPanel.classList.remove("show");
+    return;
+  }
 
-}
+  if (event.code === "Space") {
+    event.preventDefault();
 
+    if (gameState === STATES.PLAYING) {
+      submitCashout();
+    } else if (
+      gameState === STATES.LOBBY ||
+      gameState === STATES.SELECT
+    ) {
+      beginPurchase();
+    } else if (
+      gameState === STATES.READY &&
+      isHost
+    ) {
+      startCountdownAsHost();
+    }
+  }
+});
 
 /* =========================================================
-   BOOT
+   INITIALIZATION
    ========================================================= */
 
-function boot(){
+function initializeLocalPlayer() {
+  addPlayer({
+    id: ME,
+    username: safeName(user.username),
+    avatar: user.avatar || "",
+    joinedAt: nowMs(),
+    paid: false,
+    entry: 0,
+    status: "waiting"
+  });
+}
 
+function resetGameState() {
+  // This reset is allowed only when a NEW game instance is created.
+  initializeNewGameInstance();
+}
+
+function initializeNewGameInstance() {
+  // Reset is allowed only at creation of a new game instance.
+  gameState = STATES.LOBBY;
+
+  roundId = 1;
+  roundStartedAt = 0;
+  bettingDeadline = 0;
+  countdownDeadline = 0;
+  crashDeadline = 0;
+
+  currentMultiplier = 1;
+  publicCrashPoint = null;
+
+  selectedEntry = CONFIG.ENTRY_FEE;
+
+  isPurchasing = false;
+  purchaseRequest = null;
+
+  hostId = "";
+  hostGeneration = 0;
+  hostElectionLocked = false;
+  isHost = false;
+
+  matchParticipants = [];
+  prizePoolLocked = false;
+  lockedTotalPool = 0;
+  lockedPlatformFee = 0;
+  lockedPrizePool = 0;
+
+  resultData = null;
+  resultModalShown = false;
+  gameOverCalled = false;
+  gameOverReward = 0;
+
+  localCashout.status = "none";
+  localCashout.lockedMultiplier = 0;
+  localCashout.lockedAt = 0;
+
+  Object.keys(hostState).forEach(key => {
+    if (Array.isArray(hostState[key])) {
+      hostState[key] = [];
+    } else if (typeof hostState[key] === "boolean") {
+      hostState[key] = false;
+    } else {
+      hostState[key] = key === "crashPoint" ? null : 0;
+    }
+  });
+
+  resetPlayerForNewInstance();
+  resetParticles();
+
+  resultModal.classList.remove("show");
+  helpPanel.classList.remove("show");
+
+  lastWarningSecond = -1;
+}
+
+function boot() {
+  resetGameState();
+  initializeLocalPlayer();
   createStars();
 
-  if(
-    DEV_MODE
-  ){
-
-    gameState =
-      STATES.BETTING;
-
+  if (DEV_MODE) {
+    app.classList.add("dev-mode");
     toast(
-      "🧪 開發測試模式：未連接 BoomRoom SDK",
-      3600
+      "🧪 開發測試模式：未連接 BoomRoom SDK，不會假裝真實扣款",
+      3200
     );
 
-  }else{
-
-    gameState =
-      STATES.LOBBY;
-
-    toast(
-      "🟢 BoomRoom 已連線",
-      2400
-    );
-
+    setTimeout(createDevParticipants, 700);
+  } else {
+    app.classList.remove("dev-mode");
   }
 
-  renderAll();
-
-  showStageMessage(
-    "🚀 霓虹電梯",
-    "觀察倍率 · 10 秒後收錢",
-    1200
-  );
+  // Deterministic host candidate = first known player.
+  setTimeout(() => {
+    electHost(true);
+    renderAll();
+  }, 80);
 
   sendHello();
 
-  /*
-    讓自己參與房主候選。
-  */
-
-  setTimeout(
-    () => {
-
-      if(
-        !hostLocked
-      ){
-
-        electHost();
-
-      }
-
-    },
-    900
+  heartbeatTimer = window.setInterval(
+    heartbeatTick,
+    CONFIG.HEARTBEAT_INTERVAL
   );
 
-  if(
-    DEV_MODE
-  ){
-
-    createDevBots();
-
-    setTimeout(
-      devBotBet,
-      1600
-    );
-
-  }
-
-  /*
-    Host may need countdown after
-    development bots appear.
-  */
-
-  setTimeout(
-    () => {
-
-      if(
-        isHost
-      ){
-
-        maybeStartCountdown();
-
-      }
-
-    },
-    2500
-  );
-
-  requestAnimationFrame(
-    wrappedFrame
-  );
-
+  requestAnimationFrame(gameFrame);
+  renderAll();
 }
 
-
-/* =========================================================
-   INITIAL USER REGISTRATION
-   ========================================================= */
-
-addPlayer({
-
-  id:ME,
-
-  username:
-    user.username,
-
-  avatar:
-    user.avatar,
-
-  joinedAt:
-    players[ME].joinedAt
-
-});
-
-
-/* =========================================================
-   BOOT
-   ========================================================= */
-
 boot();
-
 </script>
 
 </body>
