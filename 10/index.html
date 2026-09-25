@@ -1,721 +1,839 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>霓虹骰子戰</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
+<title>霓虹骰子戰｜BoomRoom</title>
+<style>
+:root{
+  --bg:#05070d;
+  --panel:#0b0f18;
+  --panel2:#101624;
+  --cyan:#55f2ff;
+  --pink:#ff3bd4;
+  --yellow:#ffd84d;
+  --green:#43ffb0;
+  --red:#ff4d68;
+  --text:#f5f8ff;
+  --muted:#8490a8;
+  --line:rgba(255,255,255,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{position:fixed;inset:0;padding:max(0px,env(safe-area-inset-top)) 0 max(0px,env(safe-area-inset-bottom));}
+button{font:inherit;border:0;outline:0;-webkit-appearance:none;appearance:none;cursor:pointer;touch-action:manipulation}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;background:
+  radial-gradient(circle at 50% 16%,rgba(85,242,255,.11),transparent 30%),
+  radial-gradient(circle at 82% 72%,rgba(255,59,212,.08),transparent 28%),
+  linear-gradient(180deg,#070a12,#05070d 60%,#04050a)}
+#devBanner{display:none;position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:100;padding:5px 10px;border-radius:999px;background:rgba(255,216,77,.12);border:1px solid rgba(255,216,77,.35);color:var(--yellow);font-size:10px;font-weight:900;white-space:nowrap}
+header{height:58px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(5,7,13,.98),rgba(5,7,13,.72));z-index:20}
+.user{display:flex;align-items:center;gap:8px;min-width:0}.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#001218;background:linear-gradient(135deg,var(--cyan),#a8ffff);font-weight:1000;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 16px rgba(85,242,255,.22)}
+.userText{min-width:0}.name{font-size:12px;font-weight:1000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.meta{display:flex;gap:5px;align-items:center;margin-top:3px}.badge{padding:2px 5px;border-radius:999px;font-size:8px;font-weight:900;border:1px solid var(--line);color:var(--muted)}.badge.host{color:var(--pink);border-color:rgba(255,59,212,.35);background:rgba(255,59,212,.08)}
+#players{display:flex;justify-content:flex-end;gap:4px;max-width:55vw;overflow:hidden}.playerPill{min-width:54px;max-width:88px;padding:5px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(9,13,22,.75);font-size:7px}.playerName{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dce3f3;font-weight:900}.playerState{margin-top:2px;color:var(--muted)}
+#main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.lobbyInfo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,86vw);z-index:6;text-align:center}.lobbyTitle{font-size:clamp(28px,8vw,42px);font-weight:1000;letter-spacing:1px;color:#fff;text-shadow:0 0 20px rgba(85,242,255,.22)}.lobbySub{margin-top:6px;color:var(--muted);font-size:10px;line-height:1.6}.lobbyGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}.infoChip{padding:8px 5px;border:1px solid var(--line);border-radius:10px;background:rgba(8,12,20,.68)}.infoChip b{display:block;color:var(--cyan);font-size:11px}.infoChip span{display:block;margin-top:3px;color:var(--muted);font-size:7px}.playGuide{margin-top:12px;color:#b5c0d4;font-size:9px;font-weight:800}.playGuide strong{color:var(--yellow)}
+#hud{position:absolute;left:10px;right:10px;top:8px;z-index:10;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none}.hudChip{padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:rgba(6,10,18,.78);backdrop-filter:blur(8px);font-size:8px;font-weight:900}.hudChip b{font-size:12px;color:var(--cyan)}
+#status{position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:7;text-align:center;white-space:nowrap;color:var(--yellow);font-size:clamp(16px,4.7vw,23px);font-weight:1000;text-shadow:0 0 15px currentColor;pointer-events:none}
+#substatus{position:absolute;left:50%;top:calc(12% + 30px);transform:translateX(-50%);z-index:7;color:var(--muted);font-size:9px;font-weight:800;white-space:nowrap;pointer-events:none}
+#diceStage{position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);width:min(560px,96vw);height:min(300px,38vh);display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none}
+.diceAura{position:absolute;left:50%;top:50%;width:min(520px,92vw);height:170px;transform:translate(-50%,-50%);background:radial-gradient(ellipse at center,rgba(85,242,255,.12),rgba(255,59,212,.05) 42%,transparent 72%);filter:blur(10px)}
+.diceDeck{position:relative;display:flex;align-items:center;justify-content:center;gap:clamp(12px,3.7vw,24px);width:100%;padding:0 10px}
+.die-card{position:relative;width:clamp(76px,21vw,108px);aspect-ratio:1/1.08;flex:0 0 auto;padding:10px;border-radius:22px;border:1px solid rgba(255,255,255,.13);background:linear-gradient(160deg,rgba(15,21,34,.98),rgba(5,8,15,.98));box-shadow:0 18px 46px rgba(0,0,0,.42),inset 0 0 20px rgba(255,255,255,.02);transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
+.die-card::before{content:"";position:absolute;left:10px;right:10px;top:8px;height:2px;border-radius:999px;background:var(--die-color);box-shadow:0 0 12px var(--die-color);opacity:.9}
+.die-card::after{content:"";position:absolute;inset:4px;border-radius:18px;border:1px solid color-mix(in srgb,var(--die-color) 22%,transparent);pointer-events:none}
+.die-card.cyan{--die-color:var(--cyan)}.die-card.pink{--die-color:var(--pink)}.die-card.yellow{--die-color:var(--yellow)}
+.die-card.rolling{animation:dieJolt .12s infinite alternate;filter:brightness(1.15)}
+.die-card.rolling .die-face{animation:dieFaceFlash .12s infinite alternate}
+@keyframes dieJolt{from{transform:translateY(-2px) rotate(-1deg)}to{transform:translateY(2px) rotate(1deg)}}
+@keyframes dieFaceFlash{from{opacity:.72;transform:scale(.96)}to{opacity:1;transform:scale(1.03)}}
+.die-no{position:relative;z-index:2;text-align:center;color:#6f7990;font-size:7px;font-weight:1000;letter-spacing:.14em;margin-bottom:8px}
+.die-face{position:relative;z-index:2;width:100%;height:calc(100% - 17px);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;border-radius:15px;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.07),transparent 40%),rgba(2,4,9,.88);border:1px solid rgba(255,255,255,.07);box-shadow:inset 0 0 24px rgba(0,0,0,.48),0 0 24px color-mix(in srgb,var(--die-color) 10%,transparent)}
+.pip{width:clamp(9px,2.7vw,13px);height:clamp(9px,2.7vw,13px);border-radius:50%;background:var(--die-color);box-shadow:0 0 8px var(--die-color),0 0 18px color-mix(in srgb,var(--die-color) 35%,transparent);visibility:hidden}
+.pip.on{visibility:visible}
+#particleCanvas{position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);z-index:4;pointer-events:none}
+#history{position:absolute;left:10px;bottom:10px;z-index:8;display:flex;gap:4px;align-items:center;padding:5px 7px;border-radius:10px;border:1px solid var(--line);background:rgba(6,10,18,.72);backdrop-filter:blur(8px)}.historyLabel{font-size:7px;color:var(--muted);font-weight:900;margin-right:2px}.dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#071019;font-size:9px;font-weight:1000}.dot.s{background:var(--cyan);box-shadow:0 0 8px rgba(85,242,255,.38)}.dot.b{background:var(--red);color:#fff;box-shadow:0 0 8px rgba(255,77,104,.32)}.dot.t{background:var(--yellow);box-shadow:0 0 8px rgba(255,216,77,.34)}
+#feed{position:absolute;right:10px;bottom:10px;z-index:8;width:min(180px,43vw);display:flex;flex-direction:column;gap:4px;align-items:stretch;pointer-events:none}.feedItem{padding:5px 7px;border-radius:8px;border-left:2px solid var(--cyan);background:rgba(6,10,18,.76);font-size:8px;font-weight:800;color:#dbe2f1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.feedItem.win{color:var(--green);border-color:var(--green)}.feedItem.lose{color:var(--red);border-color:var(--red)}
+#bottom{flex:none;padding:8px 10px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,10,17,.88),rgba(10,14,23,.98));border-top:1px solid var(--line);z-index:20}
+#timerRow{display:none;align-items:center;gap:8px;margin-bottom:7px}.timerText{width:52px;color:var(--muted);font-size:8px;font-weight:900;text-align:right}.timerBar{flex:1;height:6px;border-radius:999px;background:#171c28;overflow:hidden}.timerFill{height:100%;width:100%;background:var(--yellow);box-shadow:0 0 12px rgba(255,216,77,.35)}.timerFill.danger{background:var(--red);box-shadow:0 0 12px rgba(255,77,104,.45)}
+#betRow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.betBtn{min-width:0;height:52px;padding:5px;border:1px solid var(--line);border-radius:11px;background:#0d121d;color:#b9c3d6;font-size:12px;font-weight:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.betBtn small{font-size:7px;color:var(--muted);font-weight:800}.betBtn.active{border-color:rgba(85,242,255,.7);background:rgba(85,242,255,.09);color:#fff;box-shadow:0 0 14px rgba(85,242,255,.12),inset 0 0 12px rgba(85,242,255,.05)}.betBtn.triple{color:var(--pink);border-color:rgba(255,59,212,.35)}.betBtn.triple.active{border-color:rgba(255,59,212,.82);background:rgba(255,59,212,.09);box-shadow:0 0 14px rgba(255,59,212,.14),inset 0 0 12px rgba(255,59,212,.05)}
+#amountRow{display:flex;gap:6px;justify-content:center;margin:7px 0}.amtBtn{padding:7px 11px;border-radius:999px;background:#090d14;border:1px solid var(--line);color:#7f8aa2;font-size:9px;font-weight:1000}.amtBtn.active{color:var(--yellow);border-color:rgba(255,216,77,.58);background:rgba(255,216,77,.07)}
+#action{width:100%;height:48px;border-radius:12px;color:#041016;background:linear-gradient(90deg,var(--pink),var(--cyan));box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 18px rgba(85,242,255,.12);font-size:16px;font-weight:1000;letter-spacing:.5px}.actionSecondary{background:#151a25!important;color:#d8dff0!important;border:1px solid var(--line);box-shadow:none!important}.actionWait{background:#0c111a!important;color:#71809a!important;border:1px solid var(--line);box-shadow:none!important}
+#resultPanel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:30;width:min(360px,90vw);padding:18px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(7,11,19,.94);backdrop-filter:blur(12px);box-shadow:0 25px 70px rgba(0,0,0,.55);text-align:center;opacity:0;visibility:hidden;pointer-events:none;transition:.18s}.resultPanel.show{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}.resultTag{font-size:9px;color:var(--muted);font-weight:900}.resultValue{margin-top:4px;font-size:42px;line-height:1;font-weight:1000;color:var(--yellow);text-shadow:0 0 22px rgba(255,216,77,.35)}.resultDice{margin-top:8px;font-size:13px;color:#dce4f5;font-weight:900}.resultReward{margin-top:8px;font-size:18px;color:var(--green);font-weight:1000}.resultReason{margin-top:4px;font-size:9px;color:var(--muted)}
+#emotes{position:absolute;left:8px;top:58px;z-index:12;display:flex;flex-direction:column;gap:6px}#emotes button{width:34px;height:34px;border-radius:50%;background:rgba(7,11,19,.75);border:1px solid var(--line);font-size:17px}
+.shake{animation:shake .34s both}@keyframes shake{10%,90%{transform:translate(-2px,0)}20%,80%{transform:translate(4px,0)}30%,50%,70%{transform:translate(-6px,0)}40%,60%{transform:translate(6px,0)}}
+@media (max-height:680px){header{height:50px}.avatar{width:30px;height:30px}.betBtn{height:46px}.actionBtn{height:44px}#diceStage{height:180px}.resultValue{font-size:34px}}
+@media (min-width:700px){#bottom{padding-left:max(10px,calc((100vw - 620px)/2));padding-right:max(10px,calc((100vw - 620px)/2))}#betRow,#amountRow,#action{max-width:620px;margin-left:auto;margin-right:auto}}
 
-        :root {
-            --bg-color: #0b0c10;
-            --panel-bg: #1f2833;
-            --neon-cyan: #66fcf1;
-            --neon-cyan-dim: #45a29e;
-            --neon-pink: #ff00ff;
-            --neon-yellow: #fce300;
-            --text-main: #c5c6c7;
-        }
+/* ==========================================================
+   LOBBY V3 — separated composition, no title/dice overlap
+   ========================================================== */
+.lobbyInfo{
+  top:18px;
+  transform:translateX(-50%);
+  width:min(620px,92vw);
+  text-align:center;
+  z-index:7;
+}
+.lobbyTitle{
+  font-size:clamp(27px,7vw,38px);
+  line-height:1.05;
+  letter-spacing:.5px;
+  text-shadow:0 0 22px rgba(85,242,255,.28),0 4px 24px rgba(0,0,0,.65);
+}
+.lobbySub{
+  margin-top:7px;
+  max-width:460px;
+  margin-left:auto;
+  margin-right:auto;
+  font-size:9px;
+  line-height:1.45;
+  color:#a3aec4;
+}
+.lobbyGrid{
+  width:min(430px,92vw);
+  margin:11px auto 0;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.infoChip{
+  min-height:50px;
+  padding:8px 5px;
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(11,17,29,.92),rgba(6,10,18,.78));
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+.infoChip b{font-size:10px}
+.infoChip span{font-size:7px}
+.playGuide{
+  margin-top:8px;
+  font-size:8px;
+  color:#c8d0df;
+}
+#diceStage{
+  top:50%;
+  width:min(560px,94vw);
+  height:min(220px,28vh);
+  z-index:3;
+}
+#main.lobby-mode #diceStage{top:63%;}
+#main.lobby-mode #status{top:auto;bottom:58px;}
+#main.lobby-mode #substatus{top:auto;bottom:36px;}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-        }
+.diceAura{
+  width:min(480px,88vw);
+  height:130px;
+}
+.die-card{
+  width:clamp(68px,18.5vw,96px);
+  border-radius:18px;
+  padding:9px;
+}
+#status{
+  top:12%;
+  font-size:clamp(14px,4.2vw,19px);
+  z-index:8;
+}
+#substatus{
+  top:calc(12% + 30px);
+  font-size:8px;
+  z-index:8;
+}
+#hud{z-index:9}
+@media(max-height:720px){
+  .lobbyInfo{top:11px}
+  .lobbyTitle{font-size:clamp(24px,6.8vw,34px)}
+  .lobbyGrid{margin-top:8px}
+  .playGuide{margin-top:6px}
+  #main.lobby-mode #diceStage{top:61%;height:190px}
+  .die-card{width:clamp(64px,17.5vw,88px);}
+  .die-no{margin-bottom:6px}
+  #status{bottom:54px}
+  #substatus{bottom:32px}
+}
+@media(max-width:390px){
+  .lobbyInfo{width:94vw}
+  .lobbySub{font-size:8px}
+  .infoChip{min-height:46px;padding:7px 3px}
+  .infoChip b{font-size:9px}
+  .infoChip span{font-size:6.5px}
+  .playGuide{font-size:7px}
+  #main.lobby-mode #diceStage{top:64%;height:170px}
+  .diceDeck{gap:8px;padding:0 4px}
+  .die-card{width:clamp(60px,17vw,76px);padding:7px;border-radius:15px}
+  .die-face{border-radius:11px}
+  .die-no{font-size:6px;margin-bottom:5px}
+  .pip{width:9px;height:9px}
+}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Orbitron', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100dvh; /* Mobile WebView fix */
-            overflow: hidden;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* Header & History */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: linear-gradient(180deg, #111, transparent);
-            border-bottom: 1px solid var(--neon-cyan-dim);
-            box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
-            z-index: 10;
-        }
-
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .avatar {
-            width: 40px; height: 40px; border-radius: 50%;
-            background-color: var(--neon-pink); border: 2px solid var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan); display: flex;
-            justify-content: center; align-items: center; font-weight: bold; color: #fff; font-size: 20px;
-        }
-        .username { font-size: 14px; font-weight: bold; color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); }
-        .host-badge {
-            font-size: 10px; background: var(--neon-pink); color: #fff;
-            padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block;
-        }
-
-        .history-board { display: flex; gap: 5px; align-items: center; }
-        .history-dot {
-            width: 20px; height: 20px; border-radius: 50%; display: flex;
-            justify-content: center; align-items: center; font-size: 12px; font-weight: bold; color: #000;
-            box-shadow: 0 0 5px rgba(255,255,255,0.5);
-        }
-        .dot-S { background: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); }
-        .dot-B { background: #ff3333; box-shadow: 0 0 8px #ff3333; color: white; }
-        .dot-T { background: var(--neon-yellow); box-shadow: 0 0 10px var(--neon-yellow); }
-
-        /* Game Area */
-        .game-area {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; position: relative;
-            touch-action: none; /* Prevent swipe gestures in game area */
-        }
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
-
-        canvas { 
-            width: 100%; max-width: 400px; height: 200px; 
-            filter: drop-shadow(0 0 10px rgba(102, 252, 241, 0.5)); z-index: 2; 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
-        
-        #particleCanvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; filter: none; transform: none;
-        }
-
-        .status-text {
-            position: absolute; top: 15%;
-            font-size: 22px; font-weight: 900; color: var(--neon-yellow);
-            text-shadow: 0 0 10px var(--neon-yellow); height: 28px; letter-spacing: 1px; z-index: 2;
-        }
-
-        /* Timer Bar */
-        .timer-container {
-            position: absolute; bottom: 25%;
-            width: 80%; height: 6px; background: #222; border-radius: 3px; overflow: hidden;
-            box-shadow: inset 0 0 5px #000; opacity: 0; transition: opacity 0.3s; z-index: 2;
-        }
-        .timer-fill {
-            height: 100%; width: 100%; background: var(--neon-yellow);
-            box-shadow: 0 0 10px var(--neon-yellow);
-        }
-        .timer-fill.danger { background: #ff3333; box-shadow: 0 0 10px #ff3333; }
-
-        /* Emote System */
-        .emote-bar {
-            position: absolute; left: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 10px; z-index: 10;
-        }
-        .emote-btn {
-            background: rgba(0,0,0,0.6); border: 1px solid var(--neon-cyan-dim); border-radius: 50%;
-            width: 40px; height: 40px; font-size: 20px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: transform 0.1s;
-        }
-        .emote-btn:active { transform: scale(0.8); }
-        .floating-emote {
-            position: absolute; font-size: 30px; pointer-events: none; z-index: 50;
-            animation: floatUp 2s ease-out forwards;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1); opacity: 0; }
-        }
-
-        /* Betting Area */
-        .betting-area {
-            padding: 15px; background: var(--panel-bg); border-top: 2px solid var(--neon-pink);
-            box-shadow: 0 -5px 15px rgba(255, 0, 255, 0.2); display: flex; flex-direction: column; gap: 15px; z-index: 10;
-        }
-        .bet-options { display: flex; justify-content: space-between; gap: 10px; }
-        .bet-btn {
-            flex: 1; background: transparent; border: 2px solid var(--neon-cyan-dim); color: var(--neon-cyan);
-            padding: 15px 5px; border-radius: 8px; font-family: inherit; font-weight: 700; font-size: 16px;
-            cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px;
-        }
-        .bet-btn span { font-size: 12px; color: var(--text-main); font-family: 'Orbitron', sans-serif; }
-        .bet-btn.active {
-            border-color: var(--neon-cyan); background: rgba(102, 252, 241, 0.1);
-            box-shadow: 0 0 15px rgba(102, 252, 241, 0.5), inset 0 0 10px rgba(102, 252, 241, 0.3); text-shadow: 0 0 5px var(--neon-cyan);
-        }
-        .bet-btn.triple { border-color: var(--neon-pink); color: var(--neon-pink); }
-        .bet-btn.triple.active {
-            background: rgba(255, 0, 255, 0.1); box-shadow: 0 0 15px rgba(255, 0, 255, 0.5), inset 0 0 10px rgba(255, 0, 255, 0.3); text-shadow: 0 0 5px var(--neon-pink);
-        }
-
-        .amount-selector { display: flex; justify-content: center; gap: 10px; }
-        .amt-btn {
-            background: #111; border: 1px solid #444; color: #888; padding: 8px 15px; border-radius: 20px;
-            font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: bold; cursor: pointer;
-        }
-        .amt-btn.active { border-color: var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 0 10px rgba(252, 227, 0, 0.4); }
-
-        .action-btn {
-            width: 100%; padding: 15px; background: linear-gradient(90deg, #ff00ff, #66fcf1); border: none; border-radius: 8px;
-            color: #000; font-family: inherit; font-weight: 900; font-size: 18px; cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5); transition: transform 0.1s; letter-spacing: 1px;
-        }
-        .action-btn:active { transform: scale(0.98); }
-        .action-btn:disabled { background: #333; color: #888; box-shadow: none; cursor: not-allowed; }
-
-        /* Social Feed */
-        .social-feed {
-            position: absolute; top: 10px; right: 10px; width: 160px; max-height: 120px; overflow-y: auto;
-            pointer-events: none; display: flex; flex-direction: column; gap: 5px; font-size: 11px; font-weight: bold; z-index: 10;
-        }
-        .feed-item {
-            background: rgba(0, 0, 0, 0.7); border-left: 2px solid var(--neon-cyan); padding: 5px 8px;
-            border-radius: 0 4px 4px 0; animation: slideIn 0.3s ease-out; text-shadow: 0 0 2px #000;
-        }
-        .feed-item.win { border-color: var(--neon-yellow); color: var(--neon-yellow); }
-        .feed-item.lose { border-color: #ff3333; color: #ff3333; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* Overlays */
-        .overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 12, 16, 0.9);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px);
-        }
-        .claim-btn {
-            background: transparent; border: 2px solid var(--neon-yellow); color: var(--neon-yellow);
-            padding: 15px 30px; font-size: 20px; font-weight: bold; font-family: inherit; border-radius: 8px;
-            box-shadow: 0 0 20px rgba(252, 227, 0, 0.5); cursor: pointer; animation: pulse 1.5s infinite; letter-spacing: 2px;
-        }
-        @keyframes pulse { 0% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); } 50% { box-shadow: 0 0 30px rgba(252, 227, 0, 1); } 100% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); } }
-        .hidden { display: none !important; }
-
-    </style>
+</style>
 </head>
 <body>
+<div id="app">
+  <div id="devBanner">開發測試模式｜未連接 BoomRoom SDK</div>
+  <header>
+    <div class="user">
+      <div class="avatar" id="avatar">?</div>
+      <div class="userText">
+        <div class="name" id="userName">玩家</div>
+        <div class="meta"><span class="badge" id="roleBadge">玩家</span><span class="badge" id="roundBadge">等待房主</span></div>
+      </div>
+    </div>
+    <div id="players"></div>
+  </header>
 
-    <header>
-        <div class="user-info">
-            <div class="avatar" id="user-avatar">?</div>
-            <div>
-                <div class="username" id="user-name">玩家</div>
-                <div class="host-badge hidden" id="host-badge">房主</div>
-            </div>
-        </div>
-        <div class="history-board" id="history-board"></div>
-    </header>
+  <main id="main">
+    <div id="hud">
+      <div class="hudChip">模式 <b>派對骰戰</b></div>
+      <div class="hudChip">玩家 <b id="playerCount">1</b></div>
+    </div>
+    <div id="lobbyInfo" class="lobbyInfo">
+      <div class="lobbyTitle">霓虹骰子戰</div>
+      <div class="lobbySub">賽博派對骰戰｜房主統一開骰｜押中取得銀幣獎勵</div>
+      <div class="lobbyGrid">
+        <div class="infoChip"><b>2 / 24 倍</b><span>小・大 / 豹子</span></div>
+        <div class="infoChip"><b>10 秒</b><span>下注時間</span></div>
+        <div class="infoChip"><b>Touch</b><span>手機操作</span></div>
+      </div>
+      <div class="playGuide">Entry：<strong>100～5000 銀幣</strong>｜一局約 20～30 秒</div>
+    </div>
+    <div id="status">等待開局</div>
+    <div id="substatus">第一位已知玩家會成為房主</div>
 
-    <div class="game-area" id="game-area">
-        <canvas id="diceCanvas"></canvas>
-        <canvas id="particleCanvas"></canvas>
-        <div class="status-text" id="status-text">等待開局</div>
-        
-        <div class="timer-container" id="timer-container">
-            <div class="timer-fill" id="timer-fill"></div>
-        </div>
-
-        <div class="social-feed" id="social-feed"></div>
-
-        <div class="emote-bar">
-            <button class="emote-btn" onclick="sendEmote('💸')">💸</button>
-            <button class="emote-btn" onclick="sendEmote('😎')">😎</button>
-            <button class="emote-btn" onclick="sendEmote('🤬')">🤬</button>
-        </div>
+    <div id="diceStage">
+      <div class="diceAura"></div>
+      <div class="diceDeck">
+        <div class="die-card cyan" id="dieCard0"><div class="die-no">DICE 01</div><div class="die-face" id="die0"></div></div>
+        <div class="die-card pink" id="dieCard1"><div class="die-no">DICE 02</div><div class="die-face" id="die1"></div></div>
+        <div class="die-card yellow" id="dieCard2"><div class="die-no">DICE 03</div><div class="die-face" id="die2"></div></div>
+      </div>
+      <canvas id="particleCanvas"></canvas>
     </div>
 
-    <div class="betting-area">
-        <div class="bet-options">
-            <button class="bet-btn" data-type="small">押 小 (4-10)<span>賠率 1 : 2</span></button>
-            <button class="bet-btn triple" data-type="triple">任意豹子<span>賠率 1 : 24</span></button>
-            <button class="bet-btn" data-type="big">押 大 (11-17)<span>賠率 1 : 2</span></button>
-        </div>
+    <div id="history"><span class="historyLabel">近況</span></div>
+    <div id="feed"></div>
+    <div id="emotes"><button data-emoji="💸">💸</button><button data-emoji="😎">😎</button><button data-emoji="🤬">🤬</button></div>
 
-        <div class="amount-selector">
-            <button class="amt-btn active" data-amt="100">100</button>
-            <button class="amt-btn" data-amt="500">500</button>
-            <button class="amt-btn" data-amt="1000">1000</button>
-            <button class="amt-btn" data-amt="5000">5000</button>
-        </div>
-
-        <button class="action-btn" id="action-btn">請選擇下注項目</button>
+    <div id="resultPanel">
+      <div class="resultTag">本局結果</div>
+      <div class="resultValue" id="resultType">—</div>
+      <div class="resultDice" id="resultDice">—</div>
+      <div class="resultReward" id="resultReward">+0 銀幣</div>
+      <div class="resultReason" id="resultReason">等待結算</div>
     </div>
+  </main>
 
-    <div id="host-overlay" class="overlay">
-        <h2 style="color:var(--neon-cyan); margin-bottom: 20px; text-shadow: 0 0 10px var(--neon-cyan); font-family:'Orbitron', sans-serif; font-size: 28px;">NEON DICE BATTLE</h2>
-        <button class="claim-btn" id="claim-host-btn">開始遊戲 (成為房主)</button>
-        <p style="margin-top: 15px; font-size: 13px; color: #aaa;">第一位點擊開始的玩家將掌控遊戲節奏</p>
+  <section id="bottom">
+    <div id="timerRow"><div class="timerText" id="timerText">下注 10 秒</div><div class="timerBar"><div class="timerFill" id="timerFill"></div></div></div>
+    <div id="betRow">
+      <button class="betBtn" data-type="small">押 小<small>4～10｜2倍</small></button>
+      <button class="betBtn triple" data-type="triple">任意豹子<small>三顆相同｜24倍</small></button>
+      <button class="betBtn" data-type="big">押 大<small>11～17｜2倍</small></button>
     </div>
+    <div id="amountRow">
+      <button class="amtBtn active" data-amt="100">100</button>
+      <button class="amtBtn" data-amt="500">500</button>
+      <button class="amtBtn" data-amt="1000">1000</button>
+      <button class="amtBtn" data-amt="5000">5000</button>
+    </div>
+    <button id="action">等待房主開局...</button>
+  </section>
+</div>
 
-    <script>
-        // ==========================================
-        // 1. CONFIG & BOOMROOM SDK INITIALIZATION
-        // ==========================================
-        const GAME_INFO = {
-            category: "派對競技",
-            name: "霓虹骰子戰",
-            description: "極速賽博龐克骰寶，押中豹子贏得24倍獎金！",
-            entryCost: 0, // Dynamic based on bet
-            maxPlayers: 20,
-            controlModes: ["Touch"]
-        };
+<script>
+'use strict';
 
-        if (!window.BoomRoomSDK) {
-            window.BoomRoomSDK = {
-                getUser: () => ({ id: 'u' + Math.floor(Math.random() * 10000), username: '賭神' + Math.floor(Math.random() * 100), avatar: '' }),
-                requestPurchase: (itemId, cost) => { setTimeout(() => { if (window.onPurchaseSuccess) window.onPurchaseSuccess(itemId); }, 300); },
-                gameOver: (winAmount) => { console.log(`[SDK] 結算金額: ${winAmount}`); },
-                sendGameEvent: (eventName, payloadObj) => {
-                    window.postMessage(JSON.stringify({ action: "gameEventReceived", userId: window.BoomRoomSDK.getUser().id, eventName, payload: payloadObj }), "*");
-                }
-            };
-        }
+// ============================================================
+// GAME INFO / CONFIG
+// ============================================================
+const GAME_INFO = {
+  id: 'neon_dice_battle',
+  category: '派對競技',
+  name: '霓虹骰子戰',
+  description: '10 秒下注，房主統一開骰，押中類型取得銀幣獎勵。',
+  version: '1.1.0',
+  entryCost: 0,
+  maxPlayers: 20,
+  controlModes: ['Touch'],
+  duration: '約 20～30 秒',
+  multiplayer: true,
+  rewardEnabled: true
+};
 
-        const user = window.BoomRoomSDK.getUser();
-        document.getElementById('user-name').innerText = user.username;
-        document.getElementById('user-avatar').innerText = user.username.charAt(0).toUpperCase();
+const BET_DURATION = 10;
+const ROLL_DURATION = 2.0;
+const RESULT_HOLD = 4.0;
+const HEARTBEAT_MS = 2500;
+const PLAYER_TIMEOUT_MS = 8500;
+const DEV_MODE = !(window.BoomRoomSDK &&
+  typeof window.BoomRoomSDK.getUser === 'function' &&
+  typeof window.BoomRoomSDK.sendGameEvent === 'function');
+const SDK = window.BoomRoomSDK || null;
 
-        // ==========================================
-        // 2. GAME STATE & ANTI-EXPLOIT VARIABLES
-        // ==========================================
-        let isHost = false;
-        let gameState = 'WAITING'; // WAITING, BETTING, ROLLING, RESULT
-        let currentRoundId = null;
-        
-        // Anti-Exploit Locks
-        let isPurchasing = false;
-        let gameOverCalled = false;
+if (DEV_MODE) document.getElementById('devBanner').style.display = 'block';
 
-        let currentBetAmount = 100;
-        let selectedBetType = null;
-        let myCurrentBet = null; 
-        
-        let diceValues = [1, 2, 3];
-        let history = []; 
-        const betTypeNames = { 'small': '小', 'triple': '豹子', 'big': '大' };
+// ============================================================
+// PLAYER / STATE
+// ============================================================
+const localUser = DEV_MODE
+  ? { id: 'dev_local_player', username: '測試玩家', avatar: '' }
+  : sanitizeUser(window.BoomRoomSDK.getUser());
 
-        // ==========================================
-        // 3. AUDIO SYSTEM (Web Audio API)
-        // ==========================================
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        let audioUnlocked = false;
+function sanitizeUser(u){
+  return {
+    id: String(u?.id || 'unknown_player').slice(0,96),
+    username: String(u?.username || '玩家').slice(0,24),
+    avatar: String(u?.avatar || '').slice(0,240)
+  };
+}
 
-        function unlockAudio() {
-            if (!audioUnlocked) {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                audioUnlocked = true;
-            }
-        }
-        document.body.addEventListener('pointerdown', unlockAudio, { once: true });
+const STATES = Object.freeze({
+  LOBBY:'LOBBY',
+  READY:'READY',
+  PURCHASING:'PURCHASING',
+  BETTING:'BETTING',
+  ROLLING:'ROLLING',
+  RESULT:'RESULT',
+  WAITING_HOST:'WAITING_HOST'
+});
+let gameState = STATES.LOBBY;
+let currentRoundId = null;
+let roundSeed = null;
+let roundStartAt = 0;
+let betTimer = 0;
+let rollTimer = 0;
+let resultTimer = 0;
+let currentDice = [1,2,3];
+let selectedBetType = null;
+let currentBetAmount = 100;
+let myCurrentBet = null;
+let pendingPurchase = null;
+let gameOverCalled = false;
+let hasSubmittedEnd = false;
+let lastRollPayload = null;
+let history = [];
+let rafId = 0;
+let lastTime = 0;
+let lastSecondTick = -1;
 
-        function playTone(freq, type, duration, vol) {
-            if (audioCtx.state === 'suspended') return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
-        }
+const players = new Map();
+players.set(localUser.id, {
+  id: localUser.id,
+  username: localUser.username,
+  avatar: localUser.avatar,
+  status: 'READY',
+  score: 0,
+  reward: 0,
+  lastSeen: Date.now(),
+  joinedAt: Date.now()
+});
 
-        const sfx = {
-            select: () => playTone(800, 'sine', 0.1, 0.3),
-            bet: () => playTone(1200, 'square', 0.15, 0.4),
-            rollTick: () => playTone(200 + Math.random()*100, 'sawtooth', 0.05, 0.1),
-            tick: () => playTone(1000, 'sine', 0.05, 0.3),
-            boom: () => playTone(100, 'sawtooth', 0.5, 0.8),
-            win: () => {
-                playTone(400, 'square', 0.1, 0.5);
-                setTimeout(() => playTone(600, 'square', 0.1, 0.5), 100);
-                setTimeout(() => playTone(800, 'square', 0.3, 0.5), 200);
-                setTimeout(() => playTone(1200, 'square', 0.5, 0.5), 300);
-            },
-            lose: () => {
-                playTone(200, 'sawtooth', 0.3, 0.5);
-                setTimeout(() => playTone(150, 'sawtooth', 0.4, 0.5), 200);
-            }
-        };
+const refs = {
+  avatar: document.getElementById('avatar'),
+  userName: document.getElementById('userName'),
+  roleBadge: document.getElementById('roleBadge'),
+  roundBadge: document.getElementById('roundBadge'),
+  players: document.getElementById('players'),
+  playerCount: document.getElementById('playerCount'),
+  status: document.getElementById('status'),
+  substatus: document.getElementById('substatus'),
+  history: document.getElementById('history'),
+  feed: document.getElementById('feed'),
+  timerRow: document.getElementById('timerRow'),
+  timerText: document.getElementById('timerText'),
+  timerFill: document.getElementById('timerFill'),
+  betBtns: [...document.querySelectorAll('.betBtn')],
+  amtBtns: [...document.querySelectorAll('.amtBtn')],
+  action: document.getElementById('action'),
+  main: document.getElementById('main'),
+  resultPanel: document.getElementById('resultPanel'),
+  resultType: document.getElementById('resultType'),
+  resultDice: document.getElementById('resultDice'),
+  resultReward: document.getElementById('resultReward'),
+  resultReason: document.getElementById('resultReason')
+};
+refs.userName.textContent = localUser.username;
+refs.avatar.textContent = localUser.username.charAt(0).toUpperCase();
 
-        // ==========================================
-        // 4. CANVAS RENDERER & OBJECT POOL
-        // ==========================================
-        const canvas = document.getElementById('diceCanvas');
-        const ctx = canvas.getContext('2d');
-        const pCanvas = document.getElementById('particleCanvas');
-        const pCtx = pCanvas.getContext('2d');
+function clampNumber(value, min, max, fallback=0){
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+function safeReward(v){ return Math.floor(clampNumber(v, 0, 100000000, 0)); }
+function safeScore(v){ return Math.floor(clampNumber(v, 0, 1000000000, 0)); }
+function makeRoundId(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+function makeSeed(){ return (Date.now() ^ Math.floor(Math.random()*0x7fffffff)) >>> 0; }
 
-        // Handle High DPI displays (Clamp to 2 for performance)
-        function resizeCanvas() {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            canvas.width = 400 * dpr;
-            canvas.height = 200 * dpr;
-            ctx.scale(dpr, dpr);
-            
-            pCanvas.width = pCanvas.clientWidth * dpr;
-            pCanvas.height = pCanvas.clientHeight * dpr;
-            pCtx.scale(dpr, dpr);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+// ============================================================
+// BOOMROOM SDK WRAPPER — ONLY KNOWN APIs
+// ============================================================
+function sendEvent(eventName, payload){
+  const data = payload && typeof payload === 'object' ? payload : {};
+  if (!DEV_MODE && typeof SDK.sendGameEvent === 'function') {
+    try { SDK.sendGameEvent(eventName, data); } catch (_) {}
+    return;
+  }
+  if (DEV_MODE) {
+    // Explicit local development simulation only.
+    window.setTimeout(() => dispatchGameEvent(localUser.id, eventName, data), 0);
+  }
+}
 
-        // Object Pool for Particles
-        const MAX_PARTICLES = 100;
-        const particles = [];
-        for(let i=0; i<MAX_PARTICLES; i++) {
-            particles.push({ active: false, x:0, y:0, vx:0, vy:0, life:0, maxLife:1, color:'' });
-        }
+function requestPurchase(itemId, cost){
+  if (DEV_MODE) {
+    window.setTimeout(() => {
+      addFeed('開發測試：模擬購買成功');
+      if (typeof window.onPurchaseSuccess === 'function') window.onPurchaseSuccess(itemId);
+    }, 250);
+    return;
+  }
+  if (typeof SDK?.requestPurchase === 'function') {
+    try { SDK.requestPurchase(itemId, cost); } catch (_) { window.onPurchaseFailed?.(itemId); }
+  } else {
+    window.onPurchaseFailed?.(itemId);
+  }
+}
 
-        function spawnWinParticles() {
-            const colors = ['#66fcf1', '#ff00ff', '#fce300'];
-            let spawned = 0;
-            for(let i=0; i<MAX_PARTICLES; i++) {
-                if(!particles[i].active) {
-                    let p = particles[i];
-                    p.active = true;
-                    p.x = pCanvas.clientWidth / 2;
-                    p.y = pCanvas.clientHeight / 2;
-                    let angle = Math.random() * Math.PI * 2;
-                    let speed = Math.random() * 300 + 100;
-                    p.vx = Math.cos(angle) * speed;
-                    p.vy = Math.sin(angle) * speed;
-                    p.life = Math.random() * 0.5 + 0.5;
-                    p.maxLife = p.life;
-                    p.color = colors[Math.floor(Math.random() * colors.length)];
-                    spawned++;
-                    if(spawned > 50) break; // Spawn 50 per win
-                }
-            }
-        }
+function callGameOver(amount){
+  if (gameOverCalled) return;
+  gameOverCalled = true;
+  const safe = safeReward(amount);
+  players.get(localUser.id).reward = safe;
+  if (!DEV_MODE && typeof SDK?.gameOver === 'function') {
+    try { SDK.gameOver(safe); } catch (_) {}
+  }
+}
 
-        function drawDice(x, y, size, value, color) {
-            ctx.beginPath(); ctx.roundRect(x, y, size, size, 10);
-            ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.shadowColor = color; ctx.shadowBlur = 15; ctx.stroke();
-            ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fill(); ctx.shadowBlur = 0;
-            
-            const center = size / 2, offset = size * 0.25;
-            ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 10;
-            const drawDot = (dx, dy) => { ctx.beginPath(); ctx.arc(x+dx, y+dy, 6, 0, Math.PI*2); ctx.fill(); };
-            
-            if (value % 2 !== 0) drawDot(center, center);
-            if (value > 1) { drawDot(offset, offset); drawDot(size - offset, size - offset); }
-            if (value > 3) { drawDot(offset, size - offset); drawDot(size - offset, offset); }
-            if (value === 6) { drawDot(offset, center); drawDot(size - offset, center); }
-            ctx.shadowBlur = 0;
-        }
+window.onPurchaseSuccess = function(itemId){
+  if (!pendingPurchase || pendingPurchase.itemId !== itemId) return;
+  const p = pendingPurchase;
+  pendingPurchase = null;
+  myCurrentBet = { type:p.type, amount:p.amount };
+  players.get(localUser.id).status = 'BET';
+  setState(STATES.BETTING);
+  sendEvent('PLAYER_BET', { roundId:currentRoundId, username:localUser.username, type:p.type, amount:p.amount });
+  addFeed(`你已下注 ${p.amount} 銀幣`, 'win');
+};
+window.onPurchaseFailed = function(itemId){
+  if (!pendingPurchase || pendingPurchase.itemId !== itemId) return;
+  pendingPurchase = null;
+  myCurrentBet = null;
+  setState(STATES.BETTING);
+  refs.status.textContent = '下注失敗';
+  refs.status.style.color = 'var(--red)';
+  refs.substatus.textContent = DEV_MODE ? '開發測試模式' : '請確認銀幣餘額';
+  updateAction();
+};
 
-        // ==========================================
-        // 5. MAIN GAME LOOP (requestAnimationFrame)
-        // ==========================================
-        let lastTime = 0;
-        let rollTimer = 0;
-        let betTimer = 0;
-        const BET_DURATION = 10; // 10 seconds
+// ============================================================
+// HOST ELECTION / MULTIPLAYER REGISTRY
+// ============================================================
+function playerSortKey(p){ return String(p.joinedAt).padStart(16,'0') + ':' + p.id; }
+function getHostPlayer(){
+  const list = [...players.values()].sort((a,b)=>playerSortKey(a).localeCompare(playerSortKey(b)));
+  return list[0] || players.get(localUser.id);
+}
+function isHost(){ return getHostPlayer()?.id === localUser.id; }
+function sendHello(){
+  sendEvent('PLAYER_HELLO', { username:localUser.username, avatar:localUser.avatar, joinedAt:players.get(localUser.id).joinedAt });
+  sendHeartbeat();
+}
+function sendHeartbeat(){
+  const p = players.get(localUser.id); if (!p) return;
+  p.lastSeen = Date.now();
+  sendEvent('PLAYER_HEARTBEAT', { roundId:currentRoundId, status:gameState, timestamp:Date.now() });
+}
+function cleanupPlayers(){
+  const now = Date.now();
+  for (const [id,p] of players) {
+    if (id !== localUser.id && now - p.lastSeen > PLAYER_TIMEOUT_MS) players.delete(id);
+  }
+  updatePlayerUI();
+}
+function updatePlayerUI(){
+  refs.playerCount.textContent = String(Math.max(1, players.size));
+  refs.roleBadge.textContent = isHost() ? '房主' : '玩家';
+  refs.roleBadge.classList.toggle('host', isHost());
+  refs.roundBadge.textContent = currentRoundId ? currentRoundId.slice(-6) : '等待房主';
+  refs.players.innerHTML = '';
+  const visible = [...players.values()].sort((a,b)=>b.lastSeen-a.lastSeen).slice(0,4);
+  for (const p of visible) {
+    const el = document.createElement('div'); el.className='playerPill';
+    const nm = document.createElement('div'); nm.className='playerName'; nm.textContent = p.id===localUser.id ? '你' : p.username;
+    const st = document.createElement('div'); st.className='playerState'; st.textContent = p.status || '準備';
+    el.append(nm,st); refs.players.appendChild(el);
+  }
+}
 
-        function gameLoop(timestamp) {
-            let dt = (timestamp - lastTime) / 1000;
-            if (dt > 0.033) dt = 0.033; // Clamp dt to 30fps equivalent
-            lastTime = timestamp;
+// ============================================================
+// STATE MACHINE / UI
+// ============================================================
+function setState(next){
+  if (!Object.values(STATES).includes(next)) return;
+  gameState = next;
+  const local = players.get(localUser.id);
+  if (local) local.status = next;
+  refs.resultPanel.classList.toggle('show', next === STATES.RESULT);
+  const showLobby = next === STATES.LOBBY || next === STATES.READY || next === STATES.WAITING_HOST;
+  refs.main.classList.toggle('lobby-mode', showLobby);
+  document.getElementById('lobbyInfo').style.display = showLobby ? 'block' : 'none';
+  document.getElementById('betRow').style.display = next === STATES.BETTING ? 'grid' : 'none';
+  document.getElementById('amountRow').style.display = next === STATES.BETTING ? 'flex' : 'none';
+  refs.timerRow.style.display = next === STATES.BETTING ? 'flex' : 'none';
+  refs.betBtns.forEach(b=>b.disabled = next !== STATES.BETTING || !!myCurrentBet || !!pendingPurchase);
+  refs.amtBtns.forEach(b=>b.disabled = next !== STATES.BETTING || !!myCurrentBet || !!pendingPurchase);
 
-            // Update Logic
-            if (gameState === 'ROLLING') {
-                rollTimer += dt;
-                if (rollTimer > 0.05) { // Change dice every 50ms
-                    diceValues = [Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1, Math.floor(Math.random()*6)+1];
-                    sfx.rollTick();
-                    rollTimer = 0;
-                }
-            } else if (gameState === 'BETTING') {
-                betTimer -= dt;
-                if (betTimer < 0) betTimer = 0;
-                
-                // Update Timer UI
-                const timerFill = document.getElementById('timer-fill');
-                const pct = (betTimer / BET_DURATION) * 100;
-                timerFill.style.width = `${pct}%`;
-                
-                if (betTimer <= 3 && !timerFill.classList.contains('danger')) {
-                    timerFill.classList.add('danger');
-                }
-                
-                // Tick sound every second
-                if (Math.floor(betTimer) < Math.floor(betTimer + dt) && betTimer > 0 && betTimer <= 3) {
-                    sfx.tick();
-                }
+  if (next === STATES.LOBBY || next === STATES.READY || next === STATES.WAITING_HOST) {
+    refs.status.textContent = isHost() ? '房主可開新局' : '等待房主開局';
+    refs.status.style.color = 'var(--cyan)';
+    refs.substatus.textContent = isHost() ? '所有人都在同一回合後再開始' : '第一位已知玩家自動成為房主';
+  }
+  if (next === STATES.BETTING) {
+    refs.status.textContent = '請下注'; refs.status.style.color='var(--yellow)';
+    refs.substatus.textContent = myCurrentBet ? '下注完成，等待開獎' : '選擇玩法與銀幣數量';
+  }
+  if (next === STATES.PURCHASING) {
+    refs.status.textContent='確認下注…'; refs.status.style.color='var(--cyan)'; refs.substatus.textContent='先完成購買才算正式下注';
+  }
+  if (next === STATES.ROLLING) {
+    refs.status.textContent='停止下注！'; refs.status.style.color='var(--pink)'; refs.substatus.textContent='房主正在統一開骰';
+  }
+  if (next === STATES.RESULT) {
+    refs.status.textContent='本局結束'; refs.status.style.color='var(--green)'; refs.substatus.textContent='結果已鎖定，等待房主重新開局';
+  }
+  updateAction(); updatePlayerUI();
+}
 
-                // Host auto-rolls when time is up
-                if (betTimer <= 0 && isHost) {
-                    executeRoll();
-                }
-            }
+function updateAction(){
+  const host = isHost();
+  refs.action.className='';
+  if (gameState === STATES.BETTING) {
+    if (pendingPurchase) { refs.action.textContent='處理中…'; refs.action.disabled=true; }
+    else if (myCurrentBet) { refs.action.textContent='已下注，等待開獎'; refs.action.disabled=true; }
+    else if (selectedBetType) { refs.action.textContent=`確認下注 ${currentBetAmount} 銀幣 · ${betTypeName(selectedBetType)}`; refs.action.disabled=false; }
+    else { refs.action.textContent='請選擇下注項目'; refs.action.disabled=true; }
+    return;
+  }
+  refs.action.disabled=false;
+  if (gameState === STATES.LOBBY || gameState === STATES.READY || gameState === STATES.WAITING_HOST) {
+    if (host) { refs.action.textContent='🚀 房主開新一局'; refs.action.classList.add('actionSecondary'); }
+    else { refs.action.textContent='等待房主開局…'; refs.action.classList.add('actionWait'); refs.action.disabled=true; }
+  } else if (gameState === STATES.PURCHASING) {
+    refs.action.textContent='處理中…'; refs.action.disabled=true;
+  } else if (gameState === STATES.ROLLING || gameState === STATES.RESULT) {
+    refs.action.textContent='本局進行中'; refs.action.classList.add('actionWait'); refs.action.disabled=true;
+  }
+}
+function betTypeName(t){ return t==='small'?'小':t==='big'?'大':'豹子'; }
 
-            // Render Dice
-            ctx.clearRect(0, 0, 400, 200);
-            const diceSize = 80, gap = 30;
-            const startX = (400 - (diceSize * 3 + gap * 2)) / 2;
-            const startY = (200 - diceSize) / 2;
-            const colors = ['#66fcf1', '#ff00ff', '#fce300'];
-            for (let i = 0; i < 3; i++) drawDice(startX + i * (diceSize + gap), startY, diceSize, diceValues[i], colors[i]);
+// ============================================================
+// BET / ROUND FLOW
+// ============================================================
+refs.betBtns.forEach(btn=>btn.addEventListener('pointerup',()=>{
+  if (gameState !== STATES.BETTING || myCurrentBet || pendingPurchase) return;
+  selectedBetType = btn.dataset.type;
+  refs.betBtns.forEach(b=>b.classList.toggle('active',b===btn));
+  updateAction(); playTone('select');
+}));
+refs.amtBtns.forEach(btn=>btn.addEventListener('pointerup',()=>{
+  if (gameState !== STATES.BETTING || myCurrentBet || pendingPurchase) return;
+  currentBetAmount = clampNumber(parseInt(btn.dataset.amt,10),100,5000,100);
+  refs.amtBtns.forEach(b=>b.classList.toggle('active',b===btn));
+  updateAction(); playTone('select');
+}));
+refs.action.addEventListener('pointerup',()=>{
+  if (gameState === STATES.BETTING && selectedBetType && !myCurrentBet && !pendingPurchase) {
+    pendingPurchase = { type:selectedBetType, amount:currentBetAmount, itemId:`bet_${currentRoundId}_${currentBetAmount}_${selectedBetType}` };
+    setState(STATES.PURCHASING);
+    requestPurchase(pendingPurchase.itemId, currentBetAmount);
+    return;
+  }
+  if ((gameState===STATES.LOBBY || gameState===STATES.READY || gameState===STATES.WAITING_HOST) && isHost()) {
+    startRoundAsHost();
+  }
+});
 
-            // Render Particles
-            pCtx.clearRect(0, 0, pCanvas.clientWidth, pCanvas.clientHeight);
-            for(let i=0; i<MAX_PARTICLES; i++) {
-                let p = particles[i];
-                if(p.active) {
-                    p.x += p.vx * dt;
-                    p.y += p.vy * dt;
-                    p.life -= dt;
-                    if(p.life <= 0) { p.active = false; continue; }
-                    
-                    pCtx.globalAlpha = p.life / p.maxLife;
-                    pCtx.fillStyle = p.color;
-                    pCtx.beginPath();
-                    pCtx.arc(p.x, p.y, 4, 0, Math.PI*2);
-                    pCtx.fill();
-                }
-            }
-            pCtx.globalAlpha = 1;
+function startRoundAsHost(){
+  if (!isHost()) return;
+  if (gameState === STATES.BETTING || gameState === STATES.ROLLING || gameState === STATES.RESULT) return;
+  currentRoundId = makeRoundId();
+  roundSeed = makeSeed();
+  roundStartAt = Date.now();
+  myCurrentBet = null; pendingPurchase=null; gameOverCalled=false; hasSubmittedEnd=false; lastRollPayload=null;
+  const start = { roundId:currentRoundId, seed:roundSeed, startTime:roundStartAt, maxDuration:BET_DURATION+ROLL_DURATION+RESULT_HOLD };
+  sendEvent('ROUND_START', start);
+  handleRoundStart(start);
+}
+function handleRoundStart(payload){
+  if (!payload?.roundId || !Number.isFinite(Number(payload.seed))) return;
+  currentRoundId = String(payload.roundId);
+  roundSeed = Number(payload.seed) >>> 0;
+  roundStartAt = clampNumber(payload.startTime,Date.now(),Date.now()+60000,Date.now());
+  myCurrentBet=null; pendingPurchase=null; selectedBetType=null; gameOverCalled=false; hasSubmittedEnd=false; lastRollPayload=null;
+  refs.betBtns.forEach(b=>b.classList.remove('active')); refs.amtBtns.forEach(b=>b.classList.toggle('active',Number(b.dataset.amt)===currentBetAmount));
+  refs.resultPanel.classList.remove('show');
+  renderAllDice(); setRollingVisual(false);
+  setState(STATES.BETTING); betTimer=BET_DURATION; lastSecondTick=Math.ceil(betTimer);
+  playTone('start');
+  addFeed('新回合開始');
+}
 
-            requestAnimationFrame(gameLoop);
-        }
-        requestAnimationFrame(gameLoop);
+function seededRng(seed){
+  let x = (seed >>> 0) || 1;
+  return function(){
+    x ^= x << 13; x >>>= 0;
+    x ^= x >>> 17; x >>>= 0;
+    x ^= x << 5; x >>>= 0;
+    return (x >>> 0) / 4294967296;
+  };
+}
+function rollDiceFromSeed(seed){
+  const rng=seededRng(seed);
+  return [1,2,3].map(()=>Math.floor(rng()*6)+1);
+}
+function executeRollAsHost(){
+  if (!isHost() || gameState!==STATES.BETTING || !currentRoundId) return;
+  sendEvent('ROLL_START',{roundId:currentRoundId});
+  handleRollStart({roundId:currentRoundId});
+  const dice = rollDiceFromSeed(roundSeed ^ 0x9e3779b9);
+  window.setTimeout(()=>{
+    if (gameState!==STATES.ROLLING || !currentRoundId) return;
+    sendEvent('ROLL_RESULT',{roundId:currentRoundId,dice});
+    handleRollResult({roundId:currentRoundId,dice});
+  }, Math.round(ROLL_DURATION*1000));
+}
+function handleRollStart(payload){
+  if (!validRound(payload?.roundId)) return;
+  setState(STATES.ROLLING); rollTimer=0; rollVisualAccumulator=0; rollSoundAccumulator=0; rollSoundStep=0; playTone('rollStart');
+  renderAllDice();
+}
+function handleRollResult(payload){
+  if (!validRound(payload?.roundId) || !Array.isArray(payload.dice) || payload.dice.length!==3) return;
+  const dice = payload.dice.map(v=>clampNumber(v,1,6,1));
+  if (dice.some(v=>!Number.isInteger(v))) return;
+  lastRollPayload={roundId:payload.roundId,dice}; currentDice=dice;
+  renderAllDice(); setRollingVisual(false); playTone('stop');
+  calculateResult(dice);
+}
+function validRound(roundId){ return String(roundId||'') === String(currentRoundId||''); }
 
-        // ==========================================
-        // 6. UI INTERACTIONS
-        // ==========================================
-        const betBtns = document.querySelectorAll('.bet-btn');
-        const amtBtns = document.querySelectorAll('.amt-btn');
-        const actionBtn = document.getElementById('action-btn');
-        const statusText = document.getElementById('status-text');
-        const socialFeed = document.getElementById('social-feed');
-        const timerContainer = document.getElementById('timer-container');
-        const gameArea = document.getElementById('game-area');
+function classifyDice(dice){
+  const total=dice.reduce((a,b)=>a+b,0);
+  const triple=dice[0]===dice[1]&&dice[1]===dice[2];
+  return { total, triple, type:triple?'triple':(total<=10?'small':'big') };
+}
+function calculateReward(bet, result){
+  if (!bet || bet.amount<=0) return 0;
+  if (bet.type !== result.type) return 0;
+  const multiplier = bet.type==='triple' ? 24 : 2;
+  return safeReward(bet.amount * multiplier);
+}
+function calculateResult(dice){
+  if (gameState===STATES.RESULT) return;
+  const result=classifyDice(dice);
+  updateHistory(result.type);
+  refs.resultType.textContent = result.triple ? '豹子！' : (result.type==='small'?'小':'大');
+  refs.resultDice.textContent = `骰子 ${dice.join(' · ')}　總和 ${result.total}`;
+  const reward=calculateReward(myCurrentBet,result);
+  const reason=myCurrentBet ? (reward>0 ? `押中「${betTypeName(myCurrentBet.type)}」` : `未押中本局結果「${betTypeName(result.type)}」`) : '本局未下注';
+  refs.resultReward.textContent=`+${reward} 銀幣`;
+  refs.resultReward.style.color=reward>0?'var(--green)':'var(--red)';
+  refs.resultReason.textContent=reason;
+  players.get(localUser.id).score=safeScore(result.total);
+  players.get(localUser.id).reward=reward;
+  callGameOver(reward);
+  if (!hasSubmittedEnd) {
+    hasSubmittedEnd=true;
+    sendEvent('PLAYER_END',{roundId:currentRoundId,status:reward>0?'WIN':'LOSE',score:safeScore(result.total),reward,reason:reward>0?'WIN':'LOSE'});
+  }
+  setState(STATES.RESULT);
+  resultTimer=RESULT_HOLD;
+  refs.main.classList.add('shake'); setTimeout(()=>refs.main.classList.remove('shake'),360);
+  if (reward>0) { spawnWinParticles(); addFeed(`你贏得 ${reward} 銀幣`,'win'); playTone('win'); } else { addFeed(`本局結果：${betTypeName(result.type)}`,'lose'); playTone('lose'); }
+}
 
-        betBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (gameState !== 'BETTING' || isPurchasing || myCurrentBet) return;
-                sfx.select(); betBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active'); selectedBetType = btn.dataset.type; updateActionBtn();
-            });
-        });
+// ============================================================
+// HISTORY / FEED / EMOTES
+// ============================================================
+function updateHistory(type){
+  history.push(type); if(history.length>6) history.shift();
+  refs.history.querySelectorAll('.dot').forEach(x=>x.remove());
+  history.forEach(t=>{const d=document.createElement('div');d.className='dot '+(t==='small'?'s':t==='big'?'b':'t');d.textContent=t==='small'?'小':t==='big'?'大':'豹';refs.history.appendChild(d)});
+}
+function addFeed(text,type='normal'){
+  const d=document.createElement('div'); d.className='feedItem '+type; d.textContent=text; refs.feed.appendChild(d);
+  while(refs.feed.children.length>3) refs.feed.firstChild.remove();
+  setTimeout(()=>d.remove(),4500);
+}
+function sendEmote(emoji){ if(!currentRoundId)return; sendEvent('PLAYER_EMOTE',{roundId:currentRoundId,emoji}); spawnEmote(emoji,20+Math.random()*60); }
+function spawnEmote(emoji,leftPct){
+  const d=document.createElement('div'); d.textContent=emoji; d.style.cssText=`position:absolute;left:${leftPct}%;bottom:16%;font-size:28px;z-index:50;pointer-events:none;animation:emoteFloat 1.6s ease-out forwards;`; refs.main.appendChild(d); setTimeout(()=>d.remove(),1600);
+}
+document.querySelectorAll('#emotes button').forEach(b=>b.addEventListener('pointerup',()=>sendEmote(b.dataset.emoji)));
+const styleEl=document.createElement('style');styleEl.textContent='@keyframes emoteFloat{0%{opacity:0;transform:translateY(10px) scale(.6)}18%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-90px) scale(1)}}';document.head.appendChild(styleEl);
 
-        amtBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (gameState !== 'BETTING' || isPurchasing || myCurrentBet) return;
-                sfx.select(); amtBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active'); currentBetAmount = parseInt(btn.dataset.amt); updateActionBtn();
-            });
-        });
+// ============================================================
+// AUDIO — CREATED ONLY AFTER USER GESTURE
+// ============================================================
+let audioCtx=null;
+function unlockAudio(){
+  if(!audioCtx){ const AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC(); }
+  if(audioCtx?.state==='suspended') audioCtx.resume().catch(()=>{});
+}
+['pointerdown','pointerup','touchstart'].forEach(e=>document.addEventListener(e,unlockAudio,{once:true,passive:true}));
+function tone(freq,type='sine',duration=.08,volume=.05){
+  if(!audioCtx || audioCtx.state!=='running') return;
+  const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(freq,now);gain.gain.setValueAtTime(Math.max(volume,.001),now);gain.gain.exponentialRampToValueAtTime(.001,now+duration);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(now);osc.stop(now+duration);
+}
+function playTone(kind,step=0){
+  if(kind==='select') tone(700,'sine',.06,.035);
+  else if(kind==='start'){tone(500,'square',.08,.045);setTimeout(()=>tone(850,'square',.12,.045),90);setTimeout(()=>tone(1180,'triangle',.16,.035),190)}
+  else if(kind==='rollStart'){tone(120,'sawtooth',.18,.06);tone(220,'triangle',.12,.025,.03)}
+  else if(kind==='rollTick'){
+    const seq=[150,182,210,170,230,190,250,205]; const f=seq[step%seq.length];
+    tone(f,'square',.045,.045); tone(f*1.5,'triangle',.025,.018,.008);
+  }
+  else if(kind==='stop'){tone(360,'triangle',.07,.035);setTimeout(()=>tone(560,'square',.1,.045),65);setTimeout(()=>tone(820,'triangle',.16,.04),145)}
+  else if(kind==='win'){tone(520,'square',.08,.05);setTimeout(()=>tone(780,'square',.1,.05),90);setTimeout(()=>tone(1040,'square',.18,.05),190)}
+  else if(kind==='lose'){tone(220,'sawtooth',.14,.045);setTimeout(()=>tone(150,'sawtooth',.18,.04),130)}
+}
 
-        function updateActionBtn() {
-            if (gameState === 'BETTING') {
-                if (isPurchasing) { actionBtn.innerText = "處理中..."; actionBtn.disabled = true; }
-                else if (myCurrentBet) { actionBtn.innerText = "下注成功，等待開獎..."; actionBtn.disabled = true; }
-                else if (selectedBetType) { actionBtn.innerText = `確認下注 ${currentBetAmount} 於 [${betTypeNames[selectedBetType]}]`; actionBtn.disabled = false; }
-                else { actionBtn.innerText = "請選擇下注項目"; actionBtn.disabled = true; }
-            } else if (gameState === 'WAITING' && isHost) { actionBtn.innerText = "開始新局"; actionBtn.disabled = false; }
-            else if (gameState === 'WAITING' && !isHost) { actionBtn.innerText = "等待房主開始..."; actionBtn.disabled = true; }
-            else { actionBtn.disabled = true; }
-        }
+// ============================================================
+// DICE RENDER / PARTICLES — separate DOM dice, zero overlap
+// ============================================================
+const dieEls=[document.getElementById('die0'),document.getElementById('die1'),document.getElementById('die2')];
+const dieCards=[document.getElementById('dieCard0'),document.getElementById('dieCard1'),document.getElementById('dieCard2')];
+const pCanvas=document.getElementById('particleCanvas'), pCtx=pCanvas.getContext('2d');
+let pW=420,pH=260,pDpr=1;
+const pipMap={
+  1:[4],
+  2:[0,8],
+  3:[0,4,8],
+  4:[0,2,6,8],
+  5:[0,2,4,6,8],
+  6:[0,2,3,5,6,8]
+};
+function buildDieFace(el){
+  el.innerHTML='';
+  for(let i=0;i<9;i++){const pip=document.createElement('span');pip.className='pip';el.appendChild(pip)}
+}
+dieEls.forEach(buildDieFace);
+function renderDie(index,value){
+  const v=Math.max(1,Math.min(6,Math.floor(value||1)));
+  const on=new Set(pipMap[v]);
+  dieEls[index].querySelectorAll('.pip').forEach((p,i)=>p.classList.toggle('on',on.has(i)));
+}
+function setRollingVisual(active){dieCards.forEach(c=>c.classList.toggle('rolling',active));}
+function resizeParticles(){
+  const r=document.getElementById('diceStage').getBoundingClientRect();
+  pDpr=Math.min(window.devicePixelRatio||1,2);pW=Math.max(280,Math.floor(r.width+40));pH=Math.max(180,Math.floor(r.height+40));
+  pCanvas.width=Math.floor(pW*pDpr);pCanvas.height=Math.floor(pH*pDpr);pCanvas.style.width=pW+'px';pCanvas.style.height=pH+'px';pCtx.setTransform(pDpr,0,0,pDpr,0,0);
+}
+window.addEventListener('resize',resizeParticles);resizeParticles();
+const MAX_PARTICLES=96;
+const particles=Array.from({length:MAX_PARTICLES},()=>({active:false,x:0,y:0,vx:0,vy:0,life:0,max:1,color:'#55f2ff',size:3}));
+function spawnWinParticles(){
+  let count=0;for(const p of particles){if(p.active)continue;p.active=true;p.x=pW/2;p.y=pH/2;const a=Math.random()*Math.PI*2,s=70+Math.random()*230;p.vx=Math.cos(a)*s;p.vy=Math.sin(a)*s;p.life=p.max=.5+Math.random()*.7;p.color=['#55f2ff','#ff3bd4','#ffd84d'][Math.floor(Math.random()*3)];p.size=2+Math.random()*3;if(++count>=52)break}
+}
+function spawnRollParticles(){
+  let count=0;for(const p of particles){if(p.active)continue;p.active=true;p.x=pW/2+(Math.random()-.5)*180;p.y=pH/2+(Math.random()-.5)*70;const a=Math.random()*Math.PI*2,s=25+Math.random()*70;p.vx=Math.cos(a)*s;p.vy=Math.sin(a)*s*.45;p.life=p.max=.18+Math.random()*.2;p.color=Math.random()<.5?'#55f2ff':'#ff3bd4';p.size=1+Math.random()*2;if(++count>=8)break}
+}
+function updateParticles(dt){
+  pCtx.clearRect(0,0,pW,pH);
+  for(const p of particles){if(!p.active)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=40*dt;p.life-=dt;if(p.life<=0){p.active=false;continue}pCtx.globalAlpha=p.life/p.max;pCtx.fillStyle=p.color;pCtx.beginPath();pCtx.arc(p.x,p.y,p.size,0,Math.PI*2);pCtx.fill()}pCtx.globalAlpha=1;
+}
+// ============================================================
+// MAIN LOOP
+// ============================================================
+let rollVisualAccumulator=0;
+let rollSoundAccumulator=0;
+let rollSoundStep=0;
+let lastRenderedDice=[1,2,3];
+function renderAllDice(){for(let i=0;i<3;i++)renderDie(i,currentDice[i]);}
+renderAllDice();
+function gameLoop(ts){
+  if(!lastTime)lastTime=ts; let dt=(ts-lastTime)/1000; if(dt>0.033)dt=0.033; lastTime=ts;
+  if(gameState===STATES.BETTING){
+    setRollingVisual(false);
+    betTimer=Math.max(0,betTimer-dt); const pct=BET_DURATION?betTimer/BET_DURATION:0; refs.timerFill.style.width=`${pct*100}%`; refs.timerText.textContent=`下注 ${Math.ceil(betTimer)} 秒`; refs.timerFill.classList.toggle('danger',betTimer<=3);
+    const sec=Math.ceil(betTimer);if(sec!==lastSecondTick&&sec>0&&sec<=3){tone(950,'sine',.045,.035);lastSecondTick=sec}
+    if(betTimer<=0&&isHost())executeRollAsHost();
+  } else if(gameState===STATES.ROLLING){
+    setRollingVisual(true);
+    rollVisualAccumulator+=dt;rollSoundAccumulator+=dt;
+    if(rollVisualAccumulator>=0.075){
+      rollVisualAccumulator=0;
+      for(let i=0;i<3;i++)currentDice[i]=1+Math.floor(Math.random()*6);
+      renderAllDice();spawnRollParticles();
+    }
+    if(rollSoundAccumulator>=0.085){
+      rollSoundAccumulator=0;playTone('rollTick',rollSoundStep++);
+    }
+  } else {
+    setRollingVisual(false);
+    if(gameState===STATES.RESULT){resultTimer=Math.max(0,resultTimer-dt);if(resultTimer<=0)setState(STATES.WAITING_HOST);}
+  }
 
-        function addFeedItem(text, type = 'normal') {
-            const div = document.createElement('div'); div.className = `feed-item ${type}`; div.innerText = text;
-            socialFeed.appendChild(div); socialFeed.scrollTop = socialFeed.scrollHeight;
-            setTimeout(() => { if(div.parentNode) div.parentNode.removeChild(div); }, 4000);
-        }
+  updateParticles(dt);rafId=requestAnimationFrame(gameLoop);lastTime=ts;
+}
+rafId=requestAnimationFrame(gameLoop);
 
-        function updateHistory(resultType) {
-            let char = resultType === 'small' ? '小' : (resultType === 'big' ? '大' : '豹');
-            let cls = resultType === 'small' ? 'dot-S' : (resultType === 'big' ? 'dot-B' : 'dot-T');
-            history.push({char, cls});
-            if(history.length > 6) history.shift();
-            
-            const historyBoard = document.getElementById('history-board');
-            historyBoard.innerHTML = '';
-            history.forEach(h => {
-                const dot = document.createElement('div');
-                dot.className = `history-dot ${h.cls}`;
-                dot.innerText = h.char;
-                historyBoard.appendChild(dot);
-            });
-        }
+// ============================================================
+// EVENTS
+// ============================================================
+function dispatchGameEvent(userId,eventName,payload){
+  if (!payload || typeof payload!=='object') return;
+  const remoteId=String(userId||'').slice(0,96); if(!remoteId)return;
+  if(eventName==='PLAYER_HELLO'){
+    if(remoteId===localUser.id)return;
+    const prior=players.get(remoteId);players.set(remoteId,{id:remoteId,username:String(payload.username||'玩家').slice(0,24),avatar:String(payload.avatar||'').slice(0,240),status:'READY',score:0,reward:0,lastSeen:Date.now(),joinedAt:Number.isFinite(Number(payload.joinedAt))?Number(payload.joinedAt):Date.now()});
+    if(!prior) addFeed(`${payload.username||'玩家'} 加入房間`);
+    updatePlayerUI();return;
+  }
+  const p=players.get(remoteId); if(p)p.lastSeen=Date.now();
+  if(payload.roundId && currentRoundId && String(payload.roundId)!==String(currentRoundId))return;
+  switch(eventName){
+    case 'PLAYER_HEARTBEAT': if(p)p.status=String(payload.status||p.status); updatePlayerUI(); break;
+    case 'ROUND_START': handleRoundStart(payload); break;
+    case 'PLAYER_BET': if(p)p.status='BET'; addFeed(remoteId===localUser.id?`你下注 ${payload.amount} 銀幣`:`${payload.username||p?.username||'玩家'} 已下注`);updatePlayerUI();break;
+    case 'ROLL_START': handleRollStart(payload);break;
+    case 'ROLL_RESULT': handleRollResult(payload);break;
+    case 'PLAYER_END': if(p){p.status=String(payload.status||'END');p.score=safeScore(payload.score);p.reward=safeReward(payload.reward)} updatePlayerUI();break;
+    case 'PLAYER_EMOTE': spawnEmote(String(payload.emoji||'😎'),20+Math.random()*60);break;
+  }
+}
 
-        window.sendEmote = function(emoji) {
-            if(!currentRoundId) return;
-            window.BoomRoomSDK.sendGameEvent("PLAYER_EMOTE", { roundId: currentRoundId, emoji: emoji });
-        }
+window.addEventListener('message',(event)=>{
+  try{
+    const data=typeof event.data==='string'?JSON.parse(event.data):event.data;
+    if(data?.action==='gameEventReceived') dispatchGameEvent(data.userId,data.eventName,data.payload||{});
+  }catch(_){ }
+});
 
-        function spawnFloatingEmote(emoji, xPos) {
-            const el = document.createElement('div');
-            el.className = 'floating-emote';
-            el.innerText = emoji;
-            el.style.left = `${xPos}%`;
-            el.style.bottom = '20%';
-            gameArea.appendChild(el);
-            setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 2000);
-        }
+// Local DEV event loop is automatically routed by sendEvent(). Production uses SDK events.
+sendHello();
+setInterval(sendHeartbeat,HEARTBEAT_MS);
+setInterval(cleanupPlayers,HEARTBEAT_MS);
 
-        // ==========================================
-        // 7. CORE GAME LOGIC & SDK INTEGRATION
-        // ==========================================
-        window.onPurchaseSuccess = function(itemId) {
-            isPurchasing = false;
-            if (itemId.startsWith("bet_")) {
-                sfx.bet(); myCurrentBet = { type: selectedBetType, amount: currentBetAmount };
-                updateActionBtn(); statusText.innerText = "下注成功！";
-                window.BoomRoomSDK.sendGameEvent("PLAYER_BET", { roundId: currentRoundId, username: user.username, type: selectedBetType, amount: currentBetAmount });
-            }
-        };
+// Initial state
+setState(STATES.LOBBY);
+updatePlayerUI();
 
-        window.onPurchaseFailed = function(itemId) {
-            isPurchasing = false;
-            statusText.innerText = "下注失敗 / 餘額不足"; statusText.style.color = "#ff3333";
-            setTimeout(() => { if(gameState === 'BETTING') { statusText.innerText = "請下注！"; statusText.style.color = "var(--neon-yellow)"; } }, 2000);
-            updateActionBtn();
-        };
+// In development, make the deterministic local player the host so the full loop is testable.
+// No production SDK is modified or fabricated.
+if(DEV_MODE){
+  setTimeout(()=>{ addFeed('開發測試：你是房主'); setState(STATES.READY); },300);
+}
 
-        actionBtn.addEventListener('click', () => {
-            if (gameState === 'BETTING' && selectedBetType && !myCurrentBet && !isPurchasing) {
-                isPurchasing = true;
-                updateActionBtn();
-                window.BoomRoomSDK.requestPurchase(`bet_${currentBetAmount}_${selectedBetType}`, currentBetAmount);
-            } else if (gameState === 'WAITING' && isHost) {
-                currentRoundId = Date.now().toString(); // Generate unique round ID
-                window.BoomRoomSDK.sendGameEvent("ROUND_START", { roundId: currentRoundId });
-            }
-        });
-
-        document.getElementById('claim-host-btn').addEventListener('click', () => {
-            document.getElementById('host-overlay').classList.add('hidden');
-            isHost = true; document.getElementById('host-badge').classList.remove('hidden');
-            window.BoomRoomSDK.sendGameEvent("HOST_CLAIMED", { username: user.username });
-            setGameState('WAITING');
-        });
-
-        function executeRoll() {
-            if(gameState !== 'BETTING') return;
-            window.BoomRoomSDK.sendGameEvent("ROLL_START", { roundId: currentRoundId });
-            setTimeout(() => {
-                const d1 = Math.floor(Math.random() * 6) + 1;
-                const d2 = Math.floor(Math.random() * 6) + 1;
-                const d3 = Math.floor(Math.random() * 6) + 1;
-                window.BoomRoomSDK.sendGameEvent("ROLL_RESULT", { roundId: currentRoundId, dice: [d1, d2, d3] });
-            }, 2000);
-        }
-
-        function setGameState(state) {
-            gameState = state;
-            if (state === 'WAITING') {
-                myCurrentBet = null; selectedBetType = null; isPurchasing = false; gameOverCalled = false;
-                betBtns.forEach(b => b.classList.remove('active'));
-                timerContainer.style.opacity = 0;
-                document.getElementById('timer-fill').classList.remove('danger');
-                statusText.innerText = isHost ? "準備就緒，請開局" : "等待房主開局..."; statusText.style.color = "var(--neon-cyan)";
-            } else if (state === 'BETTING') {
-                betTimer = BET_DURATION;
-                timerContainer.style.opacity = 1;
-                statusText.innerText = "請下注！"; statusText.style.color = "var(--neon-yellow)";
-            } else if (state === 'ROLLING') {
-                timerContainer.style.opacity = 0;
-                statusText.innerText = "停止下注！"; statusText.style.color = "var(--neon-pink)";
-                actionBtn.innerText = "擲骰中..."; actionBtn.disabled = true;
-            }
-            updateActionBtn();
-        }
-
-        function triggerGameOver(amount) {
-            if (gameOverCalled) return;
-            gameOverCalled = true;
-            let safeAmount = Number.isFinite(amount) ? Math.max(0, amount) : 0;
-            window.BoomRoomSDK.gameOver(safeAmount);
-        }
-
-        function calculateResult(dice) {
-            const total = dice[0] + dice[1] + dice[2];
-            const isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
-            let winningType = isTriple ? 'triple' : (total <= 10 ? 'small' : 'big');
-
-            sfx.boom();
-            gameArea.classList.add('shake');
-            setTimeout(() => gameArea.classList.remove('shake'), 400);
-
-            updateHistory(winningType);
-            statusText.innerText = `總和: ${total} ${isTriple ? '(豹子！)' : ''}`;
-
-            if (myCurrentBet) {
-                if (myCurrentBet.type === winningType) {
-                    let winAmount = myCurrentBet.amount * (winningType === 'triple' ? 24 : 2);
-                    sfx.win(); 
-                    spawnWinParticles();
-                    statusText.innerText += ` - 贏得 ${winAmount}！`; statusText.style.color = "var(--neon-cyan)";
-                    triggerGameOver(winAmount); 
-                    addFeedItem(`你贏了 ${winAmount}！`, 'win');
-                    sendEmote('💸'); 
-                } else {
-                    sfx.lose(); 
-                    statusText.innerText += ` - 沒中！`; statusText.style.color = "#ff3333";
-                    triggerGameOver(0); 
-                    addFeedItem(`你輸了 ${myCurrentBet.amount}`, 'lose');
-                }
-            } else {
-                triggerGameOver(0);
-            }
-
-            setTimeout(() => setGameState('WAITING'), 5000);
-        }
-
-        // ==========================================
-        // 8. MULTIPLAYER EVENT LISTENER
-        // ==========================================
-        window.addEventListener("message", (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.action === "gameEventReceived") {
-                    const { userId, eventName, payload } = data;
-                    
-                    // Validate Round ID for gameplay events
-                    if (payload.roundId && currentRoundId && payload.roundId !== currentRoundId) {
-                        return; // Ignore stale events
-                    }
-
-                    switch(eventName) {
-                        case "HOST_CLAIMED":
-                            if (userId !== user.id) {
-                                document.getElementById('host-overlay').classList.add('hidden');
-                                addFeedItem(`${payload.username} 成為了房主`); setGameState('WAITING');
-                            }
-                            break;
-                        case "ROUND_START":
-                            currentRoundId = payload.roundId;
-                            setGameState('BETTING'); addFeedItem('開放下注！');
-                            break;
-                        case "PLAYER_BET":
-                            if (userId !== user.id) addFeedItem(`${payload.username} 押注了 [${betTypeNames[payload.type]}]`);
-                            break;
-                        case "ROLL_START":
-                            setGameState('ROLLING');
-                            break;
-                        case "ROLL_RESULT":
-                            diceValues = payload.dice; 
-                            setGameState('RESULT'); 
-                            calculateResult(payload.dice);
-                            break;
-                        case "PLAYER_EMOTE":
-                            spawnFloatingEmote(payload.emoji, 20 + Math.random() * 60);
-                            break;
-                    }
-                }
-            } catch(e) {}
-        });
-
-    </script>
+// Keyboard support for desktop test only.
+window.addEventListener('keydown',(e)=>{
+  if(e.key==='1') document.querySelector('.betBtn[data-type="small"]')?.dispatchEvent(new PointerEvent('pointerup'));
+  if(e.key==='2') document.querySelector('.betBtn[data-type="triple"]')?.dispatchEvent(new PointerEvent('pointerup'));
+  if(e.key==='3') document.querySelector('.betBtn[data-type="big"]')?.dispatchEvent(new PointerEvent('pointerup'));
+  if(e.key==='Enter') refs.action.click();
+});
+</script>
 </body>
 </html>

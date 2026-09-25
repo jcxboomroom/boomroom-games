@@ -1,254 +1,1044 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>霓虹疊塔：極限巔峰</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
-        body { margin: 0; overflow: hidden; background: #0f0c29; background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29); font-family: 'Montserrat', sans-serif; touch-action: none; }
-        canvas { display: block; width: 100vw; height: 100vh; }
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; box-sizing: border-box; }
-        .score-board { text-align: center; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        #score { font-size: 60px; font-weight: 900; line-height: 1; }
-        #combo { font-size: 20px; color: #00e5ff; opacity: 0; transition: opacity 0.2s, transform 0.2s; }
-        .combo-active { opacity: 1 !important; transform: scale(1.2); }
-        #startScreen, #gameOverScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 10; backdrop-filter: blur(5px); }
-        h1 { color: #fff; font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px #e91e63; text-align: center; }
-        p { color: #aaa; margin-bottom: 30px; text-align: center; }
-        button { background: linear-gradient(45deg, #e91e63, #9c27b0); border: none; padding: 15px 40px; border-radius: 30px; color: white; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 10px 20px rgba(233, 30, 99, 0.4); transition: transform 0.1s; }
-        button:active { transform: scale(0.95); }
-        #gameOverScreen { display: none; }
-        .reward-text { color: #ffd700; font-size: 24px; font-weight: bold; margin: 20px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#060712">
+<title>霓虹疊塔：極限巔峰</title>
+<style>
+:root{
+  --bg:#060712;
+  --bg2:#0c1022;
+  --panel:rgba(13,16,31,.88);
+  --panel2:rgba(17,21,40,.96);
+  --line:rgba(255,255,255,.09);
+  --line2:rgba(255,255,255,.15);
+  --text:#f7f8ff;
+  --muted:#9aa2bd;
+  --cyan:#45efff;
+  --purple:#9b6cff;
+  --pink:#ff4da8;
+  --gold:#ffd85a;
+  --green:#42efaa;
+  --red:#ff5871;
+  --shadow:0 22px 80px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif;}
+body{touch-action:none;overscroll-behavior:none;}
+button{font:inherit;color:inherit;border:0;outline:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+button:active{transform:scale(.975);}
+.app{width:100%;height:100dvh;min-height:100dvh;position:relative;overflow:hidden;background:
+  radial-gradient(circle at 50% -10%,rgba(155,108,255,.23),transparent 35%),
+  radial-gradient(circle at 0% 55%,rgba(255,77,168,.08),transparent 30%),
+  radial-gradient(circle at 100% 60%,rgba(69,239,255,.08),transparent 32%),
+  linear-gradient(180deg,#0b0d1b 0%,#04050b 100%);
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+.backdrop{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,6,13,.02),rgba(4,5,10,.34));z-index:1;}
+.grid{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(69,239,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(69,239,255,.06) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(to bottom,transparent 0,black 18%,black 88%,transparent 100%);}
+.topbar{position:absolute;left:0;right:0;top:0;z-index:5;padding:12px 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;}
+.brand{display:flex;align-items:center;gap:9px;pointer-events:auto;min-width:0;}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:linear-gradient(145deg,rgba(69,239,255,.14),rgba(155,108,255,.22)),#111528;border:1px solid var(--line2);box-shadow:0 0 26px rgba(155,108,255,.14),inset 0 0 16px rgba(255,255,255,.025);}
+.brandText{min-width:0;}
+.title{font-weight:1000;font-size:16px;line-height:1;letter-spacing:.3px;white-space:nowrap;}
+.sub{margin-top:4px;font-size:8px;color:var(--muted);letter-spacing:1.1px;white-space:nowrap;}
+.actions{display:flex;gap:7px;pointer-events:auto;}
+.iconBtn{width:40px;height:40px;border-radius:12px;background:rgba(10,13,26,.72);border:1px solid var(--line);display:grid;place-items:center;font-size:17px;box-shadow:0 8px 24px rgba(0,0,0,.24);backdrop-filter:blur(8px);}
+.iconBtn.muted{color:#7f879e;}
+.hud{position:absolute;left:10px;right:10px;top:67px;z-index:4;display:grid;grid-template-columns:1fr auto 1fr;gap:7px;pointer-events:none;}
+.hudCard{min-width:0;padding:9px 10px;border-radius:15px;background:rgba(7,10,20,.7);border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.2);backdrop-filter:blur(8px);}
+.hudCard.center{text-align:center;border-color:rgba(155,108,255,.17);min-width:112px;}
+.hudCard.right{text-align:right;}
+.hudLabel{font-size:7px;color:var(--muted);letter-spacing:1.1px;font-weight:900;}
+.hudValue{margin-top:2px;font-size:19px;font-weight:1000;line-height:1.05;}
+.hudValue.small{font-size:15px;}
+.progressWrap{position:absolute;left:16px;right:16px;top:126px;z-index:4;pointer-events:none;}
+.progressTrack{height:5px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.04);}
+.progressBar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));box-shadow:0 0 13px rgba(69,239,255,.32);transition:width .18s ease;}
+.milestoneRow{position:absolute;left:0;right:0;top:-5px;display:flex;justify-content:space-between;padding:0 9.5%;z-index:2;pointer-events:none;}
+.milestoneDot{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#13182a;border:1px solid rgba(255,255,255,.10);color:#747d98;font-size:7px;font-weight:1000;box-shadow:0 3px 10px rgba(0,0,0,.25);transition:.2s ease;}
+.milestoneDot.active{background:linear-gradient(145deg,var(--cyan),var(--purple));color:#08101d;border-color:rgba(255,255,255,.35);box-shadow:0 0 14px rgba(69,239,255,.35);transform:scale(1.13);}
+.milestoneDot.reached{background:rgba(66,239,170,.14);color:var(--green);border-color:rgba(66,239,170,.28);}
+.milestoneLabels{display:flex;justify-content:space-between;padding:4px 7.5% 0;color:#6f7892;font-size:7px;font-weight:900;letter-spacing:.4px;}
+.milestoneBanner{position:absolute;left:50%;top:158px;transform:translateX(-50%);z-index:4;padding:6px 11px;border-radius:999px;background:rgba(7,10,20,.78);border:1px solid rgba(69,239,255,.13);color:#aeb7ce;font-size:8px;font-weight:900;letter-spacing:.3px;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.18);}
+.milestoneBanner b{color:var(--cyan);font-size:9px;}
+
+.inheritRule{margin-top:4px;color:#7d87a6;font-size:9px;font-weight:800;text-align:center;}
+.statusPill{position:absolute;left:50%;top:140px;transform:translateX(-50%);z-index:4;padding:7px 11px;border-radius:999px;background:rgba(7,10,20,.68);border:1px solid rgba(255,255,255,.08);color:#bec4d8;font-size:9px;font-weight:900;letter-spacing:.4px;pointer-events:none;backdrop-filter:blur(7px);white-space:nowrap;}
+.bottomBar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:end;justify-content:space-between;gap:10px;pointer-events:none;}
+.hintCard{max-width:240px;padding:9px 11px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid var(--line);box-shadow:0 10px 28px rgba(0,0,0,.22);backdrop-filter:blur(8px);}
+.hintTitle{font-size:10px;font-weight:1000;}
+.hintSub{margin-top:3px;font-size:8px;color:var(--muted);line-height:1.3;}
+.tapIndicator{width:48px;height:48px;border-radius:16px;border:1px solid rgba(69,239,255,.22);background:rgba(69,239,255,.05);display:grid;place-items:center;font-size:20px;color:var(--cyan);box-shadow:0 0 22px rgba(69,239,255,.10);}
+.overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;pointer-events:auto;background:rgba(3,4,9,.64);backdrop-filter:blur(11px);}
+.overlay.show{display:flex;}
+.modal{width:min(480px,100%);border-radius:25px;padding:22px 18px 18px;background:linear-gradient(145deg,rgba(18,22,43,.98),rgba(7,9,18,.98));border:1px solid var(--line2);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.modal::before{content:"";position:absolute;inset:-30% -15% auto;height:52%;background:radial-gradient(circle,rgba(155,108,255,.18),transparent 63%);pointer-events:none;}
+.modalHead{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.kicker{font-size:8px;color:var(--cyan);letter-spacing:1.7px;font-weight:1000;}
+.h1{position:relative;margin:8px 0 6px;font-size:32px;line-height:1.02;font-weight:1000;letter-spacing:-1px;}
+.lead{position:relative;color:#b7bfd5;font-size:11px;line-height:1.55;margin:0;}
+.metaGrid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px;}
+.meta{padding:9px 8px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
+.metaLabel{font-size:7px;color:var(--muted);font-weight:900;}
+.metaValue{margin-top:3px;font-size:11px;font-weight:1000;}
+.rules{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px;}
+.rule{padding:10px 8px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);}
+.ruleIcon{font-size:16px;}
+.ruleTitle{margin-top:5px;font-size:9px;font-weight:1000;}
+.ruleText{margin-top:3px;font-size:7px;line-height:1.35;color:var(--muted);}
+.primary{position:relative;width:100%;height:48px;margin-top:16px;border-radius:15px;background:linear-gradient(135deg,#7f5bff,#ff4da8);font-weight:1000;font-size:14px;box-shadow:0 12px 30px rgba(155,108,255,.24);overflow:hidden;}
+.primary::after{content:"";position:absolute;left:-35%;top:-80%;width:28%;height:260%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 2.8s linear infinite;}
+.secondary{position:relative;width:100%;height:44px;margin-top:9px;border-radius:13px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:12px;font-weight:900;}
+.note{position:relative;margin-top:9px;text-align:center;font-size:8px;color:#747c94;line-height:1.5;}
+.resultStats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:15px;}
+.resultStat{padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
+.resultStat .v{font-size:17px;font-weight:1000;}
+.resultStat .l{margin-top:3px;font-size:7px;color:var(--muted);font-weight:900;}
+.reward{position:relative;margin-top:12px;padding:13px;border-radius:15px;background:linear-gradient(90deg,rgba(255,216,90,.08),rgba(155,108,255,.08));border:1px solid rgba(255,216,90,.15);text-align:center;}
+.reward .rLabel{font-size:8px;color:#9c98a1;letter-spacing:1px;font-weight:900;}
+.reward .rValue{margin-top:3px;color:var(--gold);font-size:25px;font-weight:1000;}
+.resultReason{position:relative;margin-top:11px;color:#b2bad0;text-align:center;font-size:9px;font-weight:800;}
+.toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);z-index:30;padding:8px 12px;border-radius:999px;background:rgba(5,7,14,.92);border:1px solid var(--line2);color:#dce2f1;font-size:9px;font-weight:900;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.34);}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+.flash{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.32),transparent 53%);}
+.flash.play{animation:flash .3s ease-out;}
+.fpsWarn{position:absolute;right:10px;bottom:10px;z-index:40;display:none;padding:4px 6px;border-radius:7px;background:#280f15;color:#ff8e9f;border:1px solid rgba(255,88,113,.2);font-size:8px;font-weight:900;}
+@keyframes shine{to{transform:translateX(460%) skewX(-20deg);}}
+@keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+@media (max-height:650px){.hud{top:58px}.progressWrap{top:113px}.milestoneBanner{top:142px}.statusPill{top:164px}.bottomBar{bottom:8px}.h1{font-size:27px}.modal{padding-top:18px}.rules{margin-top:9px}.metaGrid{margin-top:10px}.primary{margin-top:12px}}
+</style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="ui">
-        <div class="score-board">
-            <div id="score">0</div>
-            <div id="combo">PERFECT x1</div>
-        </div>
+<div class="app" id="app">
+  <div class="grid"></div>
+  <canvas id="gameCanvas"></canvas>
+  <div class="backdrop"></div>
+  <div class="flash" id="flash"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🏗️</div>
+      <div class="brandText">
+        <div class="title">霓虹疊塔</div>
+        <div class="sub">極限巔峰 · BOOMROOM ARCADE</div>
+      </div>
     </div>
-
-    <div id="startScreen">
-        <h1>霓虹疊塔<br>極限巔峰</h1>
-        <p>點擊螢幕放置方塊<br>每 10 層可獲得 50 銀幣！</p>
-        <button onclick="startGame()">開始挑戰</button>
+    <div class="actions">
+      <button class="iconBtn" id="soundBtn" aria-label="切換音效">🔊</button>
+      <button class="iconBtn" id="helpBtn" aria-label="查看玩法">?</button>
     </div>
+  </header>
 
-    <div id="gameOverScreen">
-        <h1>大樓倒塌！</h1>
-        <p>最終層數: <span id="finalScore" style="color:white; font-size: 24px; font-weight:bold;">0</span></p>
-        <div class="reward-text" id="rewardText">獲得 0 銀幣</div>
-        <button onclick="leaveGame()">領獎並離開</button>
-        <button onclick="resetGame()" style="margin-top: 15px; background: #333; box-shadow: none;">再玩一次</button>
+  <section class="hud" id="hud" aria-hidden="true">
+    <div class="hudCard">
+      <div class="hudLabel">HEIGHT</div>
+      <div class="hudValue" id="layerValue">0</div>
     </div>
+    <div class="hudCard center">
+      <div class="hudLabel">STREAK</div>
+      <div class="hudValue small" id="comboValue">0×</div>
+    </div>
+    <div class="hudCard right">
+      <div class="hudLabel">SCORE</div>
+      <div class="hudValue" id="scoreValue">0</div>
+    </div>
+  </section>
+  <div class="progressWrap" id="progressWrap">
+    <div class="milestoneRow">
+      <span class="milestoneDot" id="m10">10</span>
+      <span class="milestoneDot" id="m20">20</span>
+      <span class="milestoneDot" id="m30">30</span>
+    </div>
+    <div class="progressTrack"><div class="progressBar" id="progressBar"></div></div>
+    <div class="milestoneLabels"><span>10 層</span><span>20 層</span><span>30 層</span></div>
+  </div>
+  <div class="milestoneBanner" id="milestoneBanner">目前 <b id="milestoneNow">18</b> 層 · 下一里程碑 <b id="milestoneNext">20</b> 層</div>
+  <div class="statusPill" id="statusPill">等候落點</div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
+  <div class="bottomBar" id="bottomBar">
+    <div class="hintCard">
+      <div class="hintTitle" id="hintTitle">點一下，把方塊放下</div>
+      <div class="hintSub" id="hintSub">越靠近中心越容易累積連擊。速度會逐層提升。</div>
+    </div>
+    <div class="tapIndicator">◉</div>
+  </div>
 
-        // 遊戲狀態
-        let state = 'START'; // START, PLAYING, GAMEOVER
-        let score = 0;
-        let combo = 0;
-        let cameraY = 0;
-        let targetCameraY = 0;
+  <div class="toast" id="toast"></div>
+  <div class="fpsWarn" id="fpsWarn">效能模式</div>
 
-        // 物理與方塊
-        const boxHeight = 40;
-        const initialWidth = 200;
-        let boxes = [];
-        let debris = [];
-        let currentBox = null;
-        let speed = 4;
-        let hue = 0;
+  <div class="overlay show" id="startOverlay">
+    <div class="modal">
+      <div class="modalHead"><div class="kicker">REACTION · TIMING</div><div style="font-size:9px;color:#777f97;font-weight:900;">開發測試模式</div></div>
+      <div class="h1">霓虹疊塔<br><span style="color:var(--cyan)">極限巔峰</span></div>
+      <p class="lead">抓準移動節奏，把每一層穩穩疊上去。越高越快、方塊越窄，高層還要求更高的重疊率；完美落點才能穩住塔勢。</p>
+      <div class="metaGrid">
+        <div class="meta"><div class="metaLabel">玩法</div><div class="metaValue">點擊放置</div></div>
+        <div class="meta"><div class="metaLabel">Entry</div><div class="metaValue">0 銀幣</div></div>
+        <div class="meta"><div class="metaLabel">獎勵</div><div class="metaValue">最高 250</div></div>
+      </div>
+      <div class="rules">
+        <div class="rule"><div class="ruleIcon">🎯</div><div class="ruleTitle">抓準中心</div><div class="ruleText">越接近上一層中心越容易拿到 Perfect；高層的容錯也會逐步下降。</div></div>
+        <div class="rule"><div class="ruleIcon">🔥</div><div class="ruleTitle">連擊加分</div><div class="ruleText">連續 Perfect / Great 會提高分數倍率。</div></div>
+        <div class="rule"><div class="ruleIcon">⚡</div><div class="ruleTitle">速度遞增</div><div class="ruleText">第 6 層起開始縮窄；10、20、30 層後明顯加速，高層還會提高最低重疊要求。</div></div>
+      </div>
+      <button class="primary" id="startBtn">開始挑戰</button>
+      <div class="note">單場結束後不提供快速重玩。請由 BoomRoom 房間重新開啟新的遊戲實例。</div>
+    </div>
+  </div>
 
-        function resize() {
-            width = window.innerWidth; height = window.innerHeight;
-            canvas.width = width; canvas.height = height;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+  <div class="overlay" id="resultOverlay">
+    <div class="modal">
+      <div class="modalHead"><div class="kicker">ROUND COMPLETE</div><div style="font-size:9px;color:#8b92a8;font-weight:900;">本局已鎖定</div></div>
+      <div class="h1" id="resultTitle">高樓倒塌！</div>
+      <p class="lead" id="resultLead">最後一塊沒有與塔身重疊。</p>
+      <div class="resultStats">
+        <div class="resultStat"><div class="v" id="resultLayer">0</div><div class="l">最高層數</div></div>
+        <div class="resultStat"><div class="v" id="resultScore">0</div><div class="l">分數</div></div>
+        <div class="resultStat"><div class="v" id="resultBest">0</div><div class="l">最佳</div></div>
+        <div class="resultStat"><div class="v" id="resultCombo">0×</div><div class="l">最高連擊</div></div>
+      </div>
+      <div class="reward"><div class="rLabel">本局獲得</div><div class="rValue" id="resultReward">0 銀幣</div></div>
+      <div class="resultReason" id="resultReason">正式結果已送出一次，不能再次結算。</div>
+      <button class="primary" id="finishBtn">完成本局</button>
+      <div class="note">回到 BoomRoom 房間後，可由房間重新開啟新的遊戲實例。</div>
+    </div>
+  </div>
 
-        class Box {
-            constructor(x, y, w, h, color, isMoving = false) {
-                this.x = x; this.y = y; this.w = w; this.h = h;
-                this.color = color; this.isMoving = isMoving;
-                this.dir = Math.random() > 0.5 ? 1 : -1;
-            }
-            update() {
-                if (this.isMoving) {
-                    this.x += speed * this.dir;
-                    if (this.x <= 0 || this.x + this.w >= width) this.dir *= -1;
-                }
-            }
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
-                ctx.fillRect(this.x, this.y - cameraY, this.w, this.h);
-                ctx.shadowBlur = 0;
-                // 畫高光
-                ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                ctx.fillRect(this.x, this.y - cameraY, this.w, 5);
-            }
-        }
+  <div class="overlay" id="helpOverlay">
+    <div class="modal">
+      <div class="modalHead"><div class="kicker">HOW TO PLAY</div><button class="secondary" id="closeHelp" style="width:auto;padding:0 16px;margin:0;height:34px;">關閉</button></div>
+      <div class="h1" style="font-size:27px;">三件事就能玩</div>
+      <div class="rules" style="grid-template-columns:1fr;">
+        <div class="rule"><div class="ruleTitle">① 看移動方向</div><div class="ruleText">方塊會從左側或右側進場；每個方塊都會先以明確方向進入畫面，速度用時間制計算，不會因邊界判定卡住。塔越高鏡頭會持續跟隨，並把正在疊的那一層維持在畫面中央安全區；第 20、30、40 層以上也會繼續追蹤，不會被原始底部位置限制而跑出畫面。</div></div>
+        <div class="rule"><div class="ruleTitle">② 看塔頂，再點一下</div><div class="ruleText">重疊越大越安全。落下後每一層都會回到同一條中央垂直軸，避免塔身左右漂移；Perfect 會鎖定完整寬度並增加連擊，Great 也能續連擊，Good 會讓塔身變窄。</div></div>
+        <div class="rule"><div class="ruleTitle">③ 越高越快</div><div class="ruleText">第 6 層起方塊逐步縮窄，速度會以更陡的曲線上升；越高要求的有效重疊也越多。畫面會標示 10、20、30 層里程碑。</div></div>
+      </div>
+      <button class="primary" id="closeHelp2">知道了</button>
+    </div>
+  </div>
+</div>
 
-        class Debris {
-            constructor(x, y, w, h, color) {
-                this.x = x; this.y = y; this.w = w; this.h = h; this.color = color;
-                this.vy = 0; this.vx = (Math.random() - 0.5) * 5;
-                this.angle = 0; this.va = (Math.random() - 0.5) * 0.2;
-            }
-            update() {
-                this.vy += 0.5; // 重力
-                this.y += this.vy; this.x += this.vx; this.angle += this.va;
-            }
-            draw() {
-                ctx.save();
-                ctx.translate(this.x + this.w/2, this.y - cameraY + this.h/2);
-                ctx.rotate(this.angle);
-                ctx.fillStyle = this.color;
-                ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
-                ctx.restore();
-            }
-        }
+<script>
+'use strict';
 
-        function startGame() {
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'none';
-            resetGame();
-        }
+const DEBUG = false;
+const GAME_INFO = {
+  id: 'neon_stack_peak',
+  category: '反應挑戰',
+  name: '霓虹疊塔：極限巔峰',
+  description: '點擊落下方塊，對準塔頂並保持節奏。',
+  version: '2.6.0',
+  entryCost: 0,
+  maxPlayers: 1,
+  controlModes: ['Tap', 'Pointer'],
+  duration: '30~120 秒',
+  multiplayer: false,
+  rewardEnabled: true
+};
 
-        function resetGame() {
-            state = 'PLAYING';
-            score = 0; combo = 0; speed = 4; hue = 200;
-            cameraY = 0; targetCameraY = 0;
-            boxes = []; debris = [];
-            document.getElementById('score').innerText = score;
-            
-            // 初始基座
-            boxes.push(new Box(width/2 - initialWidth/2, height - 100, initialWidth, boxHeight, `hsl(${hue}, 100%, 60%)`));
-            spawnBox();
-            
-            document.getElementById('gameOverScreen').style.display = 'none';
-        }
+const CONFIG = {
+  boxHeight: 42,
+  initialWidth: 206,
+  minWidth: 52,
+  sideMargin: 12,
 
-        function spawnBox() {
-            const lastBox = boxes[boxes.length - 1];
-            hue = (hue + 10) % 360;
-            currentBox = new Box(0, lastBox.y - boxHeight, lastBox.w, boxHeight, `hsl(${hue}, 100%, 60%)`, true);
-            currentBox.y = lastBox.y - boxHeight;
-            
-            // 攝影機跟隨
-            if (currentBox.y < height / 2) {
-                targetCameraY = (height / 2) - currentBox.y;
-            }
-        }
+  // HARDER DIFFICULTY CURVE (2.5)
+  // Faster early acceleration, steeper high-layer speed growth, and a real cap.
+  speedStart: 260,
+  speedGain: 9.5,
+  speedExponent: 1.16,
+  speedCap: 860,
 
-        // 點擊事件
-        window.addEventListener('pointerdown', () => {
-            if (state !== 'PLAYING') return;
 
-            const lastBox = boxes[boxes.length - 1];
-            currentBox.isMoving = false;
+  // Precision grades become slightly stricter as the tower gets higher.
+  perfectThreshold: 0.98,
+  greatThreshold: 0.84,
 
-            // 計算裁切
-            const diff = currentBox.x - lastBox.x;
-            const overlap = currentBox.w - Math.abs(diff);
+  // Survival now requires meaningful overlap, increasing by layer.
+  minOverlapRatio: 0.06,
+  minOverlapGrowth: 0.0045,
+  minOverlapCap: 0.22,
 
-            if (overlap > 0) {
-                // 成功疊上
-                score++;
-                document.getElementById('score').innerText = score;
-                speed += 0.1; // 越來越快
+  maxReward: 250,
+  rewardStepLayers: 10,
+  rewardStepCoins: 50,
+  maxParticles: 90,
+  maxDebris: 24,
+  cameraFocusRatio: 0.52,
+  cameraStartLayer: 6,
+  cameraBlendLayers: 4,
+  cameraEase: 14
+};
 
-                if (Math.abs(diff) < 5) {
-                    // Perfect!
-                    combo++;
-                    currentBox.x = lastBox.x; // 自動對齊
-                    currentBox.w = lastBox.w;
-                    showCombo(`PERFECT x${combo}`);
-                    if (combo > 3 && currentBox.w < initialWidth) currentBox.w += 10; // 獎勵變寬
-                } else {
-                    // 切割
-                    combo = 0;
-                    const chopW = Math.abs(diff);
-                    const chopX = diff > 0 ? currentBox.x + overlap : currentBox.x;
-                    
-                    // 掉落的碎塊
-                    debris.push(new Debris(chopX, currentBox.y, chopW, boxHeight, currentBox.color));
-                    
-                    // 留在塔上的部分
-                    currentBox.w = overlap;
-                    currentBox.x = diff > 0 ? currentBox.x : lastBox.x;
-                }
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+const dprCap = 2;
+let width = 0, height = 0, dpr = 1;
 
-                boxes.push(currentBox);
-                spawnBox();
-            } else {
-                // 失敗掉落
-                debris.push(new Debris(currentBox.x, currentBox.y, currentBox.w, boxHeight, currentBox.color));
-                gameOver();
-            }
-        });
+const $ = id => document.getElementById(id);
+const state = {
+  game: 'LOBBY',
+  roundId: '',
+  score: 0,
+  layers: 0,
+  combo: 0,
+  bestCombo: 0,
+  perfects: 0,
+  greats: 0,
+  goods: 0,
+  cameraY: 0,
+  targetCameraY: 0,
+  shake: 0,
+  hue: 190,
+  boxes: [],
+  currentBox: null,
+  debris: [],
+  particles: [],
+  trail: [],
+  side: 'LEFT',
+  nextEntryAt: 0,
+  inputLockedUntil: 0,
+  startedAt: 0,
+  lastTimestamp: 0,
+  reward: 0,
+  resultReason: '',
+  gameOverCalled: false,
+  bestLayers: 0,
+  bestScore: 0,
+  soundEnabled: true,
+  lowEffects: false,
+  avgFps: 60,
+  fpsSamples: 0,
+  sdkUser: null,
+  finishToastShown: false
+};
 
-        function showCombo(text) {
-            const el = document.getElementById('combo');
-            el.innerText = text;
-            el.classList.add('combo-active');
-            setTimeout(() => el.classList.remove('combo-active'), 500);
-        }
+let audioCtx = null;
+let toastTimer = 0;
+let particlePool = [];
+let debrisPool = [];
 
-        function gameOver() {
-            state = 'GAMEOVER';
-            const winCoins = Math.floor(score / 10) * 50;
-            
-            setTimeout(() => {
-                document.getElementById('gameOverScreen').style.display = 'flex';
-                document.getElementById('finalScore').innerText = score;
-                document.getElementById('rewardText').innerText = `獲得 ${winCoins} 銀幣`;
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function finite(v, fallback=0){ return Number.isFinite(v) ? v : fallback; }
+function safeReward(v){ return clamp(Math.floor(finite(v,0)), 0, CONFIG.maxReward); }
+function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
 
-                if (window.BoomRoomSDK && score >= 20) {
-                    window.BoomRoomSDK.sendRoomMessage(`🏗️ 建築大師！蓋到了 ${score} 層高樓，抱走 ${winCoins} 銀幣！`);
-                }
-            }, 1000);
-        }
+function loadBest(){
+  try{
+    state.bestLayers = clamp(Number(localStorage.getItem('neon_stack_best_layers') || 0),0,9999);
+    state.bestScore = clamp(Number(localStorage.getItem('neon_stack_best_score') || 0),0,999999);
+  }catch{}
+}
+function saveBest(){
+  try{
+    localStorage.setItem('neon_stack_best_layers', String(state.bestLayers));
+    localStorage.setItem('neon_stack_best_score', String(state.bestScore));
+  }catch{}
+}
+loadBest();
 
-        function leaveGame() {
-            const winCoins = Math.floor(score / 10) * 50;
-            if (window.BoomRoomSDK) {
-                window.BoomRoomSDK.gameOver(winCoins);
-            }
-        }
+function resize(){
+  const prevHeight = height;
+  const prevBase = prevHeight ? baseY() : null;
+  width = Math.max(320, window.innerWidth);
+  height = Math.max(420, window.innerHeight);
+  dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+  canvas.width = Math.floor(width*dpr);
+  canvas.height = Math.floor(height*dpr);
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 
-        function loop() {
-            ctx.clearRect(0, 0, width, height);
+  // Keep the whole stack's world position relative to the floor when the
+  // viewport changes. This prevents a rotation/resize from hiding the tower.
+  const nextBase = baseY();
+  if(prevBase !== null){
+    const dy = nextBase - prevBase;
+    if(Math.abs(dy) > 0.01){
+      for(const b of state.boxes) b.y += dy;
+      if(state.currentBox) state.currentBox.y += dy;
+      for(const d of state.debris) d.y += dy;
+    }
+  }
 
-            // 平滑攝影機
-            cameraY += (targetCameraY - cameraY) * 0.1;
+  // One fixed horizontal tower axis. Every settled block is recentered.
+  const axis = width * 0.5;
+  for(const b of state.boxes) b.x = axis - b.w * 0.5;
+  if(state.currentBox){
+    const offscreen = state.currentBox.dir > 0
+      ? width + state.currentBox.w + 40
+      : -state.currentBox.w - 40;
+    const entering = state.currentBox.dir > 0
+      ? state.currentBox.x < -state.currentBox.w
+      : state.currentBox.x > width;
+    if(entering) state.currentBox.x = offscreen;
+  }
+  updateCameraTarget();
+}
+window.addEventListener('resize', resize);
+resize();
 
-            // 畫基底線
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, height - 100 + boxHeight - cameraY, width, height);
+function ensureAudio(){
+  if(audioCtx) return audioCtx;
+  try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{ audioCtx = null; }
+  return audioCtx;
+}
+function resumeAudio(){
+  const a = ensureAudio();
+  if(a && a.state === 'suspended') a.resume().catch(()=>{});
+}
+function tone(freq=440, duration=.08, type='sine', gain=.045){
+  if(!state.soundEnabled) return;
+  const a = ensureAudio();
+  if(!a) return;
+  try{
+    const now = a.currentTime;
+    const osc = a.createOscillator();
+    const g = a.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(gain, now + .008);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(g).connect(a.destination);
+    osc.start(now); osc.stop(now+duration+.02);
+  }catch{}
+}
+function hitSound(grade){
+  resumeAudio();
+  if(grade === 'PERFECT'){ tone(740,.07,'triangle',.05); setTimeout(()=>tone(980,.09,'triangle',.035),35); }
+  else if(grade === 'GREAT'){ tone(620,.08,'sine',.045); }
+  else { tone(430,.065,'square',.026); }
+}
+function crashSound(){ resumeAudio(); tone(110,.16,'sawtooth',.06); setTimeout(()=>tone(75,.22,'sawtooth',.035),55); }
+function playStart(){ resumeAudio(); tone(420,.08,'triangle',.035); setTimeout(()=>tone(630,.10,'triangle',.04),75); }
+function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch{} }
 
-            boxes.forEach(b => b.draw());
-            if (currentBox && state === 'PLAYING') {
-                currentBox.update();
-                currentBox.draw();
-            }
+function makeParticle(){
+  let p = particlePool.pop();
+  if(!p) p = {};
+  p.active=true; p.life=.45; p.maxLife=.45;
+  p.x=0; p.y=0; p.vx=0; p.vy=0; p.size=3; p.alpha=1; p.color='#fff';
+  state.particles.push(p);
+  return p;
+}
+function recycleParticles(){
+  for(let i=state.particles.length-1;i>=0;i--){
+    if(state.particles[i].life<=0){ particlePool.push(state.particles[i]); state.particles.splice(i,1); }
+  }
+}
+function burst(x,y,color,count=14){
+  if(state.lowEffects) count=Math.min(count,6);
+  for(let i=0;i<count && state.particles.length < CONFIG.maxParticles;i++){
+    const p=makeParticle();
+    p.x=x; p.y=y; p.color=color;
+    const a=Math.random()*Math.PI*2, s=40+Math.random()*170;
+    p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s-35;
+    p.size=1.8+Math.random()*3.6; p.life=p.maxLife=.32+Math.random()*.38; p.alpha=.85+Math.random()*.15;
+  }
+}
 
-            for (let i = debris.length - 1; i >= 0; i--) {
-                debris[i].update();
-                debris[i].draw();
-                if (debris[i].y - cameraY > height) debris.splice(i, 1);
-            }
+class Debris{
+  reset(x,y,w,h,color){
+    this.active=true; this.x=x; this.y=y; this.w=w; this.h=h; this.color=color;
+    this.vx=(Math.random()-.5)*170; this.vy=-80-Math.random()*80; this.angle=0; this.va=(Math.random()-.5)*5;
+    this.life=1.4;
+  }
+  update(dt){
+    this.vy += 720*dt;
+    this.x += this.vx*dt; this.y += this.vy*dt; this.angle += this.va*dt; this.life -= dt;
+  }
+  draw(){
+    const sy=this.y-state.cameraY;
+    if(sy < -100 || sy > height+120) return;
+    ctx.save();
+    ctx.translate(this.x+this.w/2, sy+this.h/2);
+    ctx.rotate(this.angle);
+    ctx.fillStyle=this.color;
+    ctx.shadowBlur=state.lowEffects?0:10; ctx.shadowColor=this.color;
+    ctx.fillRect(-this.w/2,-this.h/2,this.w,this.h);
+    ctx.restore();
+  }
+}
+function spawnDebris(x,y,w,h,color){
+  if(w<=2) return;
+  let d = debrisPool.pop();
+  if(!d) d = new Debris();
+  d.reset(x,y,w,h,color);
+  state.debris.push(d);
+}
+function recycleDebris(){
+  for(let i=state.debris.length-1;i>=0;i--){
+    const d=state.debris[i];
+    if(d.life<=0 || d.y-state.cameraY>height+180){ d.active=false; debrisPool.push(d); state.debris.splice(i,1); }
+  }
+}
 
-            requestAnimationFrame(loop);
-        }
-        loop();
-    </script>
+class Box{
+  constructor(x,y,w,h,hueValue){
+    this.x=x; this.y=y; this.w=w; this.h=h; this.hue=hueValue;
+    this.dir=1; this.speed=CONFIG.speedStart; this.moving=true;
+    this.id=uid();
+  }
+  get color(){ return `hsl(${this.hue}, 100%, 65%)`; }
+  update(dt){
+    if(!this.moving) return;
+    this.x += this.speed*this.dir*dt;
+    const left=CONFIG.sideMargin, right=Math.max(left,width-CONFIG.sideMargin-this.w);
+    if(this.x <= left){ this.x=left; this.dir=1; }
+    else if(this.x >= right){ this.x=right; this.dir=-1; }
+    // Important: a box spawned from the left/right is always assigned a valid direction before entering play.
+  }
+  draw(){
+    const sy=this.y-state.cameraY;
+    if(sy<-100 || sy>height+100) return;
+    const c=this.color;
+    ctx.save();
+    ctx.fillStyle=c;
+    ctx.shadowBlur=state.lowEffects?5:15; ctx.shadowColor=c;
+    roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
+    ctx.shadowBlur=0;
+    const g=ctx.createLinearGradient(this.x,sy,this.x,sy+this.h);
+    g.addColorStop(0,'rgba(255,255,255,.26)'); g.addColorStop(.12,'rgba(255,255,255,.08)'); g.addColorStop(1,'rgba(0,0,0,.18)');
+    ctx.fillStyle=g; roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.2)'; roundRect(ctx,this.x+4,sy+4,Math.max(0,this.w-8),4,2); ctx.fill();
+    ctx.restore();
+  }
+}
+function roundRect(c,x,y,w,h,r){
+  const rr=Math.min(r,w/2,h/2);
+  c.beginPath(); c.moveTo(x+rr,y); c.arcTo(x+w,y,x+w,y+h,rr); c.arcTo(x+w,y+h,x,y+h,rr); c.arcTo(x,y+h,x,y,rr); c.arcTo(x,y,x+w,y,rr); c.closePath();
+}
+
+function stackCenterX(){ return width * 0.5; }
+function alignSettledBox(box, widthValue = box.w){
+  const w = clamp(finite(widthValue, box.w), CONFIG.minWidth, Math.min(CONFIG.initialWidth, width - CONFIG.sideMargin*2));
+  box.w = w;
+  box.x = stackCenterX() - w * 0.5;
+}
+function baseY(){ return height - 120; }
+function towerCenterY(){ return baseY() - 1; }
+function getBlockWidthForLayer(layer, parentWidth=null){
+  // Every new moving block MUST match the current top block width.
+  // Difficulty comes from movement speed and precision, not from a hidden
+  // automatic shrink schedule. If a miss clips the previous block, the
+  // resulting narrower top becomes the exact width for the next block.
+  const inherited = finite(parentWidth, CONFIG.initialWidth);
+  return clamp(inherited, CONFIG.minWidth, Math.min(CONFIG.initialWidth, width-CONFIG.sideMargin*2));
+}
+function getSpeedForLayer(layer){
+  return clamp(
+    CONFIG.speedStart + Math.pow(Math.max(0, layer), CONFIG.speedExponent) * CONFIG.speedGain,
+    CONFIG.speedStart,
+    CONFIG.speedCap
+  );
+}
+function getRequiredOverlapRatio(layer){
+  return clamp(
+    CONFIG.minOverlapRatio + Math.max(0, layer) * CONFIG.minOverlapGrowth,
+    CONFIG.minOverlapRatio,
+    CONFIG.minOverlapCap
+  );
+}
+function getDifficultyName(layer){
+  if(layer < 10) return '熱身';
+  if(layer < 20) return '加速';
+  if(layer < 30) return '高壓';
+  if(layer < 40) return '極限';
+  return '地獄';
+}
+function makeBase(){
+  state.hue=190;
+  const y=baseY();
+  const base=new Box(0,y,CONFIG.initialWidth,CONFIG.boxHeight,state.hue);
+  base.moving=false;
+  alignSettledBox(base, CONFIG.initialWidth);
+  state.boxes=[base];
+}
+function spawnBox(){
+  const last=state.boxes[state.boxes.length-1];
+  state.layers=state.boxes.length-1;
+  state.hue=(state.hue+17)%360;
+  const w=getBlockWidthForLayer(state.layers, last.w);
+  const y=last.y-CONFIG.boxHeight;
+  const b=new Box(0,y,w,CONFIG.boxHeight,state.hue);
+  const enteringLeft = state.side === 'LEFT';
+  b.dir=enteringLeft ? 1 : -1;
+  b.speed=getSpeedForLayer(state.layers);
+  // Spawn off-screen so the first frame always has a clear movement direction.
+  b.x=enteringLeft ? -w-24 : width+24;
+  state.currentBox=b;
+  state.side=enteringLeft ? 'RIGHT' : 'LEFT';
+  updateCameraTarget();
+}
+function updateCameraTarget(){
+  // CAMERA MODEL v2.4
+  // The active stacking point is the camera's anchor. It must remain near the
+  // middle of the gameplay field even when the tower rises above the original
+  // floor. IMPORTANT: cameraY is allowed to become NEGATIVE. A previous version
+  // clamped it to 0, which made layer 20+ move above the screen and disappear.
+  const ref = state.currentBox || state.boxes[state.boxes.length-1];
+  if(!ref){
+    state.targetCameraY = 0;
+    return;
+  }
+
+  const playTop = Math.max(185, height*0.14);
+  const playBottom = Math.min(height-112, height*0.90);
+  const focusY = playTop + (playBottom-playTop) * CONFIG.cameraFocusRatio;
+  const desiredCamera = finite(ref.y - focusY, 0);
+  const layer = Math.max(0, state.boxes.length - 1);
+
+  // Ease the camera into follow mode over several early layers. Once follow
+  // mode is fully active, the current stacking position is continuously centered.
+  const blend = clamp((layer - CONFIG.cameraStartLayer + 1) / CONFIG.cameraBlendLayers, 0, 1);
+  state.targetCameraY = desiredCamera * blend;
+}
+
+function startGame(){
+  resumeAudio(); playStart();
+  state.game='PLAYING';
+  state.roundId=uid();
+  state.score=0; state.layers=0; state.combo=0; state.bestCombo=0;
+  state.perfects=0; state.greats=0; state.goods=0;
+  state.cameraY=0; state.targetCameraY=0; state.hue=190; state.shake=0;
+  state.boxes=[]; state.debris=[]; state.particles=[]; state.trail=[];
+  state.currentBox=null; state.nextEntryAt=0; state.inputLockedUntil=0;
+  state.startedAt=performance.now(); state.reward=0; state.resultReason=''; state.gameOverCalled=false; state.finishToastShown=false;
+  makeBase(); spawnBox();
+  updateCameraTarget();
+  state.cameraY=state.targetCameraY;
+  $('startOverlay').classList.remove('show'); $('resultOverlay').classList.remove('show');
+  updateHUD();
+  showToast('準備！新方塊與塔頂同寬 · 10 層後加速 · 20 層高壓');
+}
+
+function classifyPlacement(diff, overlap, w){
+  const overlapRatio=overlap/Math.max(1,w);
+  const centerDelta=Math.abs((state.currentBox.x+state.currentBox.w/2)-(state.boxes[state.boxes.length-1].x+state.boxes[state.boxes.length-1].w/2));
+  const centerRatio=centerDelta/Math.max(1,w);
+  const layer=state.layers;
+  const perfectCenter=Math.max(.022, .045 - layer*.00045);
+  const greatCenter=Math.max(.095, .17 - layer*.0012);
+  if(overlapRatio >= CONFIG.perfectThreshold && centerRatio <= perfectCenter) return 'PERFECT';
+  if(overlapRatio >= CONFIG.greatThreshold && centerRatio <= greatCenter) return 'GREAT';
+  return 'GOOD';
+}
+function scoreFor(grade){
+  const mult=1+Math.min(Math.max(state.combo-1,0),6)*0.18;
+  const base=grade==='PERFECT'?24:grade==='GREAT'?16:10;
+  return Math.round(base*mult);
+}
+
+function placeCurrent(){
+  const now=performance.now();
+  if(state.game!=='PLAYING' || !state.currentBox || now<state.inputLockedUntil) return;
+  if(now<state.nextEntryAt) return;
+  resumeAudio();
+  state.inputLockedUntil=now+170;
+  const current=state.currentBox;
+  const last=state.boxes[state.boxes.length-1];
+  current.moving=false;
+
+  const currentRight=current.x+current.w;
+  const lastRight=last.x+last.w;
+  const left=Math.max(current.x,last.x);
+  const right=Math.min(currentRight,lastRight);
+  const overlap=Math.max(0,right-left);
+  const overlapRatio=overlap/Math.max(1,current.w);
+
+  const requiredOverlap = getRequiredOverlapRatio(state.layers);
+  if(overlapRatio < requiredOverlap){
+    spawnDebris(current.x,current.y,current.w,current.h,current.color);
+    burst(clamp(current.x+current.w/2,0,width),current.y-state.cameraY,current.color,16);
+    crashSound(); vibrate([24,40,36]);
+    state.resultReason='最後一塊完全偏離塔身。';
+    gameOver('MISS');
+    return;
+  }
+
+  const diff=current.x-last.x;
+  const grade=classifyPlacement(diff,overlap,current.w);
+  // Collision is evaluated at the real moving position, but every settled
+  // block is snapped back to the same tower center line. This keeps the tower
+  // visually vertical while precision is still expressed through width.
+  let keptW=overlap;
+  const rawKeptX=left;
+  const oldX=current.x, oldW=current.w;
+  if(grade==='PERFECT'){
+    keptW=Math.min(current.w,last.w);
+    state.combo+=1; state.perfects+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
+  }else if(grade==='GREAT'){
+    keptW=Math.min(overlap,last.w);
+    state.combo+=1; state.greats+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
+  }else{
+    keptW=Math.min(overlap,last.w);
+    state.combo=0; state.goods+=1;
+  }
+
+  const chopLeft=Math.max(0, rawKeptX-oldX);
+  const chopRight=Math.max(0, (oldX+oldW)-(rawKeptX+overlap));
+  if(grade!=='PERFECT'){
+    if(chopLeft>3) spawnDebris(oldX,current.y,chopLeft,current.h,current.color);
+    if(chopRight>3) spawnDebris(rawKeptX+overlap,current.y,chopRight,current.h,current.color);
+  }
+
+  alignSettledBox(current, keptW);
+  state.boxes.push(current);
+  state.layers=state.boxes.length-1;
+  const gained=scoreFor(grade);
+  state.score=clamp(state.score+gained,0,999999);
+  state.shake=grade==='PERFECT'?3.5:grade==='GREAT'?2.2:1.2;
+  hitSound(grade);
+  vibrate(grade==='PERFECT'?[8,18,8]:grade==='GREAT'?10:6);
+  burst(current.x+current.w/2,current.y-state.cameraY,current.color,grade==='PERFECT'?18:grade==='GREAT'?12:8);
+  flashScreen();
+  showPlacementToast(grade,gained);
+
+  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
+  if(state.score>state.bestScore) state.bestScore=state.score;
+  saveBest();
+
+  state.side=state.layers%2===0 ? 'LEFT' : 'RIGHT';
+  state.nextEntryAt=now+100;
+  spawnBox();
+  updateHUD();
+}
+
+function showPlacementToast(grade,gained){
+  const names={PERFECT:'PERFECT',GREAT:'GREAT',GOOD:'穩定落點'};
+  const comboText=state.combo>0?` · ${state.combo}× 連擊`:'';
+  showToast(`${names[grade]}  +${gained} 分${comboText}`);
+  $('statusPill').textContent=(grade==='PERFECT'?'完美中心！':grade==='GREAT'?'穩住了！':'繼續縮小偏差') + ` · 第 ${state.layers} 層`;
+}
+function flashScreen(){
+  const el=$('flash'); el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+}
+function showToast(text){
+  const el=$('toast'); el.textContent=text; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),900);
+}
+
+function calcReward(layers){
+  const raw=Math.floor(Math.max(0, finite(layers,0))/CONFIG.rewardStepLayers)*CONFIG.rewardStepCoins;
+  return safeReward(raw);
+}
+
+function gameOver(reason){
+  if(state.game==='RESULT' || state.gameOverCalled) return;
+  state.game='RESULT';
+  state.gameOverCalled=true;
+  state.currentBox && (state.currentBox.moving=false);
+  state.reward=calcReward(state.layers);
+  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
+  if(state.score>state.bestScore) state.bestScore=state.score;
+  saveBest();
+  state.resultReason=state.resultReason || (reason==='MISS'?'落點完全失準。':'挑戰結束。');
+  const elapsed=Math.max(0,performance.now()-state.startedAt);
+
+  // Official BoomRoom API only. gameOver is called exactly once.
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+      window.BoomRoomSDK.gameOver(state.reward);
+    }
+  }catch{}
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==='function'){
+      window.BoomRoomSDK.sendGameEvent('PLAYER_END',{
+        roundId:state.roundId,
+        status:'FINISHED',
+        score:state.score,
+        reward:state.reward,
+        reason:state.resultReason,
+        layers:state.layers,
+        durationMs:Math.round(elapsed)
+      });
+    }
+  }catch{}
+
+  setTimeout(showResult,520);
+}
+
+function showResult(){
+  $('resultTitle').textContent=state.layers>=40?'超越極限！':state.layers>=30?'巔峰完成！':state.layers>=20?'高塔達成！':'大樓倒塌！';
+  $('resultLead').textContent=state.resultReason;
+  $('resultLayer').textContent=state.layers;
+  $('resultScore').textContent=state.score;
+  $('resultBest').textContent=state.bestLayers;
+  $('resultCombo').textContent=`${state.bestCombo}×`;
+  $('resultReward').textContent=`${state.reward} 銀幣`;
+  $('resultReason').textContent=state.reward>0 ? '本局獎勵已鎖定並完成一次結算。' : '未達 10 層獎勵門檻；本局結果仍已完成結算。';
+  $('resultOverlay').classList.add('show');
+  $('statusPill').textContent='本局已結束';
+  $('hintTitle').textContent='挑戰完成';
+  $('hintSub').textContent='本局結果已鎖定，請返回 BoomRoom 房間重新開啟新的遊戲實例。';
+}
+
+function finishRound(){
+  if(state.finishToastShown) return;
+  state.finishToastShown=true;
+  $('resultOverlay').classList.remove('show');
+  showToast('本局已完成，請回到房間開始下一場');
+}
+
+function updateMilestoneUI(){
+  const layers=state.layers;
+  const next=layers<10?10:layers<20?20:layers<30?30:Math.ceil(Math.max(31,layers+1)/10)*10;
+  const nowEl=$('milestoneNow'), nextEl=$('milestoneNext');
+  if(nowEl) nowEl.textContent=layers;
+  if(nextEl) nextEl.textContent=next;
+  const p=layers%10;
+  const progress=p===0 && layers>0 ? 100 : (p/10)*100;
+  $('progressBar').style.width=`${progress}%`;
+  for(const [id,n] of [['m10',10],['m20',20],['m30',30]]){
+    const el=$(id); if(!el) continue;
+    el.classList.toggle('reached',layers>=n);
+    el.classList.toggle('active',layers<n && layers>=n-3);
+  }
+  const banner=$('milestoneBanner');
+  if(banner){
+    if(layers>=30){
+      banner.innerHTML=`已突破 <b>${Math.floor(layers/10)*10}</b> 層 · 繼續挑戰新高度`;
+    }else{
+      banner.innerHTML=`目前 <b>${layers}</b> 層 · 下一里程碑 <b>${next}</b> 層`;
+    }
+  }
+}
+
+function updateHUD(){
+  $('layerValue').textContent=String(state.layers);
+  $('comboValue').textContent=`${state.combo}×`;
+  $('scoreValue').textContent=String(state.score);
+  updateMilestoneUI();
+  if(state.game==='PLAYING'){
+    const diffName=getDifficultyName(state.layers);
+    const required=Math.round(getRequiredOverlapRatio(state.layers)*100);
+    $('hintTitle').textContent=state.combo>=3?'連擊保持中！瞄準中心。':'點一下，把方塊放下';
+    $('hintSub').textContent=`${diffName} · 速度 ${Math.round(state.currentBox?.speed||0)} · 至少重疊 ${required}%`;
+  }
+}
+
+function updateAudioButton(){
+  $('soundBtn').textContent=state.soundEnabled?'🔊':'🔇';
+  $('soundBtn').classList.toggle('muted',!state.soundEnabled);
+}
+
+function drawBackground(t){
+  ctx.fillStyle='#05060e'; ctx.fillRect(0,0,width,height);
+  const grd=ctx.createLinearGradient(0,0,0,height);
+  grd.addColorStop(0,'#0d1022'); grd.addColorStop(.65,'#060812'); grd.addColorStop(1,'#03040a');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,width,height);
+
+  const glow=ctx.createRadialGradient(width/2,height*.35,10,width/2,height*.35,Math.min(width,height)*.6);
+  glow.addColorStop(0,'rgba(69,239,255,.08)'); glow.addColorStop(.55,'rgba(155,108,255,.05)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=glow; ctx.fillRect(0,0,width,height);
+
+  // Skyline decorations stay secondary to gameplay.
+  ctx.save();
+  ctx.globalAlpha=state.lowEffects?.10:.18;
+  const horizon=height-90;
+  for(let i=0;i<15;i++){
+    const bw=22+(i*13)%38;
+    const bh=18+(i*23)%90;
+    const x=(i/15)*width-8;
+    ctx.fillStyle=i%2?'#11182b':'#0d1324';
+    ctx.fillRect(x,horizon-bh,bw,bh);
+    ctx.fillStyle='rgba(69,239,255,.14)';
+    for(let yy=horizon-bh+9; yy<horizon-5; yy+=11) ctx.fillRect(x+5,yy,3,2);
+  }
+  ctx.restore();
+}
+
+function drawFocusZone(){
+  if(state.game!=='PLAYING' || !state.currentBox) return;
+  const playTop = Math.max(185, height*0.14);
+  const playBottom = Math.min(height-112, height*0.90);
+  const focusY = playTop + (playBottom-playTop)*CONFIG.cameraFocusRatio;
+  ctx.save();
+  ctx.strokeStyle='rgba(69,239,255,.10)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([3,9]);
+  ctx.beginPath();
+  ctx.moveTo(26,focusY+1); ctx.lineTo(width-26,focusY+1);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(69,239,255,.42)';
+  ctx.font='900 7px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
+  ctx.fillText('疊層中心',30,focusY-6);
+  ctx.restore();
+}
+
+function drawGuide(){
+  if(state.game!=='PLAYING' || !state.currentBox) return;
+  const last=state.boxes[state.boxes.length-1];
+  const sy=last.y-state.cameraY;
+  const axis=stackCenterX();
+  ctx.save();
+  // Fixed vertical axis: every settled block is centered on this line.
+  ctx.strokeStyle='rgba(69,239,255,.18)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,8]);
+  ctx.beginPath(); ctx.moveTo(axis, Math.max(86,sy-94)); ctx.lineTo(axis, sy-7); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(69,239,255,.50)';
+  ctx.shadowBlur=state.lowEffects?0:8; ctx.shadowColor='rgba(69,239,255,.7)';
+  ctx.fillRect(axis-1,sy-44,2,32);
+  ctx.shadowBlur=0;
+
+  // Target brackets show the exact centered landing zone.
+  ctx.strokeStyle='rgba(255,255,255,.18)';
+  ctx.beginPath();
+  ctx.moveTo(axis-last.w/2,sy-7); ctx.lineTo(axis-last.w/2+18,sy-7);
+  ctx.moveTo(axis+last.w/2,sy-7); ctx.lineTo(axis+last.w/2-18,sy-7);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawMilestoneMarkers(){
+  if(!state.boxes.length) return;
+  const axis=stackCenterX();
+  const startLayer=10;
+  const endLayer=Math.max(30, state.layers+20);
+  ctx.save();
+  for(let layer=startLayer; layer<=endLayer; layer+=10){
+    const y=baseY()-(layer*CONFIG.boxHeight)-state.cameraY+CONFIG.boxHeight;
+    if(y<175 || y>height-80) continue;
+    const reached=state.layers>=layer;
+    ctx.strokeStyle=reached?'rgba(66,239,170,.18)':'rgba(155,108,255,.16)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([5,8]);
+    ctx.beginPath(); ctx.moveTo(22,y); ctx.lineTo(width-22,y); ctx.stroke();
+    ctx.setLineDash([]);
+    const text=`${layer} 層`;
+    ctx.font='900 10px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
+    const tw=ctx.measureText(text).width+14;
+    const bx=axis+CONFIG.initialWidth/2+14;
+    ctx.fillStyle='rgba(7,10,20,.82)';
+    ctx.strokeStyle=reached?'rgba(66,239,170,.23)':'rgba(255,255,255,.08)';
+    roundRect(ctx,bx,y-10,tw,20,10); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=reached?'#42efaa':'#8a93ad';
+    ctx.fillText(text,bx+7,y+3.5);
+  }
+  ctx.restore();
+}
+
+function updateParticles(dt){
+  for(const p of state.particles){
+    p.life-=dt; p.vy+=280*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+  }
+  recycleParticles();
+  for(const d of state.debris) d.update(dt);
+  recycleDebris();
+  if(state.shake>0) state.shake=Math.max(0,state.shake-dt*10);
+}
+function drawParticles(){
+  for(const p of state.particles){
+    if(p.life<=0) continue;
+    ctx.globalAlpha=clamp(p.life/p.maxLife,0,1)*p.alpha;
+    ctx.fillStyle=p.color;
+    ctx.shadowBlur=state.lowEffects?0:7; ctx.shadowColor=p.color;
+    ctx.fillRect(p.x,p.y,p.size,p.size);
+  }
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+  for(const d of state.debris) d.draw();
+}
+
+function loop(timestamp){
+  const dt=Math.min(Math.max((timestamp-(state.lastTimestamp||timestamp))/1000,0),0.033);
+  state.lastTimestamp=timestamp;
+  if(dt>0){
+    const instFps=1/dt;
+    state.avgFps += (clamp(instFps,20,90)-state.avgFps)*0.03;
+    if(state.avgFps<50) state.lowEffects=true;
+    if(state.avgFps>55) state.lowEffects=false;
+    $('fpsWarn').style.display = DEBUG && state.lowEffects ? 'block' : 'none';
+  }
+
+  drawBackground(timestamp);
+  updateParticles(dt);
+
+  if(state.game==='PLAYING'){
+    if(state.currentBox){
+      state.currentBox.update(dt);
+      updateCameraTarget();
+      const cameraEase=1-Math.exp(-Math.max(CONFIG.cameraEase, 11)*dt);
+      state.cameraY += (state.targetCameraY-state.cameraY)*cameraEase;
+    }
+  }else{
+    const cameraEase=1-Math.exp(-5*dt);
+    state.cameraY += (state.targetCameraY-state.cameraY)*cameraEase;
+  }
+
+  ctx.save();
+  if(state.shake>0){ ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake); }
+
+  // Base platform / floor.
+  const baseScreenY=baseY()-state.cameraY+CONFIG.boxHeight;
+  const floorGrad=ctx.createLinearGradient(0,baseScreenY,0,height);
+  floorGrad.addColorStop(0,'rgba(69,239,255,.08)'); floorGrad.addColorStop(1,'rgba(4,5,10,.96)');
+  ctx.fillStyle=floorGrad; ctx.fillRect(0,baseScreenY,width,height-baseScreenY);
+  ctx.strokeStyle='rgba(69,239,255,.18)'; ctx.beginPath(); ctx.moveTo(0,baseScreenY); ctx.lineTo(width,baseScreenY); ctx.stroke();
+
+  drawFocusZone();
+  drawMilestoneMarkers();
+  drawGuide();
+  for(const b of state.boxes) b.draw();
+  if(state.currentBox) state.currentBox.draw();
+  drawParticles();
+  ctx.restore();
+
+  if(state.game==='PLAYING' && state.currentBox && state.currentBox.y-state.cameraY>height+40){
+    state.resultReason='方塊離開操作區，挑戰結束。'; gameOver('TIMEOUT');
+  }
+
+  requestAnimationFrame(loop);
+}
+
+function handlePointer(e){
+  if(e.button !== undefined && e.button !== 0) return;
+  resumeAudio();
+  if(state.game==='PLAYING') placeCurrent();
+}
+canvas.addEventListener('pointerdown',handlePointer,{passive:true});
+window.addEventListener('keydown',e=>{
+  if(e.code==='Space' || e.code==='Enter'){
+    e.preventDefault();
+    resumeAudio();
+    if(state.game==='PLAYING') placeCurrent();
+  }
+});
+
+actionSetup();
+function actionSetup(){
+  $('startBtn').addEventListener('click',startGame);
+  $('finishBtn').addEventListener('click',finishRound);
+  $('soundBtn').addEventListener('click',()=>{ state.soundEnabled=!state.soundEnabled; updateAudioButton(); if(state.soundEnabled) {resumeAudio(); tone(620,.07,'sine',.03);} });
+  $('helpBtn').addEventListener('click',()=>{$('helpOverlay').classList.add('show'); resumeAudio();});
+  $('closeHelp').addEventListener('click',()=>$('helpOverlay').classList.remove('show'));
+  $('closeHelp2').addEventListener('click',()=>$('helpOverlay').classList.remove('show'));
+  updateAudioButton();
+}
+
+// SDK user read is optional and guarded; no unsupported room / roster APIs are assumed.
+try{
+  if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
+    state.sdkUser=window.BoomRoomSDK.getUser() || null;
+  }
+}catch{}
+
+// Development diagnostics only.
+if(DEBUG){
+  window.__NEON_STACK_DEBUG__={
+    state,
+    GAME_INFO,
+    get fps(){return state.avgFps;}
+  };
+}
+
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>

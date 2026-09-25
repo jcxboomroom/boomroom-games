@@ -1,778 +1,1031 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Dice Battle</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050508">
+<title>霓虹木頭人：生死一瞬</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-        :root {
-            --bg-color: #0b0c10;
-            --panel-bg: #1f2833;
-            --neon-cyan: #66fcf1;
-            --neon-cyan-dim: #45a29e;
-            --neon-pink: #ff00ff;
-            --neon-yellow: #fce300;
-            --text-main: #c5c6c7;
-        }
+:root {
+    --bg: #050508;
+    --panel: rgba(15, 15, 20, 0.85);
+    --cyan: #00f3ff;
+    --red: #ff003c;
+    --yellow: #ffea00;
+    --green: #00ff66;
+    --text: #f7f8ff;
+    --muted: #6b7280;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+* {
+    box-sizing: border-box; margin: 0; padding: 0;
+    user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+    font-family: 'Orbitron', "Noto Sans TC", sans-serif;
+}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Orbitron', sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
+html, body {
+    width: 100%; height: 100dvh;
+    background-color: var(--bg); color: var(--text);
+    overflow: hidden; touch-action: none;
+}
 
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: linear-gradient(180deg, #111, transparent);
-            border-bottom: 1px solid var(--neon-cyan-dim);
-            box-shadow: 0 0 10px rgba(102, 252, 241, 0.2);
-        }
+/* Background Grid */
+.bg-grid {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.15;
+    background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 40px 40px; transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+    animation: gridMove 5s linear infinite;
+}
+@keyframes gridMove { from { background-position: 0 0; } to { background-position: 0 40px; } }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+#app {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    height: 100%; max-width: 600px; margin: 0 auto;
+    padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom));
+    gap: 10px;
+}
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--neon-pink);
-            border: 2px solid var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            color: #fff;
-            font-size: 20px;
-        }
+/* Topbar */
+.topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; background: var(--panel);
+    border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.1); flex-shrink: 0;
+}
+.icon-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; display: grid; place-items: center;
+    font-size: 18px; cursor: pointer; transition: transform 0.1s;
+}
+.icon-btn:active { transform: scale(0.9); }
+.brand h1 { font-size: 16px; margin: 0; color: var(--cyan); text-shadow: 0 0 5px var(--cyan); letter-spacing: 1px; }
+.brand small { display: block; font-size: 9px; color: var(--muted); font-family: sans-serif; }
 
-        .username {
-            font-size: 14px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 5px var(--neon-cyan);
-        }
+/* Info Panel */
+.info-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; flex-shrink: 0; }
+.stat-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 6px; text-align: center; }
+.stat-box b { display: block; font-size: 12px; color: var(--yellow); }
+.stat-box span { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; font-family: sans-serif; }
 
-        .host-badge {
-            font-size: 10px;
-            background: var(--neon-pink);
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-            display: inline-block;
-            box-shadow: 0 0 5px var(--neon-pink);
-        }
+/* Status Bar */
+.status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; flex-shrink: 0;
+}
+.phase-text { font-size: 14px; font-weight: bold; color: var(--text); }
+.timer-text { font-size: 20px; font-weight: 900; color: var(--text); }
 
-        /* Game Area */
-        .game-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
+/* The Giant Eye (Light Indicator) */
+.eye-container {
+    flex-shrink: 0; height: 120px; display: flex; justify-content: center; align-items: center;
+    position: relative;
+}
+.eye {
+    width: 80px; height: 80px; border-radius: 50%; border: 6px solid #333;
+    background: #111; position: relative; transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+.eye-pupil {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 30px; height: 30px; border-radius: 50%; background: #333; transition: all 0.2s;
+}
 
-        canvas {
-            width: 100%;
-            max-width: 400px;
-            height: 200px;
-            filter: drop-shadow(0 0 10px rgba(102, 252, 241, 0.5));
-        }
+/* Light States */
+.state-green .eye { border-color: var(--green); box-shadow: 0 0 40px var(--green); }
+.state-green .eye-pupil { background: var(--green); width: 40px; height: 40px; }
+.state-yellow .eye { border-color: var(--yellow); box-shadow: 0 0 40px var(--yellow); }
+.state-yellow .eye-pupil { background: var(--yellow); width: 20px; height: 60px; border-radius: 10px; }
+.state-red .eye { border-color: var(--red); box-shadow: 0 0 60px var(--red); animation: pulseRed 0.5s infinite alternate; }
+.state-red .eye-pupil { background: var(--red); width: 60px; height: 10px; border-radius: 5px; }
 
-        .status-text {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--neon-yellow);
-            text-shadow: 0 0 10px var(--neon-yellow);
-            margin-top: 10px;
-            height: 24px;
-            text-align: center;
-        }
+@keyframes pulseRed { from { box-shadow: 0 0 30px var(--red); } to { box-shadow: 0 0 70px var(--red); } }
 
-        /* Betting Area */
-        .betting-area {
-            padding: 15px;
-            background: var(--panel-bg);
-            border-top: 2px solid var(--neon-pink);
-            box-shadow: 0 -5px 15px rgba(255, 0, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+/* Race Tracks */
+.tracks-area {
+    flex: 1; display: flex; flex-direction: column; gap: 8px;
+    background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px; overflow-y: auto;
+}
+.track {
+    position: relative; height: 36px; background: rgba(255,255,255,0.05);
+    border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; padding: 0 10px; overflow: hidden;
+}
+.track.me { border-color: var(--cyan); background: rgba(0, 243, 255, 0.05); }
+.track.dead { filter: grayscale(1); opacity: 0.5; }
+.track-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+    transition: width 0.1s linear;
+}
+.track.me .track-fill { background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.3)); }
+.runner {
+    position: absolute; left: 0%; transform: translateX(-50%);
+    width: 24px; height: 24px; border-radius: 50%; background: #fff;
+    display: grid; place-items: center; font-size: 12px; font-weight: bold; color: #000;
+    transition: left 0.1s linear; box-shadow: 0 0 10px #fff; z-index: 2;
+}
+.track.me .runner { background: var(--cyan); box-shadow: 0 0 15px var(--cyan); }
+.track.dead .runner { background: var(--red); box-shadow: 0 0 15px var(--red); color: #fff; }
+.runner-name {
+    position: relative; z-index: 3; font-size: 10px; font-family: sans-serif;
+    text-shadow: 1px 1px 2px #000; margin-left: 15px;
+}
 
-        .bet-options {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
+/* Controls */
+.control-panel { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 5px; }
+.run-btn {
+    width: 100%; height: 80px; border-radius: 20px;
+    background: linear-gradient(180deg, #333, #111);
+    border: 4px solid #555; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    font-size: 24px; color: #888; font-weight: 900; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s; font-family: "Orbitron", "Noto Sans TC", sans-serif;
+    user-select: none; -webkit-user-select: none;
+}
+.run-btn.active {
+    background: linear-gradient(180deg, var(--cyan), #0088ff);
+    border-color: #fff; color: #fff; box-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+    transform: scale(0.96) translateY(4px);
+}
+.run-btn:disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
 
-        .bet-btn {
-            flex: 1;
-            background: transparent;
-            border: 2px solid var(--neon-cyan-dim);
-            color: var(--neon-cyan);
-            padding: 15px 5px;
-            border-radius: 8px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
+.main-btn {
+    width: 100%; padding: 15px; font-size: 16px; font-weight: 900; border-radius: 12px;
+    border: none; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    transition: transform 0.1s; font-family: "Orbitron", "Noto Sans TC", sans-serif;
+}
+.main-btn:active { transform: scale(0.96); }
+.main-btn:disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
+.btn-entry { background: linear-gradient(90deg, var(--cyan), #0088ff); box-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
 
-        .bet-btn span {
-            font-size: 10px;
-            color: var(--text-main);
-        }
+/* Modals */
+.overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+    z-index: 100; display: none; place-items: center; padding: 20px;
+}
+.overlay.show { display: grid; }
+.modal-card {
+    width: 100%; max-width: 360px; background: linear-gradient(180deg, #1a1a2e, #0f0f1a);
+    border: 1px solid var(--cyan); border-radius: 20px; padding: 24px; text-align: center;
+    box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); max-height: 80vh; overflow-y: auto;
+}
+.modal-card h2 { color: var(--cyan); margin-bottom: 15px; font-size: 22px; }
+.rules-list { text-align: left; font-size: 12px; color: #d0d5e8; line-height: 1.6; margin-bottom: 20px; font-family: sans-serif; padding-left: 20px; }
+.rules-list li { margin-bottom: 8px; }
 
-        .bet-btn.active {
-            border-color: var(--neon-cyan);
-            background: rgba(102, 252, 241, 0.1);
-            box-shadow: 0 0 15px rgba(102, 252, 241, 0.5), inset 0 0 10px rgba(102, 252, 241, 0.3);
-            text-shadow: 0 0 5px var(--neon-cyan);
-        }
+.result-big { font-size: 32px; font-weight: 900; margin: 15px 0; }
+.result-big.win { color: var(--green); text-shadow: 0 0 20px var(--green); }
+.result-big.lose { color: var(--red); text-shadow: 0 0 20px var(--red); }
 
-        .bet-btn.triple {
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-        }
-        .bet-btn.triple.active {
-            background: rgba(255, 0, 255, 0.1);
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5), inset 0 0 10px rgba(255, 0, 255, 0.3);
-            text-shadow: 0 0 5px var(--neon-pink);
-        }
+.toast {
+    position: fixed; top: calc(80px + var(--safe-top)); left: 50%; transform: translate(-50%, -10px);
+    background: rgba(0,0,0,0.9); border: 1px solid var(--cyan); color: #fff;
+    padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 200;
+    opacity: 0; pointer-events: none; transition: all 0.2s; font-family: sans-serif;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-        .amount-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
+/* Screen Shake & Flash */
+.flash { position: fixed; inset: 0; background: var(--red); z-index: 99; opacity: 0; pointer-events: none; }
+.flash.fire { animation: flashAnim 0.4s ease-out; }
+@keyframes flashAnim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        .amt-btn {
-            background: #111;
-            border: 1px solid #444;
-            color: #888;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .amt-btn.active {
-            border-color: var(--neon-yellow);
-            color: var(--neon-yellow);
-            box-shadow: 0 0 10px rgba(252, 227, 0, 0.4);
-        }
-
-        .action-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(90deg, #ff00ff, #66fcf1);
-            border: none;
-            border-radius: 8px;
-            color: #000;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 18px;
-            text-transform: uppercase;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-            transition: transform 0.1s;
-        }
-
-        .action-btn:active {
-            transform: scale(0.98);
-        }
-
-        .action-btn:disabled {
-            background: #333;
-            color: #666;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        /* Social Feed / Leaderboard */
-        .social-feed {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 150px;
-            max-height: 120px;
-            overflow-y: auto;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            font-size: 10px;
-        }
-
-        .feed-item {
-            background: rgba(0, 0, 0, 0.6);
-            border-left: 2px solid var(--neon-cyan);
-            padding: 4px 8px;
-            border-radius: 0 4px 4px 0;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        .feed-item.win { border-color: var(--neon-yellow); color: var(--neon-yellow); }
-        .feed-item.lose { border-color: #ff3333; color: #ff3333; }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Host Claim Overlay */
-        #host-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(11, 12, 16, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-
-        .claim-btn {
-            background: transparent;
-            border: 2px solid var(--neon-yellow);
-            color: var(--neon-yellow);
-            padding: 15px 30px;
-            font-size: 20px;
-            font-family: 'Orbitron', sans-serif;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(252, 227, 0, 0.5);
-            cursor: pointer;
-            text-transform: uppercase;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); }
-            50% { box-shadow: 0 0 30px rgba(252, 227, 0, 1); }
-            100% { box-shadow: 0 0 10px rgba(252, 227, 0, 0.5); }
-        }
-        
-        .hidden { display: none !important; }
-
-    </style>
+.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake {
+    10%, 90% { transform: translate3d(-4px, 0, 0); }
+    20%, 80% { transform: translate3d(8px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-12px, 0, 0); }
+    40%, 60% { transform: translate3d(12px, 0, 0); }
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <div class="user-info">
-            <div class="avatar" id="user-avatar">?</div>
+<div class="bg-grid"></div>
+<div class="flash" id="flash"></div>
+
+<div id="app">
+    <header class="topbar">
+        <div class="brand">
+            <button class="icon-btn" id="btn-mute">🔊</button>
             <div>
-                <div class="username" id="user-name">Player</div>
-                <div class="host-badge hidden" id="host-badge">HOST</div>
+                <h1>霓虹木頭人</h1>
+                <small>生死一瞬 · 獨得獎池</small>
             </div>
+        </div>
+        <div class="brand">
+            <div style="text-align: right;">
+                <div style="font-size:11px; font-weight:bold; color:var(--cyan);" id="my-username">Player</div>
+                <div style="font-size:9px; color:var(--muted);" id="role-text">連線中</div>
+            </div>
+            <button class="icon-btn" id="btn-help">❓</button>
         </div>
     </header>
 
-    <div class="game-area">
-        <canvas id="diceCanvas" width="400" height="200"></canvas>
-        <div class="status-text" id="status-text">PLACE YOUR BETS</div>
-        
-        <div class="social-feed" id="social-feed"></div>
+    <div class="info-panel">
+        <div class="stat-box">
+            <b>100 🪙</b>
+            <span>固定入場費</span>
+        </div>
+        <div class="stat-box">
+            <b id="total-pool">0 🪙</b>
+            <span>總投入</span>
+        </div>
+        <div class="stat-box">
+            <b id="prize-pool">0 🪙</b>
+            <span>實際獎池 (扣10%)</span>
+        </div>
     </div>
 
-    <div class="betting-area">
-        <div class="bet-options">
-            <button class="bet-btn" data-type="small">
-                SMALL (4-10)
-                <span>1 : 2</span>
-            </button>
-            <button class="bet-btn triple" data-type="triple">
-                ANY TRIPLE
-                <span>1 : 24</span>
-            </button>
-            <button class="bet-btn" data-type="big">
-                BIG (11-17)
-                <span>1 : 2</span>
-            </button>
+    <div class="status-bar">
+        <div class="phase-text" id="phase-text">等待入場</div>
+        <div class="timer-text" id="timer-text">READY</div>
+    </div>
+
+    <div class="eye-container" id="eye-container">
+        <div class="eye"><div class="eye-pupil"></div></div>
+    </div>
+
+    <div class="tracks-area" id="tracks-area">
+        <!-- Tracks generated here -->
+    </div>
+
+    <div class="control-panel">
+        <div class="run-btn" id="run-btn" style="display:none;">長按奔跑</div>
+        <button class="main-btn btn-entry" id="main-btn">支付 100 🪙 入場</button>
+        <div style="text-align:center; font-size:9px; color:var(--muted); font-family:sans-serif;">本遊戲為單局決戰，結束後需由市長重新開房</div>
+    </div>
+</div>
+
+<!-- Rules Modal -->
+<div class="overlay" id="modal-rules">
+    <div class="modal-card">
+        <h2>玩法規則</h2>
+        <ul class="rules-list">
+            <li><b>入場：</b>每人支付 100 銀幣，形成總獎池 (平台收取 10% 手續費)。</li>
+            <li><b>奔跑：</b>綠燈時，<b>長按</b>底部的按鈕即可向前奔跑。</li>
+            <li><b>警告：</b>黃燈亮起代表即將變紅燈，請準備鬆手！</li>
+            <li><b>淘汰：</b>紅燈亮起時，如果你<b>還按著按鈕</b>(或按下)，將被雷射擊殺直接淘汰！</li>
+            <li><b>獲勝：</b>最先抵達 100% 終點的玩家獲勝，獨得實際獎池！(若時間到無人抵達，則最遠者獲勝；全滅則平分退回)。</li>
+            <li><b>單局制：</b>遊戲結束後即鎖定，需由市長重新建立新房間。</li>
+        </ul>
+        <button class="main-btn btn-entry" id="btn-close-rules" style="padding:15px; font-size:16px;">我知道了</button>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="overlay" id="modal-result">
+    <div class="modal-card">
+        <h2>SURVIVAL RESULT</h2>
+        <div id="result-winner-text" style="font-size:18px; font-weight:bold; margin-bottom:10px;"></div>
+        <div class="result-big" id="result-amount">+0 🪙</div>
+        <p id="result-desc">本局已結束</p>
+        
+        <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:10px; margin-bottom:15px; text-align:left;">
+            <div style="font-size:10px; color:var(--muted); margin-bottom:5px;">存活與獎金名單：</div>
+            <div id="winners-list" style="font-size:12px; color:#fff; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
-        <div class="amount-selector">
-            <button class="amt-btn active" data-amt="100">100</button>
-            <button class="amt-btn" data-amt="500">500</button>
-            <button class="amt-btn" data-amt="1000">1K</button>
-            <button class="amt-btn" data-amt="5000">5K</button>
-        </div>
-
-        <button class="action-btn" id="action-btn">PLACE BET</button>
+        <button class="main-btn" id="btn-close-result" style="background:#333; padding:15px; font-size:16px; box-shadow:none;">關閉面板</button>
+        <p style="font-size:10px; color:var(--yellow); margin-top:15px;">本局已永久結束，請等待市長關閉遊戲並重新開啟新局。</p>
     </div>
+</div>
 
-    <div id="host-overlay">
-        <h2 style="color:var(--neon-cyan); margin-bottom: 20px; text-shadow: 0 0 10px var(--neon-cyan);">NEON DICE BATTLE</h2>
-        <button class="claim-btn" id="claim-host-btn">START GAME (BECOME HOST)</button>
-        <p style="margin-top: 15px; font-size: 12px; color: #888;">First player to start controls the room.</p>
-    </div>
+<div class="toast" id="toast"></div>
 
-    <script>
-        // ==========================================
-        // 1. BOOMROOM SDK MOCK & INITIALIZATION
-        // ==========================================
-        if (!window.BoomRoomSDK) {
-            console.warn("BoomRoomSDK not found. Using Mock SDK for local testing.");
-            window.BoomRoomSDK = {
-                getUser: () => ({ 
-                    id: 'u' + Math.floor(Math.random() * 10000), 
-                    username: 'CyberPunk' + Math.floor(Math.random() * 100), 
-                    avatar: '' 
-                }),
-                requestPurchase: (itemId, cost) => {
-                    console.log(`[Mock SDK] Requesting purchase: ${itemId} for ${cost}`);
-                    setTimeout(() => {
-                        if (window.onPurchaseSuccess) window.onPurchaseSuccess(itemId);
-                    }, 500);
-                },
-                gameOver: (winAmount) => {
-                    console.log(`[Mock SDK] Game Over. Win Amount: ${winAmount}`);
-                },
-                sendGameEvent: (eventName, payloadObj) => {
-                    console.log(`[Mock SDK] Broadcast: ${eventName}`, payloadObj);
-                    // Simulate receiving own event for local testing if not host
-                    // In real SDK, messages are received via window message event
-                    window.postMessage(JSON.stringify({
-                        action: "gameEventReceived",
-                        userId: window.BoomRoomSDK.getUser().id,
-                        eventName: eventName,
-                        payload: payloadObj
-                    }), "*");
-                }
-            };
+<script>
+(()=>{
+'use strict';
+
+/* ==============================
+   BoomRoom SDK & User
+   ============================== */
+const SDK = window.BoomRoomSDK || null;
+let user;
+try {
+    user = SDK && typeof SDK.getUser === 'function' ? SDK.getUser() : {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
+} catch(e) {
+    user = {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
+}
+const ME = {
+    id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2))),
+    username: String(user?.username || '玩家').slice(0,12),
+    joinedAt: Date.now()
+};
+const DEMO = !SDK;
+
+/* ==============================
+   Constants & Config
+   ============================== */
+const ENTRY_FEE = 100;
+const PLATFORM_FEE_RATE = 0.1;
+const HOST_TIMEOUT_MS = 5000;
+const ROUND_TIME_MS = 60000; // Max 60s to finish
+const RUN_SPEED = 12; // % per second
+
+const els = {
+    myUsername: document.getElementById('my-username'),
+    roleText: document.getElementById('role-text'),
+    totalPool: document.getElementById('total-pool'),
+    prizePool: document.getElementById('prize-pool'),
+    phaseText: document.getElementById('phase-text'),
+    timerText: document.getElementById('timer-text'),
+    eyeContainer: document.getElementById('eye-container'),
+    tracksArea: document.getElementById('tracks-area'),
+    runBtn: document.getElementById('run-btn'),
+    mainBtn: document.getElementById('main-btn'),
+    flash: document.getElementById('flash'),
+    toast: document.getElementById('toast'),
+    btnMute: document.getElementById('btn-mute'),
+    btnHelp: document.getElementById('btn-help'),
+    modalRules: document.getElementById('modal-rules'),
+    btnCloseRules: document.getElementById('btn-close-rules'),
+    modalResult: document.getElementById('modal-result'),
+    resultWinnerText: document.getElementById('result-winner-text'),
+    resultAmount: document.getElementById('result-amount'),
+    resultDesc: document.getElementById('result-desc'),
+    winnersList: document.getElementById('winners-list'),
+    btnCloseResult: document.getElementById('btn-close-result')
+};
+
+/* ==============================
+   Audio System
+   ============================== */
+let audioCtx = null, masterGain = null;
+let isMuted = false;
+
+function initAudio() {
+    if(isMuted) return;
+    if(audioCtx) { if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{}); return; }
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.08;
+        masterGain.connect(audioCtx.destination);
+    } catch(e){}
+}
+function toggleMute() {
+    isMuted = !isMuted;
+    els.btnMute.textContent = isMuted ? '🔇' : '🔊';
+    if(isMuted && masterGain) masterGain.gain.value = 0;
+    else if(!isMuted && masterGain) masterGain.gain.value = 0.08;
+}
+els.btnMute.onclick = toggleMute;
+
+function tone(freq, type, duration, vol=0.5, delay=0) {
+    if(!audioCtx || !masterGain || isMuted) return;
+    const now = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, now);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.001, vol), now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(now); osc.stop(now + duration + 0.05);
+}
+const sfx = {
+    pay: () => { tone(600, 'sine', 0.1, 0.4); tone(900, 'sine', 0.15, 0.4, 0.08); },
+    tick: () => tone(1000, 'sine', 0.05, 0.1),
+    green: () => { tone(600, 'square', 0.1, 0.3); tone(800, 'square', 0.2, 0.3, 0.1); },
+    yellow: () => { tone(400, 'sawtooth', 0.1, 0.4); tone(400, 'sawtooth', 0.1, 0.4, 0.2); },
+    red: () => { tone(150, 'sawtooth', 0.4, 0.6); tone(100, 'square', 0.5, 0.6, 0.1); },
+    laser: () => { 
+        tone(800, 'sawtooth', 0.1, 0.8); tone(400, 'sawtooth', 0.2, 0.8, 0.1); tone(100, 'square', 0.3, 0.8, 0.2);
+    },
+    win: () => { tone(400, 'square', 0.1, 0.4); tone(600, 'square', 0.2, 0.4, 0.1); tone(800, 'square', 0.3, 0.4, 0.3); },
+    lose: () => { tone(300, 'sawtooth', 0.2, 0.4); tone(200, 'sawtooth', 0.4, 0.4, 0.2); }
+};
+
+/* ==============================
+   State & Multiplayer
+   ============================== */
+const players = new Map();
+let hostId = null;
+let initialElectionDone = false;
+
+// ONE-SHOT GAME STATE
+const state = {
+    matchId: 'M_' + Math.random().toString(36).slice(2,10),
+    phase: 'LOBBY', // LOBBY -> COUNTDOWN -> PLAYING -> RESULT -> CLOSED
+    phaseEndsAt: 0,
+    lightState: 'GREEN', // GREEN, YELLOW, RED
+    lightEndsAt: 0,
+    result: []
+};
+
+let hasPaid = false;
+let purchasePending = false;
+let gameOverCalled = false;
+let lastStateBroadcast = 0;
+
+// Local Client State
+let isHolding = false;
+let localProgress = 0;
+let localStatus = 'ALIVE'; // ALIVE, DEAD, FINISHED
+let lastSyncedProgress = 0;
+let lastTime = performance.now();
+
+function rankKey(p) { return Number(p.joinedAt) || 0; }
+function isHost() { return hostId === ME.id; }
+function currentHostOnline() { const p = players.get(hostId); return !!(p && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS); }
+function onlinePlayers() { return [...players.values()].filter(p => p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS).sort((a,b) => rankKey(a) - rankKey(b) || a.id.localeCompare(b.id)); }
+
+function electInitialHost() {
+    if(initialElectionDone) return;
+    const a = onlinePlayers(); if(!a.length) return;
+    hostId = a[0].id; initialElectionDone = true;
+    if(isHost()) broadcastState(true);
+    render();
+}
+function maybeTakeoverHost() {
+    if(!initialElectionDone || currentHostOnline()) return;
+    const a = onlinePlayers(); if(!a.length) return;
+    const next = a[0].id;
+    if(next !== hostId) {
+        hostId = next; showToast('市長離開，已自動接管房間');
+        broadcast('NDB_HOST', {hostId}); broadcastState(true); render();
+    }
+}
+
+function addOrUpdatePlayer(raw, seen=true) {
+    if(!raw || raw.id == null) return null;
+    const id = String(raw.id);
+    let p = players.get(id);
+    if(!p) {
+        p = { id, username: String(raw.username||'玩家').slice(0,12), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, progress: 0, status: 'ALIVE', online: true, lastSeen: Date.now() };
+        players.set(id, p);
+    } else {
+        if(raw.username != null) p.username = String(raw.username).slice(0,12);
+        if(raw.hasPaid != null) p.hasPaid = !!raw.hasPaid;
+        if(raw.progress != null) p.progress = Number(raw.progress);
+        if(raw.status != null) p.status = raw.status;
+        if(seen) { p.lastSeen = Date.now(); p.online = true; }
+    }
+    return p;
+}
+
+function broadcast(name, payload) {
+    try { if(SDK && typeof SDK.sendGameEvent === 'function') SDK.sendGameEvent(name, payload || {}); } catch(e){}
+}
+function snapshotState() {
+    return {
+        hostId, matchId: state.matchId, phase: state.phase, phaseEndsAt: state.phaseEndsAt,
+        lightState: state.lightState, lightEndsAt: state.lightEndsAt, result: state.result.slice(),
+        players: [...players.values()].map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, progress: p.progress, status: p.status, online: p.online}))
+    };
+}
+function broadcastState(force=false) {
+    if(!isHost()) return;
+    const now = Date.now();
+    if(!force && now - lastStateBroadcast < 200) return;
+    lastStateBroadcast = now;
+    broadcast('NDB_STATE', snapshotState());
+}
+function applySnapshot(s) {
+    if(!s || typeof s !== 'object') return;
+    if(s.hostId != null) { hostId = String(s.hostId); initialElectionDone = true; }
+    if(Array.isArray(s.players)) for(const raw of s.players) addOrUpdatePlayer(raw, false);
+    
+    if(s.matchId && s.matchId !== state.matchId) {
+        state.matchId = s.matchId;
+        localProgress = 0;
+        localStatus = 'ALIVE';
+        isHolding = false;
+    }
+
+    state.phase = s.phase || state.phase;
+    state.phaseEndsAt = Number(s.phaseEndsAt) || 0;
+    
+    const oldLight = state.lightState;
+    state.lightState = s.lightState || 'GREEN';
+    state.lightEndsAt = Number(s.lightEndsAt) || 0;
+    state.result = Array.isArray(s.result) ? s.result : [];
+    
+    if(oldLight !== state.lightState && state.phase === 'PLAYING') {
+        if(state.lightState === 'GREEN') sfx.green();
+        else if(state.lightState === 'YELLOW') sfx.yellow();
+        else if(state.lightState === 'RED') sfx.red();
+    }
+    
+    const me = players.get(ME.id);
+    if(me) { 
+        hasPaid = me.hasPaid; 
+        // If host says we are dead, we are dead
+        if(me.status === 'DEAD' && localStatus !== 'DEAD') {
+            localStatus = 'DEAD';
+            isHolding = false;
+            triggerDeathEffect();
         }
+    }
+    
+    maybeCallGameOver();
+    render();
+}
 
-        const user = window.BoomRoomSDK.getUser();
-        document.getElementById('user-name').innerText = user.username;
-        document.getElementById('user-avatar').innerText = user.username.charAt(0).toUpperCase();
+/* ==============================
+   Economy & Actions
+   ============================== */
+function requestEntry() {
+    initAudio();
+    if(state.phase !== 'LOBBY' || hasPaid || purchasePending) return;
+    purchasePending = true; render();
+    
+    if(DEMO) { setTimeout(() => window.onPurchaseSuccess('redlight_entry'), 300); return; }
+    try { window.BoomRoomSDK.requestPurchase('redlight_entry', ENTRY_FEE); } 
+    catch(e) { purchasePending = false; render(); showToast('入場請求失敗'); }
+}
 
-        // ==========================================
-        // 2. GAME STATE & VARIABLES
-        // ==========================================
-        let isHost = false;
-        let gameState = 'WAITING'; // WAITING, BETTING, ROLLING, RESULT
-        let currentBetAmount = 100;
-        let selectedBetType = null;
-        let myCurrentBet = null; // { type, amount }
-        
-        let diceValues = [1, 2, 3];
-        let isAnimating = false;
-        let animationFrameId;
+window.onPurchaseSuccess = function(itemId) {
+    if(itemId !== 'redlight_entry') return;
+    purchasePending = false; hasPaid = true;
+    
+    const me = players.get(ME.id);
+    if(me) { me.hasPaid = true; me.lastSeen = Date.now(); me.online = true; }
+    
+    sfx.pay(); showToast(`成功加入競速！`);
+    broadcast('NDB_PAID', {playerId: ME.id, matchId: state.matchId});
+    if(isHost()) broadcastState(true);
+    render();
+};
 
-        // ==========================================
-        // 3. AUDIO SYSTEM (Web Audio API)
-        // ==========================================
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+window.onPurchaseFailed = function(itemId) {
+    if(itemId === 'redlight_entry') { purchasePending = false; showToast('支付取消或失敗'); render(); }
+};
 
-        function playTone(freq, type, duration, vol) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+// Client Input Handling
+function handlePointerDown(e) {
+    if(e) e.preventDefault();
+    initAudio();
+    if(state.phase !== 'PLAYING' || !hasPaid || localStatus !== 'ALIVE') return;
+    
+    // If pressing during RED, instant death
+    if(state.lightState === 'RED') {
+        die();
+        return;
+    }
+    
+    isHolding = true;
+    els.runBtn.classList.add('active');
+    els.runBtn.textContent = '奔跑中...';
+}
+
+function handlePointerUp(e) {
+    if(e) e.preventDefault();
+    if(!isHolding) return;
+    isHolding = false;
+    els.runBtn.classList.remove('active');
+    els.runBtn.textContent = '長按奔跑';
+}
+
+els.runBtn.addEventListener('pointerdown', handlePointerDown);
+els.runBtn.addEventListener('pointerup', handlePointerUp);
+els.runBtn.addEventListener('pointercancel', handlePointerUp);
+els.runBtn.addEventListener('pointerleave', handlePointerUp);
+
+function die() {
+    if(localStatus === 'DEAD') return;
+    localStatus = 'DEAD';
+    isHolding = false;
+    els.runBtn.classList.remove('active');
+    
+    triggerDeathEffect();
+    
+    const me = players.get(ME.id);
+    if(me) me.status = 'DEAD';
+    
+    if(isHost()) {
+        broadcastState(false);
+        checkHostWinCondition();
+    } else {
+        broadcast('NDB_DIE', {playerId: ME.id, matchId: state.matchId});
+    }
+}
+
+function triggerDeathEffect() {
+    sfx.laser();
+    els.flash.classList.remove('fire');
+    void els.flash.offsetWidth;
+    els.flash.classList.add('fire');
+    
+    document.getElementById('app').classList.remove('shake');
+    void document.getElementById('app').offsetWidth;
+    document.getElementById('app').classList.add('shake');
+    
+    if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+/* ==============================
+   Host Logic
+   ============================== */
+function hostStartGame() {
+    if(!isHost() || state.phase !== 'LOBBY') return;
+    const paidPlayers = [...players.values()].filter(p => p.online && p.hasPaid);
+    if(paidPlayers.length < 1) { showToast('沒有玩家入場'); return; }
+    
+    paidPlayers.forEach(p => { p.progress = 0; p.status = 'ALIVE'; });
+    
+    state.phase = 'COUNTDOWN';
+    state.phaseEndsAt = Date.now() + 3000;
+    broadcastState(true);
+}
+
+function hostManageLight(now) {
+    if(state.phase !== 'PLAYING') return;
+    
+    if(now >= state.lightEndsAt) {
+        if(state.lightState === 'GREEN') {
+            state.lightState = 'YELLOW';
+            state.lightEndsAt = now + 800 + Math.random() * 1000; // 0.8s - 1.8s
+            sfx.yellow();
+        } else if(state.lightState === 'YELLOW') {
+            state.lightState = 'RED';
+            state.lightEndsAt = now + 2000 + Math.random() * 2500; // 2s - 4.5s
+            sfx.red();
+        } else {
+            state.lightState = 'GREEN';
+            state.lightEndsAt = now + 2000 + Math.random() * 3000; // 2s - 5s
+            sfx.green();
         }
+        broadcastState(true);
+    }
+}
 
-        const sfx = {
-            select: () => playTone(800, 'sine', 0.1, 0.3),
-            bet: () => playTone(1200, 'square', 0.15, 0.4),
-            rollTick: () => playTone(200 + Math.random()*100, 'sawtooth', 0.05, 0.2),
-            win: () => {
-                playTone(400, 'square', 0.1, 0.5);
-                setTimeout(() => playTone(600, 'square', 0.1, 0.5), 100);
-                setTimeout(() => playTone(800, 'square', 0.3, 0.5), 200);
-            },
-            lose: () => {
-                playTone(200, 'sawtooth', 0.3, 0.5);
-                setTimeout(() => playTone(150, 'sawtooth', 0.4, 0.5), 200);
-            }
+function checkHostWinCondition() {
+    if(state.phase !== 'PLAYING') return;
+    
+    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
+    const alivePlayers = paidPlayers.filter(p => p.status === 'ALIVE' || p.status === 'FINISHED');
+    
+    // 1. Someone reached 100%
+    const finishers = paidPlayers.filter(p => p.progress >= 100);
+    if(finishers.length > 0) {
+        finishers.forEach(p => p.status = 'FINISHED');
+        hostResolveGame(finishers);
+        return;
+    }
+    
+    // 2. Everyone is dead
+    if(alivePlayers.length === 0) {
+        hostResolveGame([]); // All dead
+        return;
+    }
+    
+    // 3. Time is up
+    if(Date.now() >= state.phaseEndsAt) {
+        // Find furthest alive
+        let maxProg = -1;
+        alivePlayers.forEach(p => { if(p.progress > maxProg) maxProg = p.progress; });
+        const winners = alivePlayers.filter(p => p.progress === maxProg);
+        hostResolveGame(winners);
+    }
+}
+
+function hostResolveGame(winnersArray) {
+    if(state.phase !== 'PLAYING') return;
+    
+    state.phase = 'RESULT';
+    state.lightState = 'GREEN'; // Reset eye
+    
+    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
+    const prizePool = Math.floor(paidPlayers.length * ENTRY_FEE * (1 - PLATFORM_FEE_RATE));
+    
+    // If winnersArray is empty, it means everyone died. Refund/split equally.
+    let actualWinners = winnersArray;
+    if(actualWinners.length === 0 && paidPlayers.length > 0) {
+        actualWinners = paidPlayers; // Everyone gets a split
+    }
+    
+    const rewardPerWinner = actualWinners.length > 0 ? Math.floor(prizePool / actualWinners.length) : 0;
+
+    state.result = paidPlayers.map(p => {
+        const isWin = actualWinners.some(w => w.id === p.id);
+        return {
+            id: p.id,
+            username: p.username,
+            progress: p.progress,
+            status: p.status,
+            isWinner: isWin,
+            winAmount: isWin ? rewardPerWinner : 0
         };
+    }).sort((a,b) => b.progress - a.progress);
 
-        // ==========================================
-        // 4. CANVAS RENDERING (Neon Dice)
-        // ==========================================
-        const canvas = document.getElementById('diceCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function drawRoundRect(x, y, w, h, r, color, glow) {
-            ctx.beginPath();
-            ctx.moveTo(x + r, y);
-            ctx.lineTo(x + w - r, y);
-            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-            ctx.lineTo(x + w, y + h - r);
-            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-            ctx.lineTo(x + r, y + h);
-            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-            ctx.lineTo(x, y + r);
-            ctx.quadraticCurveTo(x, y, x + r, y);
-            ctx.closePath();
-            
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.shadowColor = glow;
-            ctx.shadowBlur = 15;
-            ctx.stroke();
-            
-            ctx.fillStyle = 'rgba(0,0,0,0.8)';
-            ctx.fill();
-            ctx.shadowBlur = 0; // reset
+    broadcastState(true);
+    
+    setTimeout(() => {
+        if(isHost() && state.phase === 'RESULT') {
+            state.phase = 'CLOSED';
+            broadcastState(true);
         }
+    }, 5000);
+}
 
-        function drawDot(x, y, color) {
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, Math.PI * 2);
-            ctx.fillStyle = color;
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 10;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+/* ==============================
+   Incoming Events
+   ============================== */
+function handleIncoming(data) {
+    if(!data || data.action !== 'gameEventReceived') return;
+    const eventName = data.eventName, payload = data.payload || {};
+    
+    if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;
 
-        function drawDice(x, y, size, value, color) {
-            drawRoundRect(x, y, size, size, 10, color, color);
-            
-            const center = size / 2;
-            const offset = size * 0.25;
-            
-            if (value === 1 || value === 3 || value === 5) drawDot(x + center, y + center, color);
-            if (value === 2 || value === 3 || value === 4 || value === 5 || value === 6) {
-                drawDot(x + offset, y + offset, color);
-                drawDot(x + size - offset, y + size - offset, color);
-            }
-            if (value === 4 || value === 5 || value === 6) {
-                drawDot(x + offset, y + size - offset, color);
-                drawDot(x + size - offset, y + offset, color);
-            }
-            if (value === 6) {
-                drawDot(x + offset, y + center, color);
-                drawDot(x + size - offset, y + center, color);
-            }
-        }
-
-        function renderCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const diceSize = 80;
-            const gap = 30;
-            const startX = (canvas.width - (diceSize * 3 + gap * 2)) / 2;
-            const startY = (canvas.height - diceSize) / 2;
-
-            const colors = ['#66fcf1', '#ff00ff', '#fce300'];
-
-            for (let i = 0; i < 3; i++) {
-                drawDice(startX + i * (diceSize + gap), startY, diceSize, diceValues[i], colors[i]);
-            }
-        }
-
-        function animateRoll() {
-            if (!isAnimating) return;
-            diceValues = [
-                Math.floor(Math.random() * 6) + 1,
-                Math.floor(Math.random() * 6) + 1,
-                Math.floor(Math.random() * 6) + 1
-            ];
-            renderCanvas();
-            sfx.rollTick();
-            animationFrameId = requestAnimationFrame(animateRoll);
-        }
-
-        renderCanvas(); // Initial render
-
-        // ==========================================
-        // 5. UI INTERACTIONS
-        // ==========================================
-        const betBtns = document.querySelectorAll('.bet-btn');
-        const amtBtns = document.querySelectorAll('.amt-btn');
-        const actionBtn = document.getElementById('action-btn');
-        const statusText = document.getElementById('status-text');
-        const socialFeed = document.getElementById('social-feed');
-
-        betBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (gameState !== 'BETTING') return;
-                sfx.select();
-                betBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedBetType = btn.dataset.type;
-                updateActionBtn();
-            });
-        });
-
-        amtBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (gameState !== 'BETTING') return;
-                sfx.select();
-                amtBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentBetAmount = parseInt(btn.dataset.amt);
-                updateActionBtn();
-            });
-        });
-
-        function updateActionBtn() {
-            if (gameState === 'BETTING') {
-                if (myCurrentBet) {
-                    actionBtn.innerText = "BET PLACED. WAITING...";
-                    actionBtn.disabled = true;
-                } else if (selectedBetType) {
-                    actionBtn.innerText = `BET ${currentBetAmount} ON ${selectedBetType.toUpperCase()}`;
-                    actionBtn.disabled = false;
+    if(eventName === 'NDB_HELLO') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost()) broadcastState(true); return; }
+    if(eventName === 'NDB_PING') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost() && payload.requestState) broadcastState(true); return; }
+    if(eventName === 'NDB_PAID') { 
+        const p = players.get(payload.playerId); 
+        if(p) { p.hasPaid = true; p.lastSeen = Date.now(); p.online = true; }
+        if(isHost()) broadcastState(true); render(); return; 
+    }
+    if(eventName === 'NDB_PROGRESS') {
+        if(isHost() && state.phase === 'PLAYING') {
+            const p = players.get(payload.playerId);
+            if(p && p.status === 'ALIVE') {
+                // Basic anti-cheat: don't accept progress if light is RED
+                if(state.lightState === 'RED') {
+                    p.status = 'DEAD';
+                    broadcast('NDB_FLASH', {playerId: p.id}); // Tell others to show laser effect
                 } else {
-                    actionBtn.innerText = "SELECT A BET";
-                    actionBtn.disabled = true;
+                    p.progress = Math.min(100, Math.max(p.progress, Number(payload.progress) || 0));
                 }
-            } else if (gameState === 'WAITING' && isHost) {
-                actionBtn.innerText = "START ROUND";
-                actionBtn.disabled = false;
-            } else if (gameState === 'WAITING' && !isHost) {
-                actionBtn.innerText = "WAITING FOR HOST...";
-                actionBtn.disabled = true;
-            } else {
-                actionBtn.disabled = true;
+                checkHostWinCondition();
             }
         }
-
-        function addFeedItem(text, type = 'normal') {
-            const div = document.createElement('div');
-            div.className = `feed-item ${type}`;
-            div.innerText = text;
-            socialFeed.appendChild(div);
-            socialFeed.scrollTop = socialFeed.scrollHeight;
-            setTimeout(() => {
-                if(div.parentNode) div.parentNode.removeChild(div);
-            }, 4000);
+        return;
+    }
+    if(eventName === 'NDB_DIE') {
+        if(isHost() && state.phase === 'PLAYING') {
+            const p = players.get(payload.playerId);
+            if(p && p.status !== 'DEAD') {
+                p.status = 'DEAD';
+                broadcast('NDB_FLASH', {playerId: p.id});
+                checkHostWinCondition();
+            }
         }
+        return;
+    }
+    if(eventName === 'NDB_FLASH') {
+        if(payload.playerId === ME.id) triggerDeathEffect();
+        return;
+    }
+    if(eventName === 'NDB_STATE') { applySnapshot(payload); return; }
+    if(eventName === 'NDB_HOST') { if(payload.hostId != null) { hostId = String(payload.hostId); initialElectionDone = true; render(); } return; }
+}
+window.addEventListener('message', e => { try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; handleIncoming(d); } catch(err){} });
 
-        // ==========================================
-        // 6. CORE GAME LOGIC & SDK INTEGRATION
-        // ==========================================
+/* ==============================
+   UI & Rendering
+   ============================== */
+function render() {
+    els.myUsername.textContent = ME.username;
+    els.roleText.textContent = isHost() ? '👑 市長' : '玩家';
+    
+    const paidPlayers = [...players.values()].filter(p=>p.hasPaid);
+    const paidCount = state.phase === 'LOBBY' ? paidPlayers.length : state.result.length || paidPlayers.length;
+    const totalPool = paidCount * ENTRY_FEE;
+    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
+    els.totalPool.textContent = totalPool.toLocaleString() + ' 🪙';
+    els.prizePool.textContent = prizePool.toLocaleString() + ' 🪙';
+
+    // Eye State
+    els.eyeContainer.className = `eye-container state-${state.lightState.toLowerCase()}`;
+
+    // Tracks
+    els.tracksArea.innerHTML = '';
+    const sortedPlayers = paidPlayers.sort((a,b) => b.progress - a.progress);
+    sortedPlayers.forEach(p => {
+        const t = document.createElement('div');
+        t.className = `track ${p.id === ME.id ? 'me' : ''} ${p.status === 'DEAD' ? 'dead' : ''}`;
         
-        // Purchase Callbacks
-        window.onPurchaseSuccess = function(itemId) {
-            if (itemId.startsWith("bet_")) {
-                sfx.bet();
-                myCurrentBet = {
-                    type: selectedBetType,
-                    amount: currentBetAmount
-                };
-                updateActionBtn();
-                statusText.innerText = "BET ACCEPTED!";
+        const pct = Math.min(100, Math.max(0, p.progress));
+        let icon = p.status === 'DEAD' ? '💀' : '🏃';
+        if(p.progress >= 100) icon = '🏆';
+        
+        t.innerHTML = `
+            <div class="track-fill" style="width:${pct}%"></div>
+            <div class="runner" style="left:${pct}%">${icon}</div>
+            <div class="runner-name">${p.username} ${p.status==='DEAD'?'(淘汰)':''}</div>
+        `;
+        els.tracksArea.appendChild(t);
+    });
+
+    // Phase Text & Timer
+    if(state.phase === 'LOBBY') {
+        els.phaseText.textContent = '等待入場';
+        els.timerText.textContent = 'READY';
+    } else if(state.phase === 'COUNTDOWN') {
+        els.phaseText.textContent = '準備開始';
+        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
+        els.timerText.textContent = rem;
+    } else if(state.phase === 'PLAYING') {
+        els.phaseText.textContent = state.lightState === 'GREEN' ? '安全！快跑！' : state.lightState === 'YELLOW' ? '警告！準備停！' : '危險！不准動！';
+        els.phaseText.style.color = state.lightState === 'GREEN' ? 'var(--green)' : state.lightState === 'YELLOW' ? 'var(--yellow)' : 'var(--red)';
+        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
+        els.timerText.textContent = rem + 's';
+    } else {
+        els.phaseText.textContent = '本局已結束';
+        els.timerText.textContent = 'ENDED';
+    }
+
+    // Controls
+    if(state.phase === 'LOBBY') {
+        els.runBtn.style.display = 'none';
+        els.mainBtn.style.display = 'block';
+        els.mainBtn.className = 'main-btn btn-entry';
+        if(!hasPaid) {
+            els.mainBtn.textContent = '支付 100 🪙 入場';
+            els.mainBtn.disabled = purchasePending;
+            els.mainBtn.onclick = requestEntry;
+        } else if(isHost()) {
+            els.mainBtn.textContent = '開始比賽 (市長)';
+            els.mainBtn.disabled = paidCount < 1;
+            els.mainBtn.onclick = () => { initAudio(); hostStartGame(); };
+        } else {
+            els.mainBtn.textContent = '已入場，等待市長開始';
+            els.mainBtn.disabled = true;
+        }
+    } else if(state.phase === 'PLAYING') {
+        els.mainBtn.style.display = 'none';
+        els.runBtn.style.display = 'flex';
+        if(hasPaid) {
+            if(localStatus === 'DEAD') {
+                els.runBtn.textContent = '💀 已淘汰';
+                els.runBtn.disabled = true;
+                els.runBtn.classList.remove('active');
+            } else if(localStatus === 'FINISHED') {
+                els.runBtn.textContent = '🏆 抵達終點';
+                els.runBtn.disabled = true;
+                els.runBtn.classList.remove('active');
+            } else {
+                els.runBtn.disabled = false;
+                els.runBtn.textContent = isHolding ? '奔跑中...' : '長按奔跑';
+            }
+        } else {
+            els.runBtn.textContent = '觀戰中';
+            els.runBtn.disabled = true;
+        }
+    } else {
+        els.runBtn.style.display = 'none';
+        els.mainBtn.style.display = 'block';
+        els.mainBtn.className = 'main-btn btn-entry';
+        els.mainBtn.textContent = '鎖定中';
+        els.mainBtn.disabled = true;
+    }
+}
+
+function maybeCallGameOver() {
+    if(gameOverCalled || !['RESULT', 'CLOSED'].includes(state.phase)) return;
+    if(!state.result || state.result.length === 0) return;
+    
+    const myResult = state.result.find(r => r.id === ME.id);
+    if(!myResult || !hasPaid) return;
+
+    gameOverCalled = true;
+    const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
+    
+    try { if(SDK && typeof SDK.gameOver === 'function') window.BoomRoomSDK.gameOver(reward); } catch(e){}
+
+    // Show Result UI
+    const winners = state.result.filter(r => r.isWinner);
+    if(winners.length > 1) {
+        els.resultWinnerText.textContent = `⚖️ 平分獎池！`;
+        els.resultWinnerText.style.color = 'var(--yellow)';
+    } else if(winners.length === 1) {
+        els.resultWinnerText.textContent = `🏆 ${winners[0].username} 獨得獎池！`;
+        els.resultWinnerText.style.color = 'var(--cyan)';
+    }
+    
+    els.resultAmount.textContent = '+' + reward.toLocaleString() + ' 🪙';
+    els.resultAmount.className = 'result-big ' + (reward > 0 ? 'win' : 'lose');
+    els.resultDesc.textContent = reward > 0 ? '恭喜！你獲得了獎金！' : '很遺憾，未能奪冠。';
+    
+    els.winnersList.innerHTML = '';
+    state.result.forEach((r, i) => {
+        const d = document.createElement('div');
+        d.innerHTML = `<span>#${i+1} ${r.username} ${r.status==='DEAD'?'💀':''}</span> <span style="color:var(--yellow)">+${r.winAmount} 🪙</span>`;
+        els.winnersList.appendChild(d);
+    });
+    
+    els.modalResult.classList.add('show');
+    if(reward > 0) sfx.win(); else sfx.lose();
+}
+
+/* ==============================
+   Main Loop & Utils
+   ============================== */
+let lastTickSec = -1;
+function raf() {
+    const now = Date.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+
+    // Client Local Progress
+    if(state.phase === 'PLAYING' && hasPaid && localStatus === 'ALIVE') {
+        if(isHolding) {
+            if(state.lightState === 'RED') {
+                die();
+            } else {
+                localProgress += RUN_SPEED * dt;
+                if(localProgress >= 100) {
+                    localProgress = 100;
+                    localStatus = 'FINISHED';
+                    isHolding = false;
+                    els.runBtn.classList.remove('active');
+                }
                 
-                // Broadcast bet to room
-                window.BoomRoomSDK.sendGameEvent("PLAYER_BET", {
-                    username: user.username,
-                    type: selectedBetType,
-                    amount: currentBetAmount
-                });
-            }
-        };
-
-        window.onPurchaseFailed = function(itemId) {
-            statusText.innerText = "BET FAILED / CANCELLED";
-            statusText.style.color = "#ff3333";
-            setTimeout(() => {
-                if(gameState === 'BETTING') {
-                    statusText.innerText = "PLACE YOUR BETS";
-                    statusText.style.color = "var(--neon-yellow)";
-                }
-            }, 2000);
-        };
-
-        actionBtn.addEventListener('click', () => {
-            if (gameState === 'BETTING' && selectedBetType && !myCurrentBet) {
-                // Initiate Bet
-                const itemId = `bet_${currentBetAmount}_${selectedBetType}`;
-                window.BoomRoomSDK.requestPurchase(itemId, currentBetAmount);
-            } else if (gameState === 'WAITING' && isHost) {
-                // Host starts round
-                startRound();
-            }
-        });
-
-        // Host Logic
-        document.getElementById('claim-host-btn').addEventListener('click', () => {
-            document.getElementById('host-overlay').classList.add('hidden');
-            isHost = true;
-            document.getElementById('host-badge').classList.remove('hidden');
-            window.BoomRoomSDK.sendGameEvent("HOST_CLAIMED", { username: user.username });
-            setGameState('WAITING');
-        });
-
-        function startRound() {
-            window.BoomRoomSDK.sendGameEvent("ROUND_START", {});
-            
-            // Auto roll after 10 seconds of betting
-            setTimeout(() => {
-                if(isHost) executeRoll();
-            }, 10000);
-        }
-
-        function executeRoll() {
-            window.BoomRoomSDK.sendGameEvent("ROLL_START", {});
-            
-            setTimeout(() => {
-                const d1 = Math.floor(Math.random() * 6) + 1;
-                const d2 = Math.floor(Math.random() * 6) + 1;
-                const d3 = Math.floor(Math.random() * 6) + 1;
-                window.BoomRoomSDK.sendGameEvent("ROLL_RESULT", { dice: [d1, d2, d3] });
-            }, 2000);
-        }
-
-        function setGameState(state) {
-            gameState = state;
-            if (state === 'WAITING') {
-                myCurrentBet = null;
-                selectedBetType = null;
-                betBtns.forEach(b => b.classList.remove('active'));
-                statusText.innerText = isHost ? "READY TO START" : "WAITING FOR HOST";
-                statusText.style.color = "var(--neon-cyan)";
-            } else if (state === 'BETTING') {
-                statusText.innerText = "PLACE YOUR BETS (10s)";
-                statusText.style.color = "var(--neon-yellow)";
-            } else if (state === 'ROLLING') {
-                statusText.innerText = "NO MORE BETS!";
-                statusText.style.color = "var(--neon-pink)";
-                actionBtn.innerText = "ROLLING...";
-                actionBtn.disabled = true;
-            }
-            updateActionBtn();
-        }
-
-        function calculateResult(dice) {
-            const total = dice[0] + dice[1] + dice[2];
-            const isTriple = (dice[0] === dice[1] && dice[1] === dice[2]);
-            let winningType = 'none';
-
-            if (isTriple) {
-                winningType = 'triple';
-            } else if (total >= 4 && total <= 10) {
-                winningType = 'small';
-            } else if (total >= 11 && total <= 17) {
-                winningType = 'big';
-            }
-
-            statusText.innerText = `TOTAL: ${total} ${isTriple ? '(TRIPLE!)' : ''}`;
-
-            if (myCurrentBet) {
-                if (myCurrentBet.type === winningType) {
-                    // Win
-                    let multiplier = (winningType === 'triple') ? 24 : 2;
-                    let winAmount = myCurrentBet.amount * multiplier;
-                    sfx.win();
-                    statusText.innerText += ` - YOU WON ${winAmount}!`;
-                    statusText.style.color = "var(--neon-cyan)";
-                    window.BoomRoomSDK.gameOver(winAmount);
-                    addFeedItem(`You won ${winAmount}!`, 'win');
-                } else {
-                    // Lose
-                    sfx.lose();
-                    statusText.innerText += ` - YOU LOST!`;
-                    statusText.style.color = "#ff3333";
-                    window.BoomRoomSDK.gameOver(0);
-                    addFeedItem(`You lost ${myCurrentBet.amount}`, 'lose');
-                }
-            } else {
-                window.BoomRoomSDK.gameOver(0);
-            }
-
-            // Reset for next round
-            setTimeout(() => {
-                setGameState('WAITING');
-            }, 5000);
-        }
-
-        // ==========================================
-        // 7. MULTIPLAYER EVENT LISTENER
-        // ==========================================
-        window.addEventListener("message", (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.action === "gameEventReceived") {
-                    const { userId, eventName, payload } = data;
+                // Sync progress
+                if(Math.abs(localProgress - lastSyncedProgress) > 2 || localProgress === 100) {
+                    broadcast('NDB_PROGRESS', { playerId: ME.id, progress: localProgress, matchId: state.matchId });
+                    lastSyncedProgress = localProgress;
                     
-                    switch(eventName) {
-                        case "HOST_CLAIMED":
-                            if (userId !== user.id) {
-                                document.getElementById('host-overlay').classList.add('hidden');
-                                addFeedItem(`${payload.username} is Host`);
-                                setGameState('WAITING');
-                            }
-                            break;
-                            
-                        case "ROUND_START":
-                            setGameState('BETTING');
-                            addFeedItem('Betting started!');
-                            break;
-                            
-                        case "PLAYER_BET":
-                            if (userId !== user.id) {
-                                addFeedItem(`${payload.username} bet on ${payload.type.toUpperCase()}`);
-                            }
-                            break;
-                            
-                        case "ROLL_START":
-                            setGameState('ROLLING');
-                            isAnimating = true;
-                            animateRoll();
-                            break;
-                            
-                        case "ROLL_RESULT":
-                            isAnimating = false;
-                            cancelAnimationFrame(animationFrameId);
-                            diceValues = payload.dice;
-                            renderCanvas();
-                            setGameState('RESULT');
-                            calculateResult(payload.dice);
-                            break;
-                    }
+                    // Update local player object immediately for smooth UI
+                    const me = players.get(ME.id);
+                    if(me) me.progress = localProgress;
                 }
-            } catch(e) {
-                // Ignore non-JSON messages
             }
-        });
+        }
+    }
 
-        // Auto-broadcast presence to check for host
-        setTimeout(() => {
-            if(!isHost && document.getElementById('host-overlay').classList.contains('hidden') === false) {
-                // If no one claimed host in 1 sec, we just wait. The button is there.
-            }
-        }, 1000);
+    // Host Logic
+    if(isHost()) {
+        if(state.phase === 'COUNTDOWN' && now >= state.phaseEndsAt) {
+            state.phase = 'PLAYING';
+            state.phaseEndsAt = now + ROUND_TIME_MS;
+            state.lightState = 'GREEN';
+            state.lightEndsAt = now + 2000 + Math.random() * 3000;
+            broadcastState(true);
+            sfx.green();
+        }
+        
+        if(state.phase === 'PLAYING') {
+            hostManageLight(now);
+            checkHostWinCondition(); // Also checks if time is up
+        }
+        
+        // Tick sound for countdown
+        if(state.phase === 'COUNTDOWN') {
+            const sec = Math.ceil((state.phaseEndsAt - now)/1000);
+            if(sec !== lastTickSec && sec > 0) { lastTickSec = sec; sfx.tick(); }
+        }
+    }
 
-    </script>
+    render();
+    requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+function showToast(msg) {
+    els.toast.textContent = msg; els.toast.classList.add('show');
+    clearTimeout(showToast.t); showToast.t = setTimeout(() => els.toast.classList.remove('show'), 1500);
+}
+
+/* ==============================
+   Init & Bindings
+   ============================== */
+els.btnHelp.onclick = () => { initAudio(); els.modalRules.classList.add('show'); };
+els.btnCloseRules.onclick = () => { initAudio(); els.modalRules.classList.remove('show'); };
+els.btnCloseResult.onclick = () => { initAudio(); els.modalResult.classList.remove('show'); };
+document.addEventListener('pointerdown', initAudio, {once:true, passive:true});
+
+function announceHello() {
+    broadcast('NDB_HELLO', {player: {...ME, hasPaid}});
+    broadcast('NDB_PING', {player: {...ME, hasPaid}, requestState: true});
+}
+
+announceHello();
+setTimeout(electInitialHost, 800);
+
+setInterval(() => {
+    const me = players.get(ME.id);
+    if(me) { me.online = true; me.lastSeen = Date.now(); }
+    broadcast('NDB_PING', {player: {...ME, hasPaid}});
+    if(isHost()) broadcastState(true);
+}, 2000);
+
+setInterval(() => {
+    const now = Date.now();
+    for(const p of players.values()) if(now - p.lastSeen > HOST_TIMEOUT_MS) p.online = false;
+    maybeTakeoverHost();
+}, 1000);
+
+if(DEMO) showToast('預覽模式：未偵測到 BoomRoom SDK');
+render();
+
+window.addEventListener('visibilitychange', () => {
+    if(!document.hidden) {
+        const p = players.get(ME.id);
+        if(p) { p.lastSeen = Date.now(); p.online = true; }
+        announceHello();
+    }
+});
+
+})();
+</script>
 </body>
 </html>

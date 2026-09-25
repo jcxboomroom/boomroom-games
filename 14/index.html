@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#060813">
+<title>爆閃找王 BOOM HUNT</title>
+<style>
+:root{
+  --bg:#060813; --panel:#0d1120; --panel2:#11172a; --line:rgba(255,255,255,.10);
+  --text:#f7f8ff; --muted:#8c95ae; --cyan:#35e6ff; --pink:#ff3a9d;
+  --purple:#8c64ff; --gold:#ffd65a; --green:#4bf0ae; --red:#ff536b;
+  --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif}
+body{touch-action:none}
+button{font:inherit;color:inherit;border:0;outline:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button:active{transform:scale(.97)}
+#app{position:relative;width:100%;height:100dvh;max-width:780px;margin:auto;overflow:hidden;background:
+ radial-gradient(circle at 50% -15%,rgba(140,100,255,.25),transparent 35%),
+ radial-gradient(circle at 0% 45%,rgba(255,58,157,.11),transparent 28%),
+ radial-gradient(circle at 100% 62%,rgba(53,230,255,.11),transparent 30%),
+ linear-gradient(180deg,#0b0e19 0%,#05060d 100%)}
+#app::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(53,230,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(53,230,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,transparent,black 14%,black 88%,transparent)}
+.header{position:relative;z-index:5;height:70px;padding:calc(8px + var(--safe-top)) 12px 8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:23px;background:linear-gradient(145deg,rgba(53,230,255,.12),rgba(140,100,255,.24));border:1px solid var(--line);box-shadow:0 0 26px rgba(140,100,255,.15);flex:none}.brand h1{margin:0;font-size:18px;line-height:1;font-weight:1000;letter-spacing:.3px}.brand small{display:block;margin-top:4px;color:var(--muted);font-size:8px;letter-spacing:1.2px;font-weight:800}.actions{display:flex;gap:7px}.icon-btn{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid var(--line);display:grid;place-items:center;font-size:17px}
+.main{position:relative;z-index:3;height:calc(100% - 70px);padding:2px 10px calc(9px + var(--safe-bottom));display:flex;flex-direction:column;gap:8px;min-height:0}
+.hud{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:7px}.stat{min-height:56px;border:1px solid var(--line);border-radius:16px;background:rgba(11,14,25,.82);padding:7px 10px;display:flex;flex-direction:column;justify-content:center}.stat .k{font-size:8px;color:var(--muted);letter-spacing:1px;font-weight:900}.stat .v{margin-top:2px;font-size:22px;font-weight:1000;line-height:1}.stat.center{text-align:center}.stat.right{text-align:right}
+.timer-wrap{position:relative;height:9px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.06)}#timerBar{height:100%;width:100%;transform-origin:left center;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));box-shadow:0 0 18px rgba(53,230,255,.28)}
+.rule{position:relative;flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid rgba(53,230,255,.12);border-radius:17px;background:linear-gradient(135deg,rgba(53,230,255,.07),rgba(140,100,255,.07),rgba(255,58,157,.04));box-shadow:0 14px 35px rgba(0,0,0,.18)}.rule-main{display:flex;align-items:center;gap:9px;min-width:0}.rule-icon{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:15px;flex:none}.rule-text{min-width:0}.rule-text b{display:block;font-size:12px}.rule-text span{display:block;margin-top:2px;color:var(--muted);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pace{font-size:9px;font-weight:900;color:#c5c9d7;white-space:nowrap}.pace.hot{color:var(--gold)}
+.arena{position:relative;flex:1;min-height:330px;border-radius:24px;border:1px solid rgba(255,255,255,.10);background:radial-gradient(circle at 50% 35%,rgba(140,100,255,.12),transparent 48%),linear-gradient(180deg,#101527,#080b14);box-shadow:0 22px 65px rgba(0,0,0,.34);overflow:hidden;padding:12px;display:flex;align-items:center;justify-content:center}
+#grid{width:min(100%,520px);height:min(100%,560px);display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:8px;touch-action:none}
+.tile{position:relative;min-width:0;min-height:0;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 0 25px rgba(255,255,255,.02),0 9px 18px rgba(0,0,0,.16);transition:transform .09s ease,filter .09s ease,opacity .12s ease}.tile::before{content:"";position:absolute;inset:1px;border-radius:17px;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.16),transparent 48%);opacity:.35;pointer-events:none}.tile .glyph{position:relative;z-index:2;font-size:clamp(25px,8vw,48px);font-weight:1000;line-height:1;text-shadow:0 0 20px currentColor}.tile .num{position:absolute;right:7px;top:6px;font-size:8px;font-weight:1000;color:rgba(255,255,255,.55);z-index:3}.tile.target{box-shadow:0 0 0 2px rgba(255,255,255,.16),0 0 34px var(--glow),inset 0 0 26px rgba(255,255,255,.08);animation:targetPulse .75s ease-in-out infinite alternate}.tile.target::after{content:"";position:absolute;inset:7px;border:1px solid rgba(255,255,255,.25);border-radius:13px;opacity:.9}.tile.hit{transform:scale(.91);filter:brightness(1.7)}.tile.wrong{animation:wrong .25s ease}.tile.locked{opacity:.52;filter:saturate(.55)}
+.arena-hint{position:absolute;left:50%;bottom:11px;transform:translateX(-50%);font-size:8px;color:#8991a7;letter-spacing:.8px;white-space:nowrap;padding:5px 9px;border-radius:99px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.06)}
+#feedback{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.75);opacity:0;pointer-events:none;text-align:center;z-index:20}.fb-big{font-size:40px;font-weight:1000;text-shadow:0 0 28px currentColor}.fb-small{margin-top:4px;font-size:10px;font-weight:900;color:#d7daea}.show-fb{animation:feedback .5s ease-out}
+.bottom{flex:none;display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:7px}.pill{min-height:50px;padding:6px 9px;border-radius:15px;background:rgba(10,13,23,.80);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}.pill .k{font-size:8px;color:var(--muted);font-weight:900}.pill .v{font-size:15px;font-weight:1000;margin-top:2px}.pill.center{text-align:center}.pill.right{text-align:right}
+.overlay{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,5,10,.82);backdrop-filter:blur(10px)}.overlay.hidden{display:none}.card{width:min(100%,460px);border-radius:26px;padding:22px;background:linear-gradient(145deg,rgba(17,22,40,.98),rgba(8,10,18,.98));border:1px solid rgba(255,255,255,.11);box-shadow:0 26px 80px rgba(0,0,0,.50);text-align:center}.eyebrow{font-size:9px;font-weight:1000;color:var(--cyan);letter-spacing:2px}.card h2{margin:7px 0 6px;font-size:32px;line-height:1.05;font-weight:1000}.card p{margin:0;color:#aeb4c7;font-size:11px;line-height:1.7}.feature{margin:14px 0;padding:11px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);text-align:left}.feature b{font-size:11px}.feature div{margin-top:4px;color:#9299af;font-size:9px;line-height:1.7}.primary{width:100%;height:50px;margin-top:8px;border-radius:15px;background:linear-gradient(135deg,#2cddff,#8c64ff 55%,#ff3a9d);box-shadow:0 14px 32px rgba(100,91,255,.23);font-size:14px;font-weight:1000}.secondary{width:100%;height:45px;margin-top:8px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;font-weight:900}.result-score{font-size:55px;font-weight:1000;line-height:1;color:white;text-shadow:0 0 28px rgba(140,100,255,.35)}.result-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}.rm{padding:10px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}.rm b{display:block;font-size:17px}.rm span{display:block;margin-top:2px;font-size:8px;color:var(--muted)}.dev{margin-top:11px;font-size:8px;color:#72798e}
+#toast{position:absolute;left:50%;top:79px;transform:translateX(-50%) translateY(-10px);z-index:65;opacity:0;pointer-events:none;padding:8px 12px;border-radius:99px;background:rgba(8,11,20,.92);border:1px solid rgba(255,255,255,.11);font-size:9px;font-weight:900;white-space:nowrap;box-shadow:0 10px 28px rgba(0,0,0,.3)}#toast.show{animation:toast 1.5s ease-out}
+.milestone{position:absolute;inset:0;z-index:35;display:grid;place-items:center;pointer-events:none;opacity:0}.milestone.show{animation:milestone .95s ease-out}.ms-card{padding:15px 22px;border-radius:20px;text-align:center;background:rgba(5,7,14,.88);border:1px solid rgba(255,216,90,.25);box-shadow:0 0 45px rgba(255,216,90,.13)}.ms-card small{display:block;color:var(--gold);font-size:9px;font-weight:1000;letter-spacing:1.6px}.ms-card b{display:block;margin-top:4px;font-size:28px;font-weight:1000}
+@keyframes targetPulse{from{transform:scale(.985);filter:brightness(1)}to{transform:scale(1.012);filter:brightness(1.14)}}
+@keyframes wrong{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes feedback{0%{opacity:0;transform:translate(-50%,-50%) scale(.75)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}100%{opacity:0;transform:translate(-50%,-68%) scale(1)}}
+@keyframes toast{0%{opacity:0;transform:translateX(-50%) translateY(-8px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}75%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-5px)}}
+@keyframes milestone{0%{opacity:0;transform:scale(.8)}18%{opacity:1;transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
+@media (max-width:360px){.header{height:64px}.main{height:calc(100% - 64px)}.card{padding:18px}.card h2{font-size:28px}.hud .stat{min-height:51px}.arena{padding:9px}.tile{border-radius:15px}.bottom{grid-template-columns:1fr 1fr}.bottom .right{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="brand"><div class="logo">⚡</div><div><h1>爆閃找王</h1><small>BOOM HUNT · REACTION PARTY</small></div></div>
+    <div class="actions"><button class="icon-btn" id="soundBtn" aria-label="音效">🔊</button><button class="icon-btn" id="helpBtn" aria-label="玩法">?</button></div>
+  </div>
+
+  <main class="main">
+    <section class="hud">
+      <div class="stat"><div class="k">TIME</div><div class="v" id="timeText">30.0</div></div>
+      <div class="stat center"><div class="k">SCORE</div><div class="v" id="scoreText">0</div></div>
+      <div class="stat right"><div class="k">COMBO</div><div class="v" id="comboText">x0</div></div>
+    </section>
+    <div class="timer-wrap"><div id="timerBar"></div></div>
+
+    <section class="rule">
+      <div class="rule-main"><div class="rule-icon" id="ruleIcon">🎯</div><div class="rule-text"><b id="ruleTitle">找出「目標」</b><span id="ruleDesc">依照上方規則，點中唯一答案</span></div></div>
+      <div class="pace" id="paceText">準備</div>
+    </section>
+
+    <section class="arena" id="arena">
+      <div id="grid"></div>
+      <div class="arena-hint">單指點擊 · 點錯會扣時間 · 越快分數越高</div>
+      <div id="feedback"><div class="fb-big" id="fbBig">PERFECT</div><div class="fb-small" id="fbSmall">+120</div></div>
+      <div class="milestone" id="milestone"><div class="ms-card"><small>MILESTONE</small><b id="milestoneText">10 COMBO</b></div></div>
+    </section>
+
+    <section class="bottom">
+      <div class="pill"><div class="k">BEST COMBO</div><div class="v" id="bestComboText">0</div></div>
+      <div class="pill center"><div class="k">FEVER</div><div class="v" id="feverText">READY</div></div>
+      <div class="pill right"><div class="k">HITS</div><div class="v" id="hitsText">0</div></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="startOverlay">
+    <div class="card">
+      <div class="eyebrow">BOOMROOM PARTY GAME</div>
+      <h2>爆閃找王</h2>
+      <p>30 秒反應極限。看規則、找唯一答案、狂點連擊。<br>越快越高分，點錯會直接掉時間。</p>
+      <div class="feature"><b>🎯 三種規則輪替</b><div>顏色、形狀、數字會不斷切換；高連擊後干擾會變得更像。</div></div>
+      <div class="feature"><b>🔥 狂熱模式</b><div>連續命中進入 Fever，倍率提升，但方塊更新更快。</div></div>
+      <button class="primary" id="startBtn">開始挑戰</button>
+      <div class="dev" id="modeNote">偵測 BoomRoom SDK 中…</div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="resultOverlay">
+    <div class="card">
+      <div class="eyebrow">ROUND COMPLETE</div>
+      <h2>極限完成</h2>
+      <div class="result-score" id="resultScore">0</div>
+      <p id="resultReason">完整結束本局。</p>
+      <div class="result-meta"><div class="rm"><b id="resultHits">0</b><span>命中</span></div><div class="rm"><b id="resultBest">0</b><span>最高連擊</span></div><div class="rm"><b id="resultReward">0</b><span>銀幣</span></div></div>
+      <button class="primary" id="leaveBtn">返回 BoomRoom</button>
+      <div class="dev">本局已結束；新的遊戲實例由房間重新開啟</div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="helpOverlay">
+    <div class="card">
+      <div class="eyebrow">HOW TO PLAY</div><h2>玩法</h2>
+      <p>只做一件事：依照規則，點中唯一符合條件的方塊。</p>
+      <div class="feature"><b>1 · 看規則</b><div>顏色＝找同色、形狀＝找同形、數字＝找指定數字。</div></div>
+      <div class="feature"><b>2 · 越快越高分</b><div>快速命中有 PERFECT / GREAT，連擊越高倍率越高。</div></div>
+      <div class="feature"><b>3 · 點錯會受罰</b><div>錯誤點擊會扣時間並中斷連擊，高層壓力更大。</div></div>
+      <button class="secondary" id="closeHelpBtn">關閉</button>
+    </div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+'use strict';
+const DEBUG = false;
+const GAME_INFO = Object.freeze({
+  id:'boom_hunt', category:'反應挑戰', name:'爆閃找王', description:'30 秒依規則找出唯一答案，靠反應與連擊衝高分。',
+  version:'1.0.0', entryCost:0, maxPlayers:6, controlModes:['Tap','Pointer'], duration:30, multiplayer:false, rewardEnabled:true
+});
+
+const $ = id => document.getElementById(id);
+const canvasLike = null;
+const grid = $('grid'), arena = $('arena');
+let width = 0, height = 0;
+let gameState = 'LOBBY';
+let roundId = 0;
+let roundToken = 0;
+let startTime = 0;
+let lastFrame = 0;
+let elapsed = 0;
+let remaining = GAME_INFO.duration;
+let score = 0;
+let combo = 0;
+let bestCombo = 0;
+let hits = 0;
+let totalBoards = 0;
+let targetIndex = -1;
+let targetSpawnMs = 0;
+let boardDeadlineMs = 0;
+let boardVersion = 0;
+let currentRule = null;
+let nextRuleChangeAt = 0;
+let fever = 0;
+let feverActive = false;
+let feverEndsAt = 0;
+let lastMilestone = 0;
+let gameOverCalled = false;
+let inputLocked = false;
+let soundOn = true;
+let audioCtx = null;
+let observedPlayers = new Map();
+let user = { id:'local', username:'玩家', avatar:'' };
+let rafId = 0;
+
+const COLORS = [
+  {name:'青',hex:'#35e6ff',h:190},
+  {name:'粉',hex:'#ff3a9d',h:330},
+  {name:'紫',hex:'#8c64ff',h:255},
+  {name:'綠',hex:'#4bf0ae',h:158},
+  {name:'金',hex:'#ffd65a',h:45},
+  {name:'橙',hex:'#ff9c57',h:24}
+];
+const SHAPES = ['●','◆','▲','■','✦'];
+const RULES = [
+  {id:'color',title:'找同色',desc:'找到和目標顏色完全相同的唯一方塊',icon:'🎨'},
+  {id:'shape',title:'找同形',desc:'找到和目標形狀完全相同的唯一方塊',icon:'🔷'},
+  {id:'number',title:'找數字',desc:'找到和目標數字完全相同的唯一方塊',icon:'🔢'}
+];
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function finite(v,fallback=0){ return Number.isFinite(v)?v:fallback; }
+function safeInt(v,min,max){ return Math.round(clamp(finite(v),min,max)); }
+function mulberry32(seed){
+  return function(){
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function seedForRound(){
+  let s = 2166136261;
+  const str = String(roundId)+'|'+String(user.id);
+  for(let i=0;i<str.length;i++){ s ^= str.charCodeAt(i); s = Math.imul(s,16777619); }
+  return s >>> 0;
+}
+
+function ensureAudio(){
+  if(!soundOn) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }catch(e){ audioCtx=null; }
+}
+function tone(freq,duration=0.07,type='sine',gain=.025,when=0){
+  if(!soundOn || !audioCtx) return;
+  try{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,audioCtx.currentTime+when);
+    g.gain.setValueAtTime(gain,audioCtx.currentTime+when);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+when+duration);
+    o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime+when); o.stop(audioCtx.currentTime+when+duration+.02);
+  }catch(e){}
+}
+function soundHit(perfect=false){ ensureAudio(); tone(perfect?980:760,.06,'triangle',.045); tone(perfect?1320:1040,.08,'sine',.02,.035); }
+function soundWrong(){ ensureAudio(); tone(170,.12,'sawtooth',.035); }
+function soundMilestone(){ ensureAudio(); tone(540,.08,'triangle',.04); tone(760,.09,'triangle',.04,.07); tone(1080,.12,'sine',.03,.14); }
+function buzz(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
+
+function readUser(){
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser === 'function'){
+      const u=window.BoomRoomSDK.getUser();
+      if(u && u.id) user={id:String(u.id),username:String(u.username||'玩家'),avatar:String(u.avatar||'')};
+    }
+  }catch(e){}
+  $('modeNote').textContent = window.BoomRoomSDK ? 'BoomRoom SDK 已連接 · 免費挑戰' : '開發測試模式 · 不會真的扣除銀幣';
+}
+
+function sendEvent(eventName,payload){
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==='function'){
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    }
+  }catch(e){}
+}
+
+window.addEventListener('message',(e)=>{
+  try{
+    const d = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+    if(!d || d.action!=='gameEventReceived') return;
+    const {userId,eventName,payload}=d;
+    if(!userId || !eventName || !payload) return;
+    if(payload.roundId!==undefined && Number(payload.roundId)!==Number(roundId)) return;
+    if(eventName==='PLAYER_HELLO'){
+      observedPlayers.set(String(userId),{username:String(payload.username||'玩家'),score:0,status:'READY',timestamp:Date.now()});
+    }else if(eventName==='PLAYER_END'){
+      const prev=observedPlayers.get(String(userId))||{};
+      observedPlayers.set(String(userId),{...prev,username:String(payload.username||prev.username||'玩家'),score:safeInt(payload.score,0,99999999),status:'FINISHED',timestamp:Date.now()});
+    }else if(eventName==='PLAYER_STATE'){
+      const prev=observedPlayers.get(String(userId))||{};
+      observedPlayers.set(String(userId),{...prev,username:String(payload.username||prev.username||'玩家'),score:safeInt(payload.score,0,99999999),status:String(payload.status||prev.status||'PLAYING'),timestamp:Date.now()});
+    }
+  }catch(e){}
+});
+
+function newRoundId(){ return Date.now() + Math.floor(Math.random()*999); }
+function setGameState(next){ gameState=next; }
+
+function resetRound(){
+  score=0; combo=0; bestCombo=0; hits=0; totalBoards=0; fever=0; feverActive=false; lastMilestone=0;
+  remaining=GAME_INFO.duration; elapsed=0; targetIndex=-1; currentRule=RULES[0]; nextRuleChangeAt=6; boardVersion=0; boardDeadlineMs=0; inputLocked=false; gameOverCalled=false;
+  observedPlayers = new Map([[String(user.id),{username:user.username,score:0,status:'READY',timestamp:Date.now()}]]);
+  $('scoreText').textContent='0'; $('comboText').textContent='x0'; $('bestComboText').textContent='0'; $('hitsText').textContent='0'; $('timeText').textContent='30.0'; $('feverText').textContent='READY';
+  updateRuleUI();
+  grid.innerHTML='';
+}
+
+function startGame(){
+  if(gameState!=='LOBBY') return;
+  ensureAudio(); readUser(); resetRound(); roundId=newRoundId(); roundToken++;
+  setGameState('PLAYING');
+  $('startOverlay').classList.add('hidden'); $('resultOverlay').classList.add('hidden'); $('helpOverlay').classList.add('hidden');
+  startTime=performance.now(); lastFrame=startTime; nextRuleChangeAt=5.5; inputLocked=false;
+  sendEvent('PLAYER_HELLO',{roundId,username:user.username,avatar:user.avatar,joinedAt:Date.now()});
+  sendEvent('ROUND_START',{roundId,startTime:Date.now(),maxDuration:GAME_INFO.duration});
+  makeBoard(); buzz(15); tone(600,.08,'triangle',.035); tone(900,.1,'triangle',.035,.09);
+  rafId=requestAnimationFrame(loop);
+}
+
+function chooseRule(){
+  const next=(RULES.findIndex(r=>r.id===currentRule.id)+1)%RULES.length;
+  currentRule=RULES[next];
+  updateRuleUI();
+  toast('規則切換：'+currentRule.title);
+  tone(420,.05,'square',.018); tone(640,.05,'square',.018,.05);
+}
+function updateRuleUI(){
+  $('ruleIcon').textContent=currentRule.icon; $('ruleTitle').textContent=currentRule.title; $('ruleDesc').textContent=currentRule.desc;
+}
+
+function difficulty(){
+  const t=elapsed;
+  const d=clamp(t/30,0,1);
+  return {d, window:clamp(1.75 - d*0.70 - Math.max(0,combo-8)*0.025,0.72,1.75), sim:clamp(0.18+d*0.60,0.18,0.78), refresh:clamp(0.12+d*0.10,0.12,0.22)};
+}
+
+function makeBoard(){
+  if(gameState!=='PLAYING') return;
+  boardVersion++;
+  totalBoards++;
+  const diff=difficulty();
+  const seed=(seedForRound()+boardVersion*0x9E3779B9)>>>0;
+  const rnd=mulberry32(seed);
+  const target={color:Math.floor(rnd()*COLORS.length),shape:Math.floor(rnd()*SHAPES.length),num:1+Math.floor(rnd()*9)};
+  targetIndex=Math.floor(rnd()*12);
+  grid.innerHTML='';
+  const cells=[];
+  for(let i=0;i<12;i++){
+    const tile=document.createElement('button');
+    tile.type='button'; tile.className='tile'; tile.dataset.index=i; tile.setAttribute('aria-label','遊戲方塊');
+    let colorIdx,shapeIdx,num;
+    if(i===targetIndex){ colorIdx=target.color; shapeIdx=target.shape; num=target.num; }
+    else{
+      colorIdx=Math.floor(rnd()*COLORS.length); shapeIdx=Math.floor(rnd()*SHAPES.length); num=1+Math.floor(rnd()*9);
+      // 高難度下，有些干擾只差一個屬性；但保證不是完整匹配
+      const mode=Math.floor(rnd()*3);
+      if(mode===0 && rnd()<diff.sim) colorIdx=target.color;
+      if(mode===1 && rnd()<diff.sim) shapeIdx=target.shape;
+      if(mode===2 && rnd()<diff.sim) num=target.num;
+      if(colorIdx===target.color && shapeIdx===target.shape && num===target.num){ num=num%9+1; }
+    }
+    tile.dataset.color=colorIdx; tile.dataset.shape=shapeIdx; tile.dataset.num=num;
+    tile.style.setProperty('--glow',COLORS[colorIdx].hex);
+    tile.innerHTML='<span class="glyph" style="color:'+COLORS[colorIdx].hex+'">'+SHAPES[shapeIdx]+'</span><span class="num">'+num+'</span>';
+    if(i===targetIndex) tile.classList.add('target');
+    tile.addEventListener('pointerdown',handleTilePointer,{passive:false});
+    cells.push(tile); grid.appendChild(tile);
+  }
+  targetSpawnMs=performance.now(); boardDeadlineMs=targetSpawnMs+diff.window*1000;
+  $('paceText').textContent = feverActive ? 'FEVER ×2' : (diff.d<.34?'穩定':'加速');
+  if(feverActive) $('paceText').classList.add('hot'); else $('paceText').classList.remove('hot');
+}
+
+function handleTilePointer(e){
+  e.preventDefault();
+  if(gameState!=='PLAYING' || inputLocked) return;
+  const tile=e.currentTarget;
+  const idx=Number(tile.dataset.index);
+  const now=performance.now();
+  if(now>boardDeadlineMs){
+    punishTimeout();
+    return;
+  }
+  if(idx!==targetIndex){
+    tile.classList.add('wrong');
+    setTimeout(()=>tile.classList.remove('wrong'),240);
+    punishWrong();
+    return;
+  }
+  tile.classList.add('hit'); setTimeout(()=>tile.classList.remove('hit'),100);
+  resolveHit(now-targetSpawnMs,tile);
+}
+
+function resolveHit(reactionMs,tile){
+  const fast=clamp(1-(reactionMs/1800),0,1);
+  const perfect=reactionMs<=360;
+  const great=reactionMs<=720;
+  combo++; hits++; bestCombo=Math.max(bestCombo,combo);
+  const mult=clamp(1 + Math.floor(combo/4)*0.25 + (feverActive?1:0),1,4);
+  const base=perfect?135:great?105:85;
+  const bonus=Math.round((base+Math.round(fast*70))*mult);
+  score=safeInt(score+bonus,0,99999999);
+  remaining=clamp(remaining + (perfect?0.11:great?0.07:0.04),0,GAME_INFO.duration);
+  $('scoreText').textContent=score.toLocaleString(); $('comboText').textContent='x'+combo; $('bestComboText').textContent=bestCombo; $('hitsText').textContent=hits;
+  showFeedback(perfect?'PERFECT':great?'GREAT':'GOOD','+'+bonus+(feverActive?'  FEVER':''),perfect?'var(--gold)':great?'var(--cyan)':'#fff');
+  soundHit(perfect); if(perfect) buzz(10);
+  if(combo>=8 && !feverActive){ startFever(); }
+  if(combo>0 && combo%10===0 && combo!==lastMilestone){ lastMilestone=combo; showMilestone(combo); }
+  sendEvent('PLAYER_STATE',{roundId,username:user.username,status:'PLAYING',score,hp:1});
+  if(feverActive && performance.now()>feverEndsAt) endFever();
+  makeBoard();
+}
+
+function punishWrong(){
+  combo=0; remaining=clamp(remaining-2.2,0,GAME_INFO.duration); fever=0;
+  endFever();
+  $('comboText').textContent='x0';
+  showFeedback('錯了！','-2.2 秒','var(--red)'); soundWrong(); buzz([15,25]);
+  makeBoard();
+}
+function punishTimeout(){
+  combo=0; remaining=clamp(remaining-1.2,0,GAME_INFO.duration); endFever();
+  $('comboText').textContent='x0'; showFeedback('太慢','-1.2 秒','var(--gold)'); soundWrong(); makeBoard();
+}
+function startFever(){
+  feverActive=true; feverEndsAt=performance.now()+4800; $('feverText').textContent='ACTIVE ×2'; $('feverText').style.color='var(--gold)';
+  toast('🔥 FEVER！現在分數 ×2'); soundMilestone(); buzz([20,20,40]);
+}
+function endFever(){
+  feverActive=false; feverEndsAt=0; $('feverText').textContent='READY'; $('feverText').style.color='';
+}
+function showFeedback(big,small,color){
+  $('fbBig').textContent=big; $('fbBig').style.color=color; $('fbSmall').textContent=small;
+  const el=$('feedback'); el.classList.remove('show-fb'); void el.offsetWidth; el.classList.add('show-fb');
+}
+function showMilestone(n){
+  $('milestoneText').textContent=n+' COMBO'; const el=$('milestone'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); soundMilestone();
+}
+function toast(msg){
+  const el=$('toast'); el.textContent=msg; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+
+function updateHUD(now){
+  if(feverActive){
+    const left=Math.max(0,feverEndsAt-now);
+    $('feverText').textContent='ACTIVE '+(left/1000).toFixed(1);
+    if(left<=0) endFever();
+  }
+  $('timeText').textContent=remaining.toFixed(1);
+  $('timerBar').style.width=(remaining/GAME_INFO.duration*100).toFixed(2)+'%';
+  if(remaining<=5) $('timeText').style.color='var(--red)'; else $('timeText').style.color='';
+  if(elapsed>=nextRuleChangeAt){ chooseRule(); nextRuleChangeAt+=7.0; }
+  const d=difficulty(); $('paceText').textContent=feverActive?'FEVER ×2':(d.d<.33?'穩定':d.d<.66?'加速':'極限');
+}
+
+function loop(now){
+  if(gameState!=='PLAYING') return;
+  const dt=clamp((now-lastFrame)/1000,0,0.033); lastFrame=now;
+  elapsed=(now-startTime)/1000; remaining=clamp(GAME_INFO.duration-elapsed + (hits*0.06),0,GAME_INFO.duration);
+  updateHUD(now);
+  if(now>boardDeadlineMs) {
+    // 不用每幀重建：只在超時後處理一次
+    if(performance.now() - targetSpawnMs > difficulty().window*1000 + 30) punishTimeout();
+  }
+  if(remaining<=0 || elapsed>=GAME_INFO.duration){ finishGame('時間到'); return; }
+  sendHeartbeatThrottled(now);
+  rafId=requestAnimationFrame(loop);
+}
+let lastHeartbeat=0;
+function sendHeartbeatThrottled(now){
+  if(now-lastHeartbeat<1000) return; lastHeartbeat=now;
+  sendEvent('PLAYER_HEARTBEAT',{roundId,username:user.username,status:'PLAYING',score,timestamp:Date.now()});
+}
+
+function calculateReward(){
+  // 免費派對遊戲，獎勵依表現有限且固定上限，避免無限收益。
+  const reward=score>=4500?50:score>=3000?35:score>=1800?20:score>=900?10:0;
+  return safeInt(reward,0,50);
+}
+function finishGame(reason){
+  if(gameState!=='PLAYING') return;
+  setGameState('RESULT'); inputLocked=true;
+  const reward=calculateReward();
+  const finalScore=safeInt(score,0,99999999);
+  sendEvent('PLAYER_END',{roundId,username:user.username,status:'FINISHED',score:finalScore,reward,reason});
+  if(!gameOverCalled){
+    gameOverCalled=true;
+    try{
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+        window.BoomRoomSDK.gameOver(reward);
+      }
+    }catch(e){}
+  }
+  $('resultScore').textContent=finalScore.toLocaleString(); $('resultHits').textContent=hits; $('resultBest').textContent=bestCombo; $('resultReward').textContent=reward;
+  $('resultReason').textContent=reason+' · 連擊 '+bestCombo+' · 共命中 '+hits+' 次';
+  $('resultOverlay').classList.remove('hidden');
+  soundMilestone(); buzz([30,30,60]);
+}
+
+$('startBtn').addEventListener('pointerdown',(e)=>{e.preventDefault();startGame();});
+$('leaveBtn').addEventListener('pointerdown',(e)=>{e.preventDefault();
+  try{ if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==='function') sendEvent('PLAYER_LEAVE',{roundId,username:user.username,timestamp:Date.now()}); }catch(err){}
+  $('resultOverlay').classList.add('hidden'); $('startOverlay').classList.remove('hidden'); setGameState('LOBBY'); inputLocked=false;
+});
+$('soundBtn').addEventListener('pointerdown',(e)=>{e.preventDefault(); soundOn=!soundOn; $('soundBtn').textContent=soundOn?'🔊':'🔇'; if(soundOn) ensureAudio();});
+$('helpBtn').addEventListener('pointerdown',(e)=>{e.preventDefault(); $('helpOverlay').classList.remove('hidden'); ensureAudio();});
+$('closeHelpBtn').addEventListener('pointerdown',(e)=>{e.preventDefault(); $('helpOverlay').classList.add('hidden');});
+
+function resize(){ width=window.innerWidth; height=window.innerHeight; }
+window.addEventListener('resize',resize,{passive:true}); window.addEventListener('orientationchange',()=>setTimeout(resize,100),{passive:true}); resize();
+window.addEventListener('pointerdown',()=>ensureAudio(),{once:true,passive:true});
+readUser();
+
+// 開發模式快捷測試：不影響正式邏輯
+window.__BOOM_HUNT_DEBUG__={getState:()=>({gameState,roundId,score,combo,bestCombo,hits,remaining,currentRule:currentRule.id})};
+
+if(DEBUG){
+  console.log('GAME_INFO',GAME_INFO);
+  console.log('DEBUG READY');
+}
+</script>
+</body>
+</html>

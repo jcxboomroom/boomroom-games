@@ -1,723 +1,1093 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Piggy Run</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a12">
+<title>賽博神豬：死鬥競速</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-        :root {
-            --bg-color: #0a0a12;
-            --panel-bg: rgba(15, 15, 25, 0.9);
-            --neon-red: #ff2a2a;
-            --neon-green: #00ff66;
-            --neon-blue: #00e5ff;
-            --neon-yellow: #ffea00;
-            --neon-purple: #b700ff;
-        }
+:root {
+    --bg-color: #0a0a12;
+    --panel-bg: rgba(15, 15, 25, 0.9);
+    --neon-red: #ff2a2a;
+    --neon-green: #00ff66;
+    --neon-blue: #00e5ff;
+    --neon-yellow: #ffea00;
+    --neon-purple: #b700ff;
+    --text: #f7f8ff;
+    --muted: #9ba4bf;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Orbitron', sans-serif;
-        }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'Orbitron', "Noto Sans TC", sans-serif;
+}
 
-        body {
-            background-color: var(--bg-color);
-            color: #fff;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+html, body {
+    width: 100%;
+    height: 100dvh;
+    background-color: var(--bg-color);
+    color: var(--text);
+    overflow: hidden;
+    touch-action: none;
+}
 
-        #game-container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 10px;
-            z-index: 1;
-        }
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom));
+    gap: 10px;
+}
 
-        /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: var(--panel-bg);
-            border: 1px solid var(--neon-purple);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(183, 0, 255, 0.3);
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
+/* Topbar */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: var(--panel-bg);
+    border: 1px solid var(--neon-purple);
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(183, 0, 255, 0.2);
+    flex-shrink: 0;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 18px; cursor: pointer;
+    transition: transform 0.1s;
+}
+.icon-btn:active { transform: scale(0.9); }
+.brand h1 { font-size: 16px; margin: 0; color: var(--neon-blue); text-shadow: 0 0 5px var(--neon-blue); letter-spacing: 1px; }
+.brand small { display: block; font-size: 9px; color: var(--muted); font-family: sans-serif; }
 
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--neon-blue); }
-        .username { font-size: 14px; font-weight: bold; color: var(--neon-blue); }
-        .host-badge { font-size: 10px; background: var(--neon-yellow); color: #000; padding: 2px 5px; border-radius: 3px; display: none; margin-left: 5px;}
-        
-        .status-area { text-align: right; }
-        .phase-text { font-size: 12px; color: var(--neon-purple); font-weight: bold; }
-        .timer-text { font-size: 24px; color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 10px var(--neon-yellow); }
+/* Info Panel */
+.info-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.stat-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+}
+.stat-box b { display: block; font-size: 12px; color: var(--neon-yellow); }
+.stat-box span { display: block; font-size: 9px; color: var(--muted); margin-top: 3px; font-family: sans-serif; }
 
-        /* Track Area */
-        .track-container {
-            flex: 1;
-            display: flex;
-            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(255,255,255,0.1) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
+/* Status Bar */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid var(--neon-blue);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+.phase-text { font-size: 14px; font-weight: bold; color: var(--neon-blue); }
+.timer-text { font-size: 20px; font-weight: 900; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
 
-        .finish-line {
-            position: absolute;
-            top: 10%;
-            width: 100%;
-            height: 4px;
-            background: repeating-linear-gradient(90deg, #fff, #fff 10px, #000 10px, #000 20px);
-            z-index: 0;
-            box-shadow: 0 0 10px #fff;
-        }
+/* Track Area */
+.track-container {
+    flex: 1;
+    display: flex;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(255,255,255,0.1) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.finish-line {
+    position: absolute;
+    top: 10%;
+    width: 100%;
+    height: 6px;
+    background: repeating-linear-gradient(90deg, #fff, #fff 15px, #000 15px, #000 30px);
+    z-index: 0;
+    box-shadow: 0 0 15px #fff;
+}
+.lane {
+    flex: 1;
+    border-right: 1px dashed rgba(255, 255, 255, 0.15);
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.lane:last-child { border-right: none; }
 
-        .lane {
-            flex: 1;
-            border-right: 1px dashed rgba(255, 255, 255, 0.1);
-            position: relative;
-            display: flex;
-            justify-content: center;
-        }
-        .lane:last-child { border-right: none; }
+.pig {
+    position: absolute;
+    bottom: 5%;
+    width: 44px;
+    height: 44px;
+    background: #111;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    transition: bottom 0.1s linear;
+    z-index: 2;
+    box-shadow: 0 0 15px currentColor;
+    border: 2px solid currentColor;
+}
+.pig-effect {
+    position: absolute;
+    top: -25px;
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    text-shadow: 0 0 10px currentColor;
+}
 
-        .pig {
-            position: absolute;
-            bottom: 5%; /* 5% to 90% */
-            width: 40px;
-            height: 40px;
-            background: #222;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            transition: bottom 0.1s linear;
-            z-index: 2;
-            box-shadow: 0 0 15px currentColor;
-            border: 2px solid currentColor;
-        }
+/* Control Panel */
+.control-panel {
+    height: 110px;
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+}
+.action-btn {
+    flex: 1;
+    background: var(--panel-bg);
+    border: 2px solid;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.2s, opacity 0.2s;
+    position: relative;
+    overflow: hidden;
+    padding: 5px;
+}
+.action-btn:active { transform: scale(0.95); }
+.action-btn.disabled { filter: grayscale(1); pointer-events: none; opacity: 0.4; }
+.action-btn.selected { background: rgba(255,255,255,0.15); box-shadow: inset 0 0 20px currentColor; }
 
-        .pig-effect {
-            position: absolute;
-            top: -25px;
-            font-size: 20px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
+.btn-title { font-size: 13px; font-weight: bold; margin-bottom: 4px; font-family: "Noto Sans TC", sans-serif; }
+.btn-desc { font-size: 9px; color: var(--muted); text-align: center; line-height: 1.2; font-family: sans-serif; }
+.btn-action { font-size: 12px; font-weight: bold; margin-top: 6px; padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,0.5); display: none; }
 
-        /* Bottom Panel */
-        .control-panel {
-            height: 120px;
-            flex-shrink: 0;
-            display: flex;
-            gap: 5px;
-        }
+/* Main Action Button */
+.main-action-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 0 20px rgba(183, 0, 255, 0.4);
+    transition: transform 0.1s;
+    flex-shrink: 0;
+    font-family: "Noto Sans TC", sans-serif;
+}
+.main-action-btn:active { transform: scale(0.98); }
+.main-action-btn:disabled { background: #333; color: #888; box-shadow: none; pointer-events: none; }
 
-        .action-btn {
-            flex: 1;
-            background: var(--panel-bg);
-            border: 2px solid;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.1s, filter 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-        .action-btn:active { transform: scale(0.95); }
-        .action-btn.disabled { filter: grayscale(1); pointer-events: none; opacity: 0.5; }
+/* Modals */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    display: none;
+    place-items: center;
+    padding: 20px;
+}
+.overlay.show { display: grid; }
+.modal-card {
+    width: 100%;
+    max-width: 360px;
+    background: linear-gradient(180deg, #1a1a2e, #0f0f1a);
+    border: 1px solid var(--neon-blue);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0, 229, 255, 0.2);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.modal-card h2 { color: var(--neon-blue); margin-bottom: 15px; font-size: 22px; }
+.modal-card p { color: var(--muted); font-size: 12px; line-height: 1.6; margin-bottom: 15px; font-family: sans-serif; }
+.rules-list { text-align: left; font-size: 12px; color: #d0d5e8; line-height: 1.6; margin-bottom: 20px; font-family: sans-serif; padding-left: 20px; }
+.rules-list li { margin-bottom: 8px; }
 
-        .btn-title { font-size: 14px; font-weight: bold; margin-bottom: 2px; }
-        .btn-odds { font-size: 12px; margin-bottom: 5px; }
-        .btn-mybet { font-size: 14px; font-weight: bold; color: #fff; }
-        
-        /* Dynamic Button States */
-        .btn-state-bet .btn-action-text { display: none; }
-        .btn-state-item .btn-odds, .btn-state-item .btn-mybet { display: none; }
-        .btn-state-item .btn-action-text { display: block; font-size: 14px; font-weight: bold; margin-top: 5px; }
+.result-big { font-size: 32px; font-weight: 900; margin: 15px 0; }
+.result-big.win { color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); }
+.result-big.lose { color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red); }
 
-        /* Overlays */
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
-        }
-        .hidden { display: none !important; }
+/* Feed & Floating */
+.feed {
+    position: absolute;
+    top: 160px;
+    left: 10px;
+    width: 200px;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+.feed-item {
+    font-size: 10px;
+    background: rgba(0,0,0,0.6);
+    border-left: 2px solid var(--neon-blue);
+    padding: 4px 8px;
+    border-radius: 0 4px 4px 0;
+    color: #fff;
+    animation: slideIn 0.3s ease-out forwards;
+    font-family: sans-serif;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
-        .glowing-btn {
-            background: transparent;
-            border: 2px solid var(--neon-purple);
-            color: var(--neon-purple);
-            padding: 15px 40px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 0 15px var(--neon-purple) inset, 0 0 15px var(--neon-purple);
-            text-transform: uppercase;
-        }
+.toast {
+    position: fixed;
+    top: calc(80px + var(--safe-top));
+    left: 50%;
+    transform: translate(-50%, -10px);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid var(--neon-purple);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s;
+    font-family: sans-serif;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-        .leaderboard-title { font-size: 30px; color: var(--neon-yellow); margin-bottom: 20px; text-shadow: 0 0 10px var(--neon-yellow); }
-        .lb-entry { display: flex; justify-content: space-between; width: 100%; max-width: 300px; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
-        .lb-entry.me { color: var(--neon-blue); font-weight: bold; }
-
-        /* Floating Text */
-        .floating-text {
-            position: absolute;
-            font-weight: bold;
-            font-size: 18px;
-            pointer-events: none;
-            animation: floatUp 1s forwards;
-            z-index: 50;
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-40px) scale(1.5); }
-        }
-
-        /* Action Feed */
-        .feed {
-            position: absolute;
-            top: 80px;
-            left: 10px;
-            width: 200px;
-            height: 100px;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            gap: 2px;
-            z-index: 10;
-        }
-        .feed-item {
-            font-size: 10px;
-            background: rgba(0,0,0,0.5);
-            padding: 2px 5px;
-            border-radius: 3px;
-            color: #fff;
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-    </style>
+.floating-text {
+    position: absolute;
+    font-weight: bold;
+    font-size: 16px;
+    pointer-events: none;
+    animation: floatUp 0.8s forwards;
+    z-index: 50;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+@keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-30px) scale(1.2); }
+}
+</style>
 </head>
 <body>
 
-    <div id="start-overlay" class="overlay">
-        <h1 style="color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); font-size: 36px;">CYBER PIGGY</h1>
-        <h2 style="color: var(--neon-purple); margin-bottom: 40px; letter-spacing: 5px;">RUN</h2>
-        <button class="glowing-btn" id="btn-join">Enter Arena</button>
-    </div>
-
-    <div id="leaderboard-overlay" class="overlay hidden">
-        <div class="leaderboard-title">RACE RESULTS</div>
-        <div id="winner-announce" style="font-size: 20px; margin-bottom: 10px; color: #fff;"></div>
-        <div id="lb-content" style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px;"></div>
-        <div id="my-result" style="font-size: 24px; margin-bottom: 20px;"></div>
-    </div>
-
-    <div id="game-container">
-        <header>
-            <div class="user-info">
-                <img id="my-avatar" class="avatar" src="" alt="avatar">
-                <div>
-                    <div id="my-username" class="username">Player</div>
-                    <span id="host-badge" class="host-badge">HOST</span>
-                </div>
-            </div>
-            <div class="status-area">
-                <div id="phase-text" class="phase-text">WAITING</div>
-                <div id="timer-text" class="timer-text">--</div>
-            </div>
-        </header>
-
-        <div class="feed" id="feed"></div>
-
-        <div class="track-container">
-            <div class="finish-line"></div>
-            <!-- Lanes and Pigs -->
-            <div class="lane">
-                <div class="pig" id="pig-0" style="color: var(--neon-red);">
-                    🐷<div class="pig-effect" id="effect-0"></div>
-                </div>
-            </div>
-            <div class="lane">
-                <div class="pig" id="pig-1" style="color: var(--neon-green);">
-                    🐷<div class="pig-effect" id="effect-1"></div>
-                </div>
-            </div>
-            <div class="lane">
-                <div class="pig" id="pig-2" style="color: var(--neon-blue);">
-                    🐷<div class="pig-effect" id="effect-2"></div>
-                </div>
-            </div>
-            <div class="lane">
-                <div class="pig" id="pig-3" style="color: var(--neon-yellow);">
-                    🐷<div class="pig-effect" id="effect-3"></div>
-                </div>
+<div id="app">
+    <header class="topbar">
+        <div class="brand">
+            <button class="icon-btn" id="btn-mute">🔊</button>
+            <div>
+                <h1>CYBER PIGGY</h1>
+                <small>死鬥競速 · 獎池平分</small>
             </div>
         </div>
+        <div class="brand">
+            <div style="text-align: right;">
+                <div style="font-size:11px; font-weight:bold; color:var(--neon-blue);" id="my-username">Player</div>
+                <div style="font-size:9px; color:var(--muted);" id="role-text">連線中</div>
+            </div>
+            <button class="icon-btn" id="btn-help">❓</button>
+        </div>
+    </header>
 
-        <div class="control-panel">
-            <!-- Buttons generated by JS -->
+    <div class="info-panel">
+        <div class="stat-box">
+            <b>100 🪙</b>
+            <span>固定入場費</span>
+        </div>
+        <div class="stat-box">
+            <b id="total-pool">0 🪙</b>
+            <span>總投入</span>
+        </div>
+        <div class="stat-box">
+            <b id="prize-pool">0 🪙</b>
+            <span>實際獎池 (扣10%)</span>
         </div>
     </div>
 
-    <script>
-        // ==========================================
-        // 1. BOOMROOM SDK MOCK (For local testing)
-        // ==========================================
-        if (typeof window.BoomRoomSDK === 'undefined') {
-            window.BoomRoomSDK = {
-                getUser: () => ({ 
-                    id: 'u_' + Math.floor(Math.random()*10000), 
-                    username: 'Cyber' + Math.floor(Math.random()*100), 
-                    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random() 
-                }),
-                requestPurchase: (itemId, cost) => {
-                    setTimeout(() => {
-                        if(window.onPurchaseSuccess) window.onPurchaseSuccess(itemId);
-                    }, 200);
-                },
-                gameOver: (winAmount) => console.log("[SDK] Game Over. Win:", winAmount),
-                sendGameEvent: (eventName, payload) => {
-                    const msg = JSON.stringify({
-                        action: "gameEventReceived",
-                        eventName: eventName,
-                        userId: window.BoomRoomSDK.getUser().id,
-                        payload: payload
-                    });
-                    window.postMessage(msg, "*");
-                }
-            };
-        }
+    <div class="status-bar">
+        <div class="phase-text" id="phase-text">等待入場</div>
+        <div class="timer-text" id="timer-text">READY</div>
+    </div>
 
-        // ==========================================
-        // 2. GAME CONFIG & STATE
-        // ==========================================
-        const user = window.BoomRoomSDK.getUser();
-        let isHost = false;
-        let hostId = null;
+    <div class="feed" id="feed"></div>
+
+    <div class="track-container">
+        <div class="finish-line"></div>
+        <div class="lane">
+            <div class="pig" id="pig-0" style="color: var(--neon-red);">🐷<div class="pig-effect" id="effect-0"></div></div>
+        </div>
+        <div class="lane">
+            <div class="pig" id="pig-1" style="color: var(--neon-green);">🐷<div class="pig-effect" id="effect-1"></div></div>
+        </div>
+        <div class="lane">
+            <div class="pig" id="pig-2" style="color: var(--neon-blue);">🐷<div class="pig-effect" id="effect-2"></div></div>
+        </div>
+        <div class="lane">
+            <div class="pig" id="pig-3" style="color: var(--neon-yellow);">🐷<div class="pig-effect" id="effect-3"></div></div>
+        </div>
+    </div>
+
+    <div class="control-panel" id="control-panel">
+        <!-- Buttons generated by JS -->
+    </div>
+
+    <button class="main-action-btn" id="main-btn">支付 100 🪙 入場</button>
+    <div style="text-align:center; font-size:9px; color:var(--muted); font-family:sans-serif;">本遊戲為單局決戰，結束後需由市長重新開房</div>
+</div>
+
+<!-- Rules Modal -->
+<div class="overlay" id="modal-rules">
+    <div class="modal-card">
+        <h2>玩法規則</h2>
+        <ul class="rules-list">
+            <li><b>入場：</b>每人支付 100 銀幣，形成總獎池 (平台收取 10% 手續費)。</li>
+            <li><b>選擇：</b>入場後，選擇一隻你認為會贏的神豬贊助。</li>
+            <li><b>道具：</b>比賽開始後，每人擁有 1次加速 與 1次陷阱。</li>
+            <li><b>操作：</b>點擊你贊助的神豬 = 使用加速；點擊其他神豬 = 使用陷阱。</li>
+            <li><b>獲勝：</b>第一名抵達終點的神豬獲勝！</li>
+            <li><b>獎勵：</b>所有贊助獲勝神豬的玩家，平分最終實際獎池！</li>
+            <li><b>單局制：</b>遊戲結束後即鎖定，需由市長重新建立新房間。</li>
+        </ul>
+        <button class="main-action-btn" id="btn-close-rules">我知道了</button>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="overlay" id="modal-result">
+    <div class="modal-card">
+        <h2>RACE RESULT</h2>
+        <div id="result-winner-text" style="font-size:16px; font-weight:bold; margin-bottom:10px;"></div>
+        <div class="result-big" id="result-amount">+0 🪙</div>
+        <p id="result-desc">本局已結束</p>
         
-        let gameState = "WAITING"; // WAITING, BETTING, RACING, RESULT
-        let phaseTime = 0;
+        <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:10px; margin-bottom:15px; text-align:left;">
+            <div style="font-size:10px; color:var(--muted); margin-bottom:5px;">獲獎名單：</div>
+            <div id="winners-list" style="font-size:12px; color:#fff; max-height:80px; overflow-y:auto;"></div>
+        </div>
+
+        <button class="main-action-btn" id="btn-close-result" style="background:#333; box-shadow:none;">關閉面板</button>
+        <p style="font-size:10px; color:var(--neon-yellow); margin-top:15px;">本局已永久結束，請等待市長關閉遊戲並重新開啟新局。</p>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+'use strict';
+
+/* ==============================
+   BoomRoom SDK & User
+   ============================== */
+const SDK = window.BoomRoomSDK || null;
+let user;
+try {
+    user = SDK && typeof SDK.getUser === 'function' ? SDK.getUser() : {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家', avatar:''};
+} catch(e) {
+    user = {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家', avatar:''};
+}
+const ME = {
+    id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2))),
+    username: String(user?.username || '玩家').slice(0,24),
+    joinedAt: Date.now()
+};
+const DEMO = !SDK;
+
+/* ==============================
+   Constants & Config
+   ============================== */
+const ENTRY_FEE = 100;
+const PLATFORM_FEE_RATE = 0.1;
+const HOST_TIMEOUT_MS = 5000;
+
+const PIGS = [
+    { id: 0, name: "穩健紅", color: "var(--neon-red)", desc: "速度穩定", baseSpeed: [0.6, 1.2] },
+    { id: 1, name: "神經綠", color: "var(--neon-green)", desc: "大起大落", baseSpeed: [0.2, 1.8] },
+    { id: 2, name: "重裝藍", color: "var(--neon-blue)", desc: "抗陷阱強", baseSpeed: [0.4, 1.0] },
+    { id: 3, name: "奇蹟黃", color: "var(--neon-yellow)", desc: "機率爆發", baseSpeed: [0.1, 0.7] }
+];
+
+const els = {
+    myUsername: document.getElementById('my-username'),
+    roleText: document.getElementById('role-text'),
+    totalPool: document.getElementById('total-pool'),
+    prizePool: document.getElementById('prize-pool'),
+    phaseText: document.getElementById('phase-text'),
+    timerText: document.getElementById('timer-text'),
+    controlPanel: document.getElementById('control-panel'),
+    mainBtn: document.getElementById('main-btn'),
+    feed: document.getElementById('feed'),
+    toast: document.getElementById('toast'),
+    btnMute: document.getElementById('btn-mute'),
+    btnHelp: document.getElementById('btn-help'),
+    modalRules: document.getElementById('modal-rules'),
+    btnCloseRules: document.getElementById('btn-close-rules'),
+    modalResult: document.getElementById('modal-result'),
+    resultWinnerText: document.getElementById('result-winner-text'),
+    resultAmount: document.getElementById('result-amount'),
+    resultDesc: document.getElementById('result-desc'),
+    winnersList: document.getElementById('winners-list'),
+    btnCloseResult: document.getElementById('btn-close-result')
+};
+
+/* ==============================
+   Audio System
+   ============================== */
+let audioCtx = null, masterGain = null;
+let isMuted = false;
+
+function initAudio() {
+    if(isMuted) return;
+    if(audioCtx) { if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{}); return; }
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.08;
+        masterGain.connect(audioCtx.destination);
+    } catch(e){}
+}
+function toggleMute() {
+    isMuted = !isMuted;
+    els.btnMute.textContent = isMuted ? '🔇' : '🔊';
+    if(isMuted && masterGain) masterGain.gain.value = 0;
+    else if(!isMuted && masterGain) masterGain.gain.value = 0.08;
+}
+els.btnMute.onclick = toggleMute;
+
+function tone(freq, type, duration, vol=0.5, delay=0) {
+    if(!audioCtx || !masterGain || isMuted) return;
+    const now = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, now);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.001, vol), now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(now); osc.stop(now + duration + 0.05);
+}
+const sfx = {
+    tap: () => tone(500, 'triangle', 0.05, 0.3),
+    pay: () => { tone(600, 'sine', 0.1, 0.4); tone(900, 'sine', 0.15, 0.4, 0.08); },
+    select: () => tone(800, 'square', 0.1, 0.2),
+    boost: () => tone(1200, 'square', 0.2, 0.3),
+    trap: () => tone(200, 'sawtooth', 0.3, 0.4),
+    tick: () => tone(1000, 'sine', 0.05, 0.1),
+    win: () => { tone(400, 'square', 0.1, 0.4); tone(600, 'square', 0.2, 0.4, 0.1); tone(800, 'square', 0.3, 0.4, 0.3); },
+    lose: () => { tone(300, 'sawtooth', 0.2, 0.4); tone(200, 'sawtooth', 0.4, 0.4, 0.2); }
+};
+
+/* ==============================
+   State & Multiplayer
+   ============================== */
+const players = new Map();
+let hostId = null;
+let initialElectionDone = false;
+
+// ONE-SHOT GAME STATE
+const state = {
+    matchId: 'M_' + Math.random().toString(36).slice(2,10),
+    phase: 'LOBBY', // LOBBY -> SELECT -> RACING -> RESULT -> CLOSED
+    phaseEndsAt: 0,
+    winnerId: -1,
+    result: [],
+    pigs: [
+        { y: 5, speedMod: 1, effectTimer: 0 },
+        { y: 5, speedMod: 1, effectTimer: 0 },
+        { y: 5, speedMod: 1, effectTimer: 0 },
+        { y: 5, speedMod: 1, effectTimer: 0 }
+    ]
+};
+
+let hasPaid = false;
+let mySelectedPig = -1;
+let myItems = { boost: 1, trap: 1 };
+let purchasePending = false;
+let gameOverCalled = false;
+let lastStateBroadcast = 0;
+
+function rankKey(p) { return Number(p.joinedAt) || 0; }
+function secureRandomInt(max) {
+    const m = Math.max(1, Math.floor(max));
+    try { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % m; } 
+    catch(e) { return Math.floor(Math.random() * m); }
+}
+function isHost() { return hostId === ME.id; }
+function currentHostOnline() { const p = players.get(hostId); return !!(p && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS); }
+function onlinePlayers() { return [...players.values()].filter(p => p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS).sort((a,b) => rankKey(a) - rankKey(b) || a.id.localeCompare(b.id)); }
+
+function electInitialHost() {
+    if(initialElectionDone) return;
+    const a = onlinePlayers(); if(!a.length) return;
+    hostId = a[0].id; initialElectionDone = true;
+    if(isHost()) broadcastState(true);
+    render();
+}
+function maybeTakeoverHost() {
+    if(!initialElectionDone || currentHostOnline()) return;
+    const a = onlinePlayers(); if(!a.length) return;
+    const next = a[0].id;
+    if(next !== hostId) {
+        hostId = next; showToast('市長離開，已自動接管房間');
+        broadcast('NDB_HOST', {hostId}); broadcastState(true); render();
+    }
+}
+
+function addOrUpdatePlayer(raw, seen=true) {
+    if(!raw || raw.id == null) return null;
+    const id = String(raw.id);
+    let p = players.get(id);
+    if(!p) {
+        p = { id, username: String(raw.username||'玩家').slice(0,24), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, selectedPig: -1, online: true, lastSeen: Date.now() };
+        players.set(id, p);
+    } else {
+        if(raw.username != null) p.username = String(raw.username).slice(0,24);
+        if(raw.hasPaid != null) p.hasPaid = !!raw.hasPaid;
+        if(raw.selectedPig != null) p.selectedPig = Number(raw.selectedPig);
+        if(seen) { p.lastSeen = Date.now(); p.online = true; }
+    }
+    return p;
+}
+
+function broadcast(name, payload) {
+    try { if(SDK && typeof SDK.sendGameEvent === 'function') SDK.sendGameEvent(name, payload || {}); } catch(e){}
+}
+function snapshotState() {
+    return {
+        hostId, matchId: state.matchId, phase: state.phase, phaseEndsAt: state.phaseEndsAt,
+        winnerId: state.winnerId, result: state.result.slice(), pigs: state.pigs.map(p=>({...p})),
+        players: [...players.values()].map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, selectedPig: p.selectedPig, online: p.online}))
+    };
+}
+function broadcastState(force=false) {
+    if(!isHost()) return;
+    const now = Date.now();
+    if(!force && now - lastStateBroadcast < 100) return; // 10fps sync during race
+    lastStateBroadcast = now;
+    broadcast('NDB_STATE', snapshotState());
+}
+function applySnapshot(s) {
+    if(!s || typeof s !== 'object') return;
+    if(s.hostId != null) { hostId = String(s.hostId); initialElectionDone = true; }
+    if(Array.isArray(s.players)) for(const raw of s.players) addOrUpdatePlayer(raw, false);
+    
+    if(s.matchId && s.matchId !== state.matchId) state.matchId = s.matchId;
+
+    const oldPhase = state.phase;
+    state.phase = s.phase || state.phase;
+    state.phaseEndsAt = Number(s.phaseEndsAt) || 0;
+    state.winnerId = s.winnerId != null ? Number(s.winnerId) : -1;
+    state.result = Array.isArray(s.result) ? s.result : [];
+    
+    if(Array.isArray(s.pigs)) {
+        s.pigs.forEach((p, idx) => {
+            if(state.pigs[idx]) {
+                state.pigs[idx].y = Number(p.y)||5;
+                state.pigs[idx].speedMod = Number(p.speedMod)||1;
+                state.pigs[idx].effectTimer = Number(p.effectTimer)||0;
+            }
+        });
+    }
+
+    const me = players.get(ME.id);
+    if(me) { hasPaid = me.hasPaid; mySelectedPig = me.selectedPig; }
+    
+    if(oldPhase !== state.phase) {
+        if(state.phase === 'RACING') sfx.tick(); // Start race sound
+    }
+
+    updatePigVisuals();
+    maybeCallGameOver();
+    render();
+}
+
+/* ==============================
+   Economy & Actions
+   ============================== */
+function requestEntry() {
+    initAudio();
+    if(state.phase !== 'LOBBY' || hasPaid || purchasePending) return;
+    purchasePending = true; render();
+    
+    if(DEMO) { setTimeout(() => window.onPurchaseSuccess('piggy_entry'), 300); return; }
+    try { window.BoomRoomSDK.requestPurchase('piggy_entry', ENTRY_FEE); } 
+    catch(e) { purchasePending = false; render(); showToast('入場請求失敗'); }
+}
+
+window.onPurchaseSuccess = function(itemId) {
+    if(itemId !== 'piggy_entry') return;
+    purchasePending = false; hasPaid = true;
+    const me = players.get(ME.id);
+    if(me) { me.hasPaid = true; me.lastSeen = Date.now(); me.online = true; }
+    
+    sfx.pay(); showToast('成功支付入場費！');
+    broadcast('NDB_PAID', {playerId: ME.id, matchId: state.matchId});
+    if(isHost()) broadcastState(true);
+    render();
+};
+
+window.onPurchaseFailed = function(itemId) {
+    if(itemId === 'piggy_entry') { purchasePending = false; showToast('支付取消或失敗'); render(); }
+};
+
+function selectPig(pigId) {
+    initAudio();
+    if(state.phase !== 'SELECT' || !hasPaid || mySelectedPig !== -1) return;
+    mySelectedPig = pigId;
+    const me = players.get(ME.id);
+    if(me) me.selectedPig = pigId;
+    
+    sfx.select(); showToast(`已選擇 ${PIGS[pigId].name}！`);
+    broadcast('NDB_SELECT', {playerId: ME.id, pigId: pigId, matchId: state.matchId});
+    if(isHost()) broadcastState(true);
+    render();
+}
+
+function useItem(pigId) {
+    initAudio();
+    if(state.phase !== 'RACING' || !hasPaid || mySelectedPig === -1) return;
+    
+    const isMyPig = (pigId === mySelectedPig);
+    const type = isMyPig ? 'boost' : 'trap';
+    
+    if(myItems[type] <= 0) { showToast(`${type==='boost'?'加速':'陷阱'}次數已用盡`); return; }
+    
+    myItems[type]--;
+    render();
+    broadcast('NDB_ITEM', {playerId: ME.id, pigId: pigId, type: type, matchId: state.matchId});
+}
+
+/* ==============================
+   Host Logic
+   ============================== */
+function hostStartSelect() {
+    if(!isHost() || state.phase !== 'LOBBY') return;
+    const paidPlayers = [...players.values()].filter(p => p.online && p.hasPaid);
+    if(paidPlayers.length < 1) { showToast('沒有玩家入場'); return; }
+    
+    state.phase = 'SELECT';
+    state.phaseEndsAt = Date.now() + 10000; // 10s to select
+    broadcastState(true);
+    showToast('請選擇贊助的神豬！');
+}
+
+function hostStartRace() {
+    if(!isHost() || state.phase !== 'SELECT') return;
+    state.phase = 'RACING';
+    state.phaseEndsAt = Date.now() + 20000; // Max 20s race
+    broadcastState(true);
+}
+
+function hostHandleItem(payload, senderId) {
+    if(!isHost() || state.phase !== 'RACING') return;
+    const pid = String(payload?.playerId || senderId || '');
+    const pigId = Number(payload?.pigId);
+    const type = String(payload?.type);
+    
+    if(pigId < 0 || pigId > 3 || !['boost','trap'].includes(type)) return;
+    
+    const pig = state.pigs[pigId];
+    pig.effectTimer = 5; // 0.5s (5 ticks of 100ms)
+    if(type === 'boost') pig.speedMod = 3.0;
+    if(type === 'trap') pig.speedMod = (pigId === 2) ? 0.5 : 0.1; // Blue has resistance
+    
+    broadcast('NDB_FLASH', {pigId, type, matchId: state.matchId, username: players.get(pid)?.username});
+    broadcastState(true);
+}
+
+function hostPhysicsLoop() {
+    if(!isHost() || state.phase !== 'RACING') return;
+    
+    let raceFinished = false;
+    let winner = -1;
+
+    state.pigs.forEach((p, idx) => {
+        let speed = (Math.random() * (PIGS[idx].baseSpeed[1] - PIGS[idx].baseSpeed[0])) + PIGS[idx].baseSpeed[0];
         
-        const BET_COST = 100;
-        const BOOST_COST = 10;
-        const TRAP_COST = 20;
+        // Yellow Miracle
+        if(idx === 3 && Math.random() < 0.02) speed += 5;
 
-        const PIG_CONFIG = [
-            { id: 0, name: "穩健紅", color: "var(--neon-red)", odds: 2.0, baseSpeed: [0.6, 1.2] },
-            { id: 1, name: "神經綠", color: "var(--neon-green)", odds: 3.0, baseSpeed: [0.2, 1.8] },
-            { id: 2, name: "重裝藍", color: "var(--neon-blue)", odds: 5.0, baseSpeed: [0.4, 1.0] },
-            { id: 3, name: "奇蹟黃", color: "var(--neon-yellow)", odds: 10.0, baseSpeed: [0.1, 0.7] }
-        ];
-
-        // Host Physics State
-        let hostPigs = [
-            { y: 5, speedMod: 1, effectTimer: 0 },
-            { y: 5, speedMod: 1, effectTimer: 0 },
-            { y: 5, speedMod: 1, effectTimer: 0 },
-            { y: 5, speedMod: 1, effectTimer: 0 }
-        ];
-
-        // Client State
-        let myBets = [0, 0, 0, 0];
-        let roundLeaderboard = [];
-        let pendingAction = null; // { type: 'bet'|'boost'|'trap', pigId: 0 }
-
-        // ==========================================
-        // 3. AUDIO SYSTEM
-        // ==========================================
-        let audioCtx;
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        if(p.effectTimer > 0) {
+            p.effectTimer--;
+            speed *= p.speedMod;
+        } else {
+            p.speedMod = 1;
         }
-        function playTone(freq, type, duration, vol=0.1) {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            osc.stop(audioCtx.currentTime + duration);
+
+        p.y += speed;
+        if(p.y >= 90 && !raceFinished) {
+            p.y = 90;
+            raceFinished = true;
+            winner = idx;
         }
-        const Sounds = {
-            bet: () => { playTone(600, 'sine', 0.1); playTone(800, 'sine', 0.15); },
-            boost: () => playTone(1200, 'square', 0.2, 0.05),
-            trap: () => playTone(200, 'sawtooth', 0.3, 0.1),
-            win: () => { playTone(400, 'square', 0.1); setTimeout(()=>playTone(600, 'square', 0.2), 100); },
-            lose: () => playTone(150, 'sawtooth', 0.5),
-            tick: () => playTone(1000, 'sine', 0.05, 0.02)
+    });
+
+    if(raceFinished || Date.now() >= state.phaseEndsAt) {
+        if(winner === -1) {
+            // Timeout, find furthest
+            let max = -1;
+            state.pigs.forEach((p, i) => { if(p.y > max) { max = p.y; winner = i; } });
+        }
+        resolveRace(winner);
+    } else {
+        broadcastState(false);
+    }
+}
+
+function resolveRace(winnerId) {
+    state.winnerId = winnerId;
+    state.phase = 'RESULT';
+    
+    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
+    const totalPool = paidPlayers.length * ENTRY_FEE;
+    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
+    
+    const winners = paidPlayers.filter(p => p.selectedPig === winnerId);
+    const rewardPerWinner = winners.length > 0 ? Math.floor(prizePool / winners.length) : 0;
+
+    state.result = paidPlayers.map(p => ({
+        id: p.id,
+        username: p.username,
+        isWinner: p.selectedPig === winnerId,
+        winAmount: p.selectedPig === winnerId ? rewardPerWinner : 0
+    }));
+
+    broadcastState(true);
+    
+    setTimeout(() => {
+        if(isHost() && state.phase === 'RESULT') {
+            state.phase = 'CLOSED';
+            broadcastState(true);
+        }
+    }, 5000);
+}
+
+/* ==============================
+   Incoming Events
+   ============================== */
+function handleIncoming(data) {
+    if(!data || data.action !== 'gameEventReceived') return;
+    const eventName = data.eventName, payload = data.payload || {}, senderId = data.userId != null ? String(data.userId) : null;
+    
+    if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;
+
+    if(eventName === 'NDB_HELLO') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost()) broadcastState(true); return; }
+    if(eventName === 'NDB_PING') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost() && payload.requestState) broadcastState(true); return; }
+    if(eventName === 'NDB_PAID') { 
+        const p = players.get(payload.playerId); 
+        if(p) { p.hasPaid = true; p.lastSeen = Date.now(); p.online = true; }
+        if(isHost()) broadcastState(true); render(); return; 
+    }
+    if(eventName === 'NDB_SELECT') {
+        const p = players.get(payload.playerId);
+        if(p) { p.selectedPig = Number(payload.pigId); p.lastSeen = Date.now(); }
+        if(isHost()) broadcastState(true); render(); return;
+    }
+    if(eventName === 'NDB_ITEM') { if(isHost()) hostHandleItem(payload, senderId); return; }
+    if(eventName === 'NDB_STATE') { applySnapshot(payload); return; }
+    if(eventName === 'NDB_HOST') { if(payload.hostId != null) { hostId = String(payload.hostId); initialElectionDone = true; render(); } return; }
+    if(eventName === 'NDB_FLASH') { handleFlash(payload); return; }
+}
+window.addEventListener('message', e => { try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; handleIncoming(d); } catch(err){} });
+
+function handleFlash(p) {
+    if(!p) return;
+    const el = document.getElementById(`effect-${p.pigId}`);
+    if(el) {
+        el.innerText = p.type === 'boost' ? '⚡' : '🍌';
+        el.style.opacity = 1;
+        setTimeout(() => el.style.opacity = 0, 500);
+    }
+    if(p.type === 'boost') sfx.boost(); else sfx.trap();
+    
+    const pigName = PIGS[p.pigId].name;
+    const action = p.type === 'boost' ? '加速了' : '陷害了';
+    showFeed(p.username || '玩家', `${action} ${pigName}`);
+    
+    const btn = document.getElementById(`btn-${p.pigId}`);
+    if(btn) showFloatingText(btn, p.type==='boost'?'⚡ BOOST':'🍌 TRAP', p.type==='boost'?'var(--neon-yellow)':'var(--neon-red)');
+}
+
+/* ==============================
+   UI & Rendering
+   ============================== */
+function setupControlPanel() {
+    els.controlPanel.innerHTML = '';
+    PIGS.forEach(pig => {
+        const btn = document.createElement('div');
+        btn.className = 'action-btn disabled';
+        btn.style.borderColor = pig.color;
+        btn.id = `btn-${pig.id}`;
+        btn.innerHTML = `
+            <div class="btn-title" style="color:${pig.color}">${pig.name}</div>
+            <div class="btn-desc">${pig.desc}</div>
+            <div class="btn-action" id="action-${pig.id}"></div>
+        `;
+        btn.onclick = () => {
+            if(state.phase === 'SELECT') selectPig(pig.id);
+            else if(state.phase === 'RACING') useItem(pig.id);
         };
+        els.controlPanel.appendChild(btn);
+    });
+}
+setupControlPanel();
 
-        // ==========================================
-        // 4. INITIALIZATION & UI SETUP
-        // ==========================================
-        document.getElementById('my-username').innerText = user.username;
-        document.getElementById('my-avatar').src = user.avatar;
+function updatePigVisuals() {
+    state.pigs.forEach((p, idx) => {
+        const el = document.getElementById(`pig-${idx}`);
+        if(el) el.style.bottom = `${p.y}%`;
+    });
+}
 
-        const panel = document.querySelector('.control-panel');
-        PIG_CONFIG.forEach(pig => {
-            const btn = document.createElement('div');
-            btn.className = 'action-btn disabled btn-state-bet';
-            btn.style.borderColor = pig.color;
-            btn.id = `btn-${pig.id}`;
-            btn.innerHTML = `
-                <div class="btn-title" style="color:${pig.color}">${pig.name}</div>
-                <div class="btn-odds">${pig.odds}x</div>
-                <div class="btn-mybet" id="mybet-${pig.id}">0</div>
-                <div class="btn-action-text" id="action-text-${pig.id}"></div>
-            `;
-            btn.onclick = () => handleBtnClick(pig.id);
-            panel.appendChild(btn);
-        });
+function render() {
+    els.myUsername.textContent = ME.username;
+    els.roleText.textContent = isHost() ? '👑 市長' : '玩家';
+    
+    const paidCount = state.phase === 'LOBBY' ? [...players.values()].filter(p=>p.hasPaid).length : state.result.length || [...players.values()].filter(p=>p.hasPaid).length;
+    const totalPool = paidCount * ENTRY_FEE;
+    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
+    els.totalPool.textContent = totalPool.toLocaleString() + ' 🪙';
+    els.prizePool.textContent = prizePool.toLocaleString() + ' 🪙';
 
-        document.getElementById('btn-join').addEventListener('click', () => {
-            initAudio();
-            document.getElementById('start-overlay').classList.add('hidden');
-            window.BoomRoomSDK.sendGameEvent("PLAYER_JOIN", { username: user.username });
-            
-            // Host election
-            setTimeout(() => { if (!hostId) becomeHost(); }, 2000);
-        });
+    // Phase Text & Timer
+    if(state.phase === 'LOBBY') {
+        els.phaseText.textContent = '等待入場';
+        els.timerText.textContent = 'READY';
+    } else if(state.phase === 'SELECT') {
+        els.phaseText.textContent = '選擇神豬';
+        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
+        els.timerText.textContent = rem + 's';
+    } else if(state.phase === 'RACING') {
+        els.phaseText.textContent = '死鬥競速中';
+        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
+        els.timerText.textContent = rem + 's';
+    } else {
+        els.phaseText.textContent = '本局已結束';
+        els.timerText.textContent = 'ENDED';
+    }
 
-        function becomeHost() {
-            isHost = true;
-            hostId = user.id;
-            document.getElementById('host-badge').style.display = 'inline-block';
-            showFeed("SYSTEM", "You are the Host");
-            startHostLoop();
+    // Main Button
+    els.mainBtn.style.display = 'block';
+    if(state.phase === 'LOBBY') {
+        if(!hasPaid) {
+            els.mainBtn.textContent = '支付 100 🪙 入場';
+            els.mainBtn.disabled = purchasePending;
+            els.mainBtn.onclick = requestEntry;
+        } else if(isHost()) {
+            els.mainBtn.textContent = '開始選擇神豬 (市長)';
+            els.mainBtn.disabled = paidCount < 1;
+            els.mainBtn.onclick = () => { initAudio(); hostStartSelect(); };
+        } else {
+            els.mainBtn.textContent = '已入場，等待市長開始';
+            els.mainBtn.disabled = true;
         }
-
-        // ==========================================
-        // 5. HOST LOGIC (Game Loop & Physics)
-        // ==========================================
-        async function startHostLoop() {
-            while (isHost) {
-                // 1. BETTING PHASE (10s)
-                setGameState("BETTING", 10);
-                hostPigs = hostPigs.map(p => ({ y: 5, speedMod: 1, effectTimer: 0 }));
-                for(let i=10; i>0; i--) {
-                    broadcastSync(i);
-                    await sleep(1000);
-                }
-
-                // 2. RACING PHASE (Max 15s)
-                setGameState("RACING", 15);
-                let raceFinished = false;
-                let winnerId = -1;
-                let raceTicks = 150; // 15s * 10 ticks/sec
-
-                while(!raceFinished && raceTicks > 0) {
-                    // Physics Update (10 times per second)
-                    hostPigs.forEach((p, idx) => {
-                        // Base random speed
-                        let speed = randFloat(PIG_CONFIG[idx].baseSpeed[0], PIG_CONFIG[idx].baseSpeed[1]);
-                        
-                        // Yellow Pig Miracle Jump (2% chance per tick)
-                        if(idx === 3 && Math.random() < 0.02) speed += 5;
-
-                        // Apply Item Effects
-                        if(p.effectTimer > 0) {
-                            p.effectTimer--;
-                            speed *= p.speedMod;
-                        }
-
-                        p.y += speed;
-                        if(p.y >= 90 && !raceFinished) {
-                            p.y = 90;
-                            raceFinished = true;
-                            winnerId = idx;
-                        }
-                    });
-
-                    broadcastSync(Math.ceil(raceTicks/10));
-                    raceTicks--;
-                    await sleep(100);
-                }
-
-                // 3. RESULT PHASE (5s)
-                setGameState("RESULT", 5);
-                window.BoomRoomSDK.sendGameEvent("RACE_FINISH", { winner: winnerId });
-                for(let i=5; i>0; i--) {
-                    broadcastSync(i);
-                    await sleep(1000);
-                }
-                
-                roundLeaderboard = [];
-            }
+    } else if(state.phase === 'SELECT') {
+        if(isHost()) {
+            els.mainBtn.textContent = '開始比賽 (市長)';
+            els.mainBtn.disabled = false;
+            els.mainBtn.onclick = () => { initAudio(); hostStartRace(); };
+        } else {
+            els.mainBtn.style.display = 'none';
         }
+    } else {
+        els.mainBtn.style.display = 'none';
+    }
 
-        function broadcastSync(time) {
-            window.BoomRoomSDK.sendGameEvent("HOST_SYNC", {
-                hostId: user.id,
-                state: gameState,
-                time: time,
-                pigs: hostPigs.map(p => p.y)
-            });
-        }
+    // Control Panel Buttons
+    PIGS.forEach(pig => {
+        const btn = document.getElementById(`btn-${pig.id}`);
+        const act = document.getElementById(`action-${pig.id}`);
+        if(!btn || !act) return;
+        
+        btn.className = 'action-btn';
+        act.style.display = 'none';
 
-        // ==========================================
-        // 6. CLIENT LOGIC & SYNC
-        // ==========================================
-        window.addEventListener("message", (e) => {
-            try {
-                const data = JSON.parse(e.data);
-                if (data.action === "gameEventReceived") {
-                    handleEvent(data.eventName, data.payload, data.userId);
-                }
-            } catch(err) {}
-        });
-
-        function handleEvent(eventName, payload, senderId) {
-            switch(eventName) {
-                case "HOST_SYNC":
-                    if (!hostId || hostId === senderId) {
-                        hostId = senderId;
-                        syncClientState(payload);
-                    }
-                    break;
-                case "ITEM_USED":
-                    handleRemoteItem(payload);
-                    break;
-                case "RACE_FINISH":
-                    handleRaceFinish(payload.winner);
-                    break;
-                case "PLAYER_RESULT":
-                    roundLeaderboard.push(payload);
-                    updateLeaderboardUI();
-                    break;
-            }
-        }
-
-        function syncClientState(payload) {
-            if (gameState !== payload.state) {
-                gameState = payload.state;
-                triggerStateChange(gameState);
-            }
-            
-            phaseTime = payload.time;
-            document.getElementById('timer-text').innerText = phaseTime;
-            if(gameState === "BETTING" && phaseTime <= 3) Sounds.tick();
-
-            // Update Pig Positions
-            payload.pigs.forEach((y, idx) => {
-                document.getElementById(`pig-${idx}`).style.bottom = `${y}%`;
-            });
-        }
-
-        function triggerStateChange(state) {
-            document.getElementById('phase-text').innerText = state;
-            const btns = document.querySelectorAll('.action-btn');
-
-            if (state === "BETTING") {
-                document.getElementById('leaderboard-overlay').classList.add('hidden');
-                myBets = [0, 0, 0, 0];
-                btns.forEach((btn, idx) => {
-                    btn.classList.remove('disabled', 'btn-state-item');
-                    btn.classList.add('btn-state-bet');
-                    document.getElementById(`mybet-${idx}`).innerText = '0';
-                });
-            } 
-            else if (state === "RACING") {
-                btns.forEach((btn, idx) => {
-                    btn.classList.remove('btn-state-bet');
-                    btn.classList.add('btn-state-item');
-                    const actText = document.getElementById(`action-text-${idx}`);
-                    if (myBets[idx] > 0) {
-                        actText.innerText = `⚡ BOOST (${BOOST_COST})`;
-                        actText.style.color = 'var(--neon-yellow)';
-                    } else {
-                        actText.innerText = `🍌 TRAP (${TRAP_COST})`;
-                        actText.style.color = 'var(--neon-red)';
-                    }
-                });
-            }
-            else if (state === "RESULT") {
-                btns.forEach(btn => btn.classList.add('disabled'));
-            }
-        }
-
-        // ==========================================
-        // 7. INTERACTION & ECONOMY
-        // ==========================================
-        function handleBtnClick(pigId) {
-            if (gameState === "BETTING") {
-                pendingAction = { type: 'bet', pigId: pigId, cost: BET_COST };
-                window.BoomRoomSDK.requestPurchase(`bet_${pigId}_${Date.now()}`, BET_COST);
-            } 
-            else if (gameState === "RACING") {
-                const isMyPig = myBets[pigId] > 0;
-                const type = isMyPig ? 'boost' : 'trap';
-                const cost = isMyPig ? BOOST_COST : TRAP_COST;
-                pendingAction = { type: type, pigId: pigId, cost: cost };
-                window.BoomRoomSDK.requestPurchase(`item_${type}_${pigId}_${Date.now()}`, cost);
-            }
-        }
-
-        window.onPurchaseSuccess = function(itemId) {
-            if (!pendingAction) return;
-            const { type, pigId, cost } = pendingAction;
-            
-            if (type === 'bet') {
-                myBets[pigId] += cost;
-                document.getElementById(`mybet-${pigId}`).innerText = myBets[pigId];
-                Sounds.bet();
-                showFloatingText(document.getElementById(`btn-${pigId}`), `-100`, '#fff');
-                showFeed(user.username, `bet on ${PIG_CONFIG[pigId].name}`);
-            } 
-            else {
-                // Broadcast item usage
-                window.BoomRoomSDK.sendGameEvent("ITEM_USED", {
-                    username: user.username,
-                    type: type,
-                    pigId: pigId
-                });
-                showFloatingText(document.getElementById(`btn-${pigId}`), `-${cost}`, type==='boost'?'var(--neon-yellow)':'var(--neon-red)');
-            }
-            pendingAction = null;
-        };
-
-        function handleRemoteItem(payload) {
-            const { type, pigId, username } = payload;
-            
-            // Visual Effect
-            const effectEl = document.getElementById(`effect-${pigId}`);
-            effectEl.innerText = type === 'boost' ? '⚡' : '🍌';
-            effectEl.style.opacity = 1;
-            setTimeout(() => effectEl.style.opacity = 0, 500);
-
-            if(type === 'boost') Sounds.boost();
-            else Sounds.trap();
-
-            showFeed(username, `used ${type} on ${PIG_CONFIG[pigId].name}`);
-
-            // Host applies physics
-            if (isHost) {
-                const pig = hostPigs[pigId];
-                pig.effectTimer = 5; // 0.5 seconds (5 ticks)
-                if (type === 'boost') pig.speedMod = 3.0;
-                if (type === 'trap') {
-                    // Blue pig resistance
-                    pig.speedMod = (pigId === 2) ? 0.5 : 0.1; 
-                }
-            }
-        }
-
-        // ==========================================
-        // 8. RESULT & LEADERBOARD
-        // ==========================================
-        function handleRaceFinish(winnerId) {
-            if (winnerId === -1) return; // Tie or timeout
-            
-            const winPig = PIG_CONFIG[winnerId];
-            let winAmount = myBets[winnerId] * winPig.odds;
-            
-            window.BoomRoomSDK.gameOver(winAmount);
-            
-            window.BoomRoomSDK.sendGameEvent("PLAYER_RESULT", {
-                username: user.username,
-                win: winAmount
-            });
-
-            setTimeout(() => {
-                document.getElementById('winner-announce').innerText = `${winPig.name} WINS! (${winPig.odds}x)`;
-                document.getElementById('winner-announce').style.color = winPig.color;
-                
-                const resText = document.getElementById('my-result');
-                if(winAmount > 0) {
-                    resText.innerText = `YOU WON ${winAmount} COINS!`;
-                    resText.style.color = 'var(--neon-green)';
-                    Sounds.win();
+        if(state.phase === 'LOBBY') {
+            btn.classList.add('disabled');
+        } else if(state.phase === 'SELECT') {
+            if(!hasPaid || mySelectedPig !== -1) btn.classList.add('disabled');
+            if(mySelectedPig === pig.id) btn.classList.add('selected');
+        } else if(state.phase === 'RACING') {
+            if(!hasPaid || mySelectedPig === -1) {
+                btn.classList.add('disabled');
+            } else {
+                act.style.display = 'block';
+                if(pig.id === mySelectedPig) {
+                    btn.classList.add('selected');
+                    act.textContent = `⚡ 加速 (${myItems.boost})`;
+                    act.style.color = 'var(--neon-yellow)';
+                    if(myItems.boost <= 0) btn.classList.add('disabled');
                 } else {
-                    resText.innerText = `NO LUCK THIS ROUND`;
-                    resText.style.color = '#aaa';
-                    if(myBets.some(b=>b>0)) Sounds.lose();
+                    act.textContent = `🍌 陷阱 (${myItems.trap})`;
+                    act.style.color = 'var(--neon-red)';
+                    if(myItems.trap <= 0) btn.classList.add('disabled');
                 }
-                
-                document.getElementById('leaderboard-overlay').classList.remove('hidden');
-            }, 1000);
+            }
+        } else {
+            btn.classList.add('disabled');
+            if(mySelectedPig === pig.id) btn.classList.add('selected');
         }
+    });
+}
 
-        function updateLeaderboardUI() {
-            const container = document.getElementById('lb-content');
-            container.innerHTML = '';
-            const sorted = [...roundLeaderboard].sort((a,b) => b.win - a.win).slice(0, 5);
-            
-            sorted.forEach(entry => {
-                const div = document.createElement('div');
-                div.className = `lb-entry ${entry.username === user.username ? 'me' : ''}`;
-                div.innerHTML = `<span>${entry.username}</span> <span>+${entry.win}</span>`;
-                container.appendChild(div);
-            });
+function maybeCallGameOver() {
+    if(gameOverCalled || !['RESULT', 'CLOSED'].includes(state.phase)) return;
+    if(!state.result || state.result.length === 0) return;
+    
+    const myResult = state.result.find(r => r.id === ME.id);
+    if(!myResult || !hasPaid) return;
+
+    gameOverCalled = true;
+    const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
+    
+    try { if(SDK && typeof SDK.gameOver === 'function') window.BoomRoomSDK.gameOver(reward); } catch(e){}
+
+    // Show Result UI
+    const winPig = PIGS[state.winnerId];
+    els.resultWinnerText.textContent = `🏆 ${winPig.name} 獲勝！`;
+    els.resultWinnerText.style.color = winPig.color;
+    
+    els.resultAmount.textContent = '+' + reward.toLocaleString() + ' 🪙';
+    els.resultAmount.className = 'result-big ' + (myResult.isWinner ? 'win' : 'lose');
+    els.resultDesc.textContent = myResult.isWinner ? '恭喜！你贊助的神豬獲勝，平分獎池！' : '很遺憾，你贊助的神豬未能奪冠。';
+    
+    els.winnersList.innerHTML = '';
+    const winners = state.result.filter(r => r.isWinner);
+    if(winners.length > 0) {
+        winners.forEach(w => {
+            const d = document.createElement('div');
+            d.innerHTML = `<span style="color:var(--neon-green)">${w.username}</span> 獲得 ${w.winAmount} 🪙`;
+            els.winnersList.appendChild(d);
+        });
+    } else {
+        els.winnersList.innerHTML = '<div style="color:var(--muted)">無人贊助獲勝神豬，獎池流局。</div>';
+    }
+    
+    els.modalResult.classList.add('show');
+    if(myResult.isWinner) sfx.win(); else sfx.lose();
+}
+
+/* ==============================
+   Main Loop & Utils
+   ============================== */
+let lastPhysicsRun = 0;
+function raf() {
+    const now = Date.now();
+    if(isHost() && state.phase === 'RACING') {
+        if(now - lastPhysicsRun > 100) {
+            hostPhysicsLoop();
+            lastPhysicsRun = now;
         }
+    }
+    
+    if(isHost() && state.phase === 'SELECT' && now >= state.phaseEndsAt) {
+        hostStartRace();
+    }
 
-        // ==========================================
-        // 9. UTILS & EFFECTS
-        // ==========================================
-        function randFloat(min, max) { return Math.random() * (max - min) + min; }
-        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-        function setGameState(s, t) { gameState = s; phaseTime = t; }
+    render();
+    requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
 
-        function showFloatingText(element, text, color) {
-            const rect = element.getBoundingClientRect();
-            const div = document.createElement('div');
-            div.className = 'floating-text';
-            div.innerText = text;
-            div.style.color = color;
-            div.style.left = (rect.left + rect.width/2 - 10) + 'px';
-            div.style.top = (rect.top) + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1000);
-        }
+function showToast(msg) {
+    els.toast.textContent = msg; els.toast.classList.add('show');
+    clearTimeout(showToast.t); showToast.t = setTimeout(() => els.toast.classList.remove('show'), 1500);
+}
 
-        const feedEl = document.getElementById('feed');
-        function showFeed(name, action) {
-            const div = document.createElement('div');
-            div.className = 'feed-item';
-            div.innerHTML = `<span style="color:var(--neon-blue)">${name}</span> ${action}`;
-            feedEl.appendChild(div);
-            if(feedEl.children.length > 5) feedEl.removeChild(feedEl.firstChild);
-            setTimeout(() => { if(div.parentNode) div.remove(); }, 3000);
-        }
+function showFloatingText(element, text, color) {
+    const rect = element.getBoundingClientRect();
+    const div = document.createElement('div');
+    div.className = 'floating-text';
+    div.innerText = text;
+    div.style.color = color;
+    div.style.left = (rect.left + rect.width/2 - 20) + 'px';
+    div.style.top = (rect.top - 10) + 'px';
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 800);
+}
 
-    </script>
+function showFeed(name, action) {
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = `<span style="color:var(--neon-blue)">${name}</span> ${action}`;
+    els.feed.appendChild(div);
+    if(els.feed.children.length > 4) els.feed.removeChild(els.feed.firstChild);
+    setTimeout(() => { if(div.parentNode) div.remove(); }, 2500);
+}
+
+/* ==============================
+   Init & Bindings
+   ============================== */
+els.btnHelp.onclick = () => { initAudio(); els.modalRules.classList.add('show'); };
+els.btnCloseRules.onclick = () => { initAudio(); els.modalRules.classList.remove('show'); };
+els.btnCloseResult.onclick = () => { initAudio(); els.modalResult.classList.remove('show'); };
+document.addEventListener('pointerdown', initAudio, {once:true, passive:true});
+
+function announceHello() {
+    broadcast('NDB_HELLO', {player: {...ME, hasPaid, selectedPig: mySelectedPig}});
+    broadcast('NDB_PING', {player: {...ME, hasPaid, selectedPig: mySelectedPig}, requestState: true});
+}
+
+announceHello();
+setTimeout(electInitialHost, 800);
+
+setInterval(() => {
+    const me = players.get(ME.id);
+    if(me) { me.online = true; me.lastSeen = Date.now(); }
+    broadcast('NDB_PING', {player: {...ME, hasPaid, selectedPig: mySelectedPig}});
+    if(isHost()) broadcastState(true);
+}, 2000);
+
+setInterval(() => {
+    const now = Date.now();
+    for(const p of players.values()) if(now - p.lastSeen > HOST_TIMEOUT_MS) p.online = false;
+    maybeTakeoverHost();
+}, 1000);
+
+if(DEMO) showToast('預覽模式：未偵測到 BoomRoom SDK');
+render();
+
+window.addEventListener('visibilitychange', () => {
+    if(!document.hidden) {
+        const p = players.get(ME.id);
+        if(p) { p.lastSeen = Date.now(); p.online = true; }
+        announceHello();
+    }
+});
+
+})();
+</script>
 </body>
 </html>
