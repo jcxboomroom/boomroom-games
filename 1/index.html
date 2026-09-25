@@ -41,13 +41,13 @@ h1{text-align:center;font-size:clamp(44px,12vw,70px);line-height:.9;margin:18px 
 <div class="tip" id="tip">直接點擊金幣、寶石、星星；💣 不要碰</div></div></div></div>
 
 <section id="lobby"><div class="card">
-  <div class="brand"><b>BOOMROOM · PARTY ARCADE</b><div class="dev">開發測試模式</div></div>
+  <div class="brand"><b>BOOMROOM · PARTY ARCADE</b><div class="dev" id="devBadge">開發測試模式</div></div>
   <h1>爆爆搶金</h1>
   <p class="desc">45 秒內搶越多越好。直接點掉落物拿分，連續命中提升 COMBO；炸彈會扣分，後半段掉落會明顯加速。</p>
   <div class="preview"><div class="pitem p1">🪙</div><div class="pitem p2">💎</div><div class="pitem p3">⭐</div><div class="pitem p4">🪙</div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:54px;filter:drop-shadow(0 0 22px rgba(255,212,92,.45))">🪙</div></div>
   <div class="stats"><div class="stat"><b>45 秒</b><span>限時</span></div><div class="stat"><b>＋Combo</b><span>連續命中</span></div><div class="stat"><b>∞</b><span>分數無上限</span></div><div class="stat"><b>多人</b><span>房間競分</span></div></div>
   <div class="entries"><button type="button" class="entry active" data-entry="100">100 銀幣<small>標準</small></button><button type="button" class="entry" data-entry="500">500 銀幣<small>高分</small></button><button type="button" class="entry" data-entry="1000">1000 銀幣<small>極限</small></button></div>
-  <button type="button" id="startBtn" class="start">開始搶金</button>
+  <button type="button" id="startBtn" class="start" disabled>連線中...</button>
   <div class="hint">正式環境會先完成 Entry；沒有 BoomRoom SDK 時只會進入開發測試，不會假裝扣銀幣。</div>
 </div></section>
 
@@ -66,29 +66,102 @@ const COLORS={coin:'#fff1aa',gold:'#ffd45c',gem:'#55f6ff',bomb:'#ff4f69'};
 const STATES={MENU:'MENU',PURCHASING:'PURCHASING',COUNTDOWN:'COUNTDOWN',PLAYING:'PLAYING',RESULT:'RESULT',WAIT_HOST:'WAIT_HOST'};
 const $=id=>document.getElementById(id);
 const canvas=$('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false});
-const el={lobby:$('lobby'),result:$('result'),hud:$('hud'),start:$('startBtn'),wait:$('waitBtn'),myScore:$('myScore'),topScore:$('topScore'),combo:$('combo'),bestCombo:$('bestCombo'),players:$('players'),timer:$('timer'),round:$('roundLabel'),tip:$('tip'),toast:$('toast'),resultTitle:$('resultTitle'),reward:$('resultReward'),reason:$('resultReason'),rankList:$('rankList')};
+const el={lobby:$('lobby'),result:$('result'),hud:$('hud'),start:$('startBtn'),wait:$('waitBtn'),myScore:$('myScore'),topScore:$('topScore'),combo:$('combo'),bestCombo:$('bestCombo'),players:$('players'),timer:$('timer'),round:$('roundLabel'),tip:$('tip'),toast:$('toast'),resultTitle:$('resultTitle'),reward:$('resultReward'),reason:$('resultReason'),rankList:$('rankList'),devBadge:$('devBadge')};
 
-const SDK=window.BoomRoomSDK||null;
-const DEV=!SDK;
-let rawUser={id:'dev-'+Math.random().toString(36).slice(2),username:'開發玩家',avatar:''};
-if(SDK&&typeof SDK.getUser==='function'){try{const u=SDK.getUser();if(u)rawUser=u}catch(e){}}
-const ME={id:String(rawUser.id),username:String(rawUser.username||'玩家').slice(0,22),avatar:String(rawUser.avatar||''),joinedAt:Date.now()};
+// --- SDK 初始化與狀態管理 ---
+let DEV = true;
+let sdkIsHost = false;
+let gameRoomId = '';
+let rawUser = {id:'dev-'+Math.random().toString(36).slice(2),username:'開發玩家',avatar:''};
+let ME = {id: rawUser.id, username: rawUser.username, avatar: rawUser.avatar, joinedAt: Date.now()};
 
-let phase=DEV?STATES.MENU:STATES.MENU;
-let selectedEntry=100;
-let roundId=0,hostId=DEV?ME.id:null,roundSeed=0,startAt=0,phaseEndsAt=0,winnerId=null,reason='';
-let currentPaid=false,currentSettled=false,gameOverCalled=false,purchasing=false,pendingPurchase='';
-let lastAction=0,lastStateSent=0,lastSpawn=0,actionSeq=0,countdownShown=-1;
 const players=new Map();const items=new Map();const seenActions=new Map();
 addPlayer(ME);
+
+function setupSDK(data) {
+    DEV = false;
+    if (data.user) {
+        rawUser = data.user;
+        ME.id = String(rawUser.id);
+        ME.username = String(rawUser.username || '玩家').slice(0,22);
+        ME.avatar = String(rawUser.avatar || '');
+    }
+    sdkIsHost = !!data.isHost;
+    gameRoomId = data.roomId || '';
+    
+    if (sdkIsHost) hostId = ME.id; // 強制設定為室長
+    
+    players.clear();
+    addPlayer(ME);
+    
+    el.devBadge.style.display = 'none';
+    el.start.textContent = '開始搶金';
+    el.start.disabled = false;
+    syncUI();
+    hello(); // 廣播自己加入
+}
+
+// 接收來自 Flutter 的 Web Message (Web 平台) 或 Socket 事件
+window.addEventListener('message', e => {
+    let d;
+    try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch(err) { return; }
+    if (!d) return;
+    
+    if (d.action === 'initSDK') {
+        setupSDK(d);
+    } else if (d.action === 'gameEventReceived') {
+        handleEvent(String(d.eventName||''), d.payload||{}, d.userId!=null?String(d.userId):null);
+    }
+});
+
+// 接收來自 Flutter 的 JS 注入 (Mobile 平台)
+window.onBoomRoomSDKReady = function() {
+    if (window.BoomRoomSDK) {
+        setupSDK({
+            user: window.BoomRoomSDK.getUser(),
+            isHost: window.BoomRoomSDK.isHost,
+            roomId: window.BoomRoomSDK.roomId
+        });
+    }
+};
+
+// 1.5秒後如果 SDK 沒載入，就進入開發模式
+setTimeout(() => {
+    if (DEV) {
+        el.start.textContent = '開始搶金 (開發模式)';
+        el.start.disabled = false;
+        hello();
+    }
+}, 1500);
+
+// --- 網路發送封裝 ---
+function send(name, payload) {
+    if (DEV) return;
+    const eventData = { action: 'sendGameEvent', eventName: name, payload: payload };
+    
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function') {
+        window.BoomRoomSDK.sendGameEvent(name, payload); // Mobile
+    } else if (window.parent !== window) {
+        window.parent.postMessage(JSON.stringify(eventData), '*'); // Web
+    }
+}
+
+let phase=STATES.MENU;
+let selectedEntry=100;
+let roundId=0,hostId=ME.id,roundSeed=0,startAt=0,phaseEndsAt=0,winnerId=null,reason='';
+let currentPaid=false,currentSettled=false,gameOverCalled=false,purchasing=false,pendingPurchase='';
+let lastAction=0,lastStateSent=0,lastSpawn=0,actionSeq=0,countdownShown=-1;
 
 function finite(v,f=0){const n=Number(v);return Number.isFinite(n)?n:f}
 function clamp(v,min,max){return Math.max(min,Math.min(max,finite(v,min)))}
 function addPlayer(p){if(!p||p.id==null)return null;const id=String(p.id);let q=players.get(id);if(!q){q={id,username:String(p.username||'玩家').slice(0,22),avatar:String(p.avatar||''),joinedAt:finite(p.joinedAt,Date.now()),online:true,lastSeen:Date.now(),score:0,combo:0,bestCombo:0,actions:0};players.set(id,q)}else{q.username=String(p.username??q.username).slice(0,22);q.avatar=String(p.avatar??q.avatar);q.online=true;q.lastSeen=Date.now()}return q}
 function sortedPlayers(){return [...players.values()].sort((a,b)=>a.joinedAt-b.joinedAt||a.id.localeCompare(b.id))}
 function onlinePlayers(){const now=Date.now();return sortedPlayers().filter(p=>p.online&&now-p.lastSeen<CFG.HOST_TIMEOUT)}
-function isHost(){return hostId===ME.id}
-function electHost(){const list=onlinePlayers();if(!list.length)return;if(!hostId)hostId=list[0].id;else{const h=players.get(hostId);if(!h||!h.online||Date.now()-h.lastSeen>=CFG.HOST_TIMEOUT)hostId=list[0].id}if(DEV)hostId=ME.id}
+function isHost(){return sdkIsHost || hostId === ME.id} // 優先使用 SDK 判斷
+function electHost(){
+    if (sdkIsHost) { hostId = ME.id; return; } // 如果 SDK 指定我是室長，直接鎖定
+    const list=onlinePlayers();if(!list.length)return;if(!hostId)hostId=list[0].id;else{const h=players.get(hostId);if(!h||!h.online||Date.now()-h.lastSeen>=CFG.HOST_TIMEOUT)hostId=list[0].id}if(DEV)hostId=ME.id
+}
 function nextAction(){actionSeq++;return ME.id+'-'+Date.now()+'-'+actionSeq}
 function validRound(r){return Number(r)===Number(roundId)}
 function resetRoundData(){items.clear();seenActions.clear();for(const p of players.values()){p.score=0;p.combo=0;p.bestCombo=0;p.actions=0}}
@@ -135,9 +208,7 @@ function handleCanvas(e){if(e){e.preventDefault();e.stopPropagation()}initAudio(
 canvas.addEventListener('pointerdown',handleCanvas,{passive:false});canvas.addEventListener('click',handleCanvas,{passive:false});canvas.addEventListener('contextmenu',e=>e.preventDefault());
 
 // NETWORK
-function send(name,payload){if(SDK&&typeof SDK.sendGameEvent==='function'){try{SDK.sendGameEvent(name,payload)}catch(e){}}}
 function broadcastState(force=false){if(!isHost())return;const now=Date.now();if(!force&&now-lastStateSent<CFG.STATE_MS)return;lastStateSent=now;send('BBG_STATE',{roundId,hostId,phase,entryCost:selectedEntry,seed:roundSeed,startAt,phaseEndsAt,winnerId,reason,players:sortedPlayers().map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,score:clamp(p.score,0,Number.MAX_SAFE_INTEGER),combo:clamp(p.combo,0,30),bestCombo:clamp(p.bestCombo,0,30),actions:clamp(p.actions,0,9999),online:!!p.online,lastSeen:p.lastSeen}))})}
-window.addEventListener('message',e=>{let d;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(err){return}if(!d||d.action!=='gameEventReceived')return;handleEvent(String(d.eventName||''),d.payload||{},d.userId!=null?String(d.userId):null)});
 function handleEvent(name,payload,sender){
 if(name==='BBG_HELLO'||name==='BBG_HEARTBEAT'){if(payload.player)addPlayer(payload.player);if(payload.requestState&&isHost())broadcastState(true);return}
 if(name==='BBG_HOST'){if(payload.hostId&&players.has(String(payload.hostId)))hostId=String(payload.hostId);return}
@@ -153,12 +224,48 @@ let stateResult=[];
 function addRemotePlayerState(p){const q=addPlayer(p);if(!q)return;q.score=clamp(p.score,0,Number.MAX_SAFE_INTEGER);q.combo=clamp(p.combo,0,30);q.bestCombo=clamp(p.bestCombo,0,30);q.actions=clamp(p.actions,0,9999);q.online=!!p.online;q.lastSeen=Date.now()}
 
 // PURCHASE / ROUND
-function requestEntry(){if(currentPaid||purchasing)return;if(DEV){currentPaid=true;startRoundAfterEntry();return}if(!SDK||typeof SDK.requestPurchase!=='function'){showToast('SDK 不可用','#ff7b92');return}purchasing=true;pendingPurchase='bbg_entry_'+selectedEntry;phase=STATES.PURCHASING;syncUI();try{SDK.requestPurchase(pendingPurchase,selectedEntry)}catch(e){purchasing=false;pendingPurchase='';phase=STATES.MENU;syncUI();showToast('Entry 請求失敗','#ff7b92')}}
+function requestEntry(){
+    if(currentPaid||purchasing)return;
+    if(DEV){currentPaid=true;startRoundAfterEntry();return}
+    
+    purchasing=true;
+    pendingPurchase='bbg_entry_'+selectedEntry;
+    phase=STATES.PURCHASING;
+    syncUI();
+    
+    const reqData = { action: 'requestPurchase', itemId: pendingPurchase, cost: selectedEntry };
+    
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === 'function') {
+        window.BoomRoomSDK.requestPurchase(pendingPurchase, selectedEntry);
+    } else if (window.parent !== window) {
+        window.parent.postMessage(JSON.stringify(reqData), '*');
+    } else {
+        window.onPurchaseFailed(pendingPurchase);
+    }
+}
 window.onPurchaseSuccess=function(itemId){if(!purchasing||itemId!==pendingPurchase)return;purchasing=false;pendingPurchase='';currentPaid=true;startRoundAfterEntry()}
 window.onPurchaseFailed=function(itemId){if(itemId!==pendingPurchase)return;purchasing=false;pendingPurchase='';phase=STATES.MENU;syncUI();showToast('Entry 未完成','#ff7b92')}
 function startRoundAfterEntry(){electHost();if(!isHost()){send('BBG_READY',{roundId,player:ME});phase=STATES.WAIT_HOST;showToast('等待房主','#ffd45c');syncUI();return}roundId=Math.max(0,roundId)+1;roundSeed=(Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0;winnerId=null;reason='';resetRoundData();currentPaid=true;phase=STATES.COUNTDOWN;startAt=Date.now()+CFG.COUNTDOWN_MS;phaseEndsAt=startAt;send('BBG_ROUND_START',{roundId,entryCost:selectedEntry,seed:roundSeed,startAt,maxDuration:CFG.ROUND_MS});broadcastState(true);showToast('3','#ffd45c');sfx('start');}
 function startPlaying(){if(!isHost()||phase!==STATES.COUNTDOWN)return;phase=STATES.PLAYING;startAt=Date.now();phaseEndsAt=startAt+CFG.ROUND_MS;send('BBG_PLAY',{roundId,startAt,phaseEndsAt});broadcastState(true);showToast('搶！','#ffd45c');sfx('start')}
-function settleReward(){if(currentSettled)return 0;currentSettled=true;const rows=stateResult.length?stateResult:[...players.values()].sort((a,b)=>b.score-a.score).map(p=>({id:p.id,score:p.score}));const idx=rows.findIndex(r=>String(r.id)===ME.id);const reward=idx===0?selectedEntry*2:idx===1?Math.floor(selectedEntry*.5):0;const safe=Math.floor(clamp(reward,0,CFG.REWARD_CAP));if(!gameOverCalled){gameOverCalled=true;try{if(SDK&&typeof SDK.gameOver==='function')SDK.gameOver(safe)}catch(e){}}return safe}
+function settleReward(){
+    if(currentSettled)return 0;
+    currentSettled=true;
+    const rows=stateResult.length?stateResult:[...players.values()].sort((a,b)=>b.score-a.score).map(p=>({id:p.id,score:p.score}));
+    const idx=rows.findIndex(r=>String(r.id)===ME.id);
+    const reward=idx===0?selectedEntry*2:idx===1?Math.floor(selectedEntry*.5):0;
+    const safe=Math.floor(clamp(reward,0,CFG.REWARD_CAP));
+    
+    if(!gameOverCalled){
+        gameOverCalled=true;
+        const reqData = { action: 'game_over', winAmount: safe };
+        if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
+            window.BoomRoomSDK.gameOver(safe);
+        } else if (window.parent !== window) {
+            window.parent.postMessage(JSON.stringify(reqData), '*');
+        }
+    }
+    return safe;
+}
 function finishHost(){if(!isHost()||phase!==STATES.PLAYING)return;phase=STATES.RESULT;reason='時間到：依最終分數排名';const rows=sortedPlayers().filter(p=>p.online||p.score>0).sort((a,b)=>b.score-a.score||b.bestCombo-a.bestCombo||a.joinedAt-b.joinedAt);winnerId=rows[0]?.id||ME.id;stateResult=rows.map(p=>({id:p.id,username:p.username,score:Math.min(Number.MAX_SAFE_INTEGER,p.score),combo:p.bestCombo}));send('BBG_ROUND_END',{roundId,winnerId,reason,result:stateResult});broadcastState(true);finishResult();sfx(winnerId===ME.id?'win':'end')}
 function finishResult(){if(phase!==STATES.RESULT)return;items.clear();const rows=stateResult.length?stateResult:[...players.values()].sort((a,b)=>b.score-a.score).map(p=>({id:p.id,username:p.username,score:p.score,combo:p.bestCombo}));stateResult=rows;const meIndex=rows.findIndex(r=>String(r.id)===ME.id);const won=meIndex===0;const reward=settleReward();el.resultTitle.textContent=won?'第一名！':'本局完成';el.resultTitle.style.color=won?'#ffd45c':'#f8fbff';el.reward.textContent='+'+reward+' 銀幣';el.reward.style.color=won?'#65ffad':'#9aa4bb';el.reason.textContent=reason||'本局結束';el.rankList.innerHTML='';rows.slice(0,6).forEach((r,i)=>{const row=document.createElement('div');row.className='rank-row'+(String(r.id)===ME.id?' me':'');const safe=String(r.username||'玩家').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));row.innerHTML='<span>#'+(i+1)+'</span><span>'+safe+' · Combo '+Math.round(r.combo||0)+'</span><b>'+Math.round(r.score||0)+'</b>';el.rankList.appendChild(row)});el.hud.style.display='none';el.result.style.display='grid';el.wait.disabled=false}
 
@@ -175,7 +282,6 @@ el.wait.addEventListener('click',e=>{e.preventDefault();showToast('等待房主�
 
 // HEARTBEAT
 function hello(){send('BBG_HELLO',{player:ME});send('BBG_HEARTBEAT',{player:ME,requestState:true})}
-setTimeout(hello,80);
 setInterval(()=>{const p=players.get(ME.id);if(p){p.online=true;p.lastSeen=Date.now()}send('BBG_HEARTBEAT',{player:ME});const now=Date.now();for(const q of players.values())if(now-q.lastSeen>CFG.HOST_TIMEOUT)q.online=false;const prev=hostId;electHost();if(prev!==hostId){send('BBG_HOST',{hostId});if(isHost()&&phase!==STATES.RESULT)broadcastState(true)}},CFG.HEARTBEAT);
 
 // MAIN LOOP
@@ -183,7 +289,7 @@ let lastTs=0;
 function loop(ts){const dt=lastTs?Math.min((ts-lastTs)/1000,.033):0;lastTs=ts;const now=Date.now();ctx.drawImage(bg,0,0,W,H);const pulse=.5+.5*Math.sin(ts*.0014);ctx.globalAlpha=.018+.012*pulse;ctx.fillStyle='#ffd45c';ctx.beginPath();ctx.arc(W*.5,H*.48,Math.min(W,H)*.18,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;updateParticles(dt);if(phase===STATES.COUNTDOWN&&isHost()&&now>=phaseEndsAt)startPlaying();if(phase===STATES.COUNTDOWN){const sec=Math.ceil(Math.max(0,phaseEndsAt-now)/1000);if(sec!==countdownShown){countdownShown=sec;if(sec>0){showToast(String(sec),'#ffd45c');sfx('tick')}}}if(phase===STATES.PLAYING){if(isHost()){spawnBatch(now);if(now>=phaseEndsAt)finishHost();broadcastState(false)}for(const it of items.values())drawItem(it,now)}else{if(phase!==STATES.RESULT&&phase!==STATES.MENU){/* no item drawing */}}for(const it of [...items.values()]){if(now>it.expiresAt)items.delete(it.id)}drawParticles();syncUI();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
 
-if(DEV){el.lobby.style.display='grid';el.start.textContent='開始搶金';}
+el.lobby.style.display='grid';
 })();
 </script>
 </body>
