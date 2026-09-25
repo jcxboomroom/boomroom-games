@@ -68,6 +68,10 @@ button:disabled{opacity:.45;cursor:default}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#101727f2;border:1px solid var(--line);padding:9px 13px;border-radius:12px;font-size:11px;z-index:80;transition:.18s}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .debug{position:fixed;left:6px;bottom:6px;z-index:100;background:#000d;color:#8fffc0;font:10px monospace;padding:6px;pointer-events:none;border-radius:6px}
 .hidden{display:none!important}
+.guessChatBox{background:#0b0f18;border:1px solid var(--line);border-radius:12px;padding:8px;height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;font-size:11px}
+.chatMsg{line-height:1.35;word-break:break-all}
+.chatMsg.correct{color:var(--green);font-weight:bold}
+.chatMsg.system{color:var(--gold);font-style:italic}
 @media(min-width:600px){.shell{padding-left:18px;padding-right:18px}.panel{padding:15px}.voteGrid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
@@ -76,7 +80,6 @@ button:disabled{opacity:.45;cursor:default}
   <header class="top">
     <div class="brand">💥 爆爆你畫我猜<small>BOOMROOM UGC · ONE-SHOT</small></div>
     <div class="topActions">
-      <div id="coinBadge" class="coinBadge">💰 <span id="coinVal">0</span></div>
       <button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button>
       <button id="helpBtn" class="iconBtn" aria-label="玩法">?</button>
     </div>
@@ -175,6 +178,13 @@ const WORDS=buildWordBank();
 let DEV = true;
 let sdkIsHost = false;
 let gameRoomId = "";
+
+let selectedRounds = 1;
+let selectedTurnSeconds = 15;
+let activeTurnSeconds = 15;
+let guessHistory = [];
+let resultAutoCloseTimer = null;
+let resultCloseSeconds = 5;
 
 let state=STATES.LOBBY;
 let gameOverCalled=false;
@@ -490,7 +500,13 @@ function startCategoryVoteAsHost(){
   roundId=makeRoundId();roundSeed=makeSeed();currentHostId=ME.id;hostTakeoverSentFor="";
   selectedCategory="";votedCategory="";categoryVotes=new Map();
   voteDeadline=Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000;state=STATES.SELECT_CATEGORY;
-  sendEvent("CATEGORY_VOTE_START",{roundId,deadline:voteDeadline,categories:CATEGORIES.map(c=>c.id)});
+  sendEvent("CATEGORY_VOTE_START",{
+    roundId,
+    deadline:voteDeadline,
+    categories:CATEGORIES.map(c=>c.id),
+    totalRounds: selectedRounds,
+    turnSeconds: selectedTurnSeconds
+  });
   setNotice("投票開始！選一個你想畫的題型。");render();
   clearTimeout(voteTimer);voteTimer=setTimeout(()=>finishCategoryVoteAsHost(),CONFIG.CATEGORY_VOTE_SECONDS*1000+150);
 }
@@ -498,7 +514,12 @@ function startCategoryVoteAsHost(){
 function castCategoryVote(categoryId){
   if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
   if(votedCategory)return;
-  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});render();
+  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});
+  if(isHost() && categoryVotes.size >= players.size){
+    clearTimeout(voteTimer);
+    finishCategoryVoteAsHost();
+  }
+  render();
 }
 function finishCategoryVoteAsHost(){
   if(!isHost()||state!==STATES.SELECT_CATEGORY||matchStarted)return;
@@ -538,6 +559,7 @@ function applyRoundStart(payload){
   if(roundId&&payload.roundId!==roundId)return;
   roundId=safeString(payload.roundId,roundId,100);
   roundSeed=(finite(payload.seed,0)>>>0);roundStartAt=finite(payload.startTime,Date.now());selectedCategory=safeString(payload.category,CATEGORIES[0].id,30);
+  if(payload.turnSeconds) activeTurnSeconds = intClamp(payload.turnSeconds, 10, 60);
   totalPool=intClamp(payload.totalPool,0,CONFIG.MAX_PLAYERS*CONFIG.ENTRY_FEE);platformFee=intClamp(payload.platformFee,0,totalPool);prizePool=intClamp(payload.prizePool,0,totalPool-platformFee);
   const ids=Array.isArray(payload.participantIds)?payload.participantIds.filter(x=>typeof x==="string"&&x.length<=64).slice(0,CONFIG.MAX_PLAYERS):[];
   turnOrder=ids;participants.clear();ids.forEach(id=>{participants.add(id);const p=players.get(id)||addPlayer(id,"玩家","","READY",false);if(p)p.status="READY"});
@@ -547,7 +569,7 @@ function applyRoundStart(payload){
 
 function broadcastLobbySync(toUserId){
   if(!isHost()||!roundId)return;
-  sendEvent("LOBBY_SYNC",{roundId,phase:state,category:selectedCategory,voteDeadline,paymentDeadline,matchStarted,participantCount:participantPlayers().length});
+  sendEvent("LOBBY_SYNC",{roundId,phase:state,category:selectedCategory,voteDeadline,paymentDeadline,matchStarted,participantCount:participantPlayers().length,totalRounds,turnSeconds:activeTurnSeconds});
 }
 
 const usedWordIndexes=new Map();
@@ -561,7 +583,7 @@ function wordForTurn(categoryId,turnIndex,seed){
   used.add(idx);usedWordIndexes.set(categoryId,used);
   return bank[idx]||bank[0];
 }
-function currentTurnDurationMs(){return CONFIG.TURN_SECONDS*1000}
+function currentTurnDurationMs(){return activeTurnSeconds*1000}
 function isDrawer(){return !!currentDrawerId&&currentDrawerId===ME.id}
 function isParticipant(id){return participants.has(id)}
 function startNextTurnAsHost(){
@@ -569,12 +591,13 @@ function startNextTurnAsHost(){
   currentTurnIndex++;
   if(currentTurnIndex>=turnOrder.length){finishMatchAsHost("所有玩家都完成畫畫");return}
   currentDrawerId=turnOrder[currentTurnIndex];currentTurnStartedAt=Date.now()+250;currentTurnResolved=false;knownStrokes=[];localStrokeIds=[];currentWord=wordForTurn(selectedCategory,currentTurnIndex,roundSeed);feedText="準備畫！";
-  sendEvent("TURN_START",{roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:CONFIG.TURN_SECONDS});
-  applyTurnStart({roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:CONFIG.TURN_SECONDS});
+  sendEvent("TURN_START",{roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:activeTurnSeconds,turnSeconds:activeTurnSeconds});
+  applyTurnStart({roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:activeTurnSeconds,turnSeconds:activeTurnSeconds});
 }
 function findWordIndex(categoryId,wordId){const bank=WORDS[categoryId]||[];const idx=bank.findIndex(w=>w.id===wordId);return idx<0?0:idx}
 function applyTurnStart(payload){
   if(!payload||payload.roundId!==roundId)return;
+  if(payload.turnSeconds) activeTurnSeconds = intClamp(payload.turnSeconds, 10, 60);
   currentTurnIndex=intClamp(payload.turnIndex,-1,CONFIG.MAX_PLAYERS);
   currentDrawerId=safeString(payload.drawerId,"",64);currentTurnStartedAt=finite(payload.startTime,Date.now());currentTurnResolved=false;
   selectedCategory=safeString(payload.category,selectedCategory,30);
@@ -582,6 +605,8 @@ function applyTurnStart(payload){
   currentWord=(WORDS[selectedCategory]||[])[idx]||null;
   knownStrokes=[];localStrokeIds=[];currentStroke=null;
   state=STATES.PLAYING;feedText=isDrawer()?"輪到你！畫出題目，別寫字。":"快猜！先答對先得分。";
+  guessHistory.push({username: "系統", text: "🎨 新回合開始！畫家正在作畫中...", isCorrect: false, isSystem: true});
+  if(guessHistory.length>50) guessHistory.shift();
   addPlayer(ME.id,ME.username,ME.avatar,"PLAYING",purchaseConfirmed);
   sendEvent("PLAYER_STATE",{roundId,userId:ME.id,status:"PLAYING",score:intClamp(players.get(ME.id)?.score||0,0,100000)});
   render();playTone(740,.08);vibrate(25);
@@ -612,9 +637,14 @@ function applyTurnEnd(payload){
   if(payload.winnerId&&players.has(payload.winnerId)&&payload.winnerScore!=null)players.get(payload.winnerId).score=intClamp(payload.winnerScore,0,100000);
   if(payload.winnerId===ME.id&&payload.winnerScore!=null)playTone(980,.12);
   feedText=payload.kind==="CORRECT"?"✅ "+(players.get(payload.winnerId)?.username||"玩家")+" 猜中了！":payload.kind==="SKIP"?"⏭️ 畫家跳過，本回合 0 分":"⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
+  const msgText = payload.kind==="CORRECT" ? "✅ "+(players.get(payload.winnerId)?.username||"玩家")+" 猜中了答案「"+currentWord.answer+"」！" : payload.kind==="SKIP" ? "⏭️ 畫家跳過本回合。" : "⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
+  guessHistory.push({username: "系統", text: msgText, isCorrect: true, isSystem: true});
+  if(guessHistory.length>50) guessHistory.shift();
+
   showToast(feedText);
   state=STATES.PLAYING;
   render();
+  const chatBox=document.getElementById("guessChatBox");if(chatBox)chatBox.scrollTop=chatBox.scrollHeight;
   clearTimeout(turnStateTimer);
   turnStateTimer=setTimeout(()=>{
     if(matchEnded)return;
@@ -627,9 +657,12 @@ function submitGuess(){
   const input=document.getElementById("guessInput");if(!input)return;
   const guess=safeString(input.value,"",CONFIG.MAX_GUESS_LENGTH);input.value="";if(!guess)return;
   lastGuessAt=Date.now();ensureAudio();
+  guessHistory.push({username: ME.username, text: guess, isCorrect: false});
+  if(guessHistory.length>50) guessHistory.shift();
   const key=roundId+"|"+currentTurnIndex+"|"+ME.id+"|"+normalizeText(guess);if(seenGuesses.has(key))return;seenGuesses.add(key);
   sendEvent("GAME_EVENT",{roundId,type:"GUESS",userId:ME.id,username:ME.username,turnIndex:currentTurnIndex,guess});
-  showToast("已送出："+guess);
+  render();
+  const chatBox=document.getElementById("guessChatBox");if(chatBox)chatBox.scrollTop=chatBox.scrollHeight;
 }
 function processGuessAsHost(payload){
   if(!isHost()||matchEnded||currentTurnResolved||state!==STATES.PLAYING||payload.turnIndex!==currentTurnIndex)return;
