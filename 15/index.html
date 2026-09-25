@@ -120,7 +120,7 @@ const GAME_INFO = {
 const CONFIG = Object.freeze({
   ENTRY_FEE: 100,
   PLATFORM_FEE_RATE: 0.10,
-  MIN_PLAYERS: 2, // 🌟 嚴格設定最少 2 人
+  MIN_PLAYERS: 1, // 🌟 支援 1 人即可開始測試/遊玩
   MAX_PLAYERS: 10,
   CATEGORY_VOTE_SECONDS: 8,
   PAYMENT_WINDOW_SECONDS: 8,
@@ -877,9 +877,12 @@ function renderLobby(main){
     return;
   }
   if(state===STATES.PURCHASING||state===STATES.READY){
+    if(!isPurchasing && !purchaseConfirmed) {
+      requestPurchaseOnce();
+    }
     const remain=Math.max(0,Math.ceil((paymentDeadline-Date.now())/1000));
     main.innerHTML=`
-      <section class="panel hero center"><div><h1>${cat.icon} ${esc(cat.name)}</h1><p>題型決定！現在支付 Entry，準備輪流畫畫。</p><div class="badges"><span class="badge">每人 100 銀幣</span><span class="badge">每人畫 1 次</span><span class="badge">每回合 15 秒</span></div></div></section>
+      <section class="panel hero center"><div><h1>${cat.icon} ${esc(cat.name)}</h1><p>題型決定！自動支付 Entry 中，準備輪流畫畫。</p><div class="badges"><span class="badge">每人 100 銀幣</span><span class="badge">每人畫 1 次</span></div></div></section>
       <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${totalPool}</b><span>總投入</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">平台手續費 ${platformFee} 銀幣（10%）。正式開始後獎池鎖定，不再加入新參賽者。</div></section>
       <section class="panel"><div class="sectionTitle">參賽者</div><div class="players">${renderPlayers()}</div><div class="notice">付款窗口 <b id="paymentSeconds">${remain}</b> 秒後鎖定。 ${esc(noticeText||'')}</div><button id="joinBtn" class="cta" ${isPurchasing||purchaseConfirmed?'disabled':''}>${isPurchasing?'付款處理中…':purchaseConfirmed?'✓ Entry 已完成':'支付 100 銀幣參賽'}</button>${sdkAvailable()?'':'<div class="dev">開發測試模式：BoomRoom SDK 未連接。正式付款不會被假裝成功。</div>'}</section>
       ${!sdkAvailable()?'<section class="panel"><button id="devBtn" class="cta secondary">🧪 本地測試：直接體驗 4 人對局</button><div class="dev">僅在 SDK 不存在時顯示；會明確標示為本地測試，不會產生正式銀幣。</div></section>':''}`;
