@@ -285,7 +285,6 @@ function updateCoinUI(val) {
 }
 
 let ME={ id:"local_"+Math.random().toString(36).slice(2,10), username:"本地玩家", avatar:"", joinedAt:Date.now() };
-sdkIsHost = true;
 currentHostId = ME.id;
 addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
 
@@ -877,8 +876,7 @@ function renderLobby(main){
   const paid=currentPaidCount();calculateEconomyFromParticipants();const cat=getCategory(selectedCategory);
   if(state===STATES.SELECT_CATEGORY){
     main.innerHTML=`
-      <section class="panel hero center"><div><h1>🗳️ 選題型</h1><p>大家投票決定這局要畫什麼。</p><div class="badges"><span class="badge">${players.size||1} 人已在房間</span><span class="badge">投票 <b id="voteSeconds">${Math.max(0,Math.ceil((voteDeadline-Date.now())/1000))}</b> 秒</span><span class="badge">${CATEGORIES.length} 種題型</span></div></div></section>
-      <section class="panel"><div class="sectionTitle">選一個你最想玩的題型</div><div class="voteGrid">${CATEGORIES.map(c=>{const n=[...categoryVotes.values()].filter(v=>v===c.id).length;return `<button class="chip ${votedCategory===c.id?'active':''}" data-category="${c.id}" ${votedCategory?'disabled':''}>${c.icon} ${c.name}<small>${c.hint} · ${n} 票</small></button>`}).join("")}</div><div style="height:8px"></div><div class="voteBar"><span id="voteFill"></span></div><div class="notice">${esc(votedCategory?"你已投票，等大家選完。":"每人只能投 1 票。")}</div></section>
+      <section class="panel"><div class="sectionTitle">🗳️ 選擇題型（大家投票決定）</div><div class="voteGrid">${CATEGORIES.map(c=>{const n=[...categoryVotes.values()].filter(v=>v===c.id).length;return `<button class="chip ${votedCategory===c.id?'active':''}" data-category="${c.id}" ${votedCategory?'disabled':''}>${c.icon} ${c.name}<small>${c.hint} · ${n} 票</small></button>`}).join("")}</div><div style="height:8px"></div><div class="voteBar"><span id="voteFill"></span></div><div class="notice">${esc(votedCategory?"你已投票，等大家選完。":"每人只能投 1 票。")}</div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">${esc(noticeText||"投票結果由本局主持者依票數結算。")}</div></section>`;
     document.querySelectorAll("[data-category]").forEach(b=>b.addEventListener("click",()=>castCategoryVote(b.dataset.category)));
     return;
@@ -889,12 +887,8 @@ function renderLobby(main){
     }
     const remain=Math.max(0,Math.ceil((paymentDeadline-Date.now())/1000));
     main.innerHTML=`
-      <section class="panel hero center"><div><h1>${cat.icon} ${esc(cat.name)}</h1><p>題型決定！自動支付 Entry 中，準備輪流畫畫。</p><div class="badges"><span class="badge">每人 100 銀幣</span><span class="badge">每人畫 1 次</span></div></div></section>
-      <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${totalPool}</b><span>總投入</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">平台手續費 ${platformFee} 銀幣（10%）。正式開始後獎池鎖定，不再加入新參賽者。</div></section>
-      <section class="panel"><div class="sectionTitle">參賽者</div><div class="players">${renderPlayers()}</div><div class="notice">付款窗口 <b id="paymentSeconds">${remain}</b> 秒後鎖定。 ${esc(noticeText||'')}</div><button id="joinBtn" class="cta" ${isPurchasing||purchaseConfirmed?'disabled':''}>${isPurchasing?'付款處理中…':purchaseConfirmed?'✓ Entry 已完成':'支付 100 銀幣參賽'}</button>${sdkAvailable()?'':'<div class="dev">開發測試模式：BoomRoom SDK 未連接。正式付款不會被假裝成功。</div>'}</section>
-      ${!sdkAvailable()?'<section class="panel"><button id="devBtn" class="cta secondary">🧪 本地測試：直接體驗 4 人對局</button><div class="dev">僅在 SDK 不存在時顯示；會明確標示為本地測試，不會產生正式銀幣。</div></section>':''}`;
-    const join=document.getElementById("joinBtn");if(join&&!purchaseConfirmed&&!isPurchasing)join.addEventListener("click",()=>{ensureAudio();requestPurchaseOnce()});
-    document.getElementById("devBtn")?.addEventListener("click",()=>{ensureAudio();runLocalDevTest()});
+      <section class="panel"><div class="sectionTitle">💰 ${cat.icon} ${esc(cat.name)} - 準備開局</div><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry</span></div><div class="stat"><b>${paid}</b><span>已付</span></div><div class="stat"><b>${totalPool}</b><span>總額</span></div><div class="stat"><b>${prizePool}</b><span>獎池</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">參賽者</div><div class="players">${renderPlayers()}</div><div class="notice">自動支付 Entry 中... <b id="paymentSeconds">${remain}</b> 秒</div></section>`;
     return;
   }
   
@@ -902,13 +896,13 @@ function renderLobby(main){
   const canStart = players.size >= CONFIG.MIN_PLAYERS;
   
   main.innerHTML=`
-    <section class="panel hero center"><div><h1>🎨 爆爆你畫我猜</h1><p>投票選題、輪流作畫，猜對與畫家合作拿分。</p><div class="badges"><span class="badge">派對競技</span><span class="badge">${CONFIG.MIN_PLAYERS}–${CONFIG.MAX_PLAYERS} 人</span><span class="badge">每人畫 1 次</span><span class="badge">手機觸控</span></div></div></section>
-    <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">先投票再付款。達到 ${CONFIG.MIN_PLAYERS} 位已付款玩家後，本局才會鎖定正式參賽者並開始。</div></section>
+    <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry</span></div><div class="stat"><b>${players.size}</b><span>房內</span></div><div class="stat"><b>${paid}</b><span>已付</span></div><div class="stat"><b>${prizePool}</b><span>獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">達到 ${CONFIG.MIN_PLAYERS} 位玩家後即可開始。</div></section>
+    <section class="panel"><div class="sectionTitle">遊戲設定</div><div class="row"><div><div class="tiny muted" style="margin-bottom:4px">輪數</div><div style="display:flex;gap:4px"><button class="miniTag ${selectedRounds===1?'active':''}" data-rounds="1">1輪</button><button class="miniTag ${selectedRounds===3?'active':''}" data-rounds="3">3輪</button><button class="miniTag ${selectedRounds===5?'active':''}" data-rounds="5">5輪</button></div></div><div><div class="tiny muted" style="margin-bottom:4px">秒數</div><div style="display:flex;gap:4px"><button class="miniTag ${selectedTurnSeconds===15?'active':''}" data-seconds="15">15秒</button><button class="miniTag ${selectedTurnSeconds===30?'active':''}" data-seconds="30">30秒</button><button class="miniTag ${selectedTurnSeconds===45?'active':''}" data-seconds="45">45秒</button></div></div></div></section>
     <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-    ${isHost() ? `<button id="hostStartBtn" class="cta" style="margin-top:10px;" ${canStart?'':'disabled'}>👑 室長：開始投票選題 ${canStart?'':'(最低需 '+CONFIG.MIN_PLAYERS+' 人)'}</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
-    ${!sdkAvailable()?'<section class="panel"><button id="devBtn" class="cta secondary">🧪 本地測試：直接體驗完整流程</button><div class="dev">此按鈕只在 BoomRoom SDK 未連接時存在，僅用於開發測試。</div></section>':''}`;
+    ${isHost() ? `<button id="hostStartBtn" class="cta" style="margin-top:10px;" ${canStart?'':'disabled'}>👑 室長：開始投票選題</button>` : '<div class="notice">等待室長開始遊戲...</div>'}`;
     
-  document.getElementById("devBtn")?.addEventListener("click",()=>{ensureAudio();runLocalDevTest()});
+  document.querySelectorAll("[data-rounds]").forEach(b=>b.addEventListener("click",()=>{if(isHost()){selectedRounds=Number(b.dataset.rounds);render();}}));
+  document.querySelectorAll("[data-seconds]").forEach(b=>b.addEventListener("click",()=>{if(isHost()){selectedTurnSeconds=Number(b.dataset.seconds);render();}}));
   const hostBtn = document.getElementById("hostStartBtn");
   if(hostBtn && canStart) hostBtn.addEventListener("click",()=>{ensureAudio();startCategoryVoteAsHost()});
 }
@@ -918,6 +912,9 @@ function renderGame(main){
   main.innerHTML=`
     <div class="hud"><div class="pill ${remain<=4?'timerWarn':''}">⏱ <b id="gameTimer">${remain}</b> 秒</div><div class="pill centerText">${getCategory(selectedCategory).icon} <b>${esc(getCategory(selectedCategory).name)}</b></div><div class="pill" style="text-align:right">🏆 <b>${intClamp(prizePool,0,1000000)}</b></div></div>
     <section id="canvasWrap"><canvas id="drawCanvas"></canvas><div class="roleBadge">${drawer?'🎨 你是畫家':'🔎 搶答中'}</div><div class="turnBadge">${currentTurnIndex+1}/${turnOrder.length} · ${esc(turnPlayer?turnPlayer.username:'畫家')}</div><div class="wordBadge">${drawer?(currentWord?'題目：'+esc(currentWord.answer):'題目準備中'):'❓ 看圖猜答案'}</div><div class="cursorHint">${drawer?'手指拖曳作畫，不要直接寫答案':'知道答案就輸入文字送出'}</div></section>
+    <div class="guessChatBox" id="guessChatBox" style="max-height:80px;overflow-y:auto;margin:6px 0;font-size:12px;background:#0b0f18;border:1px solid #222c3d;border-radius:8px;padding:6px;">
+      ${guessHistory.map(h=>`<div style="color:${h.isCorrect?'#37a66a':(h.isSystem?'#f39a28':'#e2e8f0')}"><b>${esc(h.username)}：</b>${esc(h.text)}</div>`).join('')}
+    </div>
     ${drawer?`<div class="tools"><button class="tool ${tool==='pen'?'active':''}" data-tool="pen">✏️</button><button class="tool ${tool==='eraser'?'active':''}" data-tool="eraser">🧽</button><button class="tool color" data-color="#151923" style="background:#151923"></button><button class="tool color" data-color="#e34d5d" style="background:#e34d5d"></button><button class="tool color" data-color="#3275e8" style="background:#3275e8"></button><button class="tool color" data-color="#37a66a" style="background:#37a66a"></button><button class="tool color" data-color="#a353d5" style="background:#a353d5"></button><button class="tool color" data-color="#f39a28" style="background:#f39a28"></button><button class="tool sizeBtn ${brushSize===4?'active':''}" data-size="4">細</button><button class="tool sizeBtn ${brushSize===8?'active':''}" data-size="8">中</button><button class="tool sizeBtn ${brushSize===15?'active':''}" data-size="15">粗</button><button class="tool" id="undoBtn">↶</button><button class="tool" id="clearBtn">清除</button><button class="skipBtn" id="skipBtn">跳過（0 分）</button></div>`:`<div class="guessArea"><input id="guessInput" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…"><button id="guessBtn">猜！</button></div>`}
     <div class="turnFeed"><div class="feedText">${esc(feedText||(drawer?'畫得像一點！':'搶在別人前猜中！'))}</div><div class="turnScore">你的總分 <b>${intClamp(my?my.score:0,0,100000)}</b></div></div>
     <div class="players">${renderPlayers()}</div>`;
