@@ -671,7 +671,23 @@ function applyRoundEnd(payload){
   if(!payload||payload.roundId!==roundId||matchEnded&&state!==STATES.RESULT&&state!==STATES.PLAYING)return;
   matchEnded=true;rewardLocked=true;state=STATES.RESULT;finalReason=safeString(payload.reason,"本局已結束",60);
   const snapshot=Array.isArray(payload.scores)?payload.scores:[];
-  for(const row of snapshot){if(row.id==null)continue; const rowId=String(row.id); const p=players.get(rowId)||addPlayer(rowId,row.username||"玩家","");if(!p)continue;p.username=safeString(row.username,p.username,CONFIG.MAX_NAME_LENGTH);p.score=intClamp(row.score,0,100000);p.reward=intClamp(row.reward,0,prizePool);p.status=p.reward>0?"WIN":"END";p.correct=intClamp(row.correct,0,1000);p.skips=intClamp(row.skips,0,1000)}
+  for(const row of snapshot){
+    if(row.id==null)continue;
+    const rowId=String(row.id);
+    let p=players.get(rowId);
+    const uname=safeString(row.username, p ? p.username : "玩家", CONFIG.MAX_NAME_LENGTH);
+    if(!p){
+      p=addPlayer(rowId, uname, "");
+    }else{
+      p.username=uname;
+    }
+    if(!p)continue;
+    p.score=intClamp(row.score,0,100000);
+    p.reward=intClamp(row.reward,0,prizePool);
+    p.status=p.reward>0?"WIN":"END";
+    p.correct=intClamp(row.correct,0,1000);
+    p.skips=intClamp(row.skips,0,1000);
+  }
   const meRow=snapshot.find(x=>String(x.id)===String(ME.id));finalReward=intClamp(meRow?meRow.reward:0,0,prizePool);finalRank=rankOfMe(snapshot.map(row=>({id:String(row.id),score:intClamp(row.score,0,100000)})));
   callGameOver(finalReward);
   sendEvent("PLAYER_END",{roundId,userId:ME.id,status:finalReward>0?"WIN":"END",score:intClamp(players.get(ME.id)?.score||0,0,100000),reward:finalReward,reason:finalReason});
@@ -876,7 +892,12 @@ function renderGame(main){
 function renderResult(main){
   const mine=finalReward>0;const all=participantPlayers().sort((a,b)=>(finite(b.score,0)-finite(a.score,0))||a.id.localeCompare(b.id));
   main.innerHTML=`<section class="panel hero center result"><div class="resultTitle">${mine?'🏆 你贏了！':'本局已結束'}</div><p>${esc(finalReason||'所有玩家完成輪流作畫')}</p><div class="reward">+${intClamp(finalReward,0,prizePool)} 銀幣</div><div class="stats"><div class="stat"><b>第 ${finalRank}</b><span>最終排名</span></div><div class="stat"><b>${intClamp(players.get(ME.id)?.score||0,0,100000)}</b><span>總分</span></div><div class="stat"><b>${intClamp(prizePool,0,1000000)}</b><span>獎池</span></div><div class="stat"><b>${intClamp(platformFee,0,1000000)}</b><span>平台費</span></div></div></section>
-  <section class="panel"><div class="sectionTitle">最終排名</div><div class="rankList">${all.slice(0,10).map((p,i)=>'<div class="rankRow"><div class="rankNo">'+(i+1)+'</div><div class="rankName">'+esc(p.username)+(p.id===ME.id?' · 你':'')+'</div><div class="rankScore">'+intClamp(p.score,0,100000)+' 分</div><div class="rankReward">獎勵 +'+intClamp(p.reward,0,prizePool)+' 銀幣 · 猜中 '+intClamp(p.correct||0,0,1000)+' 次 · 跳過 '+intClamp(p.skips||0,0,1000)+' 次</div></div>').join('')}</div></section>
+  <section class="panel"><div class="sectionTitle">最終排名</div><div class="rankList">${all.slice(0,10).map((p,i)=>{
+    const name=(p.username&&p.username!=="玩家")?p.username:(p.id===ME.id?ME.username:("玩家_"+String(p.id).slice(-4)));
+    return '<div class="rankRow"><div class="rankNo">'+(i+1)+'</div><div class="rankName">'+esc(name)+(p.id===ME.id?' · 你':'')+'</div><div class="rankScore">'+intClamp(p.score,0,100000)+' 分</div><div class="rankReward">獎勵 +'+intClamp(p.reward,0,prizePool)+' 銀幣 · 猜中 '+intClamp(p.correct||0,0,1000)+' 次 · 跳過 '+intClamp(p.skips||0,0,1000)+' 次</div></div>';
+  }).join('')}</div></section>
+  <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
+}
   <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
 }
 
