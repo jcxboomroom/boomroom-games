@@ -134,7 +134,7 @@ const CONFIG = Object.freeze({
   MAX_PLAYERS: 10,
   CATEGORY_VOTE_SECONDS: 8,
   PAYMENT_WINDOW_SECONDS: 8,
-  TURN_SECONDS: 15,
+  TURN_SECONDS: 60,
   COUNTDOWN_SECONDS: 3,
   HEARTBEAT_MS: 4000,
   PLAYER_TIMEOUT_MS: 12000,
@@ -169,46 +169,13 @@ const CATEGORIES = Object.freeze([
   {id:"fantasy", name:"娛樂幻想", icon:"🚀", hint:"遊戲、幻想、電影感"}
 ]);
 
-/* =========================================================
-   LARGE BUILT-IN WORD BANK
-========================================================= */
 const WORD_BANK = {
-  food: [
-    ["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["壽司"],["蛋糕"],["冰淇淋"],["珍珠奶茶",["珍奶"]],
-    ["西瓜"],["香蕉"],["草莓"],["葡萄"],["鳳梨"],["蘋果"],["橘子"],["荷包蛋"],["飯糰"],["三明治"],
-    ["熱狗"],["甜甜圈"],["餅乾"],["巧克力"],["爆米花"],["棉花糖"],["麵包"],["鬆餅"],["可頌"],["粽子"],
-    ["湯圓"],["月餅"],["水餃"],["燒賣"],["小籠包"],["牛肉麵"],["雞排"],["臭豆腐"],["滷肉飯"],["珍珠"]
-  ],
-  animals: [
-    ["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["長頸鹿"],["猴子"],["熊貓"],["企鵝"],
-    ["海豚"],["鯨魚"],["章魚"],["鯊魚"],["螃蟹"],["海馬"],["烏龜"],["青蛙"],["蛇"],["蜥蜴"],
-    ["恐龍"],["斑馬"],["袋鼠"],["河馬"],["犀牛"],["狐狸"],["狼"],["熊"],["鹿"],["松鼠"],
-    ["刺蝟"],["蝙蝠"],["蜜蜂"],["蝴蝶"],["蜻蜓"],["蜘蛛"],["鸚鵡"],["老鷹"],["孔雀"],["火雞"]
-  ],
-  daily: [
-    ["雨傘"],["眼鏡"],["電風扇"],["吹風機"],["電視"],["手機"],["耳機"],["相機"],["電腦"],["鍵盤"],
-    ["滑板"],["腳踏車",["自行車","單車"]],["網球拍"],["足球"],["棒球"],["籃球"],["吉他"],["鋼琴"],["鬧鐘"],["手錶"],
-    ["牙刷"],["牙膏"],["洗衣機"],["冰箱"],["吸塵器"],["枕頭"],["棉被"],["椅子"],["沙發"],["桌子"],
-    ["雨鞋"],["書包"],["剪刀"],["鉛筆"],["蠟筆"],["鏡子"],["雨衣"],["鑰匙"],["錢包"],["行李箱"]
-  ],
-  places: [
-    ["摩天輪"],["遊樂園"],["動物園"],["海邊"],["沙灘"],["游泳池"],["電影院"],["圖書館"],["學校"],["醫院"],
-    ["超市"],["便利商店"],["餐廳"],["咖啡廳"],["公園"],["機場"],["火車站"],["捷運站"],["夜市"],["百貨公司"],
-    ["城堡"],["燈塔"],["山"],["瀑布"],["火車"],["公車"],["計程車",["的士"]],["救護車"],["消防車"],["警車"],
-    ["飛機"],["直升機"],["船"],["潛水艇"],["熱氣球"],["纜車"],["摩托車"],["紅綠燈"],["斑馬線"],["加油站"]
-  ],
-  people: [
-    ["醫生"],["護士"],["老師"],["廚師"],["警察"],["消防員"],["郵差"],["司機"],["飛行員"],["攝影師"],
-    ["畫家"],["歌手"],["舞者"],["魔術師"],["理髮師"],["工程師"],["科學家"],["農夫"],["建築工人"],["運動員"],
-    ["超級英雄"],["海盜"],["騎士"],["國王"],["公主"],["偵探"],["特務"],["忍者"],["武士"],["巫師"],
-    ["機器人"],["外星人"],["聖誕老人"],["小丑"],["怪獸"],["探險家"],["宇宙人"],["美人魚"],["吸血鬼"],["殭屍"]
-  ],
-  fantasy: [
-    ["火箭"],["太空人"],["外星球"],["黑洞"],["彩虹"],["流星"],["彗星"],["寶箱"],["魔法棒"],["魔法掃把"],
-    ["獨角獸"],["龍"],["鳳凰"],["精靈"],["巨人"],["幽靈"],["吸血鬼"],["殭屍"],["時光機"],["飛毯"],
-    ["遊戲手把"],["遊戲機"],["寶劍"],["盾牌"],["雷射槍"],["飛碟"],["太空船"],["機器人"],["火山"],["寶藏地圖"],
-    ["金幣"],["皇冠"],["迷宮"],["神秘門"],["彩蛋"],["忍者飛鏢"],["巨型漢堡"],["會飛的鞋子"],["魔法藥水"],["雲朵城堡"]
-  ]
+  food: [["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["壽司"],["蛋糕"],["冰淇淋"],["珍珠奶茶",["珍奶"]],["西瓜"],["香蕉"],["草莓"],["葡萄"],["鳳梨"],["蘋果"],["橘子"],["荷包蛋"],["飯糰"],["三明治"],["熱狗"],["甜甜圈"],["餅乾"],["巧克力"],["爆米花"],["棉花糖"],["麵包"],["鬆餅"],["可頌"],["粽子"],["湯圓"],["月餅"],["水餃"],["燒賣"],["小籠包"],["牛肉麵"],["雞排"],["臭豆腐"],["滷肉飯"],["珍珠"]],
+  animals: [["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["長頸鹿"],["猴子"],["熊貓"],["企鵝"],["海豚"],["鯨魚"],["章魚"],["鯊魚"],["螃蟹"],["海馬"],["烏龜"],["青蛙"],["蛇"],["蜥蜴"],["恐龍"],["斑馬"],["袋鼠"],["河馬"],["犀牛"],["狐狸"],["狼"],["熊"],["鹿"],["松鼠"],["刺蝟"],["蝙蝠"],["蜜蜂"],["蝴蝶"],["蜻蜓"],["蜘蛛"],["鸚鵡"],["老鷹"],["孔雀"],["火雞"]],
+  daily: [["雨傘"],["眼鏡"],["電風扇"],["吹風機"],["電視"],["手機"],["耳機"],["相機"],["電腦"],["鍵盤"],["滑板"],["腳踏車",["自行車","單車"]],["網球拍"],["足球"],["棒球"],["籃球"],["吉他"],["鋼琴"],["鬧鐘"],["手錶"],["牙刷"],["牙膏"],["洗衣機"],["冰箱"],["吸塵器"],["枕頭"],["棉被"],["椅子"],["沙發"],["桌子"],["雨鞋"],["書包"],["剪刀"],["鉛筆"],["蠟筆"],["鏡子"],["雨衣"],["鑰匙"],["錢包"],["行李箱"]],
+  places: [["摩天輪"],["遊樂園"],["動物園"],["海邊"],["沙灘"],["游泳池"],["電影院"],["圖書館"],["學校"],["醫院"],["超市"],["便利商店"],["餐廳"],["咖啡廳"],["公園"],["機場"],["火車站"],["捷運站"],["夜市"],["百貨公司"],["城堡"],["燈塔"],["山"],["瀑布"],["火車"],["公車"],["計程車",["的士"]],["救護車"],["消防車"],["警車"],["飛機"],["直升機"],["船"],["潛水艇"],["熱氣球"],["纜車"],["摩托車"],["紅綠燈"],["斑馬線"],["加油站"]],
+  people: [["醫生"],["護士"],["老師"],["廚師"],["警察"],["消防員"],["郵差"],["司機"],["飛行員"],["攝影師"],["畫家"],["歌手"],["舞者"],["魔術師"],["理髮師"],["工程師"],["科學家"],["農夫"],["建築工人"],["運動員"],["超級英雄"],["海盜"],["騎士"],["國王"],["公主"],["偵探"],["特務"],["忍者"],["武士"],["巫師"],["機器人"],["外星人"],["聖誕老人"],["小丑"],["怪獸"],["探險家"],["宇宙人"],["美人魚"],["吸血鬼"],["殭屍"]],
+  fantasy: [["火箭"],["太空人"],["外星球"],["黑洞"],["彩虹"],["流星"],["彗星"],["寶箱"],["魔法棒"],["魔法掃把"],["獨角獸"],["龍"],["鳳凰"],["精靈"],["巨人"],["幽靈"],["吸血鬼"],["殭屍"],["時光機"],["飛毯"],["遊戲手把"],["遊戲機"],["寶劍"],["盾牌"],["雷射槍"],["飛碟"],["太空船"],["機器人"],["火山"],["寶藏地圖"],["金幣"],["皇冠"],["迷宮"],["神秘門"],["彩蛋"],["忍者飛鏢"],["巨型漢堡"],["會飛的鞋子"],["魔法藥水"],["雲朵城堡"]]
 };
 
 function buildWordBank(){
@@ -223,6 +190,10 @@ const WORDS=buildWordBank();
 /* =========================================================
    GLOBAL STATE
 ========================================================= */
+let DEV = true;
+let sdkIsHost = false;
+let gameRoomId = "";
+
 let state=STATES.LOBBY;
 let gameOverCalled=false;
 let isPurchasing=false;
@@ -258,7 +229,7 @@ let prizePool=0;
 let finalReward=0;
 let finalRank=1;
 let finalReason="";
-let noticeText="";
+let noticeText="連線中...";
 let feedText="";
 let lastGuessAt=0;
 let countdownValue=CONFIG.COUNTDOWN_SECONDS;
@@ -306,81 +277,169 @@ function addPlayer(id,username,avatar,status="WAITING",paid=false){
   return p;
 }
 
-function safeGetUser(){try{return window.BoomRoomSDK&&typeof window.BoomRoomSDK.getUser==="function"?(window.BoomRoomSDK.getUser()||{}):{}}catch(_){return {}}}
-const rawUser=safeGetUser();
-const ME={
-  id:safeString(rawUser&&rawUser.id,"local_"+Math.random().toString(36).slice(2,10),64),
-  username:safeString(rawUser&&rawUser.username,"玩家",CONFIG.MAX_NAME_LENGTH),
-  avatar:safeString(rawUser&&rawUser.avatar,"",CONFIG.MAX_AVATAR_LENGTH),
+let ME={
+  id:"local_"+Math.random().toString(36).slice(2,10),
+  username:"玩家",
+  avatar:"",
   joinedAt:Date.now()
 };
-addPlayer(ME.id,ME.username,ME.avatar,"LOCAL",false);
 
 /* =========================================================
    SDK SAFE ADAPTER & DELAYED INJECTION FIX
 ========================================================= */
-function sdkAvailable(){return !!(window.BoomRoomSDK&&typeof window.BoomRoomSDK==="object")}
+function sdkAvailable(){return !DEV;}
 
-// 🌟 核心修復：當 Flutter 延遲注入 SDK 時，重新讀取真實玩家資料並消除本地測試按鈕
-window.onBoomRoomSDKReady = function() {
-  const u = safeGetUser();
-  if (u && u.id) {
+function setupSDK(data) {
+  DEV = false;
+  if (data.user) {
     players.delete(ME.id); // 移除舊的本地測試 ID
-    ME.id = String(u.id);
-    ME.username = safeString(u.username, "玩家", CONFIG.MAX_NAME_LENGTH);
-    ME.avatar = safeString(u.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
-    addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", CONFIG.MAX_NAME_LENGTH);
+    ME.avatar = safeString(data.user.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
+  }
+  sdkIsHost = !!data.isHost;
+  gameRoomId = data.roomId || "";
+  
+  if (sdkIsHost) currentHostId = ME.id; // 強制設定為室長
+  
+  addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+  
+  setNotice('✅ 已成功連接 BoomRoom SDK！等待室長開始遊戲。');
+  render();
+  
+  sendEvent("PLAYER_HELLO", {
+    roundId: roundId || "LOBBY",
+    userId: ME.id,
+    username: ME.username,
+    avatar: ME.avatar,
+    joinedAt: ME.joinedAt,
+    paid: false
+  });
+}
+
+// 接收來自 Flutter 的 Web Message (Web 平台) 或 Socket 事件
+window.addEventListener("message", e => {
+  try {
+    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
     
-    setNotice('✅ 已成功連接 BoomRoom SDK！');
-    render(); // 重新渲染畫面，隱藏本地測試按鈕
+    if (data.action === "initSDK") {
+      setupSDK(data);
+      return;
+    }
+
+    if (!data || data.action !== "gameEventReceived") return;
+    const userId = safeString(data.userId, "", 64);
+    const eventName = safeString(data.eventName, "", 40);
+    const payload = data.payload;
+    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
     
-    // 重新發送真實的 PLAYER_HELLO 給伺服器
-    sendEvent("PLAYER_HELLO", {
-      roundId: roundId || "LOBBY",
-      userId: ME.id,
-      username: ME.username,
-      avatar: ME.avatar,
-      joinedAt: ME.joinedAt,
-      paid: false
+    const round = safeString(payload.roundId, "LOBBY", 100);
+    const eventId = safeString(payload.eventId, "", 80);
+    const fallbackSig = stableHash(JSON.stringify(payload)).toString(36);
+    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || fallbackSig);
+    
+    if (seenEvents.has(key)) return; 
+    seenEvents.add(key);
+    if (seenEvents.size > CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
+    
+    handleEvent(userId, eventName, payload);
+  } catch (_) {}
+});
+
+// 接收來自 Flutter 的 JS 注入 (Mobile 平台)
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId
     });
   }
 };
 
-function sendEvent(eventName,payload){
-  if(!/^[A-Z0-9_]{1,40}$/.test(eventName)||!payload||typeof payload!=="object"||Array.isArray(payload))return false;
-  const copy={...payload,eventId:safeString(payload.eventId,ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7),80)};
-  try{
-    if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function"){window.BoomRoomSDK.sendGameEvent(eventName,copy);return true}
-  }catch(_){ }
+setTimeout(() => {
+  if (DEV) {
+    setNotice("開發測試模式：未連接 BoomRoom SDK。");
+    addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+    render();
+  }
+}, 1500);
+
+function sendEvent(eventName, payload) {
+  if (DEV) return false;
+  if (!/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+  
+  const copy = { ...payload, eventId: safeString(payload.eventId, ME.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7), 80) };
+  const eventData = { action: 'sendGameEvent', eventName: eventName, payload: copy };
+  
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, copy);
+      return true;
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(eventData), '*');
+      return true;
+    }
+  } catch (_) {}
   return false;
 }
-function requestPurchaseOnce(){
-  if(isPurchasing||purchaseConfirmed||matchStarted||matchEnded||state!==STATES.PURCHASING)return;
-  isPurchasing=true;render();
-  const itemId=GAME_INFO.id+"_entry_"+GAME_INFO.version;
-  try{
-    if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.requestPurchase==="function")window.BoomRoomSDK.requestPurchase(itemId,CONFIG.ENTRY_FEE);
-    else {isPurchasing=false;setNotice("開發測試模式：未連接 BoomRoom SDK，正式付款按鈕無法使用。");render()}
-  }catch(_){isPurchasing=false;setNotice("付款服務暫時不可用。");render()}
+
+function requestPurchaseOnce() {
+  if (isPurchasing || purchaseConfirmed || matchStarted || matchEnded || state !== STATES.PURCHASING) return;
+  isPurchasing = true;
+  render();
+  
+  const itemId = GAME_INFO.id + "_entry_" + GAME_INFO.version;
+  const reqData = { action: 'requestPurchase', itemId: itemId, cost: CONFIG.ENTRY_FEE };
+  
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === "function") {
+      window.BoomRoomSDK.requestPurchase(itemId, CONFIG.ENTRY_FEE);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(reqData), '*');
+    } else {
+      window.onPurchaseFailed(itemId);
+    }
+  } catch (_) {
+    isPurchasing = false;
+    setNotice("付款服務暫時不可用。");
+    render();
+  }
 }
-window.onPurchaseSuccess=function(itemId){
-  if(matchStarted||matchEnded||purchaseConfirmed||!isPurchasing)return;
-  if(itemId!==GAME_INFO.id+"_entry_"+GAME_INFO.version)return;
-  isPurchasing=false;purchaseConfirmed=true;
-  addPlayer(ME.id,ME.username,ME.avatar,"READY",true);
-  sendEvent("PLAYER_HELLO",{roundId:roundId||"LOBBY",userId:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,paid:true});
+
+window.onPurchaseSuccess = function(itemId) {
+  if (matchStarted || matchEnded || purchaseConfirmed || !isPurchasing) return;
+  if (itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
+  isPurchasing = false;
+  purchaseConfirmed = true;
+  addPlayer(ME.id, ME.username, ME.avatar, "READY", true);
+  sendEvent("PLAYER_HELLO", { roundId: roundId || "LOBBY", userId: ME.id, username: ME.username, avatar: ME.avatar, joinedAt: ME.joinedAt, paid: true });
   setNotice("Entry 已完成，等待本局鎖定參賽者。");
   render();
 };
-window.onPurchaseFailed=function(itemId){
-  if(itemId!==GAME_INFO.id+"_entry_"+GAME_INFO.version)return;
-  isPurchasing=false;setNotice("付款失敗，本局未收取 Entry。");render();
+
+window.onPurchaseFailed = function(itemId) {
+  if (itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
+  isPurchasing = false;
+  setNotice("付款失敗，本局未收取 Entry。");
+  render();
 };
-function callGameOver(reward){
-  const safeReward=intClamp(reward,0,Math.max(0,prizePool));
-  if(gameOverCalled)return;
-  gameOverCalled=true;rewardLocked=true;finalReward=safeReward;
-  try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(safeReward)}catch(_){ }
+
+function callGameOver(reward) {
+  const safeReward = intClamp(reward, 0, Math.max(0, prizePool));
+  if (gameOverCalled) return;
+  gameOverCalled = true;
+  rewardLocked = true;
+  finalReward = safeReward;
+  
+  const reqData = { action: 'game_over', winAmount: safeReward };
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(safeReward);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(reqData), '*');
+    }
+  } catch (_) {}
 }
 
 /* =========================================================
@@ -391,19 +450,23 @@ function activePlayers(){
   const now=Date.now();
   return [...players.values()].filter(p=>p&&p.status!=="LEFT"&&p.lastSeen&&now-p.lastSeen<=CONFIG.PLAYER_TIMEOUT_MS);
 }
-function electHost(){
-  const pool=activePlayers().filter(p=>p.status!=="TIMEOUT");
-  pool.sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id));
-  return pool.length?pool[0].id:ME.id;
+function isHost() {
+  return sdkIsHost || currentHostId === ME.id;
 }
-function getHostId(){
-  if(currentHostId&&players.has(currentHostId)){
-    const hp=players.get(currentHostId);if(hp&&hp.status!=="LEFT"&&Date.now()-hp.lastSeen<=CONFIG.PLAYER_TIMEOUT_MS)return currentHostId;
+function electHost() {
+  if (sdkIsHost) { currentHostId = ME.id; return ME.id; }
+  const pool = activePlayers().filter(p => p.status !== "TIMEOUT");
+  pool.sort((a, b) => (finite(a.joinedAt, 0) - finite(b.joinedAt, 0)) || a.id.localeCompare(b.id));
+  return pool.length ? pool[0].id : ME.id;
+}
+function getHostId() {
+  if (sdkIsHost) return ME.id;
+  if (currentHostId && players.has(currentHostId)) {
+    const hp = players.get(currentHostId);
+    if (hp && hp.status !== "LEFT" && Date.now() - hp.lastSeen <= CONFIG.PLAYER_TIMEOUT_MS) return currentHostId;
   }
-  const elected=electHost();
-  return elected;
+  return electHost();
 }
-function isHost(){return getHostId()===ME.id}
 function maybeTakeoverHost(){
   const elected=getHostId();
   if(!elected)return;
@@ -635,48 +698,12 @@ function validRoundPayload(payload,allowLobby=false){
   return true;
 }
 
-// 🌟 接收 Flutter Web 傳遞的 SDK 雙向通訊
-window.addEventListener("message", e => {
-  try {
-    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    
-    if (data.action === "initSDK") {
-      window.BoomRoomSDK = {
-        getUser: () => data.user,
-        requestPurchase: (itemId, cost) => window.parent.postMessage(JSON.stringify({ action: 'requestPurchase', itemId, cost }), '*'),
-        gameOver: (winAmount) => window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount }), '*'),
-        sendGameEvent: (eventName, payload) => window.parent.postMessage(JSON.stringify({ action: 'sendGameEvent', eventName, payload }), '*')
-      };
-      if (window.onBoomRoomSDKReady) window.onBoomRoomSDKReady();
-      return;
-    }
-
-    if (!data || data.action !== "gameEventReceived") return;
-    const userId = safeString(data.userId, "", 64);
-    const eventName = safeString(data.eventName, "", 40);
-    const payload = data.payload;
-    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
-    
-    const round = safeString(payload.roundId, "LOBBY", 100);
-    const eventId = safeString(payload.eventId, "", 80);
-    const fallbackSig = stableHash(JSON.stringify(payload)).toString(36);
-    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || fallbackSig);
-    
-    if (seenEvents.has(key)) return; 
-    seenEvents.add(key);
-    if (seenEvents.size > CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
-    
-    handleEvent(userId, eventName, payload);
-  } catch (_) {}
-});
-
 function handleEvent(userId,eventName,payload){
   const knownUser=players.get(userId); if(knownUser)knownUser.lastSeen=Date.now();
   if(eventName==="PLAYER_HELLO"){
     const p=addPlayer(userId,payload.username,payload.avatar,payload.paid?"READY":"WAITING",!!payload.paid);if(p){p.lastSeen=Date.now();p.joinedAt=finite(payload.joinedAt,p.joinedAt)}
     if(matchStarted&&!participants.has(userId))p.status="SPECTATOR";
-    if(!matchStarted&&!roundId&&players.size>=CONFIG.MIN_PLAYERS&&isHost())startCategoryVoteAsHost();
-    else if(roundId&&!matchStarted&&isHost())broadcastLobbySync(userId);
+    if(roundId&&!matchStarted&&isHost())broadcastLobbySync(userId);
     render();return;
   }
   if(eventName==="HOST_TAKEOVER"){
@@ -751,7 +778,6 @@ function endStroke(e){
   knownStrokes.push(stroke);localStrokeIds.push(stroke.id);if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke,turnIndex:currentTurnIndex});currentStroke=null;
 }
 
-// 🌟 徹底阻擋瀏覽器預設的拖曳與選取行為
 function attachCanvasEvents(){
   if(!canvas||canvas.dataset.bound==="1")return;
   canvas.dataset.bound="1";
@@ -853,13 +879,18 @@ function renderLobby(main){
     document.getElementById("devBtn")?.addEventListener("click",()=>{ensureAudio();runLocalDevTest()});
     return;
   }
+  
+  // LOBBY
   main.innerHTML=`
     <section class="panel hero center"><div><h1>🎨 爆爆你畫我猜</h1><p>投票選題、輪流作畫，猜對與畫家合作拿分。</p><div class="badges"><span class="badge">派對競技</span><span class="badge">2–10 人</span><span class="badge">每人畫 1 次</span><span class="badge">手機觸控</span></div></div></section>
     <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">先投票再付款。達到 2 位已付款玩家後，本局才會鎖定正式參賽者並開始。</div></section>
     <section class="panel"><div class="sectionTitle">本局題庫</div><div class="categoryList">${CATEGORIES.map(c=>'<span class="miniTag">'+c.icon+' '+c.name+' · '+(WORDS[c.id]||[]).length+' 題</span>').join("")}</div><div class="notice">${esc(noticeText||"等待至少 2 位玩家進入房間後開始投票。")}<\/div></section>
     <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+    ${isHost() ? `<button id="hostStartBtn" class="cta" style="margin-top:10px;">👑 室長：開始投票選題</button>` : ''}
     ${!sdkAvailable()?'<section class="panel"><button id="devBtn" class="cta secondary">🧪 本地測試：直接體驗完整流程</button><div class="dev">此按鈕只在 BoomRoom SDK 未連接時存在，僅用於開發測試。</div></section>':''}`;
+    
   document.getElementById("devBtn")?.addEventListener("click",()=>{ensureAudio();runLocalDevTest()});
+  document.getElementById("hostStartBtn")?.addEventListener("click",()=>{ensureAudio();startCategoryVoteAsHost()});
 }
 function renderGame(main){
   const drawer=isDrawer();const remain=Math.max(0,Math.ceil((currentTurnStartedAt+CONFIG.TURN_SECONDS*1000-Date.now())/1000));const my=players.get(ME.id);const turnPlayer=players.get(currentDrawerId);
@@ -883,7 +914,7 @@ function renderResult(main){
   const mine=finalReward>0;const all=participantPlayers().sort((a,b)=>(finite(b.score,0)-finite(a.score,0))||a.id.localeCompare(b.id));
   main.innerHTML=`<section class="panel hero center result"><div class="resultTitle">${mine?'🏆 你贏了！':'本局已結束'}</div><p>${esc(finalReason||'所有玩家完成輪流作畫')}</p><div class="reward">+${intClamp(finalReward,0,prizePool)} 銀幣</div><div class="stats"><div class="stat"><b>第 ${finalRank}</b><span>最終排名</span></div><div class="stat"><b>${intClamp(players.get(ME.id)?.score||0,0,100000)}</b><span>總分</span></div><div class="stat"><b>${intClamp(prizePool,0,1000000)}</b><span>獎池</span></div><div class="stat"><b>${intClamp(platformFee,0,1000000)}</b><span>平台費</span></div></div></section>
   <section class="panel"><div class="sectionTitle">最終排名</div><div class="rankList">${all.slice(0,10).map((p,i)=>'<div class="rankRow"><div class="rankNo">'+(i+1)+'</div><div class="rankName">'+esc(p.username)+(p.id===ME.id?' · 你':'')+'</div><div class="rankScore">'+intClamp(p.score,0,100000)+' 分</div><div class="rankReward">獎勵 +'+intClamp(p.reward,0,prizePool)+' 銀幣 · 猜中 '+intClamp(p.correct||0,0,1000)+' 次 · 跳過 '+intClamp(p.skips||0,0,1000)+' 次</div></div>').join('')}</div></section>
-  <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待市長關閉目前遊戲並重新開啟下一局</div></section>`;
+  <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
 }
 
 /* =========================================================
@@ -929,21 +960,13 @@ document.getElementById("closeHelp").addEventListener("click",()=>document.getEl
 document.getElementById("soundBtn").addEventListener("click",toggleSound);
 
 /* =========================================================
-   DEBUG
-========================================================= */
-function debugOverlay(){
-  if(!CONFIG.DEBUG)return;let el=document.getElementById("debug");if(!el){el=document.createElement("div");el.id="debug";el.className="debug";document.body.appendChild(el)}
-  el.textContent=`FPS ${fps.toFixed(0)} | PLAYER ${ME.id} | ROUND ${roundId||'-'} | HOST ${getHostId()||'-'} | TURN ${currentTurnIndex} | STATE ${state} | SCORE ${intClamp(players.get(ME.id)?.score||0,0,100000)} | PARTICIPANTS ${participants.size}`;
-}
-
-/* =========================================================
    BOOT
 ========================================================= */
 function boot(){
-  setNotice(sdkAvailable()?"":"開發測試模式：BoomRoom SDK 未連接。可先用本地測試體驗完整玩法。");
   render();
-  lastFrame=performance.now();loopHandle=requestAnimationFrame(gameLoop);heartbeatTimer=setInterval(heartbeat,CONFIG.HEARTBEAT_MS);setInterval(debugOverlay,1000);
-  sendEvent("PLAYER_HELLO",{roundId:"LOBBY",userId:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,paid:false});
+  lastFrame=performance.now();
+  loopHandle=requestAnimationFrame(gameLoop);
+  heartbeatTimer=setInterval(heartbeat,CONFIG.HEARTBEAT_MS);
 }
 boot();
 </script>
