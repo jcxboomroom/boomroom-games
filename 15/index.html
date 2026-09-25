@@ -284,7 +284,10 @@ function updateCoinUI(val) {
   }
 }
 
-let ME={ id:"local_"+Math.random().toString(36).slice(2,10), username:"玩家", avatar:"", joinedAt:Date.now() };
+let ME={ id:"local_"+Math.random().toString(36).slice(2,10), username:"本地玩家", avatar:"", joinedAt:Date.now() };
+sdkIsHost = true;
+currentHostId = ME.id;
+addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
 
 function sdkAvailable(){return !DEV;}
 
