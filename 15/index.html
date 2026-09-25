@@ -182,6 +182,10 @@ let gameRoomId = "";
 let selectedRounds = 1;
 let selectedTurnSeconds = 15;
 let activeTurnSeconds = 15;
+let votedRounds = 0;
+let votedSeconds = 0;
+let roundsVotes = new Map();
+let secondsVotes = new Map();
 let guessHistory = [];
 let resultAutoCloseTimer = null;
 let resultCloseSeconds = 5;
@@ -492,7 +496,6 @@ function calculateEconomyFromParticipants(){
 function startCategoryVoteAsHost(){
   if(!isHost()||matchStarted||matchEnded)return;
   if(roundId)return;
-  // 🌟 人數嚴格檢查
   if (players.size < CONFIG.MIN_PLAYERS) {
     setNotice(`⚠️ 無法開始！遊戲最低需求 ${CONFIG.MIN_PLAYERS} 人，目前房間僅 ${players.size} 人。`);
     render();
@@ -500,16 +503,14 @@ function startCategoryVoteAsHost(){
   }
 
   roundId=makeRoundId();roundSeed=makeSeed();currentHostId=ME.id;hostTakeoverSentFor="";
-  selectedCategory="";votedCategory="";categoryVotes=new Map();
+  selectedCategory="";votedCategory="";categoryVotes=new Map();votedRounds=0;votedSeconds=0;roundsVotes=new Map();secondsVotes=new Map();
   voteDeadline=Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000;state=STATES.SELECT_CATEGORY;
   sendEvent("CATEGORY_VOTE_START",{
     roundId,
     deadline:voteDeadline,
-    categories:CATEGORIES.map(c=>c.id),
-    totalRounds: selectedRounds,
-    turnSeconds: selectedTurnSeconds
+    categories:CATEGORIES.map(c=>c.id)
   });
-  setNotice("投票開始！選一個你想畫的題型。");render();
+  setNotice("投票開始！請大家投票選定題型、輪數與秒數。");render();
   clearTimeout(voteTimer);voteTimer=setTimeout(()=>finishCategoryVoteAsHost(),CONFIG.CATEGORY_VOTE_SECONDS*1000+150);
 }
 
@@ -517,12 +518,19 @@ function castCategoryVote(categoryId){
   if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
   if(votedCategory)return;
   votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});
-  if(isHost() && categoryVotes.size >= players.size){
-    clearTimeout(voteTimer);
-    finishCategoryVoteAsHost();
-  }
   render();
 }
+function castRoundsVote(r){
+  if(state!==STATES.SELECT_CATEGORY||votedRounds)return;
+  votedRounds=r;roundsVotes.set(ME.id,r);playTone(660,.06);sendEvent("ROUNDS_VOTE",{roundId,userId:ME.id,rounds:r});
+  render();
+}
+function castSecondsVote(s){
+  if(state!==STATES.SELECT_CATEGORY||votedSeconds)return;
+  votedSeconds=s;secondsVotes.set(ME.id,s);playTone(660,.06);sendEvent("SECONDS_VOTE",{roundId,userId:ME.id,seconds:s});
+  render();
+}
+
 function finishCategoryVoteAsHost(){
   if(!isHost()||state!==STATES.SELECT_CATEGORY||matchStarted)return;
   const counts=new Map(CATEGORIES.map(c=>[c.id,0]));
@@ -530,9 +538,23 @@ function finishCategoryVoteAsHost(){
   let max=-1;let tied=[];
   for(const c of CATEGORIES){const n=counts.get(c.id)||0;if(n>max){max=n;tied=[c.id]}else if(n===max)tied.push(c.id)}
   const rng=mulberry32((roundSeed^stableHash(roundId))>>>0);selectedCategory=tied[Math.floor(rng()*tied.length)]||CATEGORIES[0].id;
+
+  const rCounts={1:0, 3:0, 5:0};
+  for(const r of roundsVotes.values()) { if(rCounts[r]!==undefined) rCounts[r]++; }
+  let maxR=-1; let bestR=selectedRounds;
+  for(const r of [1,3,5]) { if(rCounts[r]>maxR) { maxR=rCounts[r]; bestR=r; } }
+  selectedRounds=bestR;
+
+  const sCounts={15:0, 30:0, 45:0};
+  for(const s of secondsVotes.values()) { if(sCounts[s]!==undefined) sCounts[s]++; }
+  let maxS=-1; let bestS=selectedTurnSeconds;
+  for(const s of [15,30,45]) { if(sCounts[s]>maxS) { maxS=sCounts[s]; bestS=s; } }
+  selectedTurnSeconds=bestS;
+  CONFIG.TURN_SECONDS=selectedTurnSeconds;
+
   state=STATES.PURCHASING;paymentDeadline=Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000;
-  sendEvent("CATEGORY_VOTE_RESULT",{roundId,categoryId:selectedCategory,votes:Object.fromEntries(counts),paymentDeadline});
-  setNotice("題型已選定："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"。現在支付 Entry 參賽。");render();
+  sendEvent("CATEGORY_VOTE_RESULT",{roundId,categoryId:selectedCategory,rounds:selectedRounds,turnSeconds:selectedTurnSeconds,paymentDeadline});
+  setNotice("投票完成！題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"（"+selectedRounds+"輪 / "+selectedTurnSeconds+"秒）。現在支付 Entry 參賽。");render();
   clearTimeout(paymentTimer);paymentTimer=setTimeout(()=>startRoundAsHost(selectedCategory),CONFIG.PAYMENT_WINDOW_SECONDS*1000+200);
 }
 
@@ -741,14 +763,26 @@ function handleEvent(userId,eventName,payload){
   if(eventName==="HOST_TAKEOVER"){if(validRoundPayload(payload))currentHostId=safeString(payload.hostId,currentHostId,64);render();return;}
   if(eventName==="CATEGORY_VOTE_START"){
     if(roundId&&payload.roundId!==roundId)return;currentHostId=String(userId);
-    roundId=safeString(payload.roundId,roundId,100);voteDeadline=finite(payload.deadline,Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000);state=STATES.SELECT_CATEGORY;categoryVotes=new Map();votedCategory="";selectedCategory="";setNotice("投票開始！");render();return;
+    roundId=safeString(payload.roundId,roundId,100);voteDeadline=finite(payload.deadline,Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000);state=STATES.SELECT_CATEGORY;categoryVotes=new Map();roundsVotes=new Map();secondsVotes=new Map();votedCategory="";votedRounds=0;votedSeconds=0;selectedCategory="";setNotice("投票開始！");render();return;
   }
   if(eventName==="CATEGORY_VOTE"){
     if(!validRoundPayload(payload)||state!==STATES.SELECT_CATEGORY)return;
     const uid=safeString(payload.userId,userId,64);if(String(uid)!==String(userId)||!players.has(uid))return;const cid=safeString(payload.categoryId,"",30);if(!getCategory(cid))return;if(categoryVotes.has(uid))return;categoryVotes.set(uid,cid);render();return;
   }
+  if(eventName==="ROUNDS_VOTE"){
+    if(!validRoundPayload(payload)||state!==STATES.SELECT_CATEGORY)return;
+    const uid=safeString(payload.userId,userId,64);if(!players.has(uid))return;roundsVotes.set(uid,intClamp(payload.rounds,1,5));render();return;
+  }
+  if(eventName==="SECONDS_VOTE"){
+    if(!validRoundPayload(payload)||state!==STATES.SELECT_CATEGORY)return;
+    const uid=safeString(payload.userId,userId,64);if(!players.has(uid))return;secondsVotes.set(uid,intClamp(payload.seconds,10,60));render();return;
+  }
   if(eventName==="CATEGORY_VOTE_RESULT"){
-    if(!validRoundPayload(payload))return;selectedCategory=safeString(payload.categoryId,CATEGORIES[0].id,30);paymentDeadline=finite(payload.paymentDeadline,Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000);state=STATES.PURCHASING;setNotice("題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"。支付 Entry 參賽。");render();return;
+    if(!validRoundPayload(payload))return;
+    selectedCategory=safeString(payload.categoryId,CATEGORIES[0].id,30);
+    if(payload.rounds) selectedRounds=intClamp(payload.rounds,1,5);
+    if(payload.turnSeconds) { selectedTurnSeconds=intClamp(payload.turnSeconds,10,60); CONFIG.TURN_SECONDS=selectedTurnSeconds; }
+    paymentDeadline=finite(payload.paymentDeadline,Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000);state=STATES.PURCHASING;setNotice("題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+" ("+selectedRounds+"輪/"+selectedTurnSeconds+"秒)。支付 Entry 參賽。");render();return;
   }
   if(eventName==="LOBBY_SYNC"){
     if(roundId&&payload.roundId!==roundId)return;roundId=safeString(payload.roundId,roundId,100);state=Object.values(STATES).includes(payload.phase)?payload.phase:state;selectedCategory=safeString(payload.category,selectedCategory,30);voteDeadline=finite(payload.voteDeadline,voteDeadline);paymentDeadline=finite(payload.paymentDeadline,paymentDeadline);matchStarted=!!payload.matchStarted;render();return;
@@ -875,10 +909,16 @@ function renderPlayers(){
 function renderLobby(main){
   const paid=currentPaidCount();calculateEconomyFromParticipants();const cat=getCategory(selectedCategory);
   if(state===STATES.SELECT_CATEGORY){
+    const rVotes={1:[...roundsVotes.values()].filter(v=>v===1).length, 3:[...roundsVotes.values()].filter(v=>v===3).length, 5:[...roundsVotes.values()].filter(v=>v===5).length};
+    const sVotes={15:[...secondsVotes.values()].filter(v=>v===15).length, 30:[...secondsVotes.values()].filter(v=>v===30).length, 45:[...secondsVotes.values()].filter(v=>v===45).length};
     main.innerHTML=`
-      <section class="panel"><div class="sectionTitle">🗳️ 選擇題型（大家投票決定）</div><div class="voteGrid">${CATEGORIES.map(c=>{const n=[...categoryVotes.values()].filter(v=>v===c.id).length;return `<button class="chip ${votedCategory===c.id?'active':''}" data-category="${c.id}" ${votedCategory?'disabled':''}>${c.icon} ${c.name}<small>${c.hint} · ${n} 票</small></button>`}).join("")}</div><div style="height:8px"></div><div class="voteBar"><span id="voteFill"></span></div><div class="notice">${esc(votedCategory?"你已投票，等大家選完。":"每人只能投 1 票。")}</div></section>
-      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">${esc(noticeText||"投票結果由本局主持者依票數結算。")}</div></section>`;
+      <section class="panel"><div class="sectionTitle">🗳️ 投票決定題型、輪數與秒數</div><div class="voteGrid">${CATEGORIES.map(c=>{const n=[...categoryVotes.values()].filter(v=>v===c.id).length;return `<button class="chip ${votedCategory===c.id?'active':''}" data-category="${c.id}" ${votedCategory?'disabled':''}>${c.icon} ${c.name}<small>${c.hint} · ${n} 票</small></button>`}).join("")}</div><div style="height:8px"></div><div class="voteBar"><span id="voteFill"></span></div><div class="notice">${esc(votedCategory?"題型已投。":"請選擇題型。")}</div></section>
+      <section class="panel"><div class="sectionTitle">投票：遊戲輪數</div><div style="display:flex;gap:8px">${[1,3,5].map(r=>`<button class="miniTag ${votedRounds===r?'active':''}" data-rounds="${r}" ${votedRounds?'disabled':''}>${r}輪 (${rVotes[r]}票)</button>`).join('')}</div></section>
+      <section class="panel"><div class="sectionTitle">投票：畫畫秒數</div><div style="display:flex;gap:8px">${[15,30,45].map(s=>`<button class="miniTag ${votedSeconds===s?'active':''}" data-seconds="${s}" ${votedSeconds?'disabled':''}>${s}秒 (${sVotes[s]}票)</button>`).join('')}</div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">${esc(noticeText||"投票結束後將依多數決自動套用設定。")}</div></section>`;
     document.querySelectorAll("[data-category]").forEach(b=>b.addEventListener("click",()=>castCategoryVote(b.dataset.category)));
+    document.querySelectorAll("[data-rounds]").forEach(b=>b.addEventListener("click",()=>castRoundsVote(Number(b.dataset.rounds))));
+    document.querySelectorAll("[data-seconds]").forEach(b=>b.addEventListener("click",()=>castSecondsVote(Number(b.dataset.seconds))));
     return;
   }
   if(state===STATES.PURCHASING||state===STATES.READY){

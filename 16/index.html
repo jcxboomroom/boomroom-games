@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆別踩白</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top);--b:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.top{height:46px;display:flex;align-items:center;justify-content:space-between;flex:none}
+.brand{font-weight:1000;font-size:15px}.brand small{display:block;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.7px;margin-top:1px}
+.topActions{display:flex;gap:7px;align-items:center}
+.coinBadge{background:#ffc85722;border:1px solid #ffc85744;color:var(--gold);padding:0 10px;height:32px;border-radius:12px;font-weight:900;font-size:13px;display:none;align-items:center;gap:4px}
+.iconBtn{width:42px;height:42px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:19px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.hero h1{font-size:clamp(26px,7vw,44px);line-height:1.05;margin:0}.hero p{margin-top:7px;color:var(--muted);font-size:13px}
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center}
+.badge{padding:6px 8px;border-radius:999px;background:#0b0f19;border:1px solid var(--line);font-size:10px;color:#d2d8e8}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:52px;border-radius:15px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:16px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta:active,.iconBtn:active{transform:scale(.97)}
+.notice{min-height:23px;color:#d1d6e4;font-size:11px;text-align:center}
+.dev{font-size:10px;color:#ffd276;text-align:center;line-height:1.45;margin-top:8px}
+.players{display:flex;gap:6px;overflow-x:auto}
+.player{min-width:108px;padding:7px 9px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
+.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player em{display:block;font-style:normal;color:var(--muted)}
+.player.me{border-color:#42537b}.player.dead{opacity:.55}.player.alive{border-color:#4ee08a55}
+.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:none}
+.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;display:flex;align-items:center;justify-content:center;gap:4px}
+.pill b{font-size:14px}.timerWarn{color:#ffcf70;border-color:#735b28}
+#boardWrap{position:relative;flex:1;min-height:280px;border-radius:18px;overflow:hidden;border:1px solid #30394f;background:#070b14;touch-action:none}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.spectateTag{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:4;padding:7px 12px;border-radius:999px;background:#111625ee;border:1px solid #ff637a66;font-size:11px;font-weight:1000;pointer-events:none}
+.resultTitle{font-size:32px;font-weight:1000}.reward{font-size:28px;color:var(--gold);font-weight:1000}
+.rankList{display:flex;flex-direction:column;gap:6px;max-height:250px;overflow:auto}
+.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:7px;align-items:center;padding:8px 9px;background:#0b101b;border:1px solid var(--line);border-radius:11px}
+.rankNo{font-weight:1000;text-align:center}.rankName{font-size:11px}.rankScore{font-size:11px;font-weight:1000}
+.rankReward{font-size:9px;color:var(--gold);grid-column:2/4}
+.modal{position:fixed;inset:0;background:#05070ccc;display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+.modal.show{display:flex}
+.modalCard{width:min(100%,560px);max-height:88dvh;overflow:auto;background:#121827;border:1px solid var(--line);border-radius:20px;padding:18px}
+.modalCard h2{margin:0 0 10px}.modalCard p,.modalCard li{color:#c7cede;font-size:12px;line-height:1.62}
+.close{float:right;background:#212a3d;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.toast{position:fixed;left:50%;bottom:calc(18px + var(--b));transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#101727f2;border:1px solid var(--line);padding:9px 13px;border-radius:12px;font-size:11px;z-index:80;transition:.18s}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <header class="top">
+    <div class="brand">⬛ 爆爆別踩白<small>BOOMROOM · SURVIVAL TILES</small></div>
+    <div class="topActions">
+      <div id="coinBadge" class="coinBadge">💰 <span id="coinVal">0</span></div>
+      <button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button>
+      <button id="helpBtn" class="iconBtn" aria-label="玩法">?</button>
+    </div>
+  </header>
+  <main id="main" class="screen"></main>
+</div></div>
+<div id="helpModal" class="modal">
+  <div class="modalCard">
+    <button id="closeHelp" class="close">關閉</button>
+    <h2>⬛ 爆爆別踩白</h2>
+    <p><b>目標：</b>4 軌黑塊往判定線落下。只點黑塊，踩到白塊或漏接就出局。活最久的人獲勝。</p>
+    <ul>
+      <li>每位正式參賽者 Entry：100 銀幣；平台手續費 10%。</li>
+      <li>室長開局後產生同一顆隨機種子，所有人跑同一條譜。</li>
+      <li>短塊點一下；長塊按住直到尾端通過，提早放開會出局。</li>
+      <li>出局後進入觀戰，看其他人繼續跑完。</li>
+      <li>多人：第 1 名拿獎池 70%，第 2 名拿剩餘。單人：依存活秒數給保底，最多 40 銀幣。</li>
+    </ul>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+
+const GAME_INFO = {
+  id: "boom_no_white_tiles",
+  category: "派對競技",
+  name: "爆爆別踩白",
+  description: "同一顆隨機種子的 4 軌黑塊生存戰，活最久者勝。",
+  entryCost: 100,
+  maxPlayers: 8,
+  version: "1.0.0"
+};
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  PLATFORM_FEE_RATE: 0.10,
+  MIN_PLAYERS: 1,
+  MAX_PLAYERS: 8,
+  MATCH_SECONDS: 45,
+  COUNTDOWN_SECONDS: 3,
+  PAYMENT_WINDOW_SECONDS: 8,
+  HEARTBEAT_MS: 4000,
+  STATE_MS: 280,
+  PLAYER_TIMEOUT_MS: 12000,
+  EVENT_DEDUPE_MAX: 1200,
+  MAX_NAME_LENGTH: 24,
+  MAX_AVATAR_LENGTH: 300,
+  SOLO_REWARD_CAP: 40,
+  FIRST_SHARE: 0.70,
+  HIT_WINDOW: 0.28,
+  MISS_WINDOW: 0.22
+});
+
+const STATES = Object.freeze({
+  LOBBY: "LOBBY",
+  PURCHASING: "PURCHASING",
+  COUNTDOWN: "COUNTDOWN",
+  PLAYING: "PLAYING",
+  SPECTATE: "SPECTATE",
+  RESULT: "RESULT"
+});
+
+let DEV = true;
+let sdkIsHost = false;
+let gameRoomId = "";
+let state = STATES.LOBBY;
+let gameOverCalled = false;
+let isPurchasing = false;
+let purchaseConfirmed = false;
+let matchStarted = false;
+let matchEnded = false;
+let roundId = "";
+let roundSeed = 0;
+let currentHostId = "";
+let noticeText = "連線中...";
+let muted = false;
+let audioCtx = null;
+let mySilverCoins = 0;
+let totalPool = 0;
+let platformFee = 0;
+let prizePool = 0;
+let finalReward = 0;
+let finalRank = 1;
+let finalReason = "";
+let paymentDeadline = 0;
+let roundStartAt = 0;
+let matchEndsAt = 0;
+let countdownValue = 3;
+let gameUiBuilt = false;
+let notes = [];
+let chartPos = 0;
+let nextNoteIndex = 0;
+let localAlive = true;
+let localFailReason = "";
+let hits = 0;
+let combo = 0;
+let maxCombo = 0;
+let survivedMs = 0;
+let lastStateSent = 0;
+let lastFrame = 0;
+let loopHandle = 0;
+let rafRunning = true;
+let heartbeatTimer = 0;
+let paymentTimer = 0;
+let countdownTimer = 0;
+let holdNote = null;
+let holdPointerId = null;
+let flashLane = -1;
+let flashUntil = 0;
+let failFlash = 0;
+
+const participants = new Set();
+const players = new Map();
+const seenEvents = new Set();
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+
+function safeString(v, fallback, maxLen) {
+  if (v == null) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+function finite(v, fallback) { return Number.isFinite(v) ? v : fallback; }
+function intClamp(v, min, max) { return Math.max(min, Math.min(max, Math.floor(finite(v, min)))); }
+function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
+function stableHash(s) { let h = 2166136261 >>> 0; for (let i = 0; i < String(s).length; i++) { h ^= String(s).charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function mulberry32(a) { return function () { let t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function sdkAvailable() { return !DEV; }
+function entryItemId() { return GAME_INFO.id + "_entry_" + GAME_INFO.version; }
+function isHost() { return sdkIsHost || (currentHostId != null && String(currentHostId) === String(ME.id)); }
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 1600);
+}
+function setNotice(t) { noticeText = t; }
+function updateCoinUI(val) {
+  mySilverCoins = val;
+  const badge = document.getElementById("coinBadge");
+  const valEl = document.getElementById("coinVal");
+  if (badge && valEl) { badge.style.display = "flex"; valEl.textContent = Number(val).toLocaleString(); }
+}
+function addPlayer(id, username, avatar, status, paid) {
+  if (id == null) return null;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", CONFIG.MAX_NAME_LENGTH), avatar: safeString(avatar, "", CONFIG.MAX_AVATAR_LENGTH), status: status || "WAITING", paid: !!paid, joinedAt: Date.now(), lastSeen: Date.now(), survivedMs: 0, hits: 0, combo: 0, maxCombo: 0, failReason: "", reward: 0, alive: true };
+    players.set(id, p);
+  } else {
+    if (username) p.username = safeString(username, p.username, CONFIG.MAX_NAME_LENGTH);
+    if (avatar != null) p.avatar = safeString(avatar, p.avatar, CONFIG.MAX_AVATAR_LENGTH);
+    if (status) p.status = status;
+    if (paid) p.paid = true;
+    p.lastSeen = Date.now();
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  DEV = false;
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", CONFIG.MAX_NAME_LENGTH);
+    ME.avatar = safeString(data.user.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
+    if (data.user.silverCoins !== undefined) updateCoinUI(data.user.silverCoins);
+  }
+  sdkIsHost = !!data.isHost;
+  gameRoomId = data.roomId || "";
+  if (sdkIsHost) currentHostId = ME.id;
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => addPlayer(String(rp.id), rp.username, rp.avatar, "WAITING", false));
+  }
+  addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+  setNotice("已連接 BoomRoom，等待室長開始。");
+  sendEvent("PLAYER_HELLO", { roundId: roundId || "LOBBY", userId: ME.id, username: ME.username, avatar: ME.avatar, joinedAt: ME.joinedAt, paid: !!purchaseConfirmed });
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (!data) return;
+    if (data.action === "initSDK") { setupSDK(data); return; }
+    if (data.action !== "gameEventReceived") return;
+    const userId = safeString(data.userId, "", 64);
+    const eventName = safeString(data.eventName, "", 40);
+    const payload = data.payload;
+    if (eventName === "PURCHASE_SUCCESS" && payload && payload.itemId === entryItemId()) {
+      if (window.onPurchaseSuccess) window.onPurchaseSuccess(payload.itemId, payload.silverCoins);
+      return;
+    }
+    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
+    const round = safeString(payload.roundId, "LOBBY", 100);
+    const eventId = safeString(payload.eventId, "", 80);
+    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || stableHash(JSON.stringify(payload)).toString(36));
+    if (seenEvents.has(key)) return;
+    seenEvents.add(key);
+    if (seenEvents.size > CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
+    handleEvent(userId, eventName, payload);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function () {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+setTimeout(() => {
+  if (DEV) {
+    setNotice("開發模式：未連接 SDK。");
+    addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+    render();
+  }
+}, 1500);
+
+function sendEvent(eventName, payload) {
+  if (DEV) return false;
+  if (!/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+  const copy = { ...payload, eventId: safeString(payload.eventId, ME.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7), 80) };
+  const eventData = { action: "sendGameEvent", eventName: eventName, payload: copy };
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, copy);
+      return true;
+    }
+    if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(eventData), "*");
+      return true;
+    }
+  } catch (_) {}
+  return false;
+}
+
+function requestPurchaseOnce() {
+  if (isPurchasing || purchaseConfirmed || matchStarted || matchEnded || state !== STATES.PURCHASING) return;
+  isPurchasing = true;
+  render();
+  const itemId = entryItemId();
+  const reqData = { action: "requestPurchase", itemId: itemId, cost: CONFIG.ENTRY_FEE };
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === "function") {
+      window.BoomRoomSDK.requestPurchase(itemId, CONFIG.ENTRY_FEE);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(reqData), "*");
+    } else {
+      window.onPurchaseFailed(itemId);
+    }
+  } catch (_) {
+    isPurchasing = false;
+    setNotice("付款服務暫時不可用。");
+    render();
+  }
+}
+
+window.onPurchaseSuccess = function (itemId, newCoinsBalance) {
+  if (matchStarted || matchEnded || purchaseConfirmed || !isPurchasing) return;
+  if (itemId !== entryItemId()) return;
+  if (newCoinsBalance !== undefined) updateCoinUI(newCoinsBalance);
+  isPurchasing = false;
+  purchaseConfirmed = true;
+  addPlayer(ME.id, ME.username, ME.avatar, "READY", true);
+  sendEvent("PLAYER_HELLO", { roundId: roundId || "LOBBY", userId: ME.id, username: ME.username, avatar: ME.avatar, joinedAt: ME.joinedAt, paid: true });
+  setNotice("Entry 已完成，等待鎖定參賽者。");
+  render();
+};
+
+window.onPurchaseFailed = function (itemId) {
+  if (itemId !== entryItemId()) return;
+  isPurchasing = false;
+  setNotice("付款失敗，請確認銀幣餘額。");
+  render();
+};
+
+function callGameOver(reward) {
+  if (gameOverCalled) return;
+  gameOverCalled = true;
+  finalReward = intClamp(reward, 0, Math.max(CONFIG.SOLO_REWARD_CAP, prizePool));
+  const reqData = { action: "game_over", winAmount: finalReward };
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(finalReward);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify(reqData), "*");
+    }
+  } catch (_) {}
+}
+
+function ensureAudio() {
+  if (muted) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch (_) { audioCtx = null; }
+}
+function playTone(freq, dur, type, vol) {
+  if (muted || !audioCtx) return;
+  try {
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type || "triangle"; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(vol || 0.04, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + dur + 0.02);
+  } catch (_) {}
+}
+function toggleSound() {
+  muted = !muted;
+  document.getElementById("soundBtn").textContent = muted ? "🔇" : "🔊";
+  if (!muted) ensureAudio();
+}
+
+function participantPlayers() { return [...participants].map(id => players.get(id)).filter(Boolean); }
+function currentPaidCount() { return [...players.values()].filter(p => p.paid && p.status !== "LEFT").length; }
+function calculateEconomyFromParticipants() {
+  const paid = Math.max(participants.size, currentPaidCount());
+  totalPool = intClamp(paid * CONFIG.ENTRY_FEE, 0, CONFIG.MAX_PLAYERS * CONFIG.ENTRY_FEE);
+  platformFee = intClamp(totalPool * CONFIG.PLATFORM_FEE_RATE, 0, totalPool);
+  prizePool = intClamp(totalPool - platformFee, 0, totalPool);
+}
+function makeRoundId() { return GAME_INFO.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7); }
+function makeSeed() { return (stableHash(ME.id + "|" + Date.now() + "|" + performance.now()) ^ 0x9e3779b9) >>> 0; }
+
+function buildChart(seed) {
+  const rng = mulberry32(seed >>> 0);
+  const out = [];
+  let pos = 1.15;
+  let lastLane = 1;
+  for (let i = 0; i < 220; i++) {
+    let lane = Math.floor(rng() * 4);
+    if (lane === lastLane && rng() < 0.55) lane = (lane + 1 + Math.floor(rng() * 3)) % 4;
+    const hold = i > 6 && rng() < (i > 40 ? 0.28 : 0.16);
+    const len = hold ? 1.35 + rng() * 1.7 : 0.92;
+    out.push({ i, lane, pos, type: hold ? "hold" : "tap", len, hit: false, missed: false, holding: false });
+    pos += hold ? len + 0.42 : 0.78 + rng() * 0.22;
+    lastLane = lane;
+    if (pos > 78) break;
+  }
+  return out;
+}
+
+function speedAt(t) {
+  if (t < 10) return 1.55;
+  if (t < 25) return 2.15;
+  return 2.75;
+}
+
+function startPurchasingAsHost() {
+  if (!isHost() || matchStarted || matchEnded) return;
+  if (players.size < CONFIG.MIN_PLAYERS) {
+    setNotice("人數不足，無法開始。");
+    render();
+    return;
+  }
+  roundId = makeRoundId();
+  roundSeed = makeSeed();
+  currentHostId = ME.id;
+  state = STATES.PURCHASING;
+  paymentDeadline = Date.now() + CONFIG.PAYMENT_WINDOW_SECONDS * 1000;
+  sendEvent("MATCH_LOCK", { roundId, seed: roundSeed, paymentDeadline, hostId: ME.id });
+  setNotice("付款窗口開啟，支付 100 銀幣參賽。");
+  render();
+  clearTimeout(paymentTimer);
+  paymentTimer = setTimeout(() => startRoundAsHost(), CONFIG.PAYMENT_WINDOW_SECONDS * 1000 + 180);
+}
+
+function startRoundAsHost() {
+  if (!isHost() || matchStarted || matchEnded) return;
+  if (DEV) {
+    purchaseConfirmed = true;
+    addPlayer(ME.id, ME.username, ME.avatar, "READY", true);
+  }
+  const paid = [...players.values()].filter(p => p.paid && p.status !== "LEFT").sort((a, b) => (finite(a.joinedAt, 0) - finite(b.joinedAt, 0)) || a.id.localeCompare(b.id)).slice(0, CONFIG.MAX_PLAYERS);
+  if (paid.length < CONFIG.MIN_PLAYERS) {
+    setNotice("報名人數不足，無法開局。");
+    state = STATES.LOBBY;
+    roundId = "";
+    render();
+    return;
+  }
+  participants.clear();
+  paid.forEach(p => { participants.add(p.id); p.alive = true; p.status = "READY"; p.survivedMs = 0; p.hits = 0; p.combo = 0; p.maxCombo = 0; p.failReason = ""; p.reward = 0; });
+  calculateEconomyFromParticipants();
+  matchStarted = true; matchEnded = false; gameOverCalled = false;
+  const startTime = Date.now() + 1600;
+  const payload = {
+    roundId, seed: roundSeed, startTime, matchSeconds: CONFIG.MATCH_SECONDS,
+    entryCost: CONFIG.ENTRY_FEE, totalPool, platformFee, prizePool,
+    participantIds: paid.map(p => p.id)
+  };
+  sendEvent("ROUND_START", payload);
+  applyRoundStart(payload);
+}
+
+function applyRoundStart(payload) {
+  if (!payload || typeof payload !== "object") return;
+  roundId = safeString(payload.roundId, roundId, 100);
+  roundSeed = finite(payload.seed, 0) >>> 0;
+  roundStartAt = finite(payload.startTime, Date.now());
+  matchEndsAt = roundStartAt + CONFIG.MATCH_SECONDS * 1000;
+  totalPool = intClamp(payload.totalPool, 0, CONFIG.MAX_PLAYERS * CONFIG.ENTRY_FEE);
+  platformFee = intClamp(payload.platformFee, 0, totalPool);
+  prizePool = intClamp(payload.prizePool, 0, totalPool);
+  const ids = Array.isArray(payload.participantIds) ? payload.participantIds.map(String).slice(0, CONFIG.MAX_PLAYERS) : [];
+  participants.clear();
+  ids.forEach(id => { participants.add(id); const p = players.get(id) || addPlayer(id, "玩家", "", "READY", true); p.paid = true; p.alive = true; p.status = "READY"; });
+  notes = buildChart(roundSeed);
+  chartPos = 0; nextNoteIndex = 0; localAlive = participants.has(ME.id); localFailReason = "";
+  hits = 0; combo = 0; maxCombo = 0; survivedMs = 0; holdNote = null; holdPointerId = null;
+  matchStarted = true; matchEnded = false; gameUiBuilt = false;
+  state = STATES.COUNTDOWN;
+  countdownValue = CONFIG.COUNTDOWN_SECONDS;
+  setNotice("準備！同一條隨機譜，活最久的贏。");
+  render();
+  startCountdown();
+}
+
+function startCountdown() {
+  clearTimeout(countdownTimer);
+  const tick = () => {
+    if (matchEnded) return;
+    if (countdownValue <= 0) {
+      state = STATES.PLAYING;
+      setNotice("開始！只點黑塊。");
+      gameUiBuilt = false;
+      render();
+      return;
+    }
+    playTone(480 + countdownValue * 90, 0.07);
+    setNotice("倒數 " + countdownValue);
+    render();
+    countdownValue--;
+    countdownTimer = setTimeout(tick, 850);
+  };
+  tick();
+}
+
+function failLocal(reason) {
+  if (!localAlive || matchEnded || state === STATES.RESULT) return;
+  localAlive = false;
+  localFailReason = reason;
+  survivedMs = Math.max(0, Date.now() - roundStartAt);
+  holdNote = null; holdPointerId = null; failFlash = 1;
+  const me = players.get(ME.id);
+  if (me) { me.alive = false; me.status = "FAIL"; me.survivedMs = survivedMs; me.hits = hits; me.combo = combo; me.maxCombo = maxCombo; me.failReason = reason; }
+  sendEvent("PLAYER_FAIL", { roundId, userId: ME.id, reason, survivedMs, hits, combo: maxCombo, timestamp: Date.now() });
+  state = STATES.SPECTATE;
+  gameUiBuilt = false;
+  playTone(160, 0.18, "sawtooth", 0.05);
+  setNotice(reason + " · 觀戰中");
+  render();
+  if (isHost()) maybeFinishAsHost();
+}
+
+function sendLocalState(force) {
+  const now = Date.now();
+  if (!force && now - lastStateSent < CONFIG.STATE_MS) return;
+  lastStateSent = now;
+  if (localAlive && matchStarted && !matchEnded) survivedMs = Math.max(0, now - roundStartAt);
+  sendEvent("PLAYER_STATE", {
+    roundId, userId: ME.id, alive: localAlive, survivedMs, hits, combo, maxCombo,
+    status: localAlive ? "PLAYING" : "FAIL", reason: localFailReason, timestamp: now
+  });
+}
+
+function rankPlayers(list) {
+  return list.slice().sort((a, b) =>
+    (finite(b.survivedMs, 0) - finite(a.survivedMs, 0)) ||
+    (finite(b.hits, 0) - finite(a.hits, 0)) ||
+    (finite(b.maxCombo, 0) - finite(a.maxCombo, 0)) ||
+    String(a.id).localeCompare(String(b.id))
+  );
+}
+
+function assignRewards(list) {
+  const ranked = rankPlayers(list);
+  ranked.forEach(p => p.reward = 0);
+  if (ranked.length === 1) {
+    const sec = finite(ranked[0].survivedMs, 0) / 1000;
+    ranked[0].reward = intClamp(sec, 0, CONFIG.SOLO_REWARD_CAP);
+    return ranked;
+  }
+  const first = intClamp(prizePool * CONFIG.FIRST_SHARE, 0, prizePool);
+  ranked[0].reward = first;
+  if (ranked[1]) ranked[1].reward = intClamp(prizePool - first, 0, prizePool);
+  return ranked;
+}
+
+function maybeFinishAsHost() {
+  if (!isHost() || !matchStarted || matchEnded) return;
+  const parts = participantPlayers();
+  if (!parts.length) return;
+  const now = Date.now();
+  const timeUp = now >= matchEndsAt;
+  const alive = parts.filter(p => p.alive && p.status !== "FAIL" && p.status !== "LEFT");
+  const allDone = parts.every(p => p.status === "FAIL" || !p.alive || timeUp);
+  if (parts.length >= 2 && alive.length <= 1 && parts.some(p => p.status === "FAIL" || !p.alive)) {
+    if (alive[0]) { alive[0].survivedMs = Math.max(alive[0].survivedMs, now - roundStartAt); alive[0].status = "SURVIVED"; }
+    finishMatchAsHost(alive.length ? "只剩最後一位存活" : "全軍覆沒");
+    return;
+  }
+  if (timeUp) {
+    parts.forEach(p => { if (p.alive && p.status !== "FAIL") { p.status = "SURVIVED"; p.survivedMs = CONFIG.MATCH_SECONDS * 1000; } });
+    finishMatchAsHost("時間到");
+    return;
+  }
+  if (parts.length === 1 && (allDone || !parts[0].alive)) finishMatchAsHost("單人挑戰結束");
+}
+
+function finishMatchAsHost(reason) {
+  if (!isHost() || matchEnded) return;
+  matchEnded = true;
+  const ranked = assignRewards(participantPlayers());
+  sendEvent("ROUND_END", {
+    roundId, reason,
+    rankings: ranked.map(p => ({ id: p.id, username: p.username, survivedMs: p.survivedMs, hits: p.hits, maxCombo: p.maxCombo, failReason: p.failReason, reward: p.reward, status: p.status })),
+    totalPool, platformFee, prizePool
+  });
+  applyRoundEnd({ reason, rankings: ranked, totalPool, platformFee, prizePool });
+}
+
+function applyRoundEnd(payload) {
+  matchEnded = true;
+  state = STATES.RESULT;
+  finalReason = safeString(payload.reason, "本局結束", 80);
+  const rows = Array.isArray(payload.rankings) ? payload.rankings : [];
+  rows.forEach(r => {
+    const p = players.get(String(r.id)) || addPlayer(r.id, r.username, "", "RESULT", true);
+    p.survivedMs = finite(r.survivedMs, p.survivedMs);
+    p.hits = finite(r.hits, p.hits);
+    p.maxCombo = finite(r.maxCombo, p.maxCombo);
+    p.reward = finite(r.reward, 0);
+    p.failReason = r.failReason || p.failReason;
+    p.alive = r.status !== "FAIL";
+    p.status = "RESULT";
+  });
+  if (payload.prizePool != null) prizePool = finite(payload.prizePool, prizePool);
+  if (payload.totalPool != null) totalPool = finite(payload.totalPool, totalPool);
+  if (payload.platformFee != null) platformFee = finite(payload.platformFee, platformFee);
+  const mine = rows.find(r => String(r.id) === String(ME.id));
+  const ranked = rankPlayers(participantPlayers());
+  finalRank = Math.max(1, ranked.findIndex(p => p.id === ME.id) + 1);
+  const reward = mine ? finite(mine.reward, 0) : (ranked.find(p => p.id === ME.id)?.reward || 0);
+  callGameOver(reward);
+  gameUiBuilt = false;
+  render();
+}
+
+function handleEvent(userId, eventName, payload) {
+  if (payload.roundId && roundId && payload.roundId !== roundId && payload.roundId !== "LOBBY" && eventName !== "MATCH_LOCK" && eventName !== "ROUND_START" && eventName !== "PLAYER_HELLO") return;
+  if (eventName === "PLAYER_HELLO") {
+    addPlayer(payload.userId || userId, payload.username, payload.avatar, payload.paid ? "READY" : "WAITING", !!payload.paid);
+    if (state === STATES.LOBBY || state === STATES.PURCHASING) render();
+    return;
+  }
+  if (eventName === "PLAYER_HEARTBEAT") {
+    const p = addPlayer(payload.userId || userId, payload.username, payload.avatar, payload.status, false);
+    p.lastSeen = Date.now();
+    return;
+  }
+  if (eventName === "HOST_TAKEOVER") { currentHostId = String(payload.hostId || userId); return; }
+  if (eventName === "MATCH_LOCK") {
+    roundId = safeString(payload.roundId, roundId, 100);
+    roundSeed = finite(payload.seed, roundSeed) >>> 0;
+    paymentDeadline = finite(payload.paymentDeadline, Date.now() + 8000);
+    currentHostId = String(payload.hostId || currentHostId);
+    state = STATES.PURCHASING;
+    render();
+    return;
+  }
+  if (eventName === "ROUND_START") { applyRoundStart(payload); return; }
+  if (eventName === "PLAYER_STATE" || eventName === "PLAYER_FAIL") {
+    const p = addPlayer(payload.userId || userId, payload.username, "", eventName === "PLAYER_FAIL" ? "FAIL" : (payload.status || "PLAYING"), true);
+    p.survivedMs = finite(payload.survivedMs, p.survivedMs);
+    p.hits = finite(payload.hits, p.hits);
+    p.combo = finite(payload.combo, p.combo);
+    p.maxCombo = Math.max(p.maxCombo, finite(payload.maxCombo, p.combo));
+    if (eventName === "PLAYER_FAIL" || payload.alive === false) { p.alive = false; p.status = "FAIL"; p.failReason = payload.reason || p.failReason; }
+    else p.alive = true;
+    if (isHost()) maybeFinishAsHost();
+    updateLiveHud();
+    return;
+  }
+  if (eventName === "ROUND_END") applyRoundEnd(payload);
+}
+
+function hitNote(note) {
+  if (note.hit) return;
+  note.hit = true;
+  hits++; combo++; maxCombo = Math.max(maxCombo, combo);
+  flashLane = note.lane; flashUntil = performance.now() + 90;
+  playTone(note.type === "hold" ? 720 : 640 + (note.lane * 40), 0.05);
+  const me = players.get(ME.id);
+  if (me) { me.hits = hits; me.combo = combo; me.maxCombo = maxCombo; }
+}
+
+function judgeMisses() {
+  while (nextNoteIndex < notes.length) {
+    const n = notes[nextNoteIndex];
+    if (n.hit || n.missed) { nextNoteIndex++; continue; }
+    if (chartPos > n.pos + CONFIG.MISS_WINDOW) {
+      n.missed = true;
+      failLocal(n.type === "hold" ? "長塊漏接" : "漏接黑塊");
+      return;
+    }
+    break;
+  }
+}
+
+function noteAtHit(lane) {
+  for (let i = nextNoteIndex; i < Math.min(notes.length, nextNoteIndex + 6); i++) {
+    const n = notes[i];
+    if (n.hit || n.missed) continue;
+    if (n.lane !== lane) continue;
+    if (Math.abs(chartPos - n.pos) <= CONFIG.HIT_WINDOW) return n;
+  }
+  return null;
+}
+
+function pointerLane(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width;
+  return intClamp(Math.floor(x * 4), 0, 3);
+}
+
+function onPointerDown(e) {
+  if (state !== STATES.PLAYING || !localAlive || matchEnded) return;
+  e.preventDefault();
+  ensureAudio();
+  const canvas = document.getElementById("gameCanvas");
+  if (!canvas) return;
+  const lane = pointerLane(e, canvas);
+  const n = noteAtHit(lane);
+  if (!n) { failLocal("踩到白塊"); return; }
+  if (n.type === "tap") {
+    hitNote(n);
+    if (nextNoteIndex === n.i) nextNoteIndex++;
+    return;
+  }
+  n.holding = true;
+  holdNote = n;
+  holdPointerId = e.pointerId;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+}
+
+function onPointerUp(e) {
+  if (!holdNote || holdPointerId !== e.pointerId) return;
+  const n = holdNote;
+  holdNote = null; holdPointerId = null;
+  if (!localAlive) return;
+  if (chartPos < n.pos + n.len - 0.18) failLocal("長塊提早放開");
+  else { hitNote(n); if (nextNoteIndex === n.i) nextNoteIndex++; }
+}
+
+function updateChart(dt) {
+  if (state !== STATES.PLAYING || !localAlive || matchEnded) return;
+  const t = Math.max(0, (Date.now() - roundStartAt) / 1000);
+  chartPos += speedAt(t) * dt;
+  survivedMs = Math.max(0, Date.now() - roundStartAt);
+  if (holdNote) {
+    if (chartPos >= holdNote.pos + holdNote.len - 0.02) {
+      hitNote(holdNote);
+      if (nextNoteIndex === holdNote.i) nextNoteIndex++;
+      holdNote = null; holdPointerId = null;
+    }
+  }
+  judgeMisses();
+  sendLocalState(false);
+  if (isHost()) maybeFinishAsHost();
+}
+
+function drawBoard() {
+  const canvas = document.getElementById("gameCanvas");
+  if (!canvas) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+    canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr);
+  }
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const hitY = h * 0.78;
+  const px = h * 0.34;
+  const laneW = w / 4;
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = i % 2 ? "#0a0f1c" : "#080c16";
+    ctx.fillRect(i * laneW, 0, laneW, h);
+    if (flashLane === i && performance.now() < flashUntil) {
+      ctx.fillStyle = "rgba(98,231,255,.16)";
+      ctx.fillRect(i * laneW, 0, laneW, h);
+    }
+  }
+  ctx.strokeStyle = "rgba(255,255,255,.06)";
+  for (let i = 1; i < 4; i++) { ctx.beginPath(); ctx.moveTo(i * laneW, 0); ctx.lineTo(i * laneW, h); ctx.stroke(); }
+  ctx.fillStyle = "rgba(98,231,255,.18)";
+  ctx.fillRect(0, hitY - 10, w, 20);
+  ctx.fillStyle = "#62e7ff";
+  ctx.fillRect(0, hitY - 2, w, 4);
+
+  for (const n of notes) {
+    const y = hitY - (n.pos - chartPos) * px;
+    const height = n.type === "hold" ? Math.max(36, n.len * px) : 58;
+    const top = y - (n.type === "hold" ? height - 28 : 0);
+    if (top > h + 40 || top + height < -40) continue;
+    const x = n.lane * laneW + 6;
+    const tw = laneW - 12;
+    const dead = n.hit || n.missed || (!localAlive && n.i >= nextNoteIndex);
+    if (n.type === "hold") {
+      const g = ctx.createLinearGradient(0, top, 0, top + height);
+      g.addColorStop(0, dead ? "#243044" : (n.holding ? "#7cf0c4" : "#5ee0ff"));
+      g.addColorStop(1, dead ? "#1a2233" : "#b76cff");
+      ctx.fillStyle = g;
+      roundRect(ctx, x, top, tw, height, 12); ctx.fill();
+    } else {
+      ctx.fillStyle = dead ? "#2a3348" : "#151b2b";
+      roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
+      ctx.fillStyle = dead ? "#44506a" : "#f4f7ff";
+      roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+    }
+  }
+  if (failFlash > 0) {
+    ctx.fillStyle = "rgba(255,99,122," + failFlash + ")";
+    ctx.fillRect(0, 0, w, h);
+    failFlash *= 0.86;
+  }
+  if (!localAlive) {
+    ctx.fillStyle = "rgba(5,7,14,.35)";
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function bindCanvas() {
+  const canvas = document.getElementById("gameCanvas");
+  if (!canvas || canvas._bound) return;
+  canvas._bound = true;
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
+}
+
+function renderPlayers() {
+  const arr = [...players.values()].sort((a, b) => (finite(a.joinedAt, 0) - finite(b.joinedAt, 0)) || a.id.localeCompare(b.id)).slice(0, 8);
+  if (!arr.length) return '<div class="player"><b>尚無玩家</b><em>等待房間玩家</em></div>';
+  return arr.map(p => {
+    const you = p.id === ME.id;
+    const live = matchStarted ? (p.alive && p.status !== "FAIL") : p.paid;
+    const extra = matchStarted ? ((p.survivedMs / 1000).toFixed(1) + "s · " + intClamp(p.hits, 0, 9999) + " 塊") : (p.paid ? "已付款" : "未付 Entry");
+    return '<div class="player ' + (you ? "me " : "") + (matchStarted ? (live ? "alive" : "dead") : "") + '"><b>' + esc(p.username) + (you ? " · 你" : "") + "</b><em>" + esc(extra) + "</em></div>";
+  }).join("");
+}
+
+function updateLiveHud() {
+  const timer = document.getElementById("gameTimer");
+  const comboEl = document.getElementById("comboVal");
+  const hitEl = document.getElementById("hitVal");
+  const liveEl = document.getElementById("liveRoster");
+  const remain = Math.max(0, Math.ceil((matchEndsAt - Date.now()) / 1000));
+  if (timer) { timer.textContent = String(remain); timer.parentElement.classList.toggle("timerWarn", remain <= 8); }
+  if (comboEl) comboEl.textContent = String(combo);
+  if (hitEl) hitEl.textContent = String(hits);
+  if (liveEl) liveEl.innerHTML = renderPlayers();
+}
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+  if (state === STATES.RESULT) { renderResult(main); return; }
+  if (state === STATES.COUNTDOWN || state === STATES.PLAYING || state === STATES.SPECTATE) { renderGame(main); return; }
+  renderLobby(main);
+}
+
+function renderLobby(main) {
+  gameUiBuilt = false;
+  calculateEconomyFromParticipants();
+  const paid = currentPaidCount();
+  if (state === STATES.PURCHASING) {
+    if (!isPurchasing && !purchaseConfirmed && !DEV) requestPurchaseOnce();
+    const remain = Math.max(0, Math.ceil((paymentDeadline - Date.now()) / 1000));
+    main.innerHTML = `
+      <section class="panel hero center"><div><h1>⬛ 準備開跑</h1><p>同一顆隨機種子，活最久的人拿走獎池。</p><div class="badges"><span class="badge">Entry 100</span><span class="badge">平台費 10%</span><span class="badge">長塊要按住</span></div></div></section>
+      <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${totalPool}</b><span>總投入</span></div><div class="stat"><b>${prizePool}</b><span>獎池</span></div></div><div class="tiny muted" style="margin-top:8px">付款窗口 ${remain} 秒後鎖定。單人保底最多 ${CONFIG.SOLO_REWARD_CAP} 銀幣。</div></section>
+      <section class="panel"><div class="sectionTitle">參賽者</div><div class="players">${renderPlayers()}</div><div class="notice">${esc(noticeText)}</div>
+      <button id="joinBtn" class="cta" ${isPurchasing || purchaseConfirmed ? "disabled" : ""}>${isPurchasing ? "付款處理中…" : purchaseConfirmed ? "✓ Entry 已完成" : "支付 100 銀幣參賽"}</button>
+      ${sdkAvailable() ? "" : '<div class="dev">開發模式不會假裝付款成功。可用下方本地測試。</div>'}</section>`;
+    document.getElementById("joinBtn")?.addEventListener("click", () => { ensureAudio(); requestPurchaseOnce(); });
+    return;
+  }
+  const canStart = players.size >= CONFIG.MIN_PLAYERS;
+  main.innerHTML = `
+    <section class="panel hero center"><div><h1>⬛ 爆爆別踩白</h1><p>4 軌黑塊生存戰。踩白或漏接就出局，失敗後觀戰，活最久的贏。</p><div class="badges"><span class="badge">隨機種子同步</span><span class="badge">含長塊</span><span class="badge">45 秒時限</span><span class="badge">100 銀幣</span></div></div></section>
+    <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${prizePool}</b><span>預估獎池</span></div></div><div class="tiny muted" style="margin-top:8px">多人第 1 名 70%、第 2 名拿剩餘。單人依存活秒數保底，上限 ${CONFIG.SOLO_REWARD_CAP}。</div></section>
+    <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">${esc(noticeText)}</div></section>
+    ${isHost() ? `<button id="hostStartBtn" class="cta" ${canStart ? "" : "disabled"}>👑 室長：鎖定並開始</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+    ${!sdkAvailable() ? '<button id="devBtn" class="cta secondary" style="margin-top:8px">🧪 本地測試：直接開跑</button><div class="dev">僅 SDK 未連接時顯示。</div>' : ""}`;
+  document.getElementById("hostStartBtn")?.addEventListener("click", () => { ensureAudio(); startPurchasingAsHost(); });
+  document.getElementById("devBtn")?.addEventListener("click", () => { ensureAudio(); startPurchasingAsHost(); startRoundAsHost(); });
+}
+
+function renderGame(main) {
+  if (!gameUiBuilt) {
+    const remain = Math.max(0, Math.ceil((matchEndsAt - Date.now()) / 1000));
+    main.innerHTML = `
+      <div class="hud">
+        <div class="pill ${remain <= 8 ? "timerWarn" : ""}">⏱ <b id="gameTimer">${state === STATES.COUNTDOWN ? countdownValue : remain}</b></div>
+        <div class="pill">🔥 連擊 <b id="comboVal">${combo}</b></div>
+        <div class="pill">⬛ <b id="hitVal">${hits}</b></div>
+      </div>
+      <section id="boardWrap">
+        <canvas id="gameCanvas"></canvas>
+        ${state === STATES.SPECTATE || !localAlive ? '<div class="spectateTag">👁 觀戰中 · 看其他人跑完</div>' : ""}
+      </section>
+      <div class="notice">${esc(noticeText)}</div>
+      <div class="players" id="liveRoster">${renderPlayers()}</div>`;
+    bindCanvas();
+    gameUiBuilt = true;
+  } else {
+    updateLiveHud();
+    const tagNeeded = state === STATES.SPECTATE || !localAlive;
+    const wrap = document.getElementById("boardWrap");
+    if (wrap && tagNeeded && !wrap.querySelector(".spectateTag")) {
+      const tag = document.createElement("div");
+      tag.className = "spectateTag";
+      tag.textContent = "👁 觀戰中 · 看其他人跑完";
+      wrap.appendChild(tag);
+    }
+  }
+  drawBoard();
+}
+
+function renderResult(main) {
+  gameUiBuilt = false;
+  const all = rankPlayers(participantPlayers());
+  const mine = all.find(p => p.id === ME.id);
+  main.innerHTML = `
+    <section class="panel hero center"><div class="resultTitle">${finalRank === 1 ? "🏆 活到最後！" : "本局已結束"}</div>
+      <p>${esc(finalReason)}</p>
+      <div class="reward">+${intClamp(finalReward, 0, 99999)} 銀幣</div>
+      <div class="stats">
+        <div class="stat"><b>第 ${finalRank}</b><span>排名</span></div>
+        <div class="stat"><b>${((mine ? mine.survivedMs : survivedMs) / 1000).toFixed(1)}s</b><span>存活</span></div>
+        <div class="stat"><b>${intClamp(mine ? mine.hits : hits, 0, 9999)}</b><span>黑塊</span></div>
+        <div class="stat"><b>${intClamp(prizePool, 0, 999999)}</b><span>獎池</span></div>
+      </div>
+    </section>
+    <section class="panel"><div class="sectionTitle">最終排名（活最久優先）</div>
+      <div class="rankList">${all.map((p, i) => `<div class="rankRow"><div class="rankNo">${i + 1}</div><div class="rankName">${esc(p.username)}${p.id === ME.id ? " · 你" : ""}</div><div class="rankScore">${(p.survivedMs / 1000).toFixed(1)}s</div><div class="rankReward">+${intClamp(p.reward, 0, 99999)} 銀幣 · ${intClamp(p.hits, 0, 9999)} 塊 · 連擊 ${intClamp(p.maxCombo, 0, 9999)}${p.failReason ? " · " + esc(p.failReason) : ""}</div></div>`).join("")}</div>
+    </section>
+    <section class="panel"><p class="tiny muted">參賽 ${all.length} 人 · 總投入 ${totalPool} · 平台費 ${platformFee} · 單人保底上限 ${CONFIG.SOLO_REWARD_CAP}</p><div class="notice">等待室長關閉遊戲後再開下一局</div></section>`;
+}
+
+function gameLoop(ts) {
+  if (!rafRunning) return;
+  const dt = Math.min(Math.max((ts - lastFrame) / 1000, 0), 0.033);
+  lastFrame = ts;
+  if (state === STATES.PLAYING && !matchEnded) updateChart(dt);
+  if (state === STATES.PLAYING || state === STATES.SPECTATE || state === STATES.COUNTDOWN) drawBoard();
+  if (state === STATES.PURCHASING) {
+    const secEl = document.querySelector(".tiny.muted");
+    if (isHost() && Date.now() >= paymentDeadline) startRoundAsHost();
+  }
+  if (state === STATES.PLAYING || state === STATES.SPECTATE) updateLiveHud();
+  loopHandle = requestAnimationFrame(gameLoop);
+}
+
+function heartbeat() {
+  sendEvent("PLAYER_HEARTBEAT", { roundId: roundId || "LOBBY", userId: ME.id, username: ME.username, status: state, timestamp: Date.now() });
+  const now = Date.now();
+  for (const [id, p] of players) { if (id !== ME.id && now - p.lastSeen > CONFIG.PLAYER_TIMEOUT_MS) p.status = "TIMEOUT"; }
+}
+
+document.getElementById("helpBtn").addEventListener("click", () => document.getElementById("helpModal").classList.add("show"));
+document.getElementById("closeHelp").addEventListener("click", () => document.getElementById("helpModal").classList.remove("show"));
+document.getElementById("soundBtn").addEventListener("click", toggleSound);
+
+function boot() {
+  addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+  render();
+  lastFrame = performance.now();
+  loopHandle = requestAnimationFrame(gameLoop);
+  heartbeatTimer = setInterval(heartbeat, CONFIG.HEARTBEAT_MS);
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+</script>
+</body>
+</html>
