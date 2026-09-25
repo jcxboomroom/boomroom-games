@@ -44,7 +44,17 @@ button:disabled{opacity:.45;cursor:default}
 /* game */
 .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;min-width:0}.pill b{font-size:14px}.pill.centerText{text-align:center}.timerWarn{color:#ffcf70;border-color:#735b28}
 #canvasWrap{position:relative;flex:1;min-height:240px;border-radius:18px;overflow:hidden;border:1px solid #30394f;background:#f7f8fb;touch-action:none;box-shadow:0 0 0 1px #ffffff07}
-#drawCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+
+/* 🌟 修復 1：徹底阻擋瀏覽器預設的拖曳與選取行為 */
+#drawCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  touch-action:none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  outline: none;
+}
+
 .roleBadge,#turnBadge{position:absolute;top:9px;padding:6px 8px;border-radius:9px;background:#111625e8;border:1px solid #ffffff20;font-size:10px;font-weight:900;z-index:3;pointer-events:none}
 .roleBadge{left:9px}.turnBadge{right:9px}
 .wordBadge{position:absolute;top:9px;left:50%;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:#111625e8;border:1px solid #ffffff20;font-weight:1000;font-size:13px;z-index:3;pointer-events:none;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -599,21 +609,43 @@ function validRoundPayload(payload,allowLobby=false){
   if(!allowLobby&&roundId&&payload.roundId!==roundId)return false;
   return true;
 }
-window.addEventListener("message",e=>{
-  try{
-    const data=typeof e.data==="string"?JSON.parse(e.data):e.data;
-    if(!data||data.action!=="gameEventReceived")return;
-    const userId=safeString(data.userId,"",64);const eventName=safeString(data.eventName,"",40);const payload=data.payload;
-    if(!userId||!/^[A-Z0-9_]{1,40}$/.test(eventName)||!payload||typeof payload!=="object")return;
-    const round=safeString(payload.roundId,"LOBBY",100);
-    const eventId=safeString(payload.eventId,"",80);
-    const fallbackSig=stableHash(JSON.stringify(payload)).toString(36);
-    const key=eventName+"|"+userId+"|"+round+"|"+(eventId||fallbackSig);
-    if(seenEvents.has(key))return;seenEvents.add(key);
-    if(seenEvents.size>CONFIG.EVENT_DEDUPE_MAX)seenEvents.delete(seenEvents.values().next().value);
-    handleEvent(userId,eventName,payload);
-  }catch(_){ }
+
+// 🌟 修復 2：支援 Flutter Web 傳遞 SDK 的雙向通訊
+window.addEventListener("message", e => {
+  try {
+    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    
+    if (data.action === "initSDK") {
+      window.BoomRoomSDK = {
+        getUser: () => data.user,
+        requestPurchase: (itemId, cost) => window.parent.postMessage(JSON.stringify({ action: 'requestPurchase', itemId, cost }), '*'),
+        gameOver: (winAmount) => window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount }), '*'),
+        sendGameEvent: (eventName, payload) => window.parent.postMessage(JSON.stringify({ action: 'sendGameEvent', eventName, payload }), '*')
+      };
+      if (typeof render === 'function') render();
+      if (typeof setNotice === 'function') setNotice('✅ Web 端 SDK 連接成功！');
+      return;
+    }
+
+    if (!data || data.action !== "gameEventReceived") return;
+    const userId = safeString(data.userId, "", 64);
+    const eventName = safeString(data.eventName, "", 40);
+    const payload = data.payload;
+    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
+    
+    const round = safeString(payload.roundId, "LOBBY", 100);
+    const eventId = safeString(payload.eventId, "", 80);
+    const fallbackSig = stableHash(JSON.stringify(payload)).toString(36);
+    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || fallbackSig);
+    
+    if (seenEvents.has(key)) return; 
+    seenEvents.add(key);
+    if (seenEvents.size > CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
+    
+    handleEvent(userId, eventName, payload);
+  } catch (_) {}
 });
+
 function handleEvent(userId,eventName,payload){
   const knownUser=players.get(userId); if(knownUser)knownUser.lastSeen=Date.now();
   if(eventName==="PLAYER_HELLO"){
@@ -694,7 +726,20 @@ function endStroke(e){
   if(!currentStroke)return;if(e&&e.preventDefault)e.preventDefault();const stroke={id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,points:currentStroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE)};
   knownStrokes.push(stroke);localStrokeIds.push(stroke.id);if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke,turnIndex:currentTurnIndex});currentStroke=null;
 }
-function attachCanvasEvents(){if(!canvas||canvas.dataset.bound==="1")return;canvas.dataset.bound="1";canvas.addEventListener("pointerdown",beginStroke,{passive:false});canvas.addEventListener("pointermove",moveStroke,{passive:false});canvas.addEventListener("pointerup",endStroke,{passive:false});canvas.addEventListener("pointercancel",endStroke,{passive:false})}
+
+// 🌟 修復 1：徹底阻擋瀏覽器預設的拖曳與選取行為
+function attachCanvasEvents(){
+  if(!canvas||canvas.dataset.bound==="1")return;
+  canvas.dataset.bound="1";
+  canvas.addEventListener("pointerdown",beginStroke,{passive:false});
+  canvas.addEventListener("pointermove",moveStroke,{passive:false});
+  canvas.addEventListener("pointerup",endStroke,{passive:false});
+  canvas.addEventListener("pointercancel",endStroke,{passive:false});
+  
+  canvas.addEventListener("dragstart", e => e.preventDefault());
+  document.body.addEventListener("dragstart", e => e.preventDefault());
+}
+
 function receiveStroke(stroke){if(!stroke||!Array.isArray(stroke.points)||stroke.points.length>CONFIG.MAX_POINTS_PER_STROKE)return;if(stroke.id&&knownStrokes.some(s=>s.id===stroke.id))return;knownStrokes.push({id:safeString(stroke.id,"remote",100),color:safeString(stroke.color,"#151923",20),size:clamp(stroke.size,2,30),points:stroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE).map(p=>({x:clamp(p.x,0,1),y:clamp(p.y,0,1)}))});if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();drawStroke(knownStrokes[knownStrokes.length-1])}
 function removeKnownStroke(id){if(typeof id!=="string")return;knownStrokes=knownStrokes.filter(s=>s.id!==id)}
 function undoLastStroke(){
