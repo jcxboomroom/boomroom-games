@@ -45,7 +45,7 @@ button:disabled{opacity:.45;cursor:default}
 .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;min-width:0}.pill b{font-size:14px}.pill.centerText{text-align:center}.timerWarn{color:#ffcf70;border-color:#735b28}
 #canvasWrap{position:relative;flex:1;min-height:240px;border-radius:18px;overflow:hidden;border:1px solid #30394f;background:#f7f8fb;touch-action:none;box-shadow:0 0 0 1px #ffffff07}
 
-/* 🌟 修復 1：徹底阻擋瀏覽器預設的拖曳與選取行為 */
+/* 🌟 徹底阻擋瀏覽器預設的拖曳與選取行為，防止畫畫中斷 */
 #drawCanvas{
   position:absolute;inset:0;width:100%;height:100%;
   touch-action:none;
@@ -171,7 +171,6 @@ const CATEGORIES = Object.freeze([
 
 /* =========================================================
    LARGE BUILT-IN WORD BANK
-   Exact normalized text + limited predefined aliases.
 ========================================================= */
 const WORD_BANK = {
   food: [
@@ -318,9 +317,35 @@ const ME={
 addPlayer(ME.id,ME.username,ME.avatar,"LOCAL",false);
 
 /* =========================================================
-   SDK SAFE ADAPTER
+   SDK SAFE ADAPTER & DELAYED INJECTION FIX
 ========================================================= */
 function sdkAvailable(){return !!(window.BoomRoomSDK&&typeof window.BoomRoomSDK==="object")}
+
+// 🌟 核心修復：當 Flutter 延遲注入 SDK 時，重新讀取真實玩家資料並消除本地測試按鈕
+window.onBoomRoomSDKReady = function() {
+  const u = safeGetUser();
+  if (u && u.id) {
+    players.delete(ME.id); // 移除舊的本地測試 ID
+    ME.id = String(u.id);
+    ME.username = safeString(u.username, "玩家", CONFIG.MAX_NAME_LENGTH);
+    ME.avatar = safeString(u.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
+    addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
+    
+    setNotice('✅ 已成功連接 BoomRoom SDK！');
+    render(); // 重新渲染畫面，隱藏本地測試按鈕
+    
+    // 重新發送真實的 PLAYER_HELLO 給伺服器
+    sendEvent("PLAYER_HELLO", {
+      roundId: roundId || "LOBBY",
+      userId: ME.id,
+      username: ME.username,
+      avatar: ME.avatar,
+      joinedAt: ME.joinedAt,
+      paid: false
+    });
+  }
+};
+
 function sendEvent(eventName,payload){
   if(!/^[A-Z0-9_]{1,40}$/.test(eventName)||!payload||typeof payload!=="object"||Array.isArray(payload))return false;
   const copy={...payload,eventId:safeString(payload.eventId,ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7),80)};
@@ -610,7 +635,7 @@ function validRoundPayload(payload,allowLobby=false){
   return true;
 }
 
-// 🌟 修復 2：支援 Flutter Web 傳遞 SDK 的雙向通訊
+// 🌟 接收 Flutter Web 傳遞的 SDK 雙向通訊
 window.addEventListener("message", e => {
   try {
     const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
@@ -622,8 +647,7 @@ window.addEventListener("message", e => {
         gameOver: (winAmount) => window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount }), '*'),
         sendGameEvent: (eventName, payload) => window.parent.postMessage(JSON.stringify({ action: 'sendGameEvent', eventName, payload }), '*')
       };
-      if (typeof render === 'function') render();
-      if (typeof setNotice === 'function') setNotice('✅ Web 端 SDK 連接成功！');
+      if (window.onBoomRoomSDKReady) window.onBoomRoomSDKReady();
       return;
     }
 
@@ -727,7 +751,7 @@ function endStroke(e){
   knownStrokes.push(stroke);localStrokeIds.push(stroke.id);if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke,turnIndex:currentTurnIndex});currentStroke=null;
 }
 
-// 🌟 修復 1：徹底阻擋瀏覽器預設的拖曳與選取行為
+// 🌟 徹底阻擋瀏覽器預設的拖曳與選取行為
 function attachCanvasEvents(){
   if(!canvas||canvas.dataset.bound==="1")return;
   canvas.dataset.bound="1";
