@@ -658,8 +658,43 @@ function hostResolveGame() {
 /* ==============================
    Incoming Events
    ============================== */
+function setupSDK(data){
+    if(data && data.user){
+        const u = data.user;
+        ME.id = String(u.id);
+        ME.username = String(u.username || '玩家').slice(0,12);
+        addOrUpdatePlayer({ id: ME.id, username: ME.username, joinedAt: ME.joinedAt }, true);
+    }
+    if(data && data.isHost){
+        hostId = ME.id;
+        initialElectionDone = true;
+    }
+    if(data && Array.isArray(data.roomPlayers)){
+        data.roomPlayers.forEach(rp => {
+            if(rp && rp.id != null){
+                addOrUpdatePlayer({ id: String(rp.id), username: String(rp.username || '玩家').slice(0,12), joinedAt: Date.now() }, true);
+            }
+        });
+    }
+    if(els.devBanner) els.devBanner.style.display = 'none';
+    render();
+}
+
+window.onBoomRoomSDKReady = function(){
+    if(window.BoomRoomSDK){
+        setupSDK({
+            user: window.BoomRoomSDK.getUser(),
+            isHost: window.BoomRoomSDK.isHost,
+            roomId: window.BoomRoomSDK.roomId,
+            roomPlayers: window.BoomRoomSDK.roomPlayers || []
+        });
+    }
+};
+
 function handleIncoming(data) {
-    if(!data || data.action !== 'gameEventReceived') return;
+    if(!data) return;
+    if(data.action === 'initSDK') { setupSDK(data); return; }
+    if(data.action !== 'gameEventReceived') return;
     const eventName = data.eventName, payload = data.payload || {};
     
     if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;

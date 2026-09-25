@@ -1022,7 +1022,25 @@ function actionSetup(){
   updateAudioButton();
 }
 
-// SDK user read is optional and guarded; no unsupported room / roster APIs are assumed.
+function setupSDK(data){
+  if(data && data.user){
+    state.sdkUser = data.user;
+  }
+}
+
+window.addEventListener('message', e => {
+  try {
+    const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (d && d.action === 'initSDK') setupSDK(d);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({ user: window.BoomRoomSDK.getUser() });
+  }
+};
+
 try{
   if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
     state.sdkUser=window.BoomRoomSDK.getUser() || null;

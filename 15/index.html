@@ -232,7 +232,11 @@ const players=new Map();
 const seenEvents=new Set();
 const seenGuesses=new Set();
 
-function safeString(v,fallback,maxLen){return typeof v==="string"&&v.trim()?v.trim().slice(0,maxLen):fallback}
+function safeString(v,fallback,maxLen){
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
 function finite(v,fallback=0){return Number.isFinite(v)?v:fallback}
 function clamp(v,min,max){return Math.min(max,Math.max(min,finite(v,min)))}
 function intClamp(v,min,max){return Math.floor(clamp(v,min,max))}
@@ -247,7 +251,9 @@ function answerMatches(guess,word){
 }
 function getCategory(id){return CATEGORIES.find(c=>c.id===id)||CATEGORIES[0]}
 function addPlayer(id,username,avatar,status="WAITING",paid=false){
-  if(!id||typeof id!=="string"||id.length>64)return null;
+  if(id===null||id===undefined)return null;
+  id=String(id);
+  if(!id||id.length>64)return null;
   let p=players.get(id);
   if(!p){
     p={id,username:safeString(username,"玩家",CONFIG.MAX_NAME_LENGTH),avatar:safeString(avatar,"",CONFIG.MAX_AVATAR_LENGTH),status,paid:!!paid,score:0,reward:0,lastSeen:Date.now(),joinedAt:Date.now(),correct:0,drawTurns:0,skips:0};
@@ -437,7 +443,7 @@ function activePlayers(){
   const now=Date.now();
   return [...players.values()].filter(p=>p&&p.status!=="LEFT"&&p.lastSeen&&now-p.lastSeen<=CONFIG.PLAYER_TIMEOUT_MS);
 }
-function isHost() { return sdkIsHost || currentHostId === ME.id; }
+function isHost() { return sdkIsHost || (currentHostId != null && ME.id != null && String(currentHostId) === String(ME.id)); }
 function electHost() {
   if (sdkIsHost) { currentHostId = ME.id; return ME.id; }
   const pool = activePlayers().filter(p => p.status !== "TIMEOUT");
@@ -665,8 +671,8 @@ function applyRoundEnd(payload){
   if(!payload||payload.roundId!==roundId||matchEnded&&state!==STATES.RESULT&&state!==STATES.PLAYING)return;
   matchEnded=true;rewardLocked=true;state=STATES.RESULT;finalReason=safeString(payload.reason,"本局已結束",60);
   const snapshot=Array.isArray(payload.scores)?payload.scores:[];
-  for(const row of snapshot){if(typeof row.id!=="string")continue;const p=players.get(row.id)||addPlayer(row.id,row.username||"玩家","");if(!p)continue;p.username=safeString(row.username,p.username,CONFIG.MAX_NAME_LENGTH);p.score=intClamp(row.score,0,100000);p.reward=intClamp(row.reward,0,prizePool);p.status=p.reward>0?"WIN":"END";p.correct=intClamp(row.correct,0,1000);p.skips=intClamp(row.skips,0,1000)}
-  const meRow=snapshot.find(x=>x.id===ME.id);finalReward=intClamp(meRow?meRow.reward:0,0,prizePool);finalRank=rankOfMe(snapshot.map(row=>({id:row.id,score:intClamp(row.score,0,100000)})));
+  for(const row of snapshot){if(row.id==null)continue; const rowId=String(row.id); const p=players.get(rowId)||addPlayer(rowId,row.username||"玩家","");if(!p)continue;p.username=safeString(row.username,p.username,CONFIG.MAX_NAME_LENGTH);p.score=intClamp(row.score,0,100000);p.reward=intClamp(row.reward,0,prizePool);p.status=p.reward>0?"WIN":"END";p.correct=intClamp(row.correct,0,1000);p.skips=intClamp(row.skips,0,1000)}
+  const meRow=snapshot.find(x=>String(x.id)===String(ME.id));finalReward=intClamp(meRow?meRow.reward:0,0,prizePool);finalRank=rankOfMe(snapshot.map(row=>({id:String(row.id),score:intClamp(row.score,0,100000)})));
   callGameOver(finalReward);
   sendEvent("PLAYER_END",{roundId,userId:ME.id,status:finalReward>0?"WIN":"END",score:intClamp(players.get(ME.id)?.score||0,0,100000),reward:finalReward,reason:finalReason});
   resultShownAt=Date.now();playTone(finalReward>0?1040:300,.18);vibrate(finalReward>0?[30,40,50]:35);render();
@@ -683,12 +689,12 @@ function handleEvent(userId,eventName,payload){
   }
   if(eventName==="HOST_TAKEOVER"){if(validRoundPayload(payload))currentHostId=safeString(payload.hostId,currentHostId,64);render();return;}
   if(eventName==="CATEGORY_VOTE_START"){
-    if(roundId&&payload.roundId!==roundId)return;currentHostId=currentHostId||userId;
+    if(roundId&&payload.roundId!==roundId)return;currentHostId=String(userId);
     roundId=safeString(payload.roundId,roundId,100);voteDeadline=finite(payload.deadline,Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000);state=STATES.SELECT_CATEGORY;categoryVotes=new Map();votedCategory="";selectedCategory="";setNotice("投票開始！");render();return;
   }
   if(eventName==="CATEGORY_VOTE"){
     if(!validRoundPayload(payload)||state!==STATES.SELECT_CATEGORY)return;
-    const uid=safeString(payload.userId,userId,64);if(uid!==userId||!players.has(uid))return;const cid=safeString(payload.categoryId,"",30);if(!getCategory(cid))return;if(categoryVotes.has(uid))return;categoryVotes.set(uid,cid);render();return;
+    const uid=safeString(payload.userId,userId,64);if(String(uid)!==String(userId)||!players.has(uid))return;const cid=safeString(payload.categoryId,"",30);if(!getCategory(cid))return;if(categoryVotes.has(uid))return;categoryVotes.set(uid,cid);render();return;
   }
   if(eventName==="CATEGORY_VOTE_RESULT"){
     if(!validRoundPayload(payload))return;selectedCategory=safeString(payload.categoryId,CATEGORIES[0].id,30);paymentDeadline=finite(payload.paymentDeadline,Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000);state=STATES.PURCHASING;setNotice("題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"。支付 Entry 參賽。");render();return;
@@ -696,7 +702,7 @@ function handleEvent(userId,eventName,payload){
   if(eventName==="LOBBY_SYNC"){
     if(roundId&&payload.roundId!==roundId)return;roundId=safeString(payload.roundId,roundId,100);state=Object.values(STATES).includes(payload.phase)?payload.phase:state;selectedCategory=safeString(payload.category,selectedCategory,30);voteDeadline=finite(payload.voteDeadline,voteDeadline);paymentDeadline=finite(payload.paymentDeadline,paymentDeadline);matchStarted=!!payload.matchStarted;render();return;
   }
-  if(eventName==="ROUND_START"){if(roundId&&payload.roundId!==roundId)return;currentHostId=currentHostId||userId;applyRoundStart(payload);return;}
+  if(eventName==="ROUND_START"){if(roundId&&payload.roundId!==roundId)return;currentHostId=String(userId);applyRoundStart(payload);return;}
   if(eventName==="TURN_START"){if(!validRoundPayload(payload)||!matchStarted||matchEnded)return;applyTurnStart(payload);return;}
   if(eventName==="TURN_END"){if(!validRoundPayload(payload)||matchEnded)return;applyTurnEnd(payload);return;}
   if(eventName==="GAME_EVENT"){

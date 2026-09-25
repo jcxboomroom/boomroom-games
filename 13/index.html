@@ -2798,6 +2798,41 @@ function sendEvent(
 }
 
 
+function setupSDK(data){
+  if(data && data.user){
+    user.id = String(data.user.id);
+    user.username = String(data.user.username || "玩家");
+    user.avatar = String(data.user.avatar || "");
+    ME = user.id;
+  }
+  if(data && data.isHost){
+    hostId = ME;
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null){
+        addOrUpdateRoster({
+          id: String(rp.id),
+          username: String(rp.username || "玩家"),
+          avatar: String(rp.avatar || "")
+        });
+      }
+    });
+  }
+  SDK_READY = true;
+}
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
 window.addEventListener(
     "message",
     event => {
@@ -2822,8 +2857,10 @@ window.addEventListener(
 
         }
 
+        if(!data) return;
+        if(data.action === "initSDK"){ setupSDK(data); return; }
+
         if(
-            !data ||
             data.action !==
             "gameEventReceived"
         ){

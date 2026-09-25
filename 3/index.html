@@ -155,7 +155,44 @@ function drawEffects(dt){for(let i=particles.length-1;i>=0;i--){const p=particle
 function updateCursor(dt){if(state.phase!==S.PLAYING||Date.now()<freezeUntil)return;const df=difficulty();let slow=1;const dist=Math.abs(cursor-50);if(dist<CFG.CENTER_SLOW_RADIUS){slow=.62+(dist/CFG.CENTER_SLOW_RADIUS)*.38}cursor+=direction*df.speed*slow*dt*0.9*100;if(cursor>=100){cursor=100;direction=-1;spawnParticle(W,H*.49,'#ff406f',4,.45)}else if(cursor<=0){cursor=0;direction=1;spawnParticle(0,H*.49,'#51f6ff',4,.45)}els.cursor.style.left=cursor+'%'}
 
 function addRemote(p){const q=addPlayer(p);if(!q)return;q.team=p.team||q.team;q.score=clamp(p.score,0,999999999);q.actions=clamp(p.actions,0,999999);q.ult=clamp(p.ult,0,CFG.ULT_MAX);q.combo=clamp(p.combo||0,0,30);q.online=!!p.online;q.lastSeen=Date.now()}
-window.addEventListener('message',e=>{let data;try{data=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(err){return}if(!data||data.action!=='gameEventReceived')return;const ev=data.eventName,p=data.payload||{},sender=data.userId!=null?String(data.userId):null;
+
+function setupSDK(data){
+  if(data && data.user){
+    const u = data.user;
+    ME.id = String(u.id);
+    ME.username = String(u.username || '玩家').slice(0,22);
+    ME.avatar = String(u.avatar || '');
+    addPlayer(ME);
+  }
+  if(data && data.isHost){
+    state.hostId = ME.id;
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null){
+        addPlayer({ id: String(rp.id), username: rp.username, avatar: rp.avatar });
+      }
+    });
+  }
+  if(els.devBanner) els.devBanner.style.display = 'none';
+  hello();
+}
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+window.addEventListener('message',e=>{let data;try{data=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(err){return}if(!data)return;
+  if(data.action==='initSDK'){ setupSDK(data); return; }
+  if(data.action!=='gameEventReceived')return;
+  const ev=data.eventName,p=data.payload||{},sender=data.userId!=null?String(data.userId):null;
   if(ev==='NCC_HELLO'){if(p.player)addPlayer(p.player);electHost();if(isHost())broadcastState(true);return}
   if(ev==='NCC_HEARTBEAT'){if(p.player)addPlayer(p.player);if(p.requestState&&isHost())broadcastState(true);return}
   if(ev==='NCC_HOST'){const hid=String(p.hostId||'');if(hid&&roster.has(hid))state.hostId=hid;updateHud();return}

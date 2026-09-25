@@ -5315,13 +5315,52 @@ window.addEventListener("pagehide", () => {
    INCOMING SDK EVENTS
    ========================================================= */
 
+function setupSDK(data){
+  if(data && data.user){
+    user.id = String(data.user.id).slice(0, 120);
+    user.username = String(data.user.username || "BoomRoom 玩家").slice(0, 40);
+    user.avatar = typeof data.user.avatar === "string" ? data.user.avatar.slice(0, 400) : "";
+    ME = String(user.id);
+  }
+  if(data && data.isHost){
+    isHost = true;
+    hostId = ME;
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null){
+        addOrUpdateRoster({
+          id: String(rp.id),
+          username: String(rp.username || "玩家").slice(0, 40),
+          avatar: rp.avatar || ""
+        });
+      }
+    });
+  }
+  SDK_AVAILABLE = true;
+  if(devBadge) devBadge.hidden = true;
+}
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
 window.addEventListener("message", event => {
   try {
     const data = typeof event.data === "string"
       ? JSON.parse(event.data)
       : event.data;
 
-    if (!data || data.action !== "gameEventReceived") {
+    if (!data) return;
+    if (data.action === "initSDK") { setupSDK(data); return; }
+    if (data.action !== "gameEventReceived") {
       return;
     }
 

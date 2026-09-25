@@ -1044,6 +1044,19 @@ function setupSDK(data){
 
   addPlayer(ME);
 
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null) {
+        addPlayer({
+          id: String(rp.id),
+          username: String(rp.username || '玩家').slice(0, 22),
+          avatar: String(rp.avatar || ''),
+          joinedAt: Date.now()
+        });
+      }
+    });
+  }
+
   el.devBadge.style.display =
     'none';
 
@@ -1142,7 +1155,10 @@ function(){
         window.BoomRoomSDK.isHost,
 
       roomId:
-        window.BoomRoomSDK.roomId
+        window.BoomRoomSDK.roomId,
+
+      roomPlayers:
+        window.BoomRoomSDK.roomPlayers || []
 
     });
 

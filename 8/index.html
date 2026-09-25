@@ -352,9 +352,44 @@ function broadcastState(force){
   send('CROWN_STATE',{roundId:state.roundId,hostId:state.hostId,phase:state.phase,phaseEndsAt:state.phaseEndsAt,startAt:state.startAt,seed:state.seed,golden:state.golden,goldenUntil:state.goldenUntil,crownOwner:state.crownOwner,crownX:state.crownX,crownY:state.crownY,crownSerial:state.crownSerial,players:listPlayers().map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,score:clamp(p.score,0,99999999),online:p.online}))});
 }
 
+function setupSDK(data){
+  if(data && data.user){
+    const u = data.user;
+    ME.id = String(u.id);
+    ME.username = String(u.username || '玩家').slice(0,18);
+    ME.avatar = String(u.avatar || '');
+    addPlayer(ME);
+  }
+  if(data && data.isHost){
+    state.hostId = ME.id;
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null){
+        addPlayer({ id: String(rp.id), username: rp.username, avatar: rp.avatar });
+      }
+    });
+  }
+  if($('devBadge')) $('devBadge').style.display = 'none';
+  hello();
+}
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
 addEventListener('message',e=>{
   let d;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(_){return}
-  if(!d||d.action!=='gameEventReceived')return;
+  if(!d)return;
+  if(d.action==='initSDK'){setupSDK(d);return;}
+  if(d.action!=='gameEventReceived')return;
   const ev=d.eventName,p=d.payload||{},sender=d.userId==null?null:String(d.userId);
   if(ev==='PLAYER_HELLO'){if(p.player)addPlayer(p.player);if(isHost())broadcastState(true);return}
   if(ev==='PLAYER_HEARTBEAT'){if(p.player){const q=addPlayer(p.player);if(q){q.online=true;q.lastSeen=Date.now();}}if(isHost()&&p.requestState)broadcastState(true);return}

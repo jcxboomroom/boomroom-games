@@ -805,9 +805,44 @@ function dispatchGameEvent(userId,eventName,payload){
   }
 }
 
+function setupSDK(data){
+  if(data && data.user){
+    const sanitized = sanitizeUser(data.user);
+    localUser.id = sanitized.id;
+    localUser.username = sanitized.username;
+    localUser.avatar = sanitized.avatar;
+    addOrUpdatePlayer(sanitized);
+  }
+  if(data && data.isHost){
+    sdkIsHost = true;
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null) addOrUpdatePlayer(sanitizeUser(rp));
+    });
+  }
+  const devB = document.getElementById('devBanner');
+  if(devB) devB.style.display = 'none';
+  sendHello();
+  updatePlayerUI();
+}
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
 window.addEventListener('message',(event)=>{
   try{
     const data=typeof event.data==='string'?JSON.parse(event.data):event.data;
+    if(!data) return;
+    if(data.action==='initSDK'){ setupSDK(data); return; }
     if(data?.action==='gameEventReceived') dispatchGameEvent(data.userId,data.eventName,data.payload||{});
   }catch(_){ }
 });
