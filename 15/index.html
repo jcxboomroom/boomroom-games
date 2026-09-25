@@ -20,7 +20,10 @@ button:disabled{opacity:.45;cursor:default}
 .shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));gap:8px}
 .top{height:46px;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
 .brand{font-weight:1000;letter-spacing:.3px;font-size:15px}.brand small{display:block;color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.7px;margin-top:1px}
-.topActions{display:flex;gap:7px}.iconBtn{width:42px;height:42px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:19px}
+.topActions{display:flex;gap:7px;align-items:center;}
+/* 🌟 新增銀幣 UI 樣式 */
+.coinBadge{background:#ffc85722;border:1px solid #ffc85744;color:var(--gold);padding:0 10px;height:32px;border-radius:12px;font-weight:900;font-size:13px;display:none;align-items:center;gap:4px;}
+.iconBtn{width:42px;height:42px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:19px;display:flex;align-items:center;justify-content:center;}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
 .panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
 .center{display:flex;align-items:center;justify-content:center;text-align:center}
@@ -28,8 +31,9 @@ button:disabled{opacity:.45;cursor:default}
 .badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;justify-content:center}.badge{padding:6px 8px;border-radius:999px;background:#0b0f19;border:1px solid var(--line);font-size:10px;color:#d2d8e8}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center;min-width:0}.stat b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat span{font-size:9px;color:var(--muted)}
 .sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
-.cta{width:100%;min-height:52px;border-radius:15px;background:linear-gradient(135deg,var(--cyan),var(--purple));font-weight:1000;font-size:16px;box-shadow:0 8px 24px #0005}.cta:active,.secondary:active,.iconBtn:active,.tool:active,.chip:active{transform:scale(.97)}
-.secondary{background:#192032;border:1px solid var(--line);box-shadow:none}.danger{background:#2a1520;border-color:#663246}.good{background:#153225;border-color:#2f7950}
+.cta{width:100%;min-height:52px;border-radius:15px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:16px;box-shadow:0 8px 24px #0005;display:flex;align-items:center;justify-content:center;}.cta:active,.secondary:active,.iconBtn:active,.tool:active,.chip:active{transform:scale(.97)}
+.cta:disabled{background:#333;color:#888;box-shadow:none;}
+.secondary{background:#192032;color:#fff;border:1px solid var(--line);box-shadow:none}.danger{background:#2a1520;border-color:#663246}.good{background:#153225;border-color:#2f7950}
 .row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
 .notice{min-height:23px;color:#d1d6e4;font-size:11px;text-align:center;display:flex;align-items:center;justify-content:center}
 .dev{font-size:10px;color:#ffd276;text-align:center;line-height:1.45}
@@ -39,29 +43,20 @@ button:disabled{opacity:.45;cursor:default}
 .categoryList{display:flex;gap:5px;flex-wrap:wrap}.miniTag{font-size:9px;color:#cbd2e2;background:#0b0f18;border:1px solid var(--line);border-radius:999px;padding:4px 7px}
 
 /* players */
-.players{display:flex;gap:6px;overflow:hidden}.player{min-width:102px;max-width:136px;padding:7px 9px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:0 0 auto}.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{display:block;font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player.me{border-color:#42537b}.player.drawer{box-shadow:inset 0 0 0 1px #b76cff33}
+.players{display:flex;gap:6px;overflow:hidden;overflow-x:auto;padding-bottom:4px;}.player{min-width:102px;max-width:136px;padding:7px 9px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:0 0 auto}.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{display:block;font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player.me{border-color:#42537b}.player.drawer{box-shadow:inset 0 0 0 1px #b76cff33}
 
 /* game */
-.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;min-width:0}.pill b{font-size:14px}.pill.centerText{text-align:center}.timerWarn{color:#ffcf70;border-color:#735b28}
+.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;}.pill b{font-size:14px}.pill.centerText{text-align:center}.timerWarn{color:#ffcf70;border-color:#735b28}
 #canvasWrap{position:relative;flex:1;min-height:240px;border-radius:18px;overflow:hidden;border:1px solid #30394f;background:#f7f8fb;touch-action:none;box-shadow:0 0 0 1px #ffffff07}
-
-/* 🌟 徹底阻擋瀏覽器預設的拖曳與選取行為，防止畫畫中斷 */
-#drawCanvas{
-  position:absolute;inset:0;width:100%;height:100%;
-  touch-action:none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-user-drag: none;
-  outline: none;
-}
+#drawCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;outline:none;}
 
 .roleBadge,#turnBadge{position:absolute;top:9px;padding:6px 8px;border-radius:9px;background:#111625e8;border:1px solid #ffffff20;font-size:10px;font-weight:900;z-index:3;pointer-events:none}
 .roleBadge{left:9px}.turnBadge{right:9px}
 .wordBadge{position:absolute;top:9px;left:50%;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:#111625e8;border:1px solid #ffffff20;font-weight:1000;font-size:13px;z-index:3;pointer-events:none;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cursorHint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);padding:6px 9px;border-radius:9px;background:#111625d9;color:#dce2f2;font-size:9px;pointer-events:none;white-space:nowrap}
-.tools{display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto}.tool{height:42px;min-width:42px;border-radius:12px;background:#101626;border:1px solid var(--line);font-weight:900}.tool.active{outline:2px solid var(--cyan);outline-offset:-2px}.color{width:42px;padding:0;border-radius:50%;border:3px solid #fff}.sizeBtn{font-size:11px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto}.tool{height:42px;min-width:42px;border-radius:12px;background:#101626;border:1px solid var(--line);font-weight:900;display:flex;align-items:center;justify-content:center;}.tool.active{outline:2px solid var(--cyan);outline-offset:-2px}.color{width:42px;padding:0;border-radius:50%;border:3px solid #fff}.sizeBtn{font-size:11px}
 .guessArea{display:flex;gap:7px;flex:0 0 auto}.guessArea input{flex:1;min-width:0;height:48px;border-radius:14px;border:1px solid var(--line);background:#0d111c;color:#fff;padding:0 13px;outline:none;user-select:text}.guessArea input:focus{border-color:var(--cyan)}.guessArea button{width:92px;border-radius:14px;background:var(--cyan);color:#061018;font-weight:1000}
-.skipBtn{height:42px;border-radius:12px;background:#2a1820;border:1px solid #5f3344;font-weight:900}
+.skipBtn{height:42px;border-radius:12px;background:#2a1820;border:1px solid #5f3344;font-weight:900;padding:0 12px;}
 .turnFeed{display:flex;justify-content:space-between;gap:6px;align-items:center;min-height:25px;padding:0 2px}.feedText{font-size:11px;color:#d1d6e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.turnScore{font-size:10px;color:#b9c4d7;white-space:nowrap}
 
 /* result */
@@ -81,6 +76,7 @@ button:disabled{opacity:.45;cursor:default}
   <header class="top">
     <div class="brand">💥 爆爆你畫我猜<small>BOOMROOM UGC · ONE-SHOT</small></div>
     <div class="topActions">
+      <div id="coinBadge" class="coinBadge">💰 <span id="coinVal">0</span></div>
       <button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button>
       <button id="helpBtn" class="iconBtn" aria-label="玩法">?</button>
     </div>
@@ -95,14 +91,12 @@ button:disabled{opacity:.45;cursor:default}
     <p><b>目標：</b>大家先投票選題型，再輪流當畫家。畫家不能寫出答案，其他參賽者輸入文字搶猜。</p>
     <ul>
       <li>每位正式參賽者 Entry：100 銀幣；遊戲開始時鎖定獎池，平台手續費 10%。</li>
+      <li>最少需要 2 人參與才能開始遊戲。</li>
       <li>每位參賽者都會輪流畫一次；每回合限時 15 秒。</li>
       <li>猜對者立即得分；幫助別人猜中的畫家也得分。猜得越快，兩邊分數越高。</li>
-      <li>畫家按「跳過」：本回合畫家 0 分，也不會因跳過獲得獎勵。</li>
-      <li>答案採「文字正確」判定：忽略前後空白與一般標點，但不做模糊猜測；內建題庫可接受少量預先設定的同義答案。</li>
       <li>最後依總分排名；最高分者取得本局獎池。若最高分平手，最高分玩家平分獎池。</li>
-      <li>本局結束後不可 Replay；畫面會停在「等待市長重新開啟遊戲」。</li>
     </ul>
-    <p><b>畫畫工具：</b>畫筆、橡皮擦、粗細、6 種顏色、撤銷、清除。手機直接用手指拖曳。</p>
+    <p><b>畫畫工具：</b>畫筆、橡皮擦、粗細、顏色、撤銷、清除。手機直接用手指拖曳。</p>
   </div>
 </div>
 <div id="toast" class="toast"></div>
@@ -110,9 +104,6 @@ button:disabled{opacity:.45;cursor:default}
 <script>
 "use strict";
 
-/* =========================================================
-   BOOMROOM UGC GAME INFO
-========================================================= */
 const GAME_INFO = {
   id: "boom_draw_guess",
   category: "派對競技",
@@ -120,17 +111,13 @@ const GAME_INFO = {
   description: "投票選題、輪流作畫，搶猜得分，總分王拿獎池。",
   entryCost: 100,
   maxPlayers: 10,
-  controlModes: ["Pointer", "Touch", "Keyboard"],
-  version: "1.1.0",
-  duration: 165,
-  multiplayer: true,
-  rewardEnabled: true
+  version: "1.1.0"
 };
 
 const CONFIG = Object.freeze({
   ENTRY_FEE: 100,
   PLATFORM_FEE_RATE: 0.10,
-  MIN_PLAYERS: 2,
+  MIN_PLAYERS: 2, // 🌟 嚴格設定最少 2 人
   MAX_PLAYERS: 10,
   CATEGORY_VOTE_SECONDS: 8,
   PAYMENT_WINDOW_SECONDS: 8,
@@ -143,9 +130,7 @@ const CONFIG = Object.freeze({
   MAX_AVATAR_LENGTH: 300,
   MAX_GUESS_LENGTH: 32,
   MAX_STROKES: 140,
-  MAX_POINTS_PER_STROKE: 80,
-  MAX_PARTICLES: 80,
-  DEBUG: false
+  MAX_POINTS_PER_STROKE: 80
 });
 
 const STATES = Object.freeze({
@@ -164,18 +149,18 @@ const CATEGORIES = Object.freeze([
   {id:"food", name:"美食", icon:"🍔", hint:"吃的、喝的、甜點"},
   {id:"animals", name:"動物", icon:"🐱", hint:"陸地、海洋、天空"},
   {id:"daily", name:"日常", icon:"🏠", hint:"生活中常見的東西"},
-  {id:"places", name:"地點交通", icon:"🚕", hint:"景點、車輛、場所"},
-  {id:"people", name:"人物職業", icon:"🧑", hint:"職業、角色、人物"},
-  {id:"fantasy", name:"娛樂幻想", icon:"🚀", hint:"遊戲、幻想、電影感"}
+  {id:"places", name:"地點", icon:"🚕", hint:"景點、車輛、場所"},
+  {id:"people", name:"職業", icon:"🧑", hint:"職業、角色、人物"},
+  {id:"fantasy", name:"幻想", icon:"🚀", hint:"遊戲、幻想、電影感"}
 ]);
 
 const WORD_BANK = {
-  food: [["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["壽司"],["蛋糕"],["冰淇淋"],["珍珠奶茶",["珍奶"]],["西瓜"],["香蕉"],["草莓"],["葡萄"],["鳳梨"],["蘋果"],["橘子"],["荷包蛋"],["飯糰"],["三明治"],["熱狗"],["甜甜圈"],["餅乾"],["巧克力"],["爆米花"],["棉花糖"],["麵包"],["鬆餅"],["可頌"],["粽子"],["湯圓"],["月餅"],["水餃"],["燒賣"],["小籠包"],["牛肉麵"],["雞排"],["臭豆腐"],["滷肉飯"],["珍珠"]],
-  animals: [["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["長頸鹿"],["猴子"],["熊貓"],["企鵝"],["海豚"],["鯨魚"],["章魚"],["鯊魚"],["螃蟹"],["海馬"],["烏龜"],["青蛙"],["蛇"],["蜥蜴"],["恐龍"],["斑馬"],["袋鼠"],["河馬"],["犀牛"],["狐狸"],["狼"],["熊"],["鹿"],["松鼠"],["刺蝟"],["蝙蝠"],["蜜蜂"],["蝴蝶"],["蜻蜓"],["蜘蛛"],["鸚鵡"],["老鷹"],["孔雀"],["火雞"]],
-  daily: [["雨傘"],["眼鏡"],["電風扇"],["吹風機"],["電視"],["手機"],["耳機"],["相機"],["電腦"],["鍵盤"],["滑板"],["腳踏車",["自行車","單車"]],["網球拍"],["足球"],["棒球"],["籃球"],["吉他"],["鋼琴"],["鬧鐘"],["手錶"],["牙刷"],["牙膏"],["洗衣機"],["冰箱"],["吸塵器"],["枕頭"],["棉被"],["椅子"],["沙發"],["桌子"],["雨鞋"],["書包"],["剪刀"],["鉛筆"],["蠟筆"],["鏡子"],["雨衣"],["鑰匙"],["錢包"],["行李箱"]],
-  places: [["摩天輪"],["遊樂園"],["動物園"],["海邊"],["沙灘"],["游泳池"],["電影院"],["圖書館"],["學校"],["醫院"],["超市"],["便利商店"],["餐廳"],["咖啡廳"],["公園"],["機場"],["火車站"],["捷運站"],["夜市"],["百貨公司"],["城堡"],["燈塔"],["山"],["瀑布"],["火車"],["公車"],["計程車",["的士"]],["救護車"],["消防車"],["警車"],["飛機"],["直升機"],["船"],["潛水艇"],["熱氣球"],["纜車"],["摩托車"],["紅綠燈"],["斑馬線"],["加油站"]],
-  people: [["醫生"],["護士"],["老師"],["廚師"],["警察"],["消防員"],["郵差"],["司機"],["飛行員"],["攝影師"],["畫家"],["歌手"],["舞者"],["魔術師"],["理髮師"],["工程師"],["科學家"],["農夫"],["建築工人"],["運動員"],["超級英雄"],["海盜"],["騎士"],["國王"],["公主"],["偵探"],["特務"],["忍者"],["武士"],["巫師"],["機器人"],["外星人"],["聖誕老人"],["小丑"],["怪獸"],["探險家"],["宇宙人"],["美人魚"],["吸血鬼"],["殭屍"]],
-  fantasy: [["火箭"],["太空人"],["外星球"],["黑洞"],["彩虹"],["流星"],["彗星"],["寶箱"],["魔法棒"],["魔法掃把"],["獨角獸"],["龍"],["鳳凰"],["精靈"],["巨人"],["幽靈"],["吸血鬼"],["殭屍"],["時光機"],["飛毯"],["遊戲手把"],["遊戲機"],["寶劍"],["盾牌"],["雷射槍"],["飛碟"],["太空船"],["機器人"],["火山"],["寶藏地圖"],["金幣"],["皇冠"],["迷宮"],["神秘門"],["彩蛋"],["忍者飛鏢"],["巨型漢堡"],["會飛的鞋子"],["魔法藥水"],["雲朵城堡"]]
+  food: [["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["珍珠奶茶",["珍奶"]],["西瓜"]],
+  animals: [["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["企鵝"]],
+  daily: [["雨傘"],["眼鏡"],["電視"],["手機"],["腳踏車",["自行車","單車"]],["手錶"],["牙刷"]],
+  places: [["摩天輪"],["遊樂園"],["動物園"],["醫院"],["超市"],["飛機"],["火車"]],
+  people: [["醫生"],["警察"],["消防員"],["司機"],["歌手"],["國王"],["忍者"]],
+  fantasy: [["火箭"],["太空人"],["外星人"],["吸血鬼"],["時光機"],["寶劍"]]
 };
 
 function buildWordBank(){
@@ -187,9 +172,6 @@ function buildWordBank(){
 }
 const WORDS=buildWordBank();
 
-/* =========================================================
-   GLOBAL STATE
-========================================================= */
 let DEV = true;
 let sdkIsHost = false;
 let gameRoomId = "";
@@ -243,8 +225,7 @@ let voteTimer=null;
 let paymentTimer=null;
 let heartbeatTimer=null;
 let hostTakeoverSentFor="";
-let resultShownAt=0;
-let localDevSimulation=false;
+let mySilverCoins=0;
 
 const participants=new Set();
 const players=new Map();
@@ -277,34 +258,45 @@ function addPlayer(id,username,avatar,status="WAITING",paid=false){
   return p;
 }
 
-let ME={
-  id:"local_"+Math.random().toString(36).slice(2,10),
-  username:"玩家",
-  avatar:"",
-  joinedAt:Date.now()
-};
+function updateCoinUI(val) {
+  mySilverCoins = val;
+  const badge = document.getElementById("coinBadge");
+  const valEl = document.getElementById("coinVal");
+  if(badge && valEl) {
+    badge.style.display = 'flex';
+    valEl.textContent = Number(val).toLocaleString();
+  }
+}
 
-/* =========================================================
-   SDK SAFE ADAPTER & DELAYED INJECTION FIX
-========================================================= */
+let ME={ id:"local_"+Math.random().toString(36).slice(2,10), username:"玩家", avatar:"", joinedAt:Date.now() };
+
 function sdkAvailable(){return !DEV;}
 
 function setupSDK(data) {
   DEV = false;
+  
   if (data.user) {
-    players.delete(ME.id); // 移除舊的本地測試 ID
+    players.delete(ME.id);
     ME.id = String(data.user.id);
     ME.username = safeString(data.user.username, "玩家", CONFIG.MAX_NAME_LENGTH);
     ME.avatar = safeString(data.user.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
+    if(data.user.silverCoins !== undefined) updateCoinUI(data.user.silverCoins);
   }
+  
   sdkIsHost = !!data.isHost;
   gameRoomId = data.roomId || "";
   
-  if (sdkIsHost) currentHostId = ME.id; // 強制設定為室長
+  // 🌟 核心修復：直接將房間內所有人加入名單
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      addPlayer(String(rp.id), rp.username, rp.avatar, "WAITING", false);
+    });
+  }
   
+  if (sdkIsHost) currentHostId = ME.id;
   addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
   
-  setNotice('✅ 已成功連接 BoomRoom SDK！等待室長開始遊戲。');
+  setNotice('✅ 已成功連接 BoomRoom！等待室長開始遊戲。');
   render();
   
   sendEvent("PLAYER_HELLO", {
@@ -317,26 +309,27 @@ function setupSDK(data) {
   });
 }
 
-// 接收來自 Flutter 的 Web Message (Web 平台) 或 Socket 事件
 window.addEventListener("message", e => {
   try {
     const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    
-    if (data.action === "initSDK") {
-      setupSDK(data);
-      return;
-    }
+    if (data.action === "initSDK") { setupSDK(data); return; }
 
     if (!data || data.action !== "gameEventReceived") return;
     const userId = safeString(data.userId, "", 64);
     const eventName = safeString(data.eventName, "", 40);
     const payload = data.payload;
+
+    // 🌟 接收到外部購買成功的通知
+    if(eventName === "PURCHASE_SUCCESS" && payload && payload.itemId === GAME_INFO.id + "_entry_" + GAME_INFO.version) {
+       if (window.onPurchaseSuccess) window.onPurchaseSuccess(payload.itemId, payload.silverCoins);
+       return;
+    }
+
     if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
     
     const round = safeString(payload.roundId, "LOBBY", 100);
     const eventId = safeString(payload.eventId, "", 80);
-    const fallbackSig = stableHash(JSON.stringify(payload)).toString(36);
-    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || fallbackSig);
+    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || stableHash(JSON.stringify(payload)).toString(36));
     
     if (seenEvents.has(key)) return; 
     seenEvents.add(key);
@@ -346,20 +339,20 @@ window.addEventListener("message", e => {
   } catch (_) {}
 });
 
-// 接收來自 Flutter 的 JS 注入 (Mobile 平台)
 window.onBoomRoomSDKReady = function() {
   if (window.BoomRoomSDK) {
     setupSDK({
       user: window.BoomRoomSDK.getUser(),
       isHost: window.BoomRoomSDK.isHost,
-      roomId: window.BoomRoomSDK.roomId
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || [] // 🌟
     });
   }
 };
 
 setTimeout(() => {
   if (DEV) {
-    setNotice("開發測試模式：未連接 BoomRoom SDK。");
+    setNotice("開發模式：未連接 SDK。");
     addPlayer(ME.id, ME.username, ME.avatar, "WAITING", false);
     render();
   }
@@ -368,10 +361,8 @@ setTimeout(() => {
 function sendEvent(eventName, payload) {
   if (DEV) return false;
   if (!/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object" || Array.isArray(payload)) return false;
-  
   const copy = { ...payload, eventId: safeString(payload.eventId, ME.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7), 80) };
   const eventData = { action: 'sendGameEvent', eventName: eventName, payload: copy };
-  
   try {
     if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
       window.BoomRoomSDK.sendGameEvent(eventName, copy);
@@ -391,7 +382,6 @@ function requestPurchaseOnce() {
   
   const itemId = GAME_INFO.id + "_entry_" + GAME_INFO.version;
   const reqData = { action: 'requestPurchase', itemId: itemId, cost: CONFIG.ENTRY_FEE };
-  
   try {
     if (window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === "function") {
       window.BoomRoomSDK.requestPurchase(itemId, CONFIG.ENTRY_FEE);
@@ -407,9 +397,11 @@ function requestPurchaseOnce() {
   }
 }
 
-window.onPurchaseSuccess = function(itemId) {
+window.onPurchaseSuccess = function(itemId, newCoinsBalance) {
   if (matchStarted || matchEnded || purchaseConfirmed || !isPurchasing) return;
   if (itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
+  if (newCoinsBalance !== undefined) updateCoinUI(newCoinsBalance); // 更新餘額 UI
+
   isPurchasing = false;
   purchaseConfirmed = true;
   addPlayer(ME.id, ME.username, ME.avatar, "READY", true);
@@ -421,38 +413,31 @@ window.onPurchaseSuccess = function(itemId) {
 window.onPurchaseFailed = function(itemId) {
   if (itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
   isPurchasing = false;
-  setNotice("付款失敗，本局未收取 Entry。");
+  setNotice("付款失敗，請確認銀幣餘額。");
   render();
 };
 
 function callGameOver(reward) {
-  const safeReward = intClamp(reward, 0, Math.max(0, prizePool));
   if (gameOverCalled) return;
   gameOverCalled = true;
   rewardLocked = true;
-  finalReward = safeReward;
-  
-  const reqData = { action: 'game_over', winAmount: safeReward };
+  finalReward = intClamp(reward, 0, Math.max(0, prizePool));
+  const reqData = { action: 'game_over', winAmount: finalReward };
   try {
     if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-      window.BoomRoomSDK.gameOver(safeReward);
+      window.BoomRoomSDK.gameOver(finalReward);
     } else if (window.parent !== window) {
       window.parent.postMessage(JSON.stringify(reqData), '*');
     }
   } catch (_) {}
 }
 
-/* =========================================================
-   HOST / ROUND AUTHORITY
-========================================================= */
 function participantPlayers(){return[...participants].map(id=>players.get(id)).filter(Boolean)}
 function activePlayers(){
   const now=Date.now();
   return [...players.values()].filter(p=>p&&p.status!=="LEFT"&&p.lastSeen&&now-p.lastSeen<=CONFIG.PLAYER_TIMEOUT_MS);
 }
-function isHost() {
-  return sdkIsHost || currentHostId === ME.id;
-}
+function isHost() { return sdkIsHost || currentHostId === ME.id; }
 function electHost() {
   if (sdkIsHost) { currentHostId = ME.id; return ME.id; }
   const pool = activePlayers().filter(p => p.status !== "TIMEOUT");
@@ -468,8 +453,7 @@ function getHostId() {
   return electHost();
 }
 function maybeTakeoverHost(){
-  const elected=getHostId();
-  if(!elected)return;
+  const elected=getHostId();if(!elected)return;
   if(currentHostId!==elected){
     currentHostId=elected;
     if(roundId&&matchStarted&&!matchEnded&&isHost()&&hostTakeoverSentFor!==roundId){
@@ -479,16 +463,58 @@ function maybeTakeoverHost(){
 }
 function makeRoundId(){return GAME_INFO.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7)}
 function makeSeed(){return(stableHash(ME.id+"|"+Date.now()+"|"+performance.now())^0x9e3779b9)>>>0}
+
 function calculateEconomyFromParticipants(){
   const paid=participantPlayers().filter(p=>p.paid).length;
   totalPool=intClamp(paid*CONFIG.ENTRY_FEE,0,CONFIG.MAX_PLAYERS*CONFIG.ENTRY_FEE);
   platformFee=intClamp(totalPool*CONFIG.PLATFORM_FEE_RATE,0,totalPool);
   prizePool=intClamp(totalPool-platformFee,0,totalPool);
 }
+
+function startCategoryVoteAsHost(){
+  if(!isHost()||matchStarted||matchEnded)return;
+  if(roundId)return;
+  // 🌟 人數嚴格檢查
+  if (players.size < CONFIG.MIN_PLAYERS) {
+    setNotice(`⚠️ 無法開始！遊戲最低需求 ${CONFIG.MIN_PLAYERS} 人，目前房間僅 ${players.size} 人。`);
+    render();
+    return;
+  }
+
+  roundId=makeRoundId();roundSeed=makeSeed();currentHostId=ME.id;hostTakeoverSentFor="";
+  selectedCategory="";votedCategory="";categoryVotes=new Map();
+  voteDeadline=Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000;state=STATES.SELECT_CATEGORY;
+  sendEvent("CATEGORY_VOTE_START",{roundId,deadline:voteDeadline,categories:CATEGORIES.map(c=>c.id)});
+  setNotice("投票開始！選一個你想畫的題型。");render();
+  clearTimeout(voteTimer);voteTimer=setTimeout(()=>finishCategoryVoteAsHost(),CONFIG.CATEGORY_VOTE_SECONDS*1000+150);
+}
+
+function castCategoryVote(categoryId){
+  if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
+  if(votedCategory)return;
+  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});render();
+}
+function finishCategoryVoteAsHost(){
+  if(!isHost()||state!==STATES.SELECT_CATEGORY||matchStarted)return;
+  const counts=new Map(CATEGORIES.map(c=>[c.id,0]));
+  for(const p of categoryVotes.values())if(counts.has(p))counts.set(p,counts.get(p)+1);
+  let max=-1;let tied=[];
+  for(const c of CATEGORIES){const n=counts.get(c.id)||0;if(n>max){max=n;tied=[c.id]}else if(n===max)tied.push(c.id)}
+  const rng=mulberry32((roundSeed^stableHash(roundId))>>>0);selectedCategory=tied[Math.floor(rng()*tied.length)]||CATEGORIES[0].id;
+  state=STATES.PURCHASING;paymentDeadline=Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000;
+  sendEvent("CATEGORY_VOTE_RESULT",{roundId,categoryId:selectedCategory,votes:Object.fromEntries(counts),paymentDeadline});
+  setNotice("題型已選定："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"。現在支付 Entry 參賽。");render();
+  clearTimeout(paymentTimer);paymentTimer=setTimeout(()=>startRoundAsHost(selectedCategory),CONFIG.PAYMENT_WINDOW_SECONDS*1000+200);
+}
+
 function startRoundAsHost(category){
   if(!isHost()||matchStarted||matchEnded)return;
   const paid=[...players.values()].filter(p=>p.paid&&p.status!=="LEFT").sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,CONFIG.MAX_PLAYERS);
-  if(paid.length<CONFIG.MIN_PLAYERS){setNotice("至少要有 2 位完成 Entry 才能開始。");render();return}
+  if(paid.length<CONFIG.MIN_PLAYERS){
+    setNotice(`報名人數不足 ${CONFIG.MIN_PLAYERS} 人，遊戲無法開始。已退回銀幣（由伺服器處理）。`);
+    matchEnded=true; state=STATES.LOBBY; render();
+    return;
+  }
   participants.clear();for(const p of paid){participants.add(p.id);p.status="READY";p.score=0;p.reward=0;p.correct=0;p.drawTurns=0;p.skips=0}
   calculateEconomyFromParticipants();
   matchStarted=true;matchEnded=false;rewardLocked=false;gameOverCalled=false;
@@ -513,44 +539,11 @@ function applyRoundStart(payload){
   render();startCountdown();
 }
 
-/* =========================================================
-   CATEGORY VOTING
-========================================================= */
 function broadcastLobbySync(toUserId){
   if(!isHost()||!roundId)return;
   sendEvent("LOBBY_SYNC",{roundId,phase:state,category:selectedCategory,voteDeadline,paymentDeadline,matchStarted,participantCount:participantPlayers().length});
 }
-function startCategoryVoteAsHost(){
-  if(!isHost()||matchStarted||matchEnded)return;
-  if(roundId)return;
-  roundId=makeRoundId();roundSeed=makeSeed();currentHostId=ME.id;hostTakeoverSentFor="";
-  selectedCategory="";votedCategory="";categoryVotes=new Map();
-  voteDeadline=Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000;state=STATES.SELECT_CATEGORY;
-  sendEvent("CATEGORY_VOTE_START",{roundId,deadline:voteDeadline,categories:CATEGORIES.map(c=>c.id)});
-  setNotice("投票開始！選一個你想畫的題型。");render();
-  clearTimeout(voteTimer);voteTimer=setTimeout(()=>finishCategoryVoteAsHost(),CONFIG.CATEGORY_VOTE_SECONDS*1000+150);
-}
-function castCategoryVote(categoryId){
-  if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
-  if(votedCategory)return;
-  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});render();
-}
-function finishCategoryVoteAsHost(){
-  if(!isHost()||state!==STATES.SELECT_CATEGORY||matchStarted)return;
-  const counts=new Map(CATEGORIES.map(c=>[c.id,0]));
-  for(const p of categoryVotes.values())if(counts.has(p))counts.set(p,counts.get(p)+1);
-  let max=-1;let tied=[];
-  for(const c of CATEGORIES){const n=counts.get(c.id)||0;if(n>max){max=n;tied=[c.id]}else if(n===max)tied.push(c.id)}
-  const rng=mulberry32((roundSeed^stableHash(roundId))>>>0);selectedCategory=tied[Math.floor(rng()*tied.length)]||CATEGORIES[0].id;
-  state=STATES.PURCHASING;paymentDeadline=Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000;
-  sendEvent("CATEGORY_VOTE_RESULT",{roundId,categoryId:selectedCategory,votes:Object.fromEntries(counts),paymentDeadline});
-  setNotice("題型已選定："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"。現在支付 Entry 參賽。");render();
-  clearTimeout(paymentTimer);paymentTimer=setTimeout(()=>startRoundAsHost(selectedCategory),CONFIG.PAYMENT_WINDOW_SECONDS*1000+200);
-}
 
-/* =========================================================
-   WORD SELECTION / TURN SCHEDULING
-========================================================= */
 const usedWordIndexes=new Map();
 function wordForTurn(categoryId,turnIndex,seed){
   const bank=WORDS[categoryId]||WORDS[CATEGORIES[0].id];
@@ -600,9 +593,7 @@ function resolveTurnAsHost(kind,winnerId=""){
     guesserGain=intClamp(100+remain*3,100,145);
     drawer.score=intClamp(drawer.score+drawerGain,0,100000);drawer.correct=(drawer.correct||0)+1;drawer.drawTurns=(drawer.drawTurns||0)+1;
     const gp=players.get(winnerId);if(gp){gp.score=intClamp(gp.score+guesserGain,0,100000);gp.correct=(gp.correct||0)+1}
-  }else if(kind==="SKIP"){
-    if(drawer)drawer.drawTurns=(drawer.drawTurns||0)+1;
-  }else if(kind==="TIMEOUT"){
+  }else if(kind==="SKIP"||kind==="TIMEOUT"){
     if(drawer)drawer.drawTurns=(drawer.drawTurns||0)+1;
   }
   const payload={roundId,turnIndex:currentTurnIndex,kind,winnerId:winnerId||null,drawerId:currentDrawerId,answer:currentWord?currentWord.answer:"",drawerGain,guesserGain,drawerScore:drawer?drawer.score:0,winnerScore:winnerId&&players.get(winnerId)?players.get(winnerId).score:null,at:Date.now()};
@@ -625,9 +616,6 @@ function applyTurnEnd(payload){
   },1050);
 }
 
-/* =========================================================
-   GUESS / SCORING
-========================================================= */
 function submitGuess(){
   if(state!==STATES.PLAYING||isDrawer()||matchEnded||!isParticipant(ME.id)||Date.now()-lastGuessAt<140)return;
   const input=document.getElementById("guessInput");if(!input)return;
@@ -650,9 +638,6 @@ function skipTurn(){
   if(isHost())resolveTurnAsHost("SKIP",ME.id); else showToast("已送出跳過");
 }
 
-/* =========================================================
-   FINAL RESULT / ECONOMY
-========================================================= */
 function buildRewards(){
   const all=participantPlayers().sort((a,b)=>(finite(b.score,0)-finite(a.score,0))||a.id.localeCompare(b.id));
   const topScore=all.length?intClamp(all[0].score,0,100000):0;
@@ -688,16 +673,6 @@ function applyRoundEnd(payload){
   clearTimeout(turnStateTimer);turnStateTimer=setTimeout(()=>{if(state===STATES.RESULT){state=STATES.WAITING_FOR_MAYOR_CLOSE;render()}},1800);
 }
 
-/* =========================================================
-   EVENTS
-========================================================= */
-function validRoundPayload(payload,allowLobby=false){
-  if(!payload||typeof payload!=="object")return false;
-  if(typeof payload.roundId!=="string"||payload.roundId.length>100)return false;
-  if(!allowLobby&&roundId&&payload.roundId!==roundId)return false;
-  return true;
-}
-
 function handleEvent(userId,eventName,payload){
   const knownUser=players.get(userId); if(knownUser)knownUser.lastSeen=Date.now();
   if(eventName==="PLAYER_HELLO"){
@@ -706,9 +681,7 @@ function handleEvent(userId,eventName,payload){
     if(roundId&&!matchStarted&&isHost())broadcastLobbySync(userId);
     render();return;
   }
-  if(eventName==="HOST_TAKEOVER"){
-    if(validRoundPayload(payload))currentHostId=safeString(payload.hostId,currentHostId,64);render();return;
-  }
+  if(eventName==="HOST_TAKEOVER"){if(validRoundPayload(payload))currentHostId=safeString(payload.hostId,currentHostId,64);render();return;}
   if(eventName==="CATEGORY_VOTE_START"){
     if(roundId&&payload.roundId!==roundId)return;currentHostId=currentHostId||userId;
     roundId=safeString(payload.roundId,roundId,100);voteDeadline=finite(payload.deadline,Date.now()+CONFIG.CATEGORY_VOTE_SECONDS*1000);state=STATES.SELECT_CATEGORY;categoryVotes=new Map();votedCategory="";selectedCategory="";setNotice("投票開始！");render();return;
@@ -723,15 +696,9 @@ function handleEvent(userId,eventName,payload){
   if(eventName==="LOBBY_SYNC"){
     if(roundId&&payload.roundId!==roundId)return;roundId=safeString(payload.roundId,roundId,100);state=Object.values(STATES).includes(payload.phase)?payload.phase:state;selectedCategory=safeString(payload.category,selectedCategory,30);voteDeadline=finite(payload.voteDeadline,voteDeadline);paymentDeadline=finite(payload.paymentDeadline,paymentDeadline);matchStarted=!!payload.matchStarted;render();return;
   }
-  if(eventName==="ROUND_START"){
-    if(roundId&&payload.roundId!==roundId)return;currentHostId=currentHostId||userId;applyRoundStart(payload);return;
-  }
-  if(eventName==="TURN_START"){
-    if(!validRoundPayload(payload)||!matchStarted||matchEnded)return;applyTurnStart(payload);return;
-  }
-  if(eventName==="TURN_END"){
-    if(!validRoundPayload(payload)||matchEnded)return;applyTurnEnd(payload);return;
-  }
+  if(eventName==="ROUND_START"){if(roundId&&payload.roundId!==roundId)return;currentHostId=currentHostId||userId;applyRoundStart(payload);return;}
+  if(eventName==="TURN_START"){if(!validRoundPayload(payload)||!matchStarted||matchEnded)return;applyTurnStart(payload);return;}
+  if(eventName==="TURN_END"){if(!validRoundPayload(payload)||matchEnded)return;applyTurnEnd(payload);return;}
   if(eventName==="GAME_EVENT"){
     if(!validRoundPayload(payload)||matchEnded)return;
     if(payload.type==="GUESS"&&isHost())processGuessAsHost(payload);
@@ -744,18 +711,20 @@ function handleEvent(userId,eventName,payload){
   if(eventName==="PLAYER_STATE"){
     if(!validRoundPayload(payload))return;const p=addPlayer(userId,payload.username||"玩家",payload.avatar||"",payload.status||"PLAYING",false);if(p)p.score=intClamp(payload.score,0,100000);render();return;
   }
-  if(eventName==="PLAYER_HEARTBEAT"){
-    if(validRoundPayload(payload)){const p=players.get(userId)||addPlayer(userId,"玩家","");if(p){p.lastSeen=Date.now();p.status=safeString(payload.status,p.status,30)}}return;
-  }
+  if(eventName==="PLAYER_HEARTBEAT"){if(validRoundPayload(payload)){const p=players.get(userId)||addPlayer(userId,"玩家","");if(p){p.lastSeen=Date.now();p.status=safeString(payload.status,p.status,30)}}return;}
   if(eventName==="PLAYER_END"){
     if(!validRoundPayload(payload))return;const p=players.get(userId)||addPlayer(userId,"玩家","");if(p){p.status=safeString(payload.status,"END",20);p.score=intClamp(payload.score,0,100000);p.reward=intClamp(payload.reward,0,prizePool)}render();return;
   }
   if(eventName==="ROUND_END"){if(!validRoundPayload(payload)||matchEnded&&state!==STATES.PLAYING)return;applyRoundEnd(payload);return}
 }
 
-/* =========================================================
-   CANVAS / DRAWING TOOLS
-========================================================= */
+function validRoundPayload(payload,allowLobby=false){
+  if(!payload||typeof payload!=="object")return false;
+  if(typeof payload.roundId!=="string"||payload.roundId.length>100)return false;
+  if(!allowLobby&&roundId&&payload.roundId!==roundId)return false;
+  return true;
+}
+
 let canvas=null,ctx=null,resizeBound=false;
 function ensureCanvas(){canvas=document.getElementById("drawCanvas");if(!canvas)return false;ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});if(!resizeBound){window.addEventListener("resize",resizeCanvas,{passive:true});resizeBound=true}resizeCanvas();attachCanvasEvents();return true}
 function resizeCanvas(){if(!canvas||!ctx)return;const r=canvas.getBoundingClientRect();const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.max(1,Math.floor(r.width*dpr));canvas.height=Math.max(1,Math.floor(r.height*dpr));ctx.setTransform(dpr,0,0,dpr,1,1);ctx.fillStyle="#f7f8fb";ctx.fillRect(0,0,r.width,r.height);redrawCanvas()}
@@ -777,7 +746,6 @@ function endStroke(e){
   if(!currentStroke)return;if(e&&e.preventDefault)e.preventDefault();const stroke={id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,points:currentStroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE)};
   knownStrokes.push(stroke);localStrokeIds.push(stroke.id);if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke,turnIndex:currentTurnIndex});currentStroke=null;
 }
-
 function attachCanvasEvents(){
   if(!canvas||canvas.dataset.bound==="1")return;
   canvas.dataset.bound="1";
@@ -785,24 +753,15 @@ function attachCanvasEvents(){
   canvas.addEventListener("pointermove",moveStroke,{passive:false});
   canvas.addEventListener("pointerup",endStroke,{passive:false});
   canvas.addEventListener("pointercancel",endStroke,{passive:false});
-  
   canvas.addEventListener("dragstart", e => e.preventDefault());
   document.body.addEventListener("dragstart", e => e.preventDefault());
 }
-
 function receiveStroke(stroke){if(!stroke||!Array.isArray(stroke.points)||stroke.points.length>CONFIG.MAX_POINTS_PER_STROKE)return;if(stroke.id&&knownStrokes.some(s=>s.id===stroke.id))return;knownStrokes.push({id:safeString(stroke.id,"remote",100),color:safeString(stroke.color,"#151923",20),size:clamp(stroke.size,2,30),points:stroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE).map(p=>({x:clamp(p.x,0,1),y:clamp(p.y,0,1)}))});if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();drawStroke(knownStrokes[knownStrokes.length-1])}
 function removeKnownStroke(id){if(typeof id!=="string")return;knownStrokes=knownStrokes.filter(s=>s.id!==id)}
-function undoLastStroke(){
-  if(!isDrawer()||!localStrokeIds.length||matchEnded)return;const id=localStrokeIds.pop();removeKnownStroke(id);redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"UNDO_STROKE",strokeId:id,turnIndex:currentTurnIndex});playTone(400,.05);
-}
-function clearAllCanvas(){
-  if(!isDrawer()||matchEnded)return;knownStrokes=[];localStrokeIds=[];redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"CLEAR_CANVAS",turnIndex:currentTurnIndex});playTone(350,.05)
-}
+function undoLastStroke(){if(!isDrawer()||!localStrokeIds.length||matchEnded)return;const id=localStrokeIds.pop();removeKnownStroke(id);redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"UNDO_STROKE",strokeId:id,turnIndex:currentTurnIndex});playTone(400,.05);}
+function clearAllCanvas(){if(!isDrawer()||matchEnded)return;knownStrokes=[];localStrokeIds=[];redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"CLEAR_CANVAS",turnIndex:currentTurnIndex});playTone(350,.05)}
 function syncTools(){document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));document.querySelectorAll("[data-size]").forEach(b=>b.classList.toggle("active",Number(b.dataset.size)===brushSize))}
 
-/* =========================================================
-   AUDIO / FEEDBACK
-========================================================= */
 function ensureAudio(){if(muted)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){}}
 function playTone(freq,duration=.08){if(muted)return;const now=performance.now();if(now-soundCooldown<35)return;soundCooldown=now;ensureAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=clamp(freq,120,1700);g.gain.value=.035;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.stop(audioCtx.currentTime+duration)}catch(_){}}
 function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}}
@@ -810,9 +769,6 @@ function toggleSound(){muted=!muted;if(!muted)ensureAudio();document.getElementB
 function showToast(t){const el=document.getElementById("toast");if(!el)return;el.textContent=safeString(t,"",100);el.classList.add("show");clearTimeout(showToast.t);showToast.t=setTimeout(()=>el.classList.remove("show"),1200)}
 function setNotice(t){noticeText=safeString(t,"",120)}
 
-/* =========================================================
-   GAME FLOW / DEVELOPMENT TEST MODE
-========================================================= */
 function runLocalDevTest(){
   if(sdkAvailable())return;
   localDevSimulation=true;
@@ -839,9 +795,6 @@ function startCountdown(){
   tick();
 }
 
-/* =========================================================
-   RENDER
-========================================================= */
 function render(){
   const main=document.getElementById("main");if(!main)return;
   if(state===STATES.LOBBY||state===STATES.SELECT_CATEGORY||state===STATES.PURCHASING||state===STATES.READY){renderLobby(main);return}
@@ -850,13 +803,13 @@ function render(){
 }
 function currentPaidCount(){return[...players.values()].filter(p=>p.paid&&p.status!=="LEFT").length}
 function renderPlayers(){
-  const arr=[...players.values()].sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,6);
+  const arr=[...players.values()].sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,10);
   if(!arr.length)return '<div class="player"><b>尚無玩家</b><em>等待房間玩家</em></div>';
   const html=arr.map(p=>{
     const you=p.id===ME.id;const turn=p.id===currentDrawerId;const role=turn?" 🎨":"";const status=p.paid?(p.status||"READY"):"未付 Entry";
     return '<div class="player '+(you?'me ':'')+(turn?'drawer':'')+'"><b>'+esc(p.username)+role+(you?' · 你':'')+'</b><em>'+esc(status)+(matchStarted&&participants.has(p.id)?' · '+intClamp(p.score,0,100000)+' 分':'')+'</em></div>'
   }).join("");
-  return html+(players.size>6?'<div class="player"><b>+'+(players.size-6)+'</b><em>更多玩家</em></div>':"");
+  return html+(players.size>10?'<div class="player"><b>+'+(players.size-10)+'</b><em>更多玩家</em></div>':"");
 }
 function renderLobby(main){
   const paid=currentPaidCount();calculateEconomyFromParticipants();const cat=getCategory(selectedCategory);
@@ -880,18 +833,21 @@ function renderLobby(main){
     return;
   }
   
-  // LOBBY
+  // 🌟 LOBBY 檢查人數限制
+  const canStart = players.size >= CONFIG.MIN_PLAYERS;
+  
   main.innerHTML=`
-    <section class="panel hero center"><div><h1>🎨 爆爆你畫我猜</h1><p>投票選題、輪流作畫，猜對與畫家合作拿分。</p><div class="badges"><span class="badge">派對競技</span><span class="badge">2–10 人</span><span class="badge">每人畫 1 次</span><span class="badge">手機觸控</span></div></div></section>
-    <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">先投票再付款。達到 2 位已付款玩家後，本局才會鎖定正式參賽者並開始。</div></section>
-    <section class="panel"><div class="sectionTitle">本局題庫</div><div class="categoryList">${CATEGORIES.map(c=>'<span class="miniTag">'+c.icon+' '+c.name+' · '+(WORDS[c.id]||[]).length+' 題</span>').join("")}</div><div class="notice">${esc(noticeText||"等待至少 2 位玩家進入房間後開始投票。")}<\/div></section>
+    <section class="panel hero center"><div><h1>🎨 爆爆你畫我猜</h1><p>投票選題、輪流作畫，猜對與畫家合作拿分。</p><div class="badges"><span class="badge">派對競技</span><span class="badge">${CONFIG.MIN_PLAYERS}–${CONFIG.MAX_PLAYERS} 人</span><span class="badge">每人畫 1 次</span><span class="badge">手機觸控</span></div></div></section>
+    <section class="panel"><div class="stats"><div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${paid}</b><span>已付款</span></div><div class="stat"><b>${prizePool}</b><span>最終獎池</span></div></div><div style="height:8px"></div><div class="tiny muted">先投票再付款。達到 ${CONFIG.MIN_PLAYERS} 位已付款玩家後，本局才會鎖定正式參賽者並開始。</div></section>
     <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-    ${isHost() ? `<button id="hostStartBtn" class="cta" style="margin-top:10px;">👑 室長：開始投票選題</button>` : ''}
+    ${isHost() ? `<button id="hostStartBtn" class="cta" style="margin-top:10px;" ${canStart?'':'disabled'}>👑 室長：開始投票選題 ${canStart?'':'(最低需 '+CONFIG.MIN_PLAYERS+' 人)'}</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
     ${!sdkAvailable()?'<section class="panel"><button id="devBtn" class="cta secondary">🧪 本地測試：直接體驗完整流程</button><div class="dev">此按鈕只在 BoomRoom SDK 未連接時存在，僅用於開發測試。</div></section>':''}`;
     
   document.getElementById("devBtn")?.addEventListener("click",()=>{ensureAudio();runLocalDevTest()});
-  document.getElementById("hostStartBtn")?.addEventListener("click",()=>{ensureAudio();startCategoryVoteAsHost()});
+  const hostBtn = document.getElementById("hostStartBtn");
+  if(hostBtn && canStart) hostBtn.addEventListener("click",()=>{ensureAudio();startCategoryVoteAsHost()});
 }
+
 function renderGame(main){
   const drawer=isDrawer();const remain=Math.max(0,Math.ceil((currentTurnStartedAt+CONFIG.TURN_SECONDS*1000-Date.now())/1000));const my=players.get(ME.id);const turnPlayer=players.get(currentDrawerId);
   main.innerHTML=`
@@ -910,6 +866,7 @@ function renderGame(main){
     document.getElementById('guessBtn')?.addEventListener('click',submitGuess);document.getElementById('guessInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});document.getElementById('guessInput')?.focus({preventScroll:true});
   }
 }
+
 function renderResult(main){
   const mine=finalReward>0;const all=participantPlayers().sort((a,b)=>(finite(b.score,0)-finite(a.score,0))||a.id.localeCompare(b.id));
   main.innerHTML=`<section class="panel hero center result"><div class="resultTitle">${mine?'🏆 你贏了！':'本局已結束'}</div><p>${esc(finalReason||'所有玩家完成輪流作畫')}</p><div class="reward">+${intClamp(finalReward,0,prizePool)} 銀幣</div><div class="stats"><div class="stat"><b>第 ${finalRank}</b><span>最終排名</span></div><div class="stat"><b>${intClamp(players.get(ME.id)?.score||0,0,100000)}</b><span>總分</span></div><div class="stat"><b>${intClamp(prizePool,0,1000000)}</b><span>獎池</span></div><div class="stat"><b>${intClamp(platformFee,0,1000000)}</b><span>平台費</span></div></div></section>
@@ -917,9 +874,6 @@ function renderResult(main){
   <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
 }
 
-/* =========================================================
-   GAME LOOP / HEARTBEAT / TIMEOUT
-========================================================= */
 function gameLoop(ts){
   if(!rafRunning)return;
   const dt=Math.min(Math.max((ts-lastFrame)/1000,0),0.033);lastFrame=ts;fps=0.9*fps+0.1*(1/Math.max(dt,0.001));
@@ -943,6 +897,7 @@ function gameLoop(ts){
   maybeTakeoverHost();
   loopHandle=requestAnimationFrame(gameLoop);
 }
+
 function heartbeat(){
   if(!ME.id)return;
   sendEvent("PLAYER_HEARTBEAT",{roundId:roundId||"LOBBY",userId:ME.id,status:state,timestamp:Date.now()});
@@ -952,16 +907,10 @@ function heartbeat(){
 document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now()}else{if(state===STATES.PLAYING&&hiddenAt&&Date.now()-hiddenAt>2500){hiddenAt=0}}});
 window.addEventListener("pagehide",()=>{clearTimeout(turnStateTimer);clearTimeout(voteTimer);clearTimeout(paymentTimer);clearInterval(heartbeatTimer);cancelAnimationFrame(loopHandle);rafRunning=false});
 
-/* =========================================================
-   HELP / SOUND
-========================================================= */
 document.getElementById("helpBtn").addEventListener("click",()=>document.getElementById("helpModal").classList.add("show"));
 document.getElementById("closeHelp").addEventListener("click",()=>document.getElementById("helpModal").classList.remove("show"));
 document.getElementById("soundBtn").addEventListener("click",toggleSound);
 
-/* =========================================================
-   BOOT
-========================================================= */
 function boot(){
   render();
   lastFrame=performance.now();

@@ -3,294 +3,6582 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#05070d">
-<title>爆爆搶金</title>
+<meta name="theme-color" content="#03050a">
+<title>爆爆搶金 V3</title>
+
 <style>
-:root{--bg:#05070d;--gold:#ffd45c;--gold2:#ff9a2e;--cyan:#55f6ff;--red:#ff4f69;--green:#65ffad;--text:#f7f9ff;--muted:#8994ab;--t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
-body{touch-action:none}
-button{font:inherit;border:0;outline:0}
-#gameCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:1;display:block;touch-action:none}
-#veil{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 40%,rgba(255,208,92,.07),transparent 30%),linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.22))}
-#hud{position:fixed;inset:0;z-index:10;display:none;pointer-events:none;padding:calc(10px + var(--t)) 10px calc(9px + var(--b))}
-.hud-inner{width:min(820px,100%);height:100%;margin:auto;position:relative}
-.top{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:start}.box{padding:8px 11px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(7,10,18,.74);backdrop-filter:blur(7px);box-shadow:0 8px 30px rgba(0,0,0,.26);min-width:0}.you .value{color:var(--gold)}.topscore .value{color:var(--cyan)}.box small{display:block;color:#758099;font-size:7px;letter-spacing:.12em}.value{font-size:22px;line-height:1.05;font-weight:1000;margin-top:2px}.center{text-align:center;padding:2px 7px}.round{font-size:8px;color:#7f8ba4;letter-spacing:.14em}.timer{font-size:29px;line-height:1;font-weight:1000;text-shadow:0 0 18px rgba(255,255,255,.12)}.timer.danger{color:var(--red);text-shadow:0 0 20px rgba(255,79,105,.28)}
-.bottom{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:7px}.chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.chip{padding:7px 10px;border:1px solid rgba(255,255,255,.08);border-radius:999px;background:rgba(7,10,17,.78);font-size:8px;color:#b8c0d1}.chip strong{color:#fff}.combo{border-color:rgba(255,212,92,.24);color:#f6d87c}.tip{font-size:9px;color:#95a0b6;text-align:center;padding:3px 10px 4px;background:rgba(7,10,17,.68);border:1px solid rgba(255,255,255,.06);border-radius:999px;backdrop-filter:blur(5px)}
-#lobby,#result{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at 50% 18%,rgba(255,201,77,.12),transparent 28%),rgba(2,4,9,.95);pointer-events:auto}
-.card{width:min(94vw,560px);padding:20px;border:1px solid rgba(255,255,255,.11);border-radius:24px;background:linear-gradient(180deg,rgba(17,22,37,.985),rgba(5,8,14,.995));box-shadow:0 30px 100px rgba(0,0,0,.65)}
-.brand{display:flex;justify-content:space-between;align-items:center;gap:8px}.brand b{font-size:9px;letter-spacing:.14em}.dev{padding:5px 8px;border:1px solid rgba(255,212,92,.22);border-radius:999px;background:rgba(255,212,92,.08);color:var(--gold);font-size:8px}
-h1{text-align:center;font-size:clamp(44px,12vw,70px);line-height:.9;margin:18px 0 8px;font-weight:1000;background:linear-gradient(180deg,#fff,#ffe98c 42%,#ff9634);-webkit-background-clip:text;background-clip:text;color:transparent} .desc{text-align:center;color:#a5afc2;font-size:10px;line-height:1.6;margin:0 auto;max-width:470px}
-.preview{position:relative;height:180px;margin:15px 0 10px;border:1px solid rgba(255,255,255,.07);border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#0b1220,#05080f);box-shadow:inset 0 0 60px rgba(85,246,255,.04)}
-.pitem{position:absolute;font-size:28px;animation:drop 2.8s linear infinite}.p1{left:12%;top:-40px}.p2{left:32%;top:-65px;animation-delay:.7s}.p3{left:58%;top:-75px;animation-delay:1.15s}.p4{left:78%;top:-48px;animation-delay:.45s}@keyframes drop{0%{transform:translateY(0) rotate(0);opacity:0}12%{opacity:1}100%{transform:translateY(250px) rotate(260deg);opacity:.1}}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.stat{text-align:center;padding:10px 5px;border-radius:14px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03)}.stat b{display:block;font-size:12px}.stat span{display:block;margin-top:3px;font-size:7px;color:#6d7890}
-.entries{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.entry{height:48px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);color:#acb5c8;font-size:10px;font-weight:1000;cursor:pointer;pointer-events:auto}.entry.active{border-color:rgba(255,212,92,.62);background:rgba(255,212,92,.09);color:#fff}.entry small{display:block;margin-top:2px;color:#6d7890;font-size:7px}.entry.active small{color:#bca359}
-.start{display:block;width:100%;height:58px;margin-top:12px;border-radius:29px;background:linear-gradient(90deg,#ffd35a,#ff9634);color:#1c0f00;font-weight:1000;font-size:19px;cursor:pointer;pointer-events:auto;position:relative;z-index:1100;box-shadow:0 15px 42px rgba(255,154,50,.22),inset 0 1px rgba(255,255,255,.6)}.start:active{transform:scale(.985)}.start:disabled{opacity:.45}.hint{text-align:center;color:#67738b;font-size:8px;line-height:1.5;margin-top:8px}
-#result{display:none}.result-title{text-align:center;font-size:42px;font-weight:1000;margin-top:2px}.reward{text-align:center;font-size:28px;font-weight:1000;color:var(--green);margin-top:3px}.reason{text-align:center;color:#9aa5ba;font-size:10px;line-height:1.5;margin:7px 0 14px}.rank-list{display:flex;flex-direction:column;gap:6px;max-height:38vh;overflow:auto}.rank-row{display:grid;grid-template-columns:32px 1fr auto;gap:7px;align-items:center;padding:9px 10px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);font-size:10px}.rank-row.me{border-color:rgba(255,212,92,.24);background:rgba(255,212,92,.055)}.wait{margin-top:12px;width:100%;height:54px;border-radius:16px;background:rgba(255,255,255,.07);color:#9099ad;font-weight:1000}
-#toast{position:fixed;z-index:1200;left:50%;top:46%;transform:translate(-50%,-50%) scale(.92);opacity:0;pointer-events:none;font-size:clamp(34px,10vw,66px);font-weight:1000;text-shadow:0 0 28px currentColor;transition:.12s;white-space:nowrap}.show{opacity:1!important;transform:translate(-50%,-50%) scale(1)!important}
-@media(max-width:390px){.card{padding:17px}.preview{height:160px}.stats b{font-size:11px}.timer{font-size:25px}.value{font-size:19px}}
+:root{
+  --bg:#03050a;
+  --panel:#080d18;
+  --gold:#ffd45c;
+  --gold2:#ff9a2e;
+  --cyan:#55f6ff;
+  --red:#ff405d;
+  --red2:#ff1744;
+  --green:#65ffad;
+  --text:#f7f9ff;
+  --muted:#8994ab;
+  --t:env(safe-area-inset-top,0px);
+  --b:env(safe-area-inset-bottom,0px);
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+
+html,
+body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:
+    Inter,
+    "Noto Sans TC",
+    "PingFang TC",
+    "Microsoft JhengHei",
+    system-ui,
+    sans-serif;
+}
+
+body{
+  touch-action:none;
+  overscroll-behavior:none;
+}
+
+button{
+  font:inherit;
+  border:0;
+  outline:0;
+  -webkit-appearance:none;
+}
+
+#gameCanvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:1;
+  display:block;
+  touch-action:none;
+  cursor:crosshair;
+}
+
+#veil{
+  position:fixed;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255,208,92,.055),
+      transparent 31%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0,0,0,.015),
+      rgba(0,0,0,.18)
+    );
+}
+
+#hud{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  display:none;
+  pointer-events:none;
+  padding:
+    calc(9px + var(--t))
+    10px
+    calc(9px + var(--b));
+}
+
+.hud-inner{
+  width:min(820px,100%);
+  height:100%;
+  margin:auto;
+  position:relative;
+}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:8px;
+  align-items:start;
+}
+
+.box{
+  padding:8px 11px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:15px;
+  background:rgba(7,10,18,.72);
+  backdrop-filter:blur(8px);
+  box-shadow:0 8px 30px rgba(0,0,0,.28);
+  min-width:0;
+}
+
+.you .value{
+  color:var(--gold);
+}
+
+.topscore .value{
+  color:var(--cyan);
+}
+
+.box small{
+  display:block;
+  color:#758099;
+  font-size:7px;
+  letter-spacing:.12em;
+}
+
+.value{
+  font-size:22px;
+  line-height:1.05;
+  font-weight:1000;
+  margin-top:2px;
+}
+
+.center{
+  text-align:center;
+  padding:2px 7px;
+}
+
+.round{
+  font-size:8px;
+  color:#7f8ba4;
+  letter-spacing:.14em;
+}
+
+.timer{
+  font-size:29px;
+  line-height:1;
+  font-weight:1000;
+  text-shadow:0 0 18px rgba(255,255,255,.12);
+}
+
+.timer.danger{
+  color:var(--red);
+  text-shadow:0 0 20px rgba(255,79,105,.4);
+}
+
+.bottom{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+}
+
+.chips{
+  display:flex;
+  gap:6px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.chip{
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  background:rgba(7,10,17,.78);
+  font-size:8px;
+  color:#b8c0d1;
+}
+
+.chip strong{
+  color:#fff;
+}
+
+.combo{
+  border-color:rgba(255,212,92,.28);
+  color:#f6d87c;
+}
+
+.tip{
+  font-size:9px;
+  color:#a1abc0;
+  text-align:center;
+  padding:4px 11px 5px;
+  background:rgba(7,10,17,.72);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:999px;
+  backdrop-filter:blur(5px);
+}
+
+#lobby,
+#result{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:16px;
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      rgba(255,201,77,.12),
+      transparent 28%
+    ),
+    rgba(2,4,9,.96);
+  pointer-events:auto;
+}
+
+.card{
+  width:min(94vw,560px);
+  padding:20px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(17,22,37,.985),
+      rgba(5,8,14,.995)
+    );
+  box-shadow:0 30px 100px rgba(0,0,0,.65);
+}
+
+.brand{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+
+.brand b{
+  font-size:9px;
+  letter-spacing:.14em;
+}
+
+.dev{
+  padding:5px 8px;
+  border:1px solid rgba(255,212,92,.22);
+  border-radius:999px;
+  background:rgba(255,212,92,.08);
+  color:var(--gold);
+  font-size:8px;
+}
+
+h1{
+  text-align:center;
+  font-size:clamp(44px,12vw,70px);
+  line-height:.9;
+  margin:18px 0 8px;
+  font-weight:1000;
+  background:
+    linear-gradient(
+      180deg,
+      #fff,
+      #ffe98c 42%,
+      #ff9634
+    );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.desc{
+  text-align:center;
+  color:#a5afc2;
+  font-size:10px;
+  line-height:1.6;
+  margin:0 auto;
+  max-width:470px;
+}
+
+.preview{
+  position:relative;
+  height:180px;
+  margin:15px 0 10px;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    radial-gradient(
+      circle at 50% 60%,
+      rgba(255,190,40,.12),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #0b1220,
+      #05080f
+    );
+  box-shadow:
+    inset 0 0 60px rgba(85,246,255,.04);
+}
+
+.pitem{
+  position:absolute;
+  font-size:28px;
+  animation:drop 2.8s linear infinite;
+}
+
+.p1{left:12%;top:-40px}
+.p2{left:32%;top:-65px;animation-delay:.7s}
+.p3{left:58%;top:-75px;animation-delay:1.15s}
+.p4{left:78%;top:-48px;animation-delay:.45s}
+
+@keyframes drop{
+  0%{
+    transform:translateY(0) rotate(0);
+    opacity:0;
+  }
+  12%{
+    opacity:1;
+  }
+  100%{
+    transform:translateY(250px) rotate(260deg);
+    opacity:.1;
+  }
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+}
+
+.stat{
+  text-align:center;
+  padding:10px 5px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.03);
+}
+
+.stat b{
+  display:block;
+  font-size:12px;
+}
+
+.stat span{
+  display:block;
+  margin-top:3px;
+  font-size:7px;
+  color:#6d7890;
+}
+
+.entries{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+  margin-top:10px;
+}
+
+.entry{
+  height:48px;
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.08);
+  color:#acb5c8;
+  font-size:10px;
+  font-weight:1000;
+  cursor:pointer;
+  pointer-events:auto;
+}
+
+.entry.active{
+  border-color:rgba(255,212,92,.62);
+  background:rgba(255,212,92,.09);
+  color:#fff;
+}
+
+.entry small{
+  display:block;
+  margin-top:2px;
+  color:#6d7890;
+  font-size:7px;
+}
+
+.entry.active small{
+  color:#bca359;
+}
+
+.start{
+  display:block;
+  width:100%;
+  height:58px;
+  margin-top:12px;
+  border-radius:29px;
+  background:
+    linear-gradient(
+      90deg,
+      #ffd35a,
+      #ff9634
+    );
+  color:#1c0f00;
+  font-weight:1000;
+  font-size:19px;
+  cursor:pointer;
+  pointer-events:auto;
+  position:relative;
+  z-index:1100;
+  box-shadow:
+    0 15px 42px rgba(255,154,50,.22),
+    inset 0 1px rgba(255,255,255,.6);
+  touch-action:manipulation;
+}
+
+.start:active{
+  transform:scale(.985);
+}
+
+.start:disabled{
+  opacity:.45;
+}
+
+.hint{
+  text-align:center;
+  color:#67738b;
+  font-size:8px;
+  line-height:1.5;
+  margin-top:8px;
+}
+
+#result{
+  display:none;
+}
+
+.result-title{
+  text-align:center;
+  font-size:42px;
+  font-weight:1000;
+  margin-top:2px;
+}
+
+.reward{
+  text-align:center;
+  font-size:28px;
+  font-weight:1000;
+  color:var(--green);
+  margin-top:3px;
+}
+
+.reason{
+  text-align:center;
+  color:#9aa5ba;
+  font-size:10px;
+  line-height:1.5;
+  margin:7px 0 14px;
+}
+
+.rank-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-height:38vh;
+  overflow:auto;
+}
+
+.rank-row{
+  display:grid;
+  grid-template-columns:32px 1fr auto;
+  gap:7px;
+  align-items:center;
+  padding:9px 10px;
+  border-radius:13px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.035);
+  font-size:10px;
+}
+
+.rank-row.me{
+  border-color:rgba(255,212,92,.24);
+  background:rgba(255,212,92,.055);
+}
+
+.wait{
+  margin-top:12px;
+  width:100%;
+  height:54px;
+  border-radius:16px;
+  background:rgba(255,255,255,.07);
+  color:#9099ad;
+  font-weight:1000;
+}
+
+#toast{
+  position:fixed;
+  z-index:1200;
+  left:50%;
+  top:46%;
+  transform:
+    translate(-50%,-50%)
+    scale(.72);
+  opacity:0;
+  pointer-events:none;
+  font-size:clamp(34px,10vw,66px);
+  font-weight:1000;
+  text-shadow:0 0 28px currentColor;
+  transition:
+    opacity .09s ease,
+    transform .12s cubic-bezier(.2,1.4,.4,1);
+  white-space:nowrap;
+}
+
+#toast.show{
+  opacity:1!important;
+  transform:
+    translate(-50%,-50%)
+    scale(1)!important;
+}
+
+@media(max-width:390px){
+  .card{
+    padding:17px;
+  }
+
+  .preview{
+    height:160px;
+  }
+
+  .stats b{
+    font-size:11px;
+  }
+
+  .timer{
+    font-size:25px;
+  }
+
+  .value{
+    font-size:19px;
+  }
+}
 </style>
 </head>
+
 <body>
-<canvas id="gameCanvas"></canvas><div id="veil"></div>
-<div id="hud"><div class="hud-inner"><div class="top">
-  <div class="box you"><small>YOU</small><div class="value" id="myScore">0</div></div>
-  <div class="center"><div class="round" id="roundLabel">ROUND 01</div><div class="timer" id="timer">45</div></div>
-  <div class="box topscore"><small>TOP</small><div class="value" id="topScore">0</div></div>
-</div><div class="bottom"><div class="chips"><div class="chip combo">COMBO × <strong id="combo">0</strong></div><div class="chip">最高 COMBO <strong id="bestCombo">0</strong></div><div class="chip">玩家 <strong id="players">1</strong></div></div>
-<div class="tip" id="tip">直接點擊金幣、寶石、星星；💣 不要碰</div></div></div></div>
 
-<section id="lobby"><div class="card">
-  <div class="brand"><b>BOOMROOM · PARTY ARCADE</b><div class="dev" id="devBadge">開發測試模式</div></div>
-  <h1>爆爆搶金</h1>
-  <p class="desc">45 秒內搶越多越好。直接點掉落物拿分，連續命中提升 COMBO；炸彈會扣分，後半段掉落會明顯加速。</p>
-  <div class="preview"><div class="pitem p1">🪙</div><div class="pitem p2">💎</div><div class="pitem p3">⭐</div><div class="pitem p4">🪙</div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:54px;filter:drop-shadow(0 0 22px rgba(255,212,92,.45))">🪙</div></div>
-  <div class="stats"><div class="stat"><b>45 秒</b><span>限時</span></div><div class="stat"><b>＋Combo</b><span>連續命中</span></div><div class="stat"><b>∞</b><span>分數無上限</span></div><div class="stat"><b>多人</b><span>房間競分</span></div></div>
-  <div class="entries"><button type="button" class="entry active" data-entry="100">100 銀幣<small>標準</small></button><button type="button" class="entry" data-entry="500">500 銀幣<small>高分</small></button><button type="button" class="entry" data-entry="1000">1000 銀幣<small>極限</small></button></div>
-  <button type="button" id="startBtn" class="start" disabled>連線中...</button>
-  <div class="hint">正式環境會先完成 Entry；沒有 BoomRoom SDK 時只會進入開發測試，不會假裝扣銀幣。</div>
-</div></section>
+<canvas id="gameCanvas"></canvas>
+<div id="veil"></div>
 
-<section id="result"><div class="card"><div style="text-align:center;color:#6e7890;font-size:8px;letter-spacing:.15em">ROUND RESULT</div><div id="resultTitle" class="result-title">本局完成</div><div id="resultReward" class="reward">+0 銀幣</div><div id="resultReason" class="reason">—</div><div id="rankList" class="rank-list"></div><button id="waitBtn" class="wait" type="button">等待房主重新開局</button></div></section>
+<div id="hud">
+  <div class="hud-inner">
+
+    <div class="top">
+
+      <div class="box you">
+        <small>YOU</small>
+        <div class="value" id="myScore">0</div>
+      </div>
+
+      <div class="center">
+        <div class="round" id="roundLabel">ROUND 01</div>
+        <div class="timer" id="timer">45</div>
+      </div>
+
+      <div class="box topscore">
+        <small>TOP</small>
+        <div class="value" id="topScore">0</div>
+      </div>
+
+    </div>
+
+    <div class="bottom">
+
+      <div class="chips">
+
+        <div class="chip combo">
+          COMBO × <strong id="combo">0</strong>
+        </div>
+
+        <div class="chip">
+          最高 COMBO <strong id="bestCombo">0</strong>
+        </div>
+
+        <div class="chip">
+          玩家 <strong id="players">1</strong>
+        </div>
+
+      </div>
+
+      <div class="tip" id="tip">
+        看到金幣就點｜💣 炸彈不要碰
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<section id="lobby">
+
+  <div class="card">
+
+    <div class="brand">
+      <b>BOOMROOM · PARTY ARCADE</b>
+      <div class="dev" id="devBadge">開發測試模式</div>
+    </div>
+
+    <h1>爆爆搶金</h1>
+
+    <p class="desc">
+      45 秒內搶越多越好。金幣、黃金、寶石都能搶。
+      連續命中提升 COMBO；炸彈會扣分。
+      支援多指同時搶金。
+    </p>
+
+    <div class="preview">
+
+      <div class="pitem p1">🪙</div>
+      <div class="pitem p2">💎</div>
+      <div class="pitem p3">⭐</div>
+      <div class="pitem p4">🪙</div>
+
+      <div style="
+        position:absolute;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        font-size:54px;
+        filter:drop-shadow(0 0 22px rgba(255,212,92,.45));
+      ">🪙</div>
+
+    </div>
+
+    <div class="stats">
+
+      <div class="stat">
+        <b>45 秒</b>
+        <span>限時</span>
+      </div>
+
+      <div class="stat">
+        <b>＋Combo</b>
+        <span>連續命中</span>
+      </div>
+
+      <div class="stat">
+        <b>多指</b>
+        <span>同步搶金</span>
+      </div>
+
+      <div class="stat">
+        <b>多人</b>
+        <span>房間競分</span>
+      </div>
+
+    </div>
+
+    <div class="entries">
+
+      <button
+        type="button"
+        class="entry active"
+        data-entry="100">
+        100 銀幣
+        <small>標準</small>
+      </button>
+
+      <button
+        type="button"
+        class="entry"
+        data-entry="500">
+        500 銀幣
+        <small>高分</small>
+      </button>
+
+      <button
+        type="button"
+        class="entry"
+        data-entry="1000">
+        1000 銀幣
+        <small>極限</small>
+      </button>
+
+    </div>
+
+    <button
+      type="button"
+      id="startBtn"
+      class="start"
+      disabled>
+      連線中...
+    </button>
+
+    <div class="hint">
+      正式環境會先完成 Entry；沒有 BoomRoom SDK 時只會進入開發測試。
+    </div>
+
+  </div>
+
+</section>
+
+<section id="result">
+
+  <div class="card">
+
+    <div style="
+      text-align:center;
+      color:#6e7890;
+      font-size:8px;
+      letter-spacing:.15em
+    ">
+      ROUND RESULT
+    </div>
+
+    <div id="resultTitle" class="result-title">
+      本局完成
+    </div>
+
+    <div id="resultReward" class="reward">
+      +0 銀幣
+    </div>
+
+    <div id="resultReason" class="reason">
+      —
+    </div>
+
+    <div id="rankList" class="rank-list"></div>
+
+    <button
+      id="waitBtn"
+      class="wait"
+      type="button">
+      等待房主重新開局
+    </button>
+
+  </div>
+
+</section>
+
 <div id="toast"></div>
 
 <script>
 (() => {
+
 'use strict';
 
-const GAME_INFO={id:'boom_boom_gold',category:'派對競技',name:'爆爆搶金',description:'直接點擊掉落寶物搶分，連續命中提升 Combo；炸彈密集出現，考驗反應與判斷。',version:'2.2.0',entryCost:100,maxPlayers:20,controlModes:['touch','pointer','keyboard'],duration:'45 秒',multiplayer:true,rewardEnabled:true};
-const CFG={ROUND_MS:45000,COUNTDOWN_MS:1800,ENTRY:[100,500,1000],REWARD_CAP:2000,MAX_ITEMS:18,ITEM_LIFE:3200,SPAWN_MS:700,ACTION_CD:70,HOST_TIMEOUT:7000,HEARTBEAT:1800,STATE_MS:800,MAX_PARTICLES:55};
-const TYPES=['coin','gold','gem','bomb'];
-const VALUE={coin:8,gold:45,gem:90,bomb:-35};
-const COLORS={coin:'#fff1aa',gold:'#ffd45c',gem:'#55f6ff',bomb:'#ff4f69'};
-const STATES={MENU:'MENU',PURCHASING:'PURCHASING',COUNTDOWN:'COUNTDOWN',PLAYING:'PLAYING',RESULT:'RESULT',WAIT_HOST:'WAIT_HOST'};
-const $=id=>document.getElementById(id);
-const canvas=$('gameCanvas'),ctx=canvas.getContext('2d',{alpha:false});
-const el={lobby:$('lobby'),result:$('result'),hud:$('hud'),start:$('startBtn'),wait:$('waitBtn'),myScore:$('myScore'),topScore:$('topScore'),combo:$('combo'),bestCombo:$('bestCombo'),players:$('players'),timer:$('timer'),round:$('roundLabel'),tip:$('tip'),toast:$('toast'),resultTitle:$('resultTitle'),reward:$('resultReward'),reason:$('resultReason'),rankList:$('rankList'),devBadge:$('devBadge')};
+/* =========================================================
+   GAME CONFIG
+========================================================= */
 
-// --- SDK 初始化與狀態管理 ---
-let DEV = true;
-let sdkIsHost = false;
-let gameRoomId = '';
-let rawUser = {id:'dev-'+Math.random().toString(36).slice(2),username:'開發玩家',avatar:''};
-let ME = {id: rawUser.id, username: rawUser.username, avatar: rawUser.avatar, joinedAt: Date.now()};
-
-const players=new Map();const items=new Map();const seenActions=new Map();
-addPlayer(ME);
-
-function setupSDK(data) {
-    DEV = false;
-    if (data.user) {
-        rawUser = data.user;
-        ME.id = String(rawUser.id);
-        ME.username = String(rawUser.username || '玩家').slice(0,22);
-        ME.avatar = String(rawUser.avatar || '');
-    }
-    sdkIsHost = !!data.isHost;
-    gameRoomId = data.roomId || '';
-    
-    if (sdkIsHost) hostId = ME.id; // 強制設定為室長
-    
-    players.clear();
-    addPlayer(ME);
-    
-    el.devBadge.style.display = 'none';
-    el.start.textContent = '開始搶金';
-    el.start.disabled = false;
-    syncUI();
-    hello(); // 廣播自己加入
-}
-
-// 接收來自 Flutter 的 Web Message (Web 平台) 或 Socket 事件
-window.addEventListener('message', e => {
-    let d;
-    try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch(err) { return; }
-    if (!d) return;
-    
-    if (d.action === 'initSDK') {
-        setupSDK(d);
-    } else if (d.action === 'gameEventReceived') {
-        handleEvent(String(d.eventName||''), d.payload||{}, d.userId!=null?String(d.userId):null);
-    }
-});
-
-// 接收來自 Flutter 的 JS 注入 (Mobile 平台)
-window.onBoomRoomSDKReady = function() {
-    if (window.BoomRoomSDK) {
-        setupSDK({
-            user: window.BoomRoomSDK.getUser(),
-            isHost: window.BoomRoomSDK.isHost,
-            roomId: window.BoomRoomSDK.roomId
-        });
-    }
+const GAME_INFO = {
+  id:'boom_boom_gold',
+  category:'派對競技',
+  name:'爆爆搶金',
+  description:'高速多指搶金遊戲',
+  version:'3.0.0',
+  entryCost:100,
+  maxPlayers:20,
+  controlModes:['touch','pointer','keyboard'],
+  duration:'45 秒',
+  multiplayer:true,
+  rewardEnabled:true
 };
 
-// 1.5秒後如果 SDK 沒載入，就進入開發模式
-setTimeout(() => {
-    if (DEV) {
-        el.start.textContent = '開始搶金 (開發模式)';
-        el.start.disabled = false;
-        hello();
-    }
-}, 1500);
+const CFG = {
 
-// --- 網路發送封裝 ---
-function send(name, payload) {
-    if (DEV) return;
-    const eventData = { action: 'sendGameEvent', eventName: name, payload: payload };
-    
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function') {
-        window.BoomRoomSDK.sendGameEvent(name, payload); // Mobile
-    } else if (window.parent !== window) {
-        window.parent.postMessage(JSON.stringify(eventData), '*'); // Web
-    }
+  ROUND_MS:45000,
+
+  COUNTDOWN_MS:1800,
+
+  ENTRY:[
+    100,
+    500,
+    1000
+  ],
+
+  REWARD_CAP:2000,
+
+  /*
+   * 同畫面允許的最大物件數
+   */
+  MAX_ITEMS:28,
+
+  /*
+   * 一顆物件存活時間
+   */
+  ITEM_LIFE:3000,
+
+  /*
+   * 基礎生成間隔
+   */
+  SPAWN_MS:480,
+
+  /*
+   * 不再使用全域 ACTION_CD
+   * 每個 pointer 都可以獨立觸發
+   */
+  TOUCH_DEDUPE_MS:45,
+
+  HOST_TIMEOUT:7000,
+
+  HEARTBEAT:1800,
+
+  STATE_MS:700,
+
+  MAX_PARTICLES:120,
+
+  MAX_RIPPLES:45,
+
+  MAX_FLOATERS:45,
+
+  /*
+   * 觸控判定區
+   */
+  HIT_RADIUS:62,
+
+  /*
+   * 最遠吸附距離
+   */
+  SNAP_RADIUS:88
+
+};
+
+/* =========================================================
+   STATES
+========================================================= */
+
+const STATES = {
+
+  MENU:'MENU',
+
+  PURCHASING:'PURCHASING',
+
+  COUNTDOWN:'COUNTDOWN',
+
+  PLAYING:'PLAYING',
+
+  RESULT:'RESULT',
+
+  WAIT_HOST:'WAIT_HOST'
+
+};
+
+/* =========================================================
+   ITEM VALUES
+========================================================= */
+
+const TYPES = [
+  'coin',
+  'gold',
+  'gem',
+  'bomb'
+];
+
+const VALUE = {
+
+  coin:8,
+
+  gold:45,
+
+  gem:90,
+
+  bomb:-35
+
+};
+
+const COLORS = {
+
+  coin:'#fff1aa',
+
+  gold:'#ffd45c',
+
+  gem:'#55f6ff',
+
+  bomb:'#ff405d'
+
+};
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const $ = id =>
+  document.getElementById(id);
+
+const canvas =
+  $('gameCanvas');
+
+const ctx =
+  canvas.getContext('2d',{
+    alpha:false,
+    desynchronized:true
+  });
+
+const el = {
+
+  lobby:$('lobby'),
+
+  result:$('result'),
+
+  hud:$('hud'),
+
+  start:$('startBtn'),
+
+  wait:$('waitBtn'),
+
+  myScore:$('myScore'),
+
+  topScore:$('topScore'),
+
+  combo:$('combo'),
+
+  bestCombo:$('bestCombo'),
+
+  players:$('players'),
+
+  timer:$('timer'),
+
+  round:$('roundLabel'),
+
+  tip:$('tip'),
+
+  toast:$('toast'),
+
+  resultTitle:$('resultTitle'),
+
+  reward:$('resultReward'),
+
+  reason:$('resultReason'),
+
+  rankList:$('rankList'),
+
+  devBadge:$('devBadge')
+
+};
+
+/* =========================================================
+   SDK
+========================================================= */
+
+let DEV = true;
+
+let sdkIsHost = false;
+
+let gameRoomId = '';
+
+let rawUser = {
+
+  id:'dev-'+
+    Math.random()
+      .toString(36)
+      .slice(2),
+
+  username:'開發玩家',
+
+  avatar:''
+
+};
+
+let ME = {
+
+  id:rawUser.id,
+
+  username:rawUser.username,
+
+  avatar:rawUser.avatar,
+
+  joinedAt:Date.now()
+
+};
+
+const players =
+  new Map();
+
+const items =
+  new Map();
+
+const seenActions =
+  new Map();
+
+addPlayer(ME);
+
+/* =========================================================
+   SDK INIT
+========================================================= */
+
+function setupSDK(data){
+
+  DEV = false;
+
+  if(data && data.user){
+
+    rawUser = data.user;
+
+    ME.id =
+      String(rawUser.id);
+
+    ME.username =
+      String(
+        rawUser.username ||
+        '玩家'
+      ).slice(0,22);
+
+    ME.avatar =
+      String(
+        rawUser.avatar ||
+        ''
+      );
+
+  }
+
+  sdkIsHost =
+    !!(data && data.isHost);
+
+  gameRoomId =
+    data && data.roomId
+      ? String(data.roomId)
+      : '';
+
+  if(sdkIsHost){
+
+    hostId =
+      ME.id;
+
+  }
+
+  players.clear();
+
+  addPlayer(ME);
+
+  el.devBadge.style.display =
+    'none';
+
+  el.start.textContent =
+    '開始搶金';
+
+  el.start.disabled =
+    false;
+
+  syncUI();
+
+  hello();
+
 }
 
-let phase=STATES.MENU;
-let selectedEntry=100;
-let roundId=0,hostId=ME.id,roundSeed=0,startAt=0,phaseEndsAt=0,winnerId=null,reason='';
-let currentPaid=false,currentSettled=false,gameOverCalled=false,purchasing=false,pendingPurchase='';
-let lastAction=0,lastStateSent=0,lastSpawn=0,actionSeq=0,countdownShown=-1;
+/* =========================================================
+   FLUTTER / WEB MESSAGE
+========================================================= */
 
-function finite(v,f=0){const n=Number(v);return Number.isFinite(n)?n:f}
-function clamp(v,min,max){return Math.max(min,Math.min(max,finite(v,min)))}
-function addPlayer(p){if(!p||p.id==null)return null;const id=String(p.id);let q=players.get(id);if(!q){q={id,username:String(p.username||'玩家').slice(0,22),avatar:String(p.avatar||''),joinedAt:finite(p.joinedAt,Date.now()),online:true,lastSeen:Date.now(),score:0,combo:0,bestCombo:0,actions:0};players.set(id,q)}else{q.username=String(p.username??q.username).slice(0,22);q.avatar=String(p.avatar??q.avatar);q.online=true;q.lastSeen=Date.now()}return q}
-function sortedPlayers(){return [...players.values()].sort((a,b)=>a.joinedAt-b.joinedAt||a.id.localeCompare(b.id))}
-function onlinePlayers(){const now=Date.now();return sortedPlayers().filter(p=>p.online&&now-p.lastSeen<CFG.HOST_TIMEOUT)}
-function isHost(){return sdkIsHost || hostId === ME.id} // 優先使用 SDK 判斷
+window.addEventListener(
+  'message',
+  e => {
+
+    let d;
+
+    try{
+
+      d =
+        typeof e.data === 'string'
+          ? JSON.parse(e.data)
+          : e.data;
+
+    }catch(err){
+
+      return;
+
+    }
+
+    if(!d)return;
+
+    if(d.action === 'initSDK'){
+
+      setupSDK(d);
+
+    }else
+    if(d.action === 'gameEventReceived'){
+
+      handleEvent(
+        String(
+          d.eventName ||
+          ''
+        ),
+        d.payload || {},
+        d.userId != null
+          ? String(d.userId)
+          : null
+      );
+
+    }
+
+    /*
+     * Flutter purchase callback
+     */
+    if(d.action === 'purchaseSuccess'){
+
+      window.onPurchaseSuccess(
+        String(d.itemId || '')
+      );
+
+    }
+
+    if(d.action === 'purchaseFailed'){
+
+      window.onPurchaseFailed(
+        String(d.itemId || '')
+      );
+
+    }
+
+  }
+);
+
+window.onBoomRoomSDKReady =
+function(){
+
+  if(
+    window.BoomRoomSDK
+  ){
+
+    setupSDK({
+
+      user:
+        window.BoomRoomSDK.getUser(),
+
+      isHost:
+        window.BoomRoomSDK.isHost,
+
+      roomId:
+        window.BoomRoomSDK.roomId
+
+    });
+
+  }
+
+};
+
+/*
+ * 沒 SDK → 開發模式
+ */
+setTimeout(
+  () => {
+
+    if(DEV){
+
+      el.start.textContent =
+        '開始搶金 (開發模式)';
+
+      el.start.disabled =
+        false;
+
+      hello();
+
+    }
+
+  },
+  1500
+);
+
+/* =========================================================
+   NETWORK
+========================================================= */
+
+function send(
+  name,
+  payload
+){
+
+  if(DEV)return;
+
+  const eventData = {
+
+    action:
+      'sendGameEvent',
+
+    eventName:
+      name,
+
+    payload:
+      payload
+
+  };
+
+  if(
+    window.BoomRoomSDK &&
+    typeof
+      window.BoomRoomSDK
+        .sendGameEvent ===
+      'function'
+  ){
+
+    window.BoomRoomSDK
+      .sendGameEvent(
+        name,
+        payload
+      );
+
+  }else
+  if(
+    window.parent !==
+    window
+  ){
+
+    window.parent.postMessage(
+      JSON.stringify(
+        eventData
+      ),
+      '*'
+    );
+
+  }
+
+}
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let phase =
+  STATES.MENU;
+
+let selectedEntry =
+  100;
+
+let roundId =
+  0;
+
+let hostId =
+  ME.id;
+
+let roundSeed =
+  0;
+
+let startAt =
+  0;
+
+let phaseEndsAt =
+  0;
+
+let winnerId =
+  null;
+
+let reason =
+  '';
+
+let currentPaid =
+  false;
+
+let currentSettled =
+  false;
+
+let gameOverCalled =
+  false;
+
+let purchasing =
+  false;
+
+let pendingPurchase =
+  '';
+
+let lastStateSent =
+  0;
+
+let lastSpawn =
+  0;
+
+let actionSeq =
+  0;
+
+let countdownShown =
+  -1;
+
+let stateResult =
+  [];
+
+/* =========================================================
+   POINTER STATE
+========================================================= */
+
+/*
+ * 每根手指獨立管理。
+ *
+ * pointerId
+ *    ↓
+ * 目前正在使用的手指
+ */
+const activePointers =
+  new Map();
+
+/*
+ * 防止同一個 pointer
+ * 在極短時間重複點同一物件
+ */
+const pointerClaims =
+  new Map();
+
+/* =========================================================
+   UTILS
+========================================================= */
+
+function finite(
+  v,
+  fallback=0
+){
+
+  const n =
+    Number(v);
+
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+
+}
+
+function clamp(
+  v,
+  min,
+  max
+){
+
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      finite(v,min)
+    )
+  );
+
+}
+
+function addPlayer(p){
+
+  if(
+    !p ||
+    p.id == null
+  )return null;
+
+  const id =
+    String(p.id);
+
+  let q =
+    players.get(id);
+
+  if(!q){
+
+    q = {
+
+      id,
+
+      username:
+        String(
+          p.username ||
+          '玩家'
+        ).slice(0,22),
+
+      avatar:
+        String(
+          p.avatar ||
+          ''
+        ),
+
+      joinedAt:
+        finite(
+          p.joinedAt,
+          Date.now()
+        ),
+
+      online:true,
+
+      lastSeen:
+        Date.now(),
+
+      score:0,
+
+      combo:0,
+
+      bestCombo:0,
+
+      actions:0
+
+    };
+
+    players.set(
+      id,
+      q
+    );
+
+  }else{
+
+    q.username =
+      String(
+        p.username ??
+        q.username
+      ).slice(0,22);
+
+    q.avatar =
+      String(
+        p.avatar ??
+        q.avatar
+      );
+
+    q.online =
+      true;
+
+    q.lastSeen =
+      Date.now();
+
+  }
+
+  return q;
+
+}
+
+function sortedPlayers(){
+
+  return [
+    ...players.values()
+  ].sort(
+    (a,b) =>
+      a.joinedAt -
+      b.joinedAt ||
+      a.id.localeCompare(
+        b.id
+      )
+  );
+
+}
+
+function onlinePlayers(){
+
+  const now =
+    Date.now();
+
+  return sortedPlayers()
+    .filter(
+      p =>
+        p.online &&
+        now -
+        p.lastSeen <
+        CFG.HOST_TIMEOUT
+    );
+
+}
+
+function isHost(){
+
+  return (
+    sdkIsHost ||
+    hostId === ME.id
+  );
+
+}
+
 function electHost(){
-    if (sdkIsHost) { hostId = ME.id; return; } // 如果 SDK 指定我是室長，直接鎖定
-    const list=onlinePlayers();if(!list.length)return;if(!hostId)hostId=list[0].id;else{const h=players.get(hostId);if(!h||!h.online||Date.now()-h.lastSeen>=CFG.HOST_TIMEOUT)hostId=list[0].id}if(DEV)hostId=ME.id
-}
-function nextAction(){actionSeq++;return ME.id+'-'+Date.now()+'-'+actionSeq}
-function validRound(r){return Number(r)===Number(roundId)}
-function resetRoundData(){items.clear();seenActions.clear();for(const p of players.values()){p.score=0;p.combo=0;p.bestCombo=0;p.actions=0}}
 
-// AUDIO
-let audio=null,master=null,muted=false;
-function initAudio(){if(muted||audio)return;if(!audio){try{audio=new(window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.055;master.connect(audio.destination)}catch(e){return}}if(audio.state==='suspended')audio.resume().catch(()=>{})}
-function beep(freq,dur=.06,type='triangle',vol=.25,delay=0){if(muted||!audio||!master)return;const t=audio.currentTime+delay,o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.02)}
-function sfx(name){initAudio();if(name==='coin'){beep(720,.045);beep(980,.06,'triangle',.22,.035)}else if(name==='gold'){beep(580,.05);beep(880,.07,'sine',.24,.05);beep(1280,.11,'sine',.25,.11)}else if(name==='gem'){beep(500,.04,'sine',.18);beep(780,.06,'sine',.20,.04);beep(1120,.09,'sine',.23,.085)}else if(name==='bomb'){beep(130,.1,'sawtooth',.23);beep(80,.16,'sawtooth',.26,.05)}else if(name==='combo'){beep(520,.04);beep(760,.05,'triangle',.22,.04);beep(1040,.07,'triangle',.23,.08)}else if(name==='start'){beep(420,.05,'square',.15);beep(640,.06,'square',.17,.06);beep(920,.11,'triangle',.21,.13)}else if(name==='tick'){beep(900,.03,'square',.10)}else if(name==='win'){beep(620,.08);beep(820,.09,'triangle',.22,.08);beep(1080,.15,'sine',.25,.17)}else if(name==='end'){beep(300,.09,'sine',.15);beep(180,.17,'sawtooth',.18,.08)}}
-window.addEventListener('pointerdown',initAudio,{once:true,passive:true});
+  if(sdkIsHost){
 
-// RESPONSIVE CANVAS
-let W=innerWidth,H=innerHeight,DPR=1;
-let bg=null,bgctx=null;
-function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,1.25);canvas.width=Math.max(1,Math.floor(W*DPR));canvas.height=Math.max(1,Math.floor(H*DPR));canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);rebuildBg()}
-function rebuildBg(){bg=document.createElement('canvas');bg.width=Math.max(1,Math.floor(W));bg.height=Math.max(1,Math.floor(H));bgctx=bg.getContext('2d');bgctx.fillStyle='#05070d';bgctx.fillRect(0,0,W,H);const g=bgctx.createRadialGradient(W*.5,H*.48,20,W*.5,H*.48,Math.max(W,H)*.75);g.addColorStop(0,'rgba(75,35,90,.15)');g.addColorStop(.5,'rgba(7,23,34,.08)');g.addColorStop(1,'rgba(0,0,0,0)');bgctx.fillStyle=g;bgctx.fillRect(0,0,W,H);bgctx.globalAlpha=.055;bgctx.strokeStyle='#55f6ff';bgctx.lineWidth=1;const sx=Math.max(55,Math.floor(W/10));for(let x=0;x<W;x+=sx){bgctx.beginPath();bgctx.moveTo(x,0);bgctx.lineTo(x,H);bgctx.stroke()}for(let y=0;y<H;y+=sx){bgctx.beginPath();bgctx.moveTo(0,y);bgctx.lineTo(W,y);bgctx.stroke()}bgctx.globalAlpha=1}
-addEventListener('resize',resize,{passive:true});resize();
+    hostId =
+      ME.id;
 
-// ITEMS
-function rng32(seed){let a=seed>>>0;return()=>{a|=0;let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-function itemPos(it,now){const p=clamp((now-it.spawnAt)/CFG.ITEM_LIFE,0,1);const e=p*p*(3-2*p);return{x:it.x/100*W,y:(-10+118*e)/100*H}}
-function spawnBatch(now){if(!isHost()||phase!==STATES.PLAYING)return;if(now-lastSpawn<CFG.SPAWN_MS)return;lastSpawn=now;const elapsed=clamp((now-startAt)/CFG.ROUND_MS,0,1);const count=Math.min(6,3+Math.floor(elapsed*4));const seq=Math.floor((now-startAt)/CFG.SPAWN_MS);const r=rng32((roundSeed+(seq*2654435761))>>>0);const arr=[];for(let i=0;i<count;i++){const rv=r();let type='coin';let bombChance=0.16+elapsed*0.12;let gemChance=0.10;let goldChance=0.06;if(rv<bombChance)type='bomb';else if(rv<bombChance+gemChance)type='gem';else if(rv<bombChance+gemChance+goldChance)type='gold';arr.push({id:roundId+'-'+seq+'-'+i,type,x:6+r()*88,spawnAt:now+i*18,expiresAt:now+i*18+CFG.ITEM_LIFE,size:.92+r()*.16,rot:r()*6.28})}send('BBG_DROP_BATCH',{roundId,items:arr});acceptBatch(arr)}
-function acceptBatch(arr){if(!Array.isArray(arr))return;for(const raw of arr){if(!raw||!raw.id||items.has(String(raw.id)))continue;const type=TYPES.includes(raw.type)?raw.type:'coin';const safe={id:String(raw.id),type,x:clamp(raw.x,5,95),spawnAt:finite(raw.spawnAt,Date.now()),expiresAt:finite(raw.expiresAt,Date.now()+CFG.ITEM_LIFE),size:clamp(raw.size,.8,1.2),rot:finite(raw.rot,0),claimed:false};items.set(safe.id,safe);if(items.size>CFG.MAX_ITEMS){let oldest=items.keys().next().value;items.delete(oldest)}}}
-function drawCoin(x,y,r,rot,gold){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=gold?'#ffb83d':'#ffc84d';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff2a5';ctx.beginPath();ctx.arc(-r*.2,-r*.25,r*.35,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.58)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*.72,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#8c4517';ctx.font='1000 '+Math.round(r*.86)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(gold?'★':'$',0,1);ctx.restore()}
-function drawGem(x,y,r,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle='#55f6ff';ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r*.72,-r*.2);ctx.lineTo(r*.52,r*.76);ctx.lineTo(0,r);ctx.lineTo(-r*.52,r*.76);ctx.lineTo(-r*.72,-r*.2);ctx.closePath();ctx.fill();ctx.fillStyle='rgba(255,255,255,.65)';ctx.beginPath();ctx.moveTo(0,-r*.75);ctx.lineTo(r*.22,-r*.15);ctx.lineTo(-r*.05,r*.42);ctx.lineTo(-r*.28,-r*.15);ctx.closePath();ctx.fill();ctx.restore()}
-function drawBomb(x,y,r,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle='#1b202b';ctx.beginPath();ctx.arc(0,0,r*.82,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff5c73';ctx.beginPath();ctx.arc(-r*.23,-r*.2,r*.18,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#ff9c4b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(r*.32,-r*.62);ctx.quadraticCurveTo(r*.72,-r*.95,r*.56,-r*1.12);ctx.stroke();ctx.fillStyle='#ffd45c';ctx.beginPath();ctx.arc(r*.56,-r*1.12,2.5,0,Math.PI*2);ctx.fill();ctx.restore()}
-function drawItem(it,now){if(it.claimed)return;const p=itemPos(it,now);if(p.y<-80||p.y>H+80)return;const r=(it.type==='gem'?34:it.type==='bomb'?33:it.type==='gold'?32:30)*it.size;const rot=it.rot+(now-it.spawnAt)*.0012;if(it.type==='coin')drawCoin(p.x,p.y,r,rot,false);else if(it.type==='gold')drawCoin(p.x,p.y,r,rot,true);else if(it.type==='gem')drawGem(p.x,p.y,r*.95,rot*1.25);else drawBomb(p.x,p.y,r*.95,-rot)}
+    return;
 
-// HIT / FEEDBACK
-const particles=[];for(let i=0;i<CFG.MAX_PARTICLES;i++)particles.push({active:false,x:0,y:0,vx:0,vy:0,life:0,size:0,color:'#fff'});
-function burst(x,y,color,count=7){let n=0;for(const p of particles){if(p.active)continue;const a=Math.random()*Math.PI*2,s=70+Math.random()*150;p.active=true;p.x=x;p.y=y;p.vx=Math.cos(a)*s;p.vy=Math.sin(a)*s;p.life=.35+Math.random()*.24;p.size=1.5+Math.random()*2.6;p.color=color;if(++n>=Math.min(count,10))break}}
-function updateParticles(dt){for(const p of particles){if(!p.active)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt;if(p.life<=0)p.active=false}}
-function drawParticles(){for(const p of particles){if(!p.active)continue;ctx.globalAlpha=clamp(p.life/.55,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
-function showToast(text,color){el.toast.textContent=text;el.toast.style.color=color||'#ffd45c';el.toast.classList.remove('show');void el.toast.offsetWidth;el.toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>el.toast.classList.remove('show'),520)}
-function claimEffect(it,delta){const p=itemPos(it,Date.now());elToast(delta>=0?'+'+Math.round(delta):String(Math.round(delta)),COLORS[it.type]||'#fff');burst(p.x,p.y,COLORS[it.type]||'#fff',it.type==='gold'?9:6);sfx(it.type);if(delta>0&&players.get(ME.id).combo>0&&players.get(ME.id).combo%5===0)showToast('COMBO ×'+players.get(ME.id).combo,'#ffd45c')}
-function elToast(t,c){showToast(t,c)}
-function findItemAt(x,y){let best=null,dBest=Infinity,now=Date.now();for(const it of items.values()){if(it.claimed||now>it.expiresAt)continue;const p=itemPos(it,now);if(p.y<-60||p.y>H+60)continue;const radius=(it.type==='gem'?34:it.type==='bomb'?38:34)*it.size;const d=Math.hypot(x-p.x,y-p.y);if(d<Math.max(48,radius*1.2)&&d<dBest){dBest=d;best=it}}return best}
-function scoreItem(player,it){player.actions++;if(it.type==='bomb'){player.combo=0;player.score=Math.max(0,player.score+VALUE.bomb);return VALUE.bomb}const mult=1+Math.min(player.combo,20)*.10;const gained=Math.floor(VALUE[it.type]*mult);player.score=Math.min(Number.MAX_SAFE_INTEGER,player.score+Math.max(0,gained));player.combo=Math.min(30,player.combo+1);player.bestCombo=Math.max(player.bestCombo,player.combo);return gained}
-function hostClaim(playerId,itemId,actionId){if(!isHost()||phase!==STATES.PLAYING||seenActions.has(actionId))return;const p=players.get(String(playerId)),it=items.get(String(itemId));if(!p||!it||it.claimed)return;const now=Date.now();if(now<it.spawnAt-100||now>it.expiresAt)return;seenActions.set(actionId,now);it.claimed=true;const delta=scoreItem(p,it);items.delete(it.id);send('BBG_CLAIMED',{roundId,playerId:p.id,itemId:it.id,type:it.type,delta,score:p.score,combo:p.combo,bestCombo:p.bestCombo});if(p.id===ME.id)claimEffect(it,delta);}
-function playerClaim(it){if(phase!==STATES.PLAYING)return;const now=Date.now();if(now-lastAction<CFG.ACTION_CD)return;lastAction=now;if(it.claimed||now>it.expiresAt)return;const actionId=nextAction();if(isHost())hostClaim(ME.id,it.id,actionId);else send('BBG_CLAIM',{roundId,playerId:ME.id,itemId:it.id,actionId})}
+  }
 
-function canvasPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)}}
-function handleCanvas(e){if(e){e.preventDefault();e.stopPropagation()}initAudio();if(phase!==STATES.PLAYING)return;const p=canvasPoint(e);const it=findItemAt(p.x,p.y);if(it)playerClaim(it)}
-canvas.addEventListener('pointerdown',handleCanvas,{passive:false});canvas.addEventListener('click',handleCanvas,{passive:false});canvas.addEventListener('contextmenu',e=>e.preventDefault());
+  const list =
+    onlinePlayers();
 
-// NETWORK
-function broadcastState(force=false){if(!isHost())return;const now=Date.now();if(!force&&now-lastStateSent<CFG.STATE_MS)return;lastStateSent=now;send('BBG_STATE',{roundId,hostId,phase,entryCost:selectedEntry,seed:roundSeed,startAt,phaseEndsAt,winnerId,reason,players:sortedPlayers().map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,score:clamp(p.score,0,Number.MAX_SAFE_INTEGER),combo:clamp(p.combo,0,30),bestCombo:clamp(p.bestCombo,0,30),actions:clamp(p.actions,0,9999),online:!!p.online,lastSeen:p.lastSeen}))})}
-function handleEvent(name,payload,sender){
-if(name==='BBG_HELLO'||name==='BBG_HEARTBEAT'){if(payload.player)addPlayer(payload.player);if(payload.requestState&&isHost())broadcastState(true);return}
-if(name==='BBG_HOST'){if(payload.hostId&&players.has(String(payload.hostId)))hostId=String(payload.hostId);return}
-if(name==='BBG_STATE'){if(!Number.isFinite(Number(payload.roundId))||Number(payload.roundId)<roundId)return;if(Number(payload.roundId)>roundId){roundId=Number(payload.roundId);resetRoundData();currentPaid=false;currentSettled=false;gameOverCalled=false}hostId=payload.hostId?String(payload.hostId):hostId;phase=Object.values(STATES).includes(payload.phase)?payload.phase:phase;selectedEntry=CFG.ENTRY.includes(Number(payload.entryCost))?Number(payload.entryCost):selectedEntry;roundSeed=finite(payload.seed,0);startAt=finite(payload.startAt,0);phaseEndsAt=finite(payload.phaseEndsAt,0);winnerId=payload.winnerId?String(payload.winnerId):null;reason=String(payload.reason||'');if(Array.isArray(payload.players))payload.players.forEach(addRemotePlayerState);if(phase===STATES.RESULT)finishResult();return}
-if(name==='BBG_ROUND_START'){if(!Number.isFinite(Number(payload.roundId))||Number(payload.roundId)<roundId)return;roundId=Number(payload.roundId);selectedEntry=CFG.ENTRY.includes(Number(payload.entryCost))?Number(payload.entryCost):100;roundSeed=finite(payload.seed,0);startAt=finite(payload.startAt,Date.now()+CFG.COUNTDOWN_MS);phaseEndsAt=startAt;winnerId=null;reason='';resetRoundData();phase=STATES.COUNTDOWN;showToast('準備','#ffd45c');sfx('start');return}
-if(name==='BBG_PLAY'){if(!validRound(payload.roundId))return;phase=STATES.PLAYING;startAt=finite(payload.startAt,Date.now());phaseEndsAt=finite(payload.phaseEndsAt,startAt+CFG.ROUND_MS);showToast('搶！','#ffd45c');sfx('start');return}
-if(name==='BBG_DROP_BATCH'){if(!validRound(payload.roundId))return;acceptBatch(payload.items);return}
-if(name==='BBG_CLAIM'){if(!isHost()||!validRound(payload.roundId))return;const id=String(payload.playerId||sender||'');if(sender&&id!==sender)return;hostClaim(id,String(payload.itemId||''),String(payload.actionId||''));return}
-if(name==='BBG_CLAIMED'){if(!validRound(payload.roundId))return;const p=players.get(String(payload.playerId||''));const it=items.get(String(payload.itemId||''));if(it){const isMe=String(payload.playerId||'')===ME.id;it.claimed=true;items.delete(it.id);if(isMe)claimEffect(it,finite(payload.delta,0))}if(p){p.score=clamp(payload.score,0,Number.MAX_SAFE_INTEGER);p.combo=clamp(payload.combo,0,30);p.bestCombo=clamp(payload.bestCombo,0,30)}return}
-if(name==='BBG_ROUND_END'){if(!validRound(payload.roundId))return;winnerId=payload.winnerId?String(payload.winnerId):null;reason=String(payload.reason||'時間到：依最終分數排名');phase=STATES.RESULT;Array.isArray(payload.result)&&(stateResult=payload.result);finishResult();return}
-}
-let stateResult=[];
-function addRemotePlayerState(p){const q=addPlayer(p);if(!q)return;q.score=clamp(p.score,0,Number.MAX_SAFE_INTEGER);q.combo=clamp(p.combo,0,30);q.bestCombo=clamp(p.bestCombo,0,30);q.actions=clamp(p.actions,0,9999);q.online=!!p.online;q.lastSeen=Date.now()}
+  if(!list.length)return;
 
-// PURCHASE / ROUND
-function requestEntry(){
-    if(currentPaid||purchasing)return;
-    if(DEV){currentPaid=true;startRoundAfterEntry();return}
-    
-    purchasing=true;
-    pendingPurchase='bbg_entry_'+selectedEntry;
-    phase=STATES.PURCHASING;
-    syncUI();
-    
-    const reqData = { action: 'requestPurchase', itemId: pendingPurchase, cost: selectedEntry };
-    
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === 'function') {
-        window.BoomRoomSDK.requestPurchase(pendingPurchase, selectedEntry);
-    } else if (window.parent !== window) {
-        window.parent.postMessage(JSON.stringify(reqData), '*');
-    } else {
-        window.onPurchaseFailed(pendingPurchase);
+  if(!hostId){
+
+    hostId =
+      list[0].id;
+
+  }else{
+
+    const h =
+      players.get(
+        hostId
+      );
+
+    if(
+      !h ||
+      !h.online ||
+      Date.now() -
+      h.lastSeen >=
+      CFG.HOST_TIMEOUT
+    ){
+
+      hostId =
+        list[0].id;
+
     }
+
+  }
+
+  if(DEV){
+
+    hostId =
+      ME.id;
+
+  }
+
 }
-window.onPurchaseSuccess=function(itemId){if(!purchasing||itemId!==pendingPurchase)return;purchasing=false;pendingPurchase='';currentPaid=true;startRoundAfterEntry()}
-window.onPurchaseFailed=function(itemId){if(itemId!==pendingPurchase)return;purchasing=false;pendingPurchase='';phase=STATES.MENU;syncUI();showToast('Entry 未完成','#ff7b92')}
-function startRoundAfterEntry(){electHost();if(!isHost()){send('BBG_READY',{roundId,player:ME});phase=STATES.WAIT_HOST;showToast('等待房主','#ffd45c');syncUI();return}roundId=Math.max(0,roundId)+1;roundSeed=(Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0;winnerId=null;reason='';resetRoundData();currentPaid=true;phase=STATES.COUNTDOWN;startAt=Date.now()+CFG.COUNTDOWN_MS;phaseEndsAt=startAt;send('BBG_ROUND_START',{roundId,entryCost:selectedEntry,seed:roundSeed,startAt,maxDuration:CFG.ROUND_MS});broadcastState(true);showToast('3','#ffd45c');sfx('start');}
-function startPlaying(){if(!isHost()||phase!==STATES.COUNTDOWN)return;phase=STATES.PLAYING;startAt=Date.now();phaseEndsAt=startAt+CFG.ROUND_MS;send('BBG_PLAY',{roundId,startAt,phaseEndsAt});broadcastState(true);showToast('搶！','#ffd45c');sfx('start')}
-function settleReward(){
-    if(currentSettled)return 0;
-    currentSettled=true;
-    const rows=stateResult.length?stateResult:[...players.values()].sort((a,b)=>b.score-a.score).map(p=>({id:p.id,score:p.score}));
-    const idx=rows.findIndex(r=>String(r.id)===ME.id);
-    const reward=idx===0?selectedEntry*2:idx===1?Math.floor(selectedEntry*.5):0;
-    const safe=Math.floor(clamp(reward,0,CFG.REWARD_CAP));
-    
-    if(!gameOverCalled){
-        gameOverCalled=true;
-        const reqData = { action: 'game_over', winAmount: safe };
-        if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
-            window.BoomRoomSDK.gameOver(safe);
-        } else if (window.parent !== window) {
-            window.parent.postMessage(JSON.stringify(reqData), '*');
+
+function nextAction(){
+
+  actionSeq++;
+
+  return (
+    ME.id +
+    '-' +
+    Date.now() +
+    '-' +
+    actionSeq
+  );
+
+}
+
+function validRound(r){
+
+  return (
+    Number(r) ===
+    Number(roundId)
+  );
+
+}
+
+function resetRoundData(){
+
+  items.clear();
+
+  seenActions.clear();
+
+  pointerClaims.clear();
+
+  activePointers.clear();
+
+  stateResult = [];
+
+  for(
+    const p of
+    players.values()
+  ){
+
+    p.score = 0;
+
+    p.combo = 0;
+
+    p.bestCombo = 0;
+
+    p.actions = 0;
+
+  }
+
+}
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+let audio = null;
+
+let master = null;
+
+let muted = false;
+
+function initAudio(){
+
+  if(
+    muted ||
+    audio
+  )return;
+
+  try{
+
+    audio =
+      new(
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    master =
+      audio.createGain();
+
+    master.gain.value =
+      .055;
+
+    master.connect(
+      audio.destination
+    );
+
+  }catch(e){
+
+    return;
+
+  }
+
+  if(
+    audio.state ===
+    'suspended'
+  ){
+
+    audio.resume()
+      .catch(()=>{});
+
+  }
+
+}
+
+function beep(
+  freq,
+  dur=.06,
+  type='triangle',
+  vol=.25,
+  delay=0
+){
+
+  if(
+    muted ||
+    !audio ||
+    !master
+  )return;
+
+  const t =
+    audio.currentTime +
+    delay;
+
+  const o =
+    audio.createOscillator();
+
+  const g =
+    audio.createGain();
+
+  o.type =
+    type;
+
+  o.frequency
+    .setValueAtTime(
+      freq,
+      t
+    );
+
+  g.gain
+    .setValueAtTime(
+      .0001,
+      t
+    );
+
+  g.gain
+    .exponentialRampToValueAtTime(
+      Math.max(
+        .001,
+        vol
+      ),
+      t+.006
+    );
+
+  g.gain
+    .exponentialRampToValueAtTime(
+      .0001,
+      t+dur
+    );
+
+  o.connect(g);
+
+  g.connect(master);
+
+  o.start(t);
+
+  o.stop(
+    t+dur+.02
+  );
+
+}
+
+function sfx(name){
+
+  initAudio();
+
+  if(name === 'coin'){
+
+    beep(
+      720,
+      .045
+    );
+
+    beep(
+      1040,
+      .065,
+      'triangle',
+      .22,
+      .035
+    );
+
+  }else
+  if(name === 'gold'){
+
+    beep(
+      580,
+      .05
+    );
+
+    beep(
+      880,
+      .07,
+      'sine',
+      .24,
+      .05
+    );
+
+    beep(
+      1280,
+      .11,
+      'sine',
+      .25,
+      .11
+    );
+
+  }else
+  if(name === 'gem'){
+
+    beep(
+      500,
+      .04,
+      'sine',
+      .18
+    );
+
+    beep(
+      780,
+      .06,
+      'sine',
+      .20,
+      .04
+    );
+
+    beep(
+      1120,
+      .09,
+      'sine',
+      .23,
+      .085
+    );
+
+  }else
+  if(name === 'bomb'){
+
+    beep(
+      130,
+      .1,
+      'sawtooth',
+      .23
+    );
+
+    beep(
+      70,
+      .18,
+      'sawtooth',
+      .28,
+      .06
+    );
+
+  }else
+  if(name === 'combo'){
+
+    beep(
+      520,
+      .04
+    );
+
+    beep(
+      760,
+      .05,
+      'triangle',
+      .22,
+      .04
+    );
+
+    beep(
+      1040,
+      .07,
+      'triangle',
+      .23,
+      .08
+    );
+
+  }else
+  if(name === 'start'){
+
+    beep(
+      420,
+      .05,
+      'square',
+      .15
+    );
+
+    beep(
+      640,
+      .06,
+      'square',
+      .17,
+      .06
+    );
+
+    beep(
+      920,
+      .11,
+      'triangle',
+      .21,
+      .13
+    );
+
+  }else
+  if(name === 'tick'){
+
+    beep(
+      900,
+      .03,
+      'square',
+      .10
+    );
+
+  }else
+  if(name === 'win'){
+
+    beep(
+      620,
+      .08
+    );
+
+    beep(
+      820,
+      .09,
+      'triangle',
+      .22,
+      .08
+    );
+
+    beep(
+      1080,
+      .15,
+      'sine',
+      .25,
+      .17
+    );
+
+  }else
+  if(name === 'end'){
+
+    beep(
+      300,
+      .09,
+      'sine',
+      .15
+    );
+
+    beep(
+      180,
+      .17,
+      'sawtooth',
+      .18,
+      .08
+    );
+
+  }
+
+}
+
+window.addEventListener(
+  'pointerdown',
+  initAudio,
+  {
+    once:true,
+    passive:true
+  }
+);
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+let W =
+  innerWidth;
+
+let H =
+  innerHeight;
+
+let DPR =
+  1;
+
+let bg =
+  null;
+
+let bgctx =
+  null;
+
+function resize(){
+
+  W =
+    innerWidth;
+
+  H =
+    innerHeight;
+
+  DPR =
+    Math.min(
+      devicePixelRatio || 1,
+      1.5
+    );
+
+  canvas.width =
+    Math.max(
+      1,
+      Math.floor(
+        W*DPR
+      )
+    );
+
+  canvas.height =
+    Math.max(
+      1,
+      Math.floor(
+        H*DPR
+      )
+    );
+
+  canvas.style.width =
+    W+'px';
+
+  canvas.style.height =
+    H+'px';
+
+  ctx.setTransform(
+    DPR,
+    0,
+    0,
+    DPR,
+    0,
+    0
+  );
+
+  rebuildBg();
+
+}
+
+function rebuildBg(){
+
+  bg =
+    document.createElement(
+      'canvas'
+    );
+
+  bg.width =
+    Math.max(
+      1,
+      Math.floor(W)
+    );
+
+  bg.height =
+    Math.max(
+      1,
+      Math.floor(H)
+    );
+
+  bgctx =
+    bg.getContext(
+      '2d'
+    );
+
+  bgctx.fillStyle =
+    '#03050a';
+
+  bgctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  /*
+   * 中央金色氣氛
+   */
+  const g =
+    bgctx.createRadialGradient(
+      W*.5,
+      H*.46,
+      20,
+      W*.5,
+      H*.46,
+      Math.max(W,H)*.75
+    );
+
+  g.addColorStop(
+    0,
+    'rgba(80,50,10,.16)'
+  );
+
+  g.addColorStop(
+    .45,
+    'rgba(8,25,38,.09)'
+  );
+
+  g.addColorStop(
+    1,
+    'rgba(0,0,0,0)'
+  );
+
+  bgctx.fillStyle =
+    g;
+
+  bgctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  /*
+   * 非常淡的網格
+   */
+  bgctx.globalAlpha =
+    .045;
+
+  bgctx.strokeStyle =
+    '#55f6ff';
+
+  bgctx.lineWidth =
+    1;
+
+  const sx =
+    Math.max(
+      55,
+      Math.floor(
+        W/10
+      )
+    );
+
+  for(
+    let x=0;
+    x<W;
+    x+=sx
+  ){
+
+    bgctx.beginPath();
+
+    bgctx.moveTo(
+      x,
+      0
+    );
+
+    bgctx.lineTo(
+      x,
+      H
+    );
+
+    bgctx.stroke();
+
+  }
+
+  for(
+    let y=0;
+    y<H;
+    y+=sx
+  ){
+
+    bgctx.beginPath();
+
+    bgctx.moveTo(
+      0,
+      y
+    );
+
+    bgctx.lineTo(
+      W,
+      y
+    );
+
+    bgctx.stroke();
+
+  }
+
+  bgctx.globalAlpha =
+    1;
+
+}
+
+addEventListener(
+  'resize',
+  resize,
+  {
+    passive:true
+  }
+);
+
+resize();
+
+/* =========================================================
+   RANDOM
+========================================================= */
+
+function rng32(seed){
+
+  let a =
+    seed >>> 0;
+
+  return () => {
+
+    a |= 0;
+
+    let t =
+      a +=
+      0x6D2B79F5;
+
+    t =
+      Math.imul(
+        t ^ t >>> 15,
+        t | 1
+      );
+
+    t ^=
+      t +
+      Math.imul(
+        t ^ t >>> 7,
+        t | 61
+      );
+
+    return (
+      (
+        t ^
+        t >>> 14
+      ) >>> 0
+    ) /
+    4294967296;
+
+  };
+
+}
+
+/* =========================================================
+   ITEM POSITION
+========================================================= */
+
+function itemPos(
+  it,
+  now
+){
+
+  const p =
+    clamp(
+      (
+        now -
+        it.spawnAt
+      ) /
+      CFG.ITEM_LIFE,
+      0,
+      1
+    );
+
+  /*
+   * 比原版更自然的掉落
+   */
+  const e =
+    p*p*
+    (3-2*p);
+
+  return {
+
+    x:
+      it.x/100*W,
+
+    y:
+      (-8+
+       118*e) /
+      100*H
+
+  };
+
+}
+
+/* =========================================================
+   SPAWN
+========================================================= */
+
+function spawnBatch(now){
+
+  if(
+    !isHost() ||
+    phase !==
+    STATES.PLAYING
+  )return;
+
+  if(
+    now -
+    lastSpawn <
+    CFG.SPAWN_MS
+  )return;
+
+  lastSpawn =
+    now;
+
+  const elapsed =
+    clamp(
+      (
+        now -
+        startAt
+      ) /
+      CFG.ROUND_MS,
+      0,
+      1
+    );
+
+  /*
+   * 越到後面越密
+   */
+  const count =
+    Math.min(
+      7,
+      3 +
+      Math.floor(
+        elapsed*5
+      )
+    );
+
+  /*
+   * 炸彈提高
+   */
+  const bombChance =
+    .18 +
+    elapsed*.16;
+
+  const gemChance =
+    .105;
+
+  const goldChance =
+    .075;
+
+  const seq =
+    Math.floor(
+      (
+        now -
+        startAt
+      ) /
+      CFG.SPAWN_MS
+    );
+
+  const r =
+    rng32(
+      (
+        roundSeed +
+        seq*
+        2654435761
+      ) >>> 0
+    );
+
+  const arr = [];
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const rv =
+      r();
+
+    let type =
+      'coin';
+
+    if(
+      rv <
+      bombChance
+    ){
+
+      type =
+        'bomb';
+
+    }else
+    if(
+      rv <
+      bombChance +
+      gemChance
+    ){
+
+      type =
+        'gem';
+
+    }else
+    if(
+      rv <
+      bombChance +
+      gemChance +
+      goldChance
+    ){
+
+      type =
+        'gold';
+
+    }
+
+    /*
+     * 避免全部重疊
+     */
+    const lane =
+      i %
+      Math.max(
+        1,
+        Math.min(
+          count,
+          5
+        )
+      );
+
+    let x =
+      8 +
+      (
+        lane /
+        Math.max(
+          1,
+          Math.min(
+            count,
+            5
+          )-1
+        )
+      )*84;
+
+    if(
+      count <= 1
+    ){
+
+      x =
+        50;
+
+    }
+
+    /*
+     * 隨機偏移
+     */
+    x +=
+      (r()-.5)*
+      13;
+
+    x =
+      clamp(
+        x,
+        7,
+        93
+      );
+
+    const spawnAt =
+      now +
+      i*35;
+
+    arr.push({
+
+      id:
+        roundId +
+        '-' +
+        seq +
+        '-' +
+        i,
+
+      type,
+
+      x,
+
+      spawnAt,
+
+      expiresAt:
+        spawnAt +
+        CFG.ITEM_LIFE,
+
+      size:
+        type === 'bomb'
+          ? .98 +
+            r()*.15
+          : .9 +
+            r()*.18,
+
+      rot:
+        r()*
+        Math.PI*2
+
+    });
+
+  }
+
+  send(
+    'BBG_DROP_BATCH',
+    {
+      roundId,
+      items:arr
+    }
+  );
+
+  acceptBatch(
+    arr
+  );
+
+}
+
+/* =========================================================
+   ACCEPT ITEMS
+========================================================= */
+
+function acceptBatch(arr){
+
+  if(
+    !Array.isArray(arr)
+  )return;
+
+  for(
+    const raw of arr
+  ){
+
+    if(
+      !raw ||
+      !raw.id ||
+      items.has(
+        String(raw.id)
+      )
+    )continue;
+
+    const type =
+      TYPES.includes(
+        raw.type
+      )
+      ? raw.type
+      : 'coin';
+
+    const safe = {
+
+      id:
+        String(raw.id),
+
+      type,
+
+      x:
+        clamp(
+          raw.x,
+          5,
+          95
+        ),
+
+      spawnAt:
+        finite(
+          raw.spawnAt,
+          Date.now()
+        ),
+
+      expiresAt:
+        finite(
+          raw.expiresAt,
+          Date.now() +
+          CFG.ITEM_LIFE
+        ),
+
+      size:
+        clamp(
+          raw.size,
+          .8,
+          1.3
+        ),
+
+      rot:
+        finite(
+          raw.rot,
+          0
+        ),
+
+      claimed:false,
+
+      hitScale:1,
+
+      born:
+        Date.now()
+
+    };
+
+    items.set(
+      safe.id,
+      safe
+    );
+
+    if(
+      items.size >
+      CFG.MAX_ITEMS
+    ){
+
+      const oldest =
+        items.keys()
+          .next()
+          .value;
+
+      items.delete(
+        oldest
+      );
+
+    }
+
+  }
+
+}
+
+/* =========================================================
+   DRAW COIN
+========================================================= */
+
+function drawCoin(
+  x,
+  y,
+  r,
+  rot,
+  gold,
+  scale=1
+){
+
+  ctx.save();
+
+  ctx.translate(
+    x,
+    y
+  );
+
+  ctx.rotate(
+    rot
+  );
+
+  ctx.scale(
+    scale,
+    scale
+  );
+
+  /*
+   * 外光
+   */
+  const glow =
+    ctx.createRadialGradient(
+      0,
+      0,
+      r*.2,
+      0,
+      0,
+      r*1.65
+    );
+
+  glow.addColorStop(
+    0,
+    gold
+      ? 'rgba(255,180,45,.30)'
+      : 'rgba(255,215,80,.25)'
+  );
+
+  glow.addColorStop(
+    1,
+    'rgba(255,180,40,0)'
+  );
+
+  ctx.fillStyle =
+    glow;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*1.65,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 金幣
+   */
+  const grad =
+    ctx.createRadialGradient(
+      -r*.28,
+      -r*.32,
+      r*.05,
+      0,
+      0,
+      r
+    );
+
+  grad.addColorStop(
+    0,
+    '#fff6b0'
+  );
+
+  grad.addColorStop(
+    .25,
+    gold
+      ? '#ffd15c'
+      : '#ffd85a'
+  );
+
+  grad.addColorStop(
+    1,
+    gold
+      ? '#ff8c20'
+      : '#d98b25'
+  );
+
+  ctx.fillStyle =
+    grad;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 外圈
+   */
+  ctx.strokeStyle =
+    'rgba(255,255,255,.75)';
+
+  ctx.lineWidth =
+    2;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*.82,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+  /*
+   * 高光
+   */
+  ctx.fillStyle =
+    'rgba(255,255,255,.72)';
+
+  ctx.beginPath();
+
+  ctx.arc(
+    -r*.28,
+    -r*.30,
+    r*.18,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 符號
+   */
+  ctx.fillStyle =
+    gold
+      ? '#7c4310'
+      : '#8c4517';
+
+  ctx.font =
+    '1000 ' +
+    Math.round(
+      r*.82
+    ) +
+    'px system-ui';
+
+  ctx.textAlign =
+    'center';
+
+  ctx.textBaseline =
+    'middle';
+
+  ctx.fillText(
+    gold
+      ? '★'
+      : '$',
+    0,
+    1
+  );
+
+  ctx.restore();
+
+}
+
+/* =========================================================
+   GEM
+========================================================= */
+
+function drawGem(
+  x,
+  y,
+  r,
+  rot,
+  scale=1
+){
+
+  ctx.save();
+
+  ctx.translate(
+    x,
+    y
+  );
+
+  ctx.rotate(
+    rot
+  );
+
+  ctx.scale(
+    scale,
+    scale
+  );
+
+  const glow =
+    ctx.createRadialGradient(
+      0,
+      0,
+      r*.1,
+      0,
+      0,
+      r*1.7
+    );
+
+  glow.addColorStop(
+    0,
+    'rgba(85,246,255,.32)'
+  );
+
+  glow.addColorStop(
+    1,
+    'rgba(85,246,255,0)'
+  );
+
+  ctx.fillStyle =
+    glow;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*1.7,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.fillStyle =
+    '#55f6ff';
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    -r
+  );
+
+  ctx.lineTo(
+    r*.72,
+    -r*.2
+  );
+
+  ctx.lineTo(
+    r*.52,
+    r*.76
+  );
+
+  ctx.lineTo(
+    0,
+    r
+  );
+
+  ctx.lineTo(
+    -r*.52,
+    r*.76
+  );
+
+  ctx.lineTo(
+    -r*.72,
+    -r*.2
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  ctx.strokeStyle =
+    'rgba(255,255,255,.8)';
+
+  ctx.lineWidth =
+    1.5;
+
+  ctx.stroke();
+
+  ctx.fillStyle =
+    'rgba(255,255,255,.72)';
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    -r*.75
+  );
+
+  ctx.lineTo(
+    r*.22,
+    -r*.15
+  );
+
+  ctx.lineTo(
+    -r*.05,
+    r*.42
+  );
+
+  ctx.lineTo(
+    -r*.28,
+    -r*.15
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  ctx.restore();
+
+}
+
+/* =========================================================
+   BOMB
+========================================================= */
+
+function drawBomb(
+  x,
+  y,
+  r,
+  rot,
+  pulse,
+  scale=1
+){
+
+  ctx.save();
+
+  ctx.translate(
+    x,
+    y
+  );
+
+  ctx.rotate(
+    rot
+  );
+
+  ctx.scale(
+    scale,
+    scale
+  );
+
+  /*
+   * 危險紅色外圈
+   */
+  const danger =
+    ctx.createRadialGradient(
+      0,
+      0,
+      r*.35,
+      0,
+      0,
+      r*1.8
+    );
+
+  danger.addColorStop(
+    0,
+    'rgba(255,50,75,.30)'
+  );
+
+  danger.addColorStop(
+    .55,
+    'rgba(255,40,65,.16)'
+  );
+
+  danger.addColorStop(
+    1,
+    'rgba(255,20,50,0)'
+  );
+
+  ctx.fillStyle =
+    danger;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*1.8,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 閃爍危險圈
+   */
+  ctx.strokeStyle =
+    'rgba(255,55,80,' +
+    (
+      .35 +
+      pulse*.4
+    ) +
+    ')';
+
+  ctx.lineWidth =
+    3;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*
+      (
+        1.15 +
+        pulse*.12
+      ),
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+  /*
+   * 炸彈本體
+   */
+  const body =
+    ctx.createRadialGradient(
+      -r*.25,
+      -r*.3,
+      r*.08,
+      0,
+      0,
+      r
+    );
+
+  body.addColorStop(
+    0,
+    '#586171'
+  );
+
+  body.addColorStop(
+    .3,
+    '#242b38'
+  );
+
+  body.addColorStop(
+    1,
+    '#080b11'
+  );
+
+  ctx.fillStyle =
+    body;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r*.83,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 紅色危險核心
+   */
+  ctx.fillStyle =
+    '#ff405d';
+
+  ctx.beginPath();
+
+  ctx.arc(
+    -r*.25,
+    -r*.2,
+    r*.17,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 炸彈引線
+   */
+  ctx.strokeStyle =
+    '#ff9c4b';
+
+  ctx.lineWidth =
+    3;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    r*.28,
+    -r*.60
+  );
+
+  ctx.quadraticCurveTo(
+    r*.72,
+    -r*.95,
+    r*.55,
+    -r*1.15
+  );
+
+  ctx.stroke();
+
+  /*
+   * 火花
+   */
+  const spark =
+    pulse > .55
+      ? '#fff4a0'
+      : '#ff7b35';
+
+  ctx.fillStyle =
+    spark;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    r*.55,
+    -r*1.15,
+    3.5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+   * 危險符號
+   */
+  ctx.fillStyle =
+    '#ff6b7c';
+
+  ctx.font =
+    '1000 ' +
+    Math.round(
+      r*.35
+    ) +
+    'px system-ui';
+
+  ctx.textAlign =
+    'center';
+
+  ctx.textBaseline =
+    'middle';
+
+  ctx.fillText(
+    '!',
+    r*.28,
+    r*.15
+  );
+
+  ctx.restore();
+
+}
+
+/* =========================================================
+   DRAW ITEM
+========================================================= */
+
+function drawItem(
+  it,
+  now
+){
+
+  if(it.claimed)return;
+
+  const p =
+    itemPos(
+      it,
+      now
+    );
+
+  if(
+    p.y <
+      -100 ||
+    p.y >
+      H+100
+  )return;
+
+  /*
+   * 入場效果
+   */
+  const age =
+    clamp(
+      (
+        now -
+        it.born
+      ) /
+      180,
+      0,
+      1
+    );
+
+  const enter =
+    .72 +
+    .28*
+    (
+      1-
+      Math.pow(
+        1-age,
+        3
+      )
+    );
+
+  /*
+   * 被點擊時縮小
+   */
+  const scale =
+    it.hitScale *
+    enter;
+
+  const r =
+    (
+      it.type === 'gem'
+        ? 34
+        : it.type === 'bomb'
+          ? 37
+          : it.type === 'gold'
+            ? 33
+            : 31
+    ) *
+    it.size;
+
+  const rot =
+    it.rot +
+    (
+      now -
+      it.spawnAt
+    )*.00125;
+
+  if(
+    it.type === 'coin'
+  ){
+
+    drawCoin(
+      p.x,
+      p.y,
+      r,
+      rot,
+      false,
+      scale
+    );
+
+  }else
+  if(
+    it.type === 'gold'
+  ){
+
+    drawCoin(
+      p.x,
+      p.y,
+      r,
+      rot,
+      true,
+      scale
+    );
+
+  }else
+  if(
+    it.type === 'gem'
+  ){
+
+    drawGem(
+      p.x,
+      p.y,
+      r*.95,
+      rot*1.25,
+      scale
+    );
+
+  }else{
+
+    const pulse =
+      .5 +
+      .5*
+      Math.sin(
+        now*.008
+      );
+
+    drawBomb(
+      p.x,
+      p.y,
+      r,
+      -rot,
+      pulse,
+      scale
+    );
+
+  }
+
+}
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+const particles = [];
+
+for(
+  let i=0;
+  i<CFG.MAX_PARTICLES;
+  i++
+){
+
+  particles.push({
+
+    active:false,
+
+    x:0,
+
+    y:0,
+
+    vx:0,
+
+    vy:0,
+
+    life:0,
+
+    maxLife:.5,
+
+    size:0,
+
+    color:'#fff',
+
+    gravity:0
+
+  });
+
+}
+
+function burst(
+  x,
+  y,
+  color,
+  count=9
+){
+
+  let n=0;
+
+  for(
+    const p of
+    particles
+  ){
+
+    if(p.active)continue;
+
+    const a =
+      Math.random()*
+      Math.PI*2;
+
+    const s =
+      70+
+      Math.random()*
+      190;
+
+    p.active =
+      true;
+
+    p.x =
+      x;
+
+    p.y =
+      y;
+
+    p.vx =
+      Math.cos(a)*s;
+
+    p.vy =
+      Math.sin(a)*s;
+
+    p.life =
+      .3+
+      Math.random()*.35;
+
+    p.maxLife =
+      p.life;
+
+    p.size =
+      1.5+
+      Math.random()*3.2;
+
+    p.color =
+      color;
+
+    p.gravity =
+      120;
+
+    n++;
+
+    if(
+      n >=
+      Math.min(
+        count,
+        14
+      )
+    )break;
+
+  }
+
+}
+
+/* =========================================================
+   RIPPLE
+========================================================= */
+
+const ripples = [];
+
+for(
+  let i=0;
+  i<CFG.MAX_RIPPLES;
+  i++
+){
+
+  ripples.push({
+
+    active:false,
+
+    x:0,
+
+    y:0,
+
+    radius:0,
+
+    maxRadius:0,
+
+    life:0,
+
+    color:'#fff',
+
+    width:2
+
+  });
+
+}
+
+function ripple(
+  x,
+  y,
+  color
+){
+
+  let r =
+    ripples.find(
+      x =>
+        !x.active
+    );
+
+  if(!r){
+
+    r =
+      ripples[0];
+
+  }
+
+  r.active =
+    true;
+
+  r.x =
+    x;
+
+  r.y =
+    y;
+
+  r.radius =
+    10;
+
+  r.maxRadius =
+    68;
+
+  r.life =
+    .38;
+
+  r.color =
+    color;
+
+  r.width =
+    3;
+
+}
+
+/* =========================================================
+   FLOATING TEXT
+========================================================= */
+
+const floaters = [];
+
+for(
+  let i=0;
+  i<CFG.MAX_FLOATERS;
+  i++
+){
+
+  floaters.push({
+
+    active:false,
+
+    x:0,
+
+    y:0,
+
+    text:'',
+
+    color:'#fff',
+
+    life:0,
+
+    maxLife:.7,
+
+    vy:-70
+
+  });
+
+}
+
+function floatingText(
+  x,
+  y,
+  text,
+  color
+){
+
+  let f =
+    floaters.find(
+      x =>
+        !x.active
+    );
+
+  if(!f){
+
+    f =
+      floaters[0];
+
+  }
+
+  f.active =
+    true;
+
+  f.x =
+    x;
+
+  f.y =
+    y;
+
+  f.text =
+    text;
+
+  f.color =
+    color;
+
+  f.life =
+    .65;
+
+  f.maxLife =
+    .65;
+
+  f.vy =
+    -72;
+
+}
+
+/* =========================================================
+   FX UPDATE
+========================================================= */
+
+function updateFX(dt){
+
+  for(
+    const p of
+    particles
+  ){
+
+    if(!p.active)continue;
+
+    p.x +=
+      p.vx*dt;
+
+    p.y +=
+      p.vy*dt;
+
+    p.vy +=
+      p.gravity*dt;
+
+    p.vx *=
+      .97;
+
+    p.vy *=
+      .97;
+
+    p.life -=
+      dt;
+
+    if(
+      p.life <= 0
+    ){
+
+      p.active =
+        false;
+
+    }
+
+  }
+
+  for(
+    const r of
+    ripples
+  ){
+
+    if(!r.active)continue;
+
+    r.radius +=
+      (
+        r.maxRadius -
+        r.radius
+      )*.24;
+
+    r.life -=
+      dt;
+
+    if(
+      r.life <= 0
+    ){
+
+      r.active =
+        false;
+
+    }
+
+  }
+
+  for(
+    const f of
+    floaters
+  ){
+
+    if(!f.active)continue;
+
+    f.y +=
+      f.vy*dt;
+
+    f.vy *=
+      .97;
+
+    f.life -=
+      dt;
+
+    if(
+      f.life <= 0
+    ){
+
+      f.active =
+        false;
+
+    }
+
+  }
+
+}
+
+function drawFX(){
+
+  /*
+   * Ripple
+   */
+  for(
+    const r of
+    ripples
+  ){
+
+    if(!r.active)continue;
+
+    ctx.globalAlpha =
+      clamp(
+        r.life/.38,
+        0,
+        1
+      );
+
+    ctx.strokeStyle =
+      r.color;
+
+    ctx.lineWidth =
+      r.width;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      r.x,
+      r.y,
+      r.radius,
+      0,
+      Math.PI*2
+    );
+
+    ctx.stroke();
+
+  }
+
+  /*
+   * Particles
+   */
+  for(
+    const p of
+    particles
+  ){
+
+    if(!p.active)continue;
+
+    ctx.globalAlpha =
+      clamp(
+        p.life/
+        p.maxLife,
+        0,
+        1
+      );
+
+    ctx.fillStyle =
+      p.color;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      p.x,
+      p.y,
+      p.size,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+  }
+
+  /*
+   * Floating text
+   */
+  for(
+    const f of
+    floaters
+  ){
+
+    if(!f.active)continue;
+
+    ctx.globalAlpha =
+      clamp(
+        f.life/
+        f.maxLife,
+        0,
+        1
+      );
+
+    ctx.fillStyle =
+      f.color;
+
+    ctx.font =
+      '1000 24px system-ui';
+
+    ctx.textAlign =
+      'center';
+
+    ctx.textBaseline =
+      'middle';
+
+    ctx.shadowColor =
+      f.color;
+
+    ctx.shadowBlur =
+      14;
+
+    ctx.fillText(
+      f.text,
+      f.x,
+      f.y
+    );
+
+    ctx.shadowBlur =
+      0;
+
+  }
+
+  ctx.globalAlpha =
+    1;
+
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+  text,
+  color
+){
+
+  el.toast.textContent =
+    text;
+
+  el.toast.style.color =
+    color ||
+    '#ffd45c';
+
+  el.toast.classList.remove(
+    'show'
+  );
+
+  void el.toast.offsetWidth;
+
+  el.toast.classList.add(
+    'show'
+  );
+
+  clearTimeout(
+    showToast.t
+  );
+
+  showToast.t =
+    setTimeout(
+      () =>
+        el.toast
+          .classList
+          .remove('show'),
+      420
+    );
+
+}
+
+/* =========================================================
+   ITEM HIT TEST
+========================================================= */
+
+function findItemAt(
+  x,
+  y,
+  pointerId
+){
+
+  const now =
+    Date.now();
+
+  let best =
+    null;
+
+  let bestDistance =
+    Infinity;
+
+  /*
+   * 先找「點擊圈」內的物件
+   */
+  for(
+    const it of
+    items.values()
+  ){
+
+    if(
+      it.claimed ||
+      now >
+      it.expiresAt
+    )continue;
+
+    const p =
+      itemPos(
+        it,
+        now
+      );
+
+    if(
+      p.y <
+        -80 ||
+      p.y >
+        H+80
+    )continue;
+
+    const radius =
+      (
+        it.type === 'bomb'
+          ? 45
+          : 41
+      ) *
+      it.size;
+
+    const d =
+      Math.hypot(
+        x-p.x,
+        y-p.y
+      );
+
+    /*
+     * 炸彈也需要明確可以點到
+     */
+    const hitRadius =
+      Math.max(
+        CFG.HIT_RADIUS,
+        radius
+      );
+
+    if(
+      d <=
+      hitRadius &&
+      d <
+      bestDistance
+    ){
+
+      bestDistance =
+        d;
+
+      best =
+        it;
+
+    }
+
+  }
+
+  /*
+   * 找不到 → 使用吸附判定
+   *
+   * 讓玩家不用精準點中心
+   */
+  if(!best){
+
+    for(
+      const it of
+      items.values()
+    ){
+
+      if(
+        it.claimed ||
+        now >
+        it.expiresAt
+      )continue;
+
+      const p =
+        itemPos(
+          it,
+          now
+        );
+
+      const d =
+        Math.hypot(
+          x-p.x,
+          y-p.y
+        );
+
+      if(
+        d <=
+        CFG.SNAP_RADIUS &&
+        d <
+        bestDistance
+      ){
+
+        bestDistance =
+          d;
+
+        best =
+          it;
+
+      }
+
+    }
+
+  }
+
+  return best;
+
+}
+
+/* =========================================================
+   CLAIM EFFECT
+========================================================= */
+
+function claimEffect(
+  it,
+  delta,
+  x,
+  y
+){
+
+  /*
+   * 如果沒有傳入座標
+   * 就使用物件原座標
+   */
+  if(
+    !Number.isFinite(x) ||
+    !Number.isFinite(y)
+  ){
+
+    const p =
+      itemPos(
+        it,
+        Date.now()
+      );
+
+    x =
+      p.x;
+
+    y =
+      p.y;
+
+  }
+
+  /*
+   * 立即視覺消失
+   */
+  it.claimed =
+    true;
+
+  /*
+   * 立即 FX
+   */
+  ripple(
+    x,
+    y,
+    COLORS[it.type] ||
+    '#fff'
+  );
+
+  burst(
+    x,
+    y,
+    COLORS[it.type] ||
+    '#fff',
+    it.type === 'bomb'
+      ? 16
+      : 10
+  );
+
+  floatingText(
+    x,
+    y-18,
+    delta >= 0
+      ? '+'+Math.round(delta)
+      : String(
+          Math.round(delta)
+        ),
+    delta >= 0
+      ? COLORS[it.type]
+      : '#ff405d'
+  );
+
+  /*
+   * 觸控按下回饋
+   */
+  if(delta >= 0){
+
+    sfx(
+      it.type
+    );
+
+  }else{
+
+    sfx(
+      'bomb'
+    );
+
+    /*
+     * 炸彈畫面震動
+     */
+    if(
+      navigator.vibrate
+    ){
+
+      try{
+
+        navigator.vibrate(
+          [20,25,35]
+        );
+
+      }catch(e){}
+
+    }
+
+  }
+
+}
+
+/* =========================================================
+   SCORE
+========================================================= */
+
+function scoreItem(
+  player,
+  it
+){
+
+  player.actions++;
+
+  /*
+   * 炸彈
+   */
+  if(
+    it.type ===
+    'bomb'
+  ){
+
+    player.combo =
+      0;
+
+    player.score =
+      Math.max(
+        0,
+        player.score +
+        VALUE.bomb
+      );
+
+    return VALUE.bomb;
+
+  }
+
+  /*
+   * Combo
+   */
+  const mult =
+    1 +
+    Math.min(
+      player.combo,
+      20
+    )*.10;
+
+  const gained =
+    Math.floor(
+      VALUE[it.type]*
+      mult
+    );
+
+  player.score =
+    Math.min(
+      Number.MAX_SAFE_INTEGER,
+      player.score +
+      Math.max(
+        0,
+        gained
+      )
+    );
+
+  player.combo =
+    Math.min(
+      30,
+      player.combo+1
+    );
+
+  player.bestCombo =
+    Math.max(
+      player.bestCombo,
+      player.combo
+    );
+
+  return gained;
+
+}
+
+/* =========================================================
+   HOST CLAIM
+========================================================= */
+
+function hostClaim(
+  playerId,
+  itemId,
+  actionId,
+  hitX,
+  hitY
+){
+
+  if(
+    !isHost() ||
+    phase !==
+    STATES.PLAYING
+  )return;
+
+  if(
+    !actionId ||
+    seenActions.has(
+      actionId
+    )
+  )return;
+
+  const p =
+    players.get(
+      String(playerId)
+    );
+
+  const it =
+    items.get(
+      String(itemId)
+    );
+
+  if(
+    !p ||
+    !it ||
+    it.claimed
+  )return;
+
+  const now =
+    Date.now();
+
+  if(
+    now <
+    it.spawnAt-120 ||
+    now >
+    it.expiresAt
+  )return;
+
+  /*
+   * 先鎖定
+   */
+  seenActions.set(
+    actionId,
+    now
+  );
+
+  it.claimed =
+    true;
+
+  const delta =
+    scoreItem(
+      p,
+      it
+    );
+
+  /*
+   * Host 立即本地刪除
+   */
+  items.delete(
+    it.id
+  );
+
+  send(
+    'BBG_CLAIMED',
+    {
+      roundId,
+
+      playerId:
+        p.id,
+
+      itemId:
+        it.id,
+
+      type:
+        it.type,
+
+      delta,
+
+      score:
+        p.score,
+
+      combo:
+        p.combo,
+
+      bestCombo:
+        p.bestCombo
+
+    }
+  );
+
+  if(
+    p.id ===
+    ME.id
+  ){
+
+    claimEffect(
+      it,
+      delta,
+      hitX,
+      hitY
+    );
+
+  }
+
+}
+
+/* =========================================================
+   PLAYER CLAIM
+========================================================= */
+
+function playerClaim(
+  it,
+  pointerId,
+  x,
+  y
+){
+
+  if(
+    phase !==
+    STATES.PLAYING
+  )return;
+
+  if(
+    !it ||
+    it.claimed
+  )return;
+
+  const now =
+    Date.now();
+
+  /*
+   * 每根手指自己的去重
+   */
+  const key =
+    pointerId +
+    ':' +
+    it.id;
+
+  const previous =
+    pointerClaims.get(
+      key
+    );
+
+  if(
+    previous &&
+    now -
+    previous <
+    CFG.TOUCH_DEDUPE_MS
+  ){
+
+    return;
+
+  }
+
+  pointerClaims.set(
+    key,
+    now
+  );
+
+  /*
+   * 立刻鎖定本地物件
+   *
+   * 這是「按下就有感覺」的核心
+   */
+  it.claimed =
+    true;
+
+  /*
+   * 如果 Host
+   */
+  const actionId =
+    nextAction();
+
+  if(
+    isHost()
+  ){
+
+    /*
+     * 先解鎖，交給 hostClaim
+     */
+    it.claimed =
+      false;
+
+    hostClaim(
+      ME.id,
+      it.id,
+      actionId,
+      x,
+      y
+    );
+
+  }else{
+
+    /*
+     * 非 Host
+     *
+     * 先本地顯示 feedback
+     */
+    const visualCopy =
+      {
+        ...it,
+        claimed:false
+      };
+
+    const optimisticPlayer =
+      players.get(
+        ME.id
+      );
+
+    if(
+      optimisticPlayer
+    ){
+
+      /*
+       * 客戶端預先算分
+       * 讓操作沒有網路延遲感
+       */
+      const delta =
+        scoreItem(
+          optimisticPlayer,
+          visualCopy
+        );
+
+      claimEffect(
+        visualCopy,
+        delta,
+        x,
+        y
+      );
+
+    }
+
+    items.delete(
+      it.id
+    );
+
+    send(
+      'BBG_CLAIM',
+      {
+        roundId,
+
+        playerId:
+          ME.id,
+
+        itemId:
+          it.id,
+
+        actionId,
+
+        hitX:x,
+
+        hitY:y
+
+      }
+    );
+
+  }
+
+}
+
+/* =========================================================
+   POINTER COORDINATE
+========================================================= */
+
+function canvasPoint(
+  e
+){
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  return {
+
+    x:
+      (
+        e.clientX -
+        r.left
+      )*
+      (
+        W/
+        r.width
+      ),
+
+    y:
+      (
+        e.clientY -
+        r.top
+      )*
+      (
+        H/
+        r.height
+      )
+
+  };
+
+}
+
+/* =========================================================
+   MULTI TOUCH INPUT
+========================================================= */
+
+function handlePointerDown(
+  e
+){
+
+  e.preventDefault();
+
+  e.stopPropagation();
+
+  initAudio();
+
+  /*
+   * 記錄每一根手指
+   */
+  activePointers.set(
+    e.pointerId,
+    {
+      x:e.clientX,
+      y:e.clientY,
+      startedAt:Date.now()
+    }
+  );
+
+  /*
+   * 捕獲 pointer
+   */
+  try{
+
+    canvas.setPointerCapture(
+      e.pointerId
+    );
+
+  }catch(err){}
+
+  if(
+    phase !==
+    STATES.PLAYING
+  )return;
+
+  const p =
+    canvasPoint(e);
+
+  const it =
+    findItemAt(
+      p.x,
+      p.y,
+      e.pointerId
+    );
+
+  if(!it)return;
+
+  /*
+   * 這裡每根手指各自執行
+   *
+   * 因此：
+   * 手指 A → 金幣 A
+   * 手指 B → 金幣 B
+   * 手指 C → 金幣 C
+   *
+   * 可以同時成立
+   */
+  playerClaim(
+    it,
+    e.pointerId,
+    p.x,
+    p.y
+  );
+
+}
+
+function handlePointerMove(
+  e
+){
+
+  if(
+    activePointers.has(
+      e.pointerId
+    )
+  ){
+
+    const p =
+      activePointers.get(
+        e.pointerId
+      );
+
+    p.x =
+      e.clientX;
+
+    p.y =
+      e.clientY;
+
+  }
+
+}
+
+function handlePointerUp(
+  e
+){
+
+  activePointers.delete(
+    e.pointerId
+  );
+
+  try{
+
+    canvas.releasePointerCapture(
+      e.pointerId
+    );
+
+  }catch(err){}
+
+}
+
+canvas.addEventListener(
+  'pointerdown',
+  handlePointerDown,
+  {
+    passive:false
+  }
+);
+
+canvas.addEventListener(
+  'pointermove',
+  handlePointerMove,
+  {
+    passive:false
+  }
+);
+
+canvas.addEventListener(
+  'pointerup',
+  handlePointerUp,
+  {
+    passive:false
+  }
+);
+
+canvas.addEventListener(
+  'pointercancel',
+  handlePointerUp,
+  {
+    passive:false
+  }
+);
+
+canvas.addEventListener(
+  'pointerleave',
+  handlePointerUp,
+  {
+    passive:false
+  }
+);
+
+canvas.addEventListener(
+  'contextmenu',
+  e =>
+    e.preventDefault()
+);
+
+/*
+ * 防止舊手機瀏覽器把 Canvas
+ * 當成圖片 / 手勢
+ */
+canvas.style.touchAction =
+  'none';
+
+/* =========================================================
+   NETWORK EVENTS
+========================================================= */
+
+function broadcastState(
+  force=false
+){
+
+  if(!isHost())return;
+
+  const now =
+    Date.now();
+
+  if(
+    !force &&
+    now -
+    lastStateSent <
+    CFG.STATE_MS
+  )return;
+
+  lastStateSent =
+    now;
+
+  send(
+    'BBG_STATE',
+    {
+
+      roundId,
+
+      hostId,
+
+      phase,
+
+      entryCost:
+        selectedEntry,
+
+      seed:
+        roundSeed,
+
+      startAt,
+
+      phaseEndsAt,
+
+      winnerId,
+
+      reason,
+
+      players:
+        sortedPlayers()
+          .map(
+            p => ({
+
+              id:p.id,
+
+              username:
+                p.username,
+
+              avatar:
+                p.avatar,
+
+              joinedAt:
+                p.joinedAt,
+
+              score:
+                clamp(
+                  p.score,
+                  0,
+                  Number.MAX_SAFE_INTEGER
+                ),
+
+              combo:
+                clamp(
+                  p.combo,
+                  0,
+                  30
+                ),
+
+              bestCombo:
+                clamp(
+                  p.bestCombo,
+                  0,
+                  30
+                ),
+
+              actions:
+                clamp(
+                  p.actions,
+                  0,
+                  9999
+                ),
+
+              online:
+                !!p.online,
+
+              lastSeen:
+                p.lastSeen
+
+            })
+          )
+
+    }
+  );
+
+}
+
+function addRemotePlayerState(
+  p
+){
+
+  const q =
+    addPlayer(p);
+
+  if(!q)return;
+
+  q.score =
+    clamp(
+      p.score,
+      0,
+      Number.MAX_SAFE_INTEGER
+    );
+
+  q.combo =
+    clamp(
+      p.combo,
+      0,
+      30
+    );
+
+  q.bestCombo =
+    clamp(
+      p.bestCombo,
+      0,
+      30
+    );
+
+  q.actions =
+    clamp(
+      p.actions,
+      0,
+      9999
+    );
+
+  q.online =
+    !!p.online;
+
+  q.lastSeen =
+    Date.now();
+
+}
+
+/* =========================================================
+   HANDLE NETWORK EVENT
+========================================================= */
+
+function handleEvent(
+  name,
+  payload,
+  sender
+){
+
+  if(
+    name ===
+    'BBG_HELLO' ||
+    name ===
+    'BBG_HEARTBEAT'
+  ){
+
+    if(
+      payload.player
+    ){
+
+      addPlayer(
+        payload.player
+      );
+
+    }
+
+    if(
+      payload.requestState &&
+      isHost()
+    ){
+
+      broadcastState(
+        true
+      );
+
+    }
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_HOST'
+  ){
+
+    if(
+      payload.hostId
+    ){
+
+      hostId =
+        String(
+          payload.hostId
+        );
+
+    }
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_STATE'
+  ){
+
+    if(
+      !Number.isFinite(
+        Number(
+          payload.roundId
+        )
+      ) ||
+      Number(
+        payload.roundId
+      ) <
+      roundId
+    )return;
+
+    if(
+      Number(
+        payload.roundId
+      ) >
+      roundId
+    ){
+
+      roundId =
+        Number(
+          payload.roundId
+        );
+
+      resetRoundData();
+
+      currentPaid =
+        false;
+
+      currentSettled =
+        false;
+
+      gameOverCalled =
+        false;
+
+    }
+
+    hostId =
+      payload.hostId
+        ? String(
+            payload.hostId
+          )
+        : hostId;
+
+    phase =
+      Object.values(
+        STATES
+      ).includes(
+        payload.phase
+      )
+      ? payload.phase
+      : phase;
+
+    selectedEntry =
+      CFG.ENTRY.includes(
+        Number(
+          payload.entryCost
+        )
+      )
+      ? Number(
+          payload.entryCost
+        )
+      : selectedEntry;
+
+    roundSeed =
+      finite(
+        payload.seed,
+        0
+      );
+
+    startAt =
+      finite(
+        payload.startAt,
+        0
+      );
+
+    phaseEndsAt =
+      finite(
+        payload.phaseEndsAt,
+        0
+      );
+
+    winnerId =
+      payload.winnerId
+        ? String(
+            payload.winnerId
+          )
+        : null;
+
+    reason =
+      String(
+        payload.reason ||
+        ''
+      );
+
+    if(
+      Array.isArray(
+        payload.players
+      )
+    ){
+
+      payload.players.forEach(
+        addRemotePlayerState
+      );
+
+    }
+
+    if(
+      phase ===
+      STATES.RESULT
+    ){
+
+      finishResult();
+
+    }
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_ROUND_START'
+  ){
+
+    if(
+      !Number.isFinite(
+        Number(
+          payload.roundId
+        )
+      ) ||
+      Number(
+        payload.roundId
+      ) <
+      roundId
+    )return;
+
+    roundId =
+      Number(
+        payload.roundId
+      );
+
+    selectedEntry =
+      CFG.ENTRY.includes(
+        Number(
+          payload.entryCost
+        )
+      )
+      ? Number(
+          payload.entryCost
+        )
+      : 100;
+
+    roundSeed =
+      finite(
+        payload.seed,
+        0
+      );
+
+    startAt =
+      finite(
+        payload.startAt,
+        Date.now() +
+        CFG.COUNTDOWN_MS
+      );
+
+    phaseEndsAt =
+      startAt;
+
+    winnerId =
+      null;
+
+    reason =
+      '';
+
+    resetRoundData();
+
+    phase =
+      STATES.COUNTDOWN;
+
+    countdownShown =
+      -1;
+
+    showToast(
+      '準備',
+      '#ffd45c'
+    );
+
+    sfx(
+      'start'
+    );
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_PLAY'
+  ){
+
+    if(
+      !validRound(
+        payload.roundId
+      )
+    )return;
+
+    phase =
+      STATES.PLAYING;
+
+    startAt =
+      finite(
+        payload.startAt,
+        Date.now()
+      );
+
+    phaseEndsAt =
+      finite(
+        payload.phaseEndsAt,
+        startAt +
+        CFG.ROUND_MS
+      );
+
+    showToast(
+      '搶！',
+      '#ffd45c'
+    );
+
+    sfx(
+      'start'
+    );
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_DROP_BATCH'
+  ){
+
+    if(
+      !validRound(
+        payload.roundId
+      )
+    )return;
+
+    acceptBatch(
+      payload.items
+    );
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_CLAIM'
+  ){
+
+    if(
+      !isHost() ||
+      !validRound(
+        payload.roundId
+      )
+    )return;
+
+    const id =
+      String(
+        payload.playerId ||
+        sender ||
+        ''
+      );
+
+    /*
+     * 防止偽造其他玩家 ID
+     */
+    if(
+      sender &&
+      id !==
+      sender
+    )return;
+
+    hostClaim(
+      id,
+      String(
+        payload.itemId ||
+        ''
+      ),
+      String(
+        payload.actionId ||
+        ''
+      ),
+      finite(
+        payload.hitX,
+        0
+      ),
+      finite(
+        payload.hitY,
+        0
+      )
+    );
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_CLAIMED'
+  ){
+
+    if(
+      !validRound(
+        payload.roundId
+      )
+    )return;
+
+    const p =
+      players.get(
+        String(
+          payload.playerId ||
+          ''
+        )
+      );
+
+    const it =
+      items.get(
+        String(
+          payload.itemId ||
+          ''
+        )
+      );
+
+    if(it){
+
+      /*
+       * 如果 Host 已經處理
+       * 就不要再次播放兩次 FX
+       */
+      const isMe =
+        String(
+          payload.playerId ||
+          ''
+        ) ===
+        ME.id;
+
+      if(!it.claimed){
+
+        it.claimed =
+          true;
+
+        if(isMe){
+
+          const point =
+            itemPos(
+              it,
+              Date.now()
+            );
+
+          claimEffect(
+            it,
+            finite(
+              payload.delta,
+              0
+            ),
+            point.x,
+            point.y
+          );
+
         }
+
+      }
+
+      items.delete(
+        it.id
+      );
+
     }
-    return safe;
+
+    if(p){
+
+      p.score =
+        clamp(
+          payload.score,
+          0,
+          Number.MAX_SAFE_INTEGER
+        );
+
+      p.combo =
+        clamp(
+          payload.combo,
+          0,
+          30
+        );
+
+      p.bestCombo =
+        clamp(
+          payload.bestCombo,
+          0,
+          30
+        );
+
+    }
+
+    return;
+
+  }
+
+  if(
+    name ===
+    'BBG_ROUND_END'
+  ){
+
+    if(
+      !validRound(
+        payload.roundId
+      )
+    )return;
+
+    winnerId =
+      payload.winnerId
+        ? String(
+            payload.winnerId
+          )
+        : null;
+
+    reason =
+      String(
+        payload.reason ||
+        '時間到：依最終分數排名'
+      );
+
+    phase =
+      STATES.RESULT;
+
+    if(
+      Array.isArray(
+        payload.result
+      )
+    ){
+
+      stateResult =
+        payload.result;
+
+    }
+
+    finishResult();
+
+    return;
+
+  }
+
 }
-function finishHost(){if(!isHost()||phase!==STATES.PLAYING)return;phase=STATES.RESULT;reason='時間到：依最終分數排名';const rows=sortedPlayers().filter(p=>p.online||p.score>0).sort((a,b)=>b.score-a.score||b.bestCombo-a.bestCombo||a.joinedAt-b.joinedAt);winnerId=rows[0]?.id||ME.id;stateResult=rows.map(p=>({id:p.id,username:p.username,score:Math.min(Number.MAX_SAFE_INTEGER,p.score),combo:p.bestCombo}));send('BBG_ROUND_END',{roundId,winnerId,reason,result:stateResult});broadcastState(true);finishResult();sfx(winnerId===ME.id?'win':'end')}
-function finishResult(){if(phase!==STATES.RESULT)return;items.clear();const rows=stateResult.length?stateResult:[...players.values()].sort((a,b)=>b.score-a.score).map(p=>({id:p.id,username:p.username,score:p.score,combo:p.bestCombo}));stateResult=rows;const meIndex=rows.findIndex(r=>String(r.id)===ME.id);const won=meIndex===0;const reward=settleReward();el.resultTitle.textContent=won?'第一名！':'本局完成';el.resultTitle.style.color=won?'#ffd45c':'#f8fbff';el.reward.textContent='+'+reward+' 銀幣';el.reward.style.color=won?'#65ffad':'#9aa4bb';el.reason.textContent=reason||'本局結束';el.rankList.innerHTML='';rows.slice(0,6).forEach((r,i)=>{const row=document.createElement('div');row.className='rank-row'+(String(r.id)===ME.id?' me':'');const safe=String(r.username||'玩家').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));row.innerHTML='<span>#'+(i+1)+'</span><span>'+safe+' · Combo '+Math.round(r.combo||0)+'</span><b>'+Math.round(r.score||0)+'</b>';el.rankList.appendChild(row)});el.hud.style.display='none';el.result.style.display='grid';el.wait.disabled=false}
 
-// UI
-function syncUI(){el.round.textContent='ROUND '+String(Math.max(1,roundId)).padStart(2,'0');const remain=phase===STATES.COUNTDOWN?Math.max(0,Math.ceil((phaseEndsAt-Date.now())/1000)):phase===STATES.PLAYING?Math.max(0,Math.ceil((phaseEndsAt-Date.now())/1000)):45;el.timer.textContent=String(remain);el.timer.classList.toggle('danger',phase===STATES.PLAYING&&remain<=5);const me=players.get(ME.id)||addPlayer(ME);const observed=sortedPlayers().filter(p=>p.online||p.score>0);const top=observed.sort((a,b)=>b.score-a.score)[0];el.myScore.textContent=Math.round(clamp(me.score,0,Number.MAX_SAFE_INTEGER));el.topScore.textContent=Math.round(clamp(top?.score||0,0,Number.MAX_SAFE_INTEGER));el.combo.textContent=Math.round(me.combo);el.bestCombo.textContent=Math.round(me.bestCombo);el.players.textContent=String(Math.max(1,observed.length));el.tip.textContent=phase===STATES.PLAYING?'直接點擊掉落物搶分｜💣 炸彈不要碰':'本局結束後等待房主重新開局';el.hud.style.display=(phase===STATES.MENU||phase===STATES.RESULT)?'none':'block'}
-function openResultWhenReady(){if(phase===STATES.RESULT)finishResult()}
+/* =========================================================
+   PURCHASE
+========================================================= */
 
-// START BUTTON — explicit, direct, desktop + mobile
-function handleStart(e){if(e){e.preventDefault();e.stopPropagation()}if(phase===STATES.PURCHASING||phase===STATES.COUNTDOWN||phase===STATES.PLAYING||phase===STATES.RESULT)return;initAudio();if(phase===STATES.MENU||phase===STATES.WAIT_HOST){if(phase===STATES.MENU){el.lobby.style.display='none';el.hud.style.display='block';}requestEntry();}}
-el.start.addEventListener('pointerup',handleStart,{passive:false});el.start.addEventListener('click',handleStart,{passive:false});el.start.onclick=handleStart;
-window.startBoomGold=handleStart;
-for(const b of document.querySelectorAll('.entry')){const pick=e=>{if(e){e.preventDefault();e.stopPropagation()}if(phase!==STATES.MENU)return;const v=CFG.ENTRY.includes(Number(b.dataset.entry))?Number(b.dataset.entry):100;selectedEntry=v;document.querySelectorAll('.entry').forEach(x=>x.classList.toggle('active',x===b));initAudio()};b.addEventListener('pointerup',pick,{passive:false});b.addEventListener('click',pick,{passive:false})}
-el.wait.addEventListener('click',e=>{e.preventDefault();showToast('等待房主重新開局','#ffd45c')});
+function requestEntry(){
 
-// HEARTBEAT
-function hello(){send('BBG_HELLO',{player:ME});send('BBG_HEARTBEAT',{player:ME,requestState:true})}
-setInterval(()=>{const p=players.get(ME.id);if(p){p.online=true;p.lastSeen=Date.now()}send('BBG_HEARTBEAT',{player:ME});const now=Date.now();for(const q of players.values())if(now-q.lastSeen>CFG.HOST_TIMEOUT)q.online=false;const prev=hostId;electHost();if(prev!==hostId){send('BBG_HOST',{hostId});if(isHost()&&phase!==STATES.RESULT)broadcastState(true)}},CFG.HEARTBEAT);
+  if(
+    currentPaid ||
+    purchasing
+  )return;
 
-// MAIN LOOP
-let lastTs=0;
-function loop(ts){const dt=lastTs?Math.min((ts-lastTs)/1000,.033):0;lastTs=ts;const now=Date.now();ctx.drawImage(bg,0,0,W,H);const pulse=.5+.5*Math.sin(ts*.0014);ctx.globalAlpha=.018+.012*pulse;ctx.fillStyle='#ffd45c';ctx.beginPath();ctx.arc(W*.5,H*.48,Math.min(W,H)*.18,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;updateParticles(dt);if(phase===STATES.COUNTDOWN&&isHost()&&now>=phaseEndsAt)startPlaying();if(phase===STATES.COUNTDOWN){const sec=Math.ceil(Math.max(0,phaseEndsAt-now)/1000);if(sec!==countdownShown){countdownShown=sec;if(sec>0){showToast(String(sec),'#ffd45c');sfx('tick')}}}if(phase===STATES.PLAYING){if(isHost()){spawnBatch(now);if(now>=phaseEndsAt)finishHost();broadcastState(false)}for(const it of items.values())drawItem(it,now)}else{if(phase!==STATES.RESULT&&phase!==STATES.MENU){/* no item drawing */}}for(const it of [...items.values()]){if(now>it.expiresAt)items.delete(it.id)}drawParticles();syncUI();requestAnimationFrame(loop)}
-requestAnimationFrame(loop);
+  /*
+   * DEV
+   */
+  if(DEV){
 
-el.lobby.style.display='grid';
+    currentPaid =
+      true;
+
+    startRoundAfterEntry();
+
+    return;
+
+  }
+
+  purchasing =
+    true;
+
+  pendingPurchase =
+    'bbg_entry_' +
+    selectedEntry;
+
+  phase =
+    STATES.PURCHASING;
+
+  syncUI();
+
+  const reqData = {
+
+    action:
+      'requestPurchase',
+
+    itemId:
+      pendingPurchase,
+
+    cost:
+      selectedEntry
+
+  };
+
+  if(
+    window.BoomRoomSDK &&
+    typeof
+      window.BoomRoomSDK
+        .requestPurchase ===
+      'function'
+  ){
+
+    window.BoomRoomSDK
+      .requestPurchase(
+        pendingPurchase,
+        selectedEntry
+      );
+
+  }else
+  if(
+    window.parent !==
+    window
+  ){
+
+    window.parent.postMessage(
+      JSON.stringify(
+        reqData
+      ),
+      '*'
+    );
+
+  }else{
+
+    window.onPurchaseFailed(
+      pendingPurchase
+    );
+
+  }
+
+}
+
+window.onPurchaseSuccess =
+function(itemId){
+
+  if(
+    !purchasing ||
+    itemId !==
+    pendingPurchase
+  )return;
+
+  purchasing =
+    false;
+
+  pendingPurchase =
+    '';
+
+  currentPaid =
+    true;
+
+  startRoundAfterEntry();
+
+};
+
+window.onPurchaseFailed =
+function(itemId){
+
+  if(
+    itemId !==
+    pendingPurchase
+  )return;
+
+  purchasing =
+    false;
+
+  pendingPurchase =
+    '';
+
+  phase =
+    STATES.MENU;
+
+  syncUI();
+
+  showToast(
+    'Entry 未完成',
+    '#ff7b92'
+  );
+
+};
+
+/* =========================================================
+   START ROUND
+========================================================= */
+
+function startRoundAfterEntry(){
+
+  electHost();
+
+  if(
+    !isHost()
+  ){
+
+    send(
+      'BBG_READY',
+      {
+        roundId,
+        player:ME
+      }
+    );
+
+    phase =
+      STATES.WAIT_HOST;
+
+    showToast(
+      '等待房主',
+      '#ffd45c'
+    );
+
+    syncUI();
+
+    return;
+
+  }
+
+  roundId =
+    Math.max(
+      0,
+      roundId
+    )+1;
+
+  roundSeed =
+    (
+      Date.now() ^
+      Math.floor(
+        Math.random()*
+        0x7fffffff
+      )
+    ) >>> 0;
+
+  winnerId =
+    null;
+
+  reason =
+    '';
+
+  resetRoundData();
+
+  currentPaid =
+    true;
+
+  currentSettled =
+    false;
+
+  gameOverCalled =
+    false;
+
+  phase =
+    STATES.COUNTDOWN;
+
+  startAt =
+    Date.now() +
+    CFG.COUNTDOWN_MS;
+
+  phaseEndsAt =
+    startAt;
+
+  lastSpawn =
+    0;
+
+  send(
+    'BBG_ROUND_START',
+    {
+      roundId,
+
+      entryCost:
+        selectedEntry,
+
+      seed:
+        roundSeed,
+
+      startAt,
+
+      maxDuration:
+        CFG.ROUND_MS
+    }
+  );
+
+  broadcastState(
+    true
+  );
+
+  countdownShown =
+    -1;
+
+  showToast(
+    '3',
+    '#ffd45c'
+  );
+
+  sfx(
+    'start'
+  );
+
+}
+
+function startPlaying(){
+
+  if(
+    !isHost() ||
+    phase !==
+    STATES.COUNTDOWN
+  )return;
+
+  phase =
+    STATES.PLAYING;
+
+  startAt =
+    Date.now();
+
+  phaseEndsAt =
+    startAt +
+    CFG.ROUND_MS;
+
+  lastSpawn =
+    0;
+
+  send(
+    'BBG_PLAY',
+    {
+      roundId,
+      startAt,
+      phaseEndsAt
+    }
+  );
+
+  broadcastState(
+    true
+  );
+
+  showToast(
+    '搶！',
+    '#ffd45c'
+  );
+
+  sfx(
+    'start'
+  );
+
+}
+
+/* =========================================================
+   SETTLE
+========================================================= */
+
+function settleReward(){
+
+  if(
+    currentSettled
+  )return 0;
+
+  currentSettled =
+    true;
+
+  const rows =
+    stateResult.length
+      ? stateResult
+      : [
+          ...players.values()
+        ]
+        .sort(
+          (a,b) =>
+            b.score -
+            a.score
+        );
+
+  const idx =
+    rows.findIndex(
+      r =>
+        String(r.id) ===
+        ME.id
+    );
+
+  const reward =
+    idx === 0
+      ? selectedEntry*2
+      : idx === 1
+        ? Math.floor(
+            selectedEntry*.5
+          )
+        : 0;
+
+  const safe =
+    Math.floor(
+      clamp(
+        reward,
+        0,
+        CFG.REWARD_CAP
+      )
+    );
+
+  if(
+    !gameOverCalled
+  ){
+
+    gameOverCalled =
+      true;
+
+    const reqData = {
+
+      action:
+        'game_over',
+
+      winAmount:
+        safe
+
+    };
+
+    if(
+      window.BoomRoomSDK &&
+      typeof
+        window.BoomRoomSDK
+          .gameOver ===
+        'function'
+    ){
+
+      window.BoomRoomSDK
+        .gameOver(
+          safe
+        );
+
+    }else
+    if(
+      window.parent !==
+      window
+    ){
+
+      window.parent.postMessage(
+        JSON.stringify(
+          reqData
+        ),
+        '*'
+      );
+
+    }
+
+  }
+
+  return safe;
+
+}
+
+/* =========================================================
+   HOST END
+========================================================= */
+
+function finishHost(){
+
+  if(
+    !isHost() ||
+    phase !==
+    STATES.PLAYING
+  )return;
+
+  phase =
+    STATES.RESULT;
+
+  reason =
+    '時間到：依最終分數排名';
+
+  const rows =
+    sortedPlayers()
+      .filter(
+        p =>
+          p.online ||
+          p.score > 0
+      )
+      .sort(
+        (a,b) =>
+          b.score -
+          a.score ||
+          b.bestCombo -
+          a.bestCombo ||
+          a.joinedAt -
+          b.joinedAt
+      );
+
+  winnerId =
+    rows[0]?.id ||
+    ME.id;
+
+  stateResult =
+    rows.map(
+      p => ({
+
+        id:p.id,
+
+        username:
+          p.username,
+
+        score:
+          Math.min(
+            Number.MAX_SAFE_INTEGER,
+            p.score
+          ),
+
+        combo:
+          p.bestCombo
+
+      })
+    );
+
+  send(
+    'BBG_ROUND_END',
+    {
+      roundId,
+
+      winnerId,
+
+      reason,
+
+      result:
+        stateResult
+
+    }
+  );
+
+  broadcastState(
+    true
+  );
+
+  finishResult();
+
+  sfx(
+    winnerId ===
+    ME.id
+      ? 'win'
+      : 'end'
+  );
+
+}
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+function finishResult(){
+
+  if(
+    phase !==
+    STATES.RESULT
+  )return;
+
+  items.clear();
+
+  const rows =
+    stateResult.length
+      ? stateResult
+      : [
+          ...players.values()
+        ]
+        .sort(
+          (a,b) =>
+            b.score -
+            a.score
+        )
+        .map(
+          p => ({
+
+            id:p.id,
+
+            username:
+              p.username,
+
+            score:p.score,
+
+            combo:
+              p.bestCombo
+
+          })
+        );
+
+  stateResult =
+    rows;
+
+  const meIndex =
+    rows.findIndex(
+      r =>
+        String(r.id) ===
+        ME.id
+    );
+
+  const won =
+    meIndex === 0;
+
+  const reward =
+    settleReward();
+
+  el.resultTitle.textContent =
+    won
+      ? '第一名！'
+      : '本局完成';
+
+  el.resultTitle.style.color =
+    won
+      ? '#ffd45c'
+      : '#f8fbff';
+
+  el.reward.textContent =
+    '+' +
+    reward +
+    ' 銀幣';
+
+  el.reward.style.color =
+    won
+      ? '#65ffad'
+      : '#9aa4bb';
+
+  el.reason.textContent =
+    reason ||
+    '本局結束';
+
+  el.rankList.innerHTML =
+    '';
+
+  rows
+    .slice(
+      0,
+      10
+    )
+    .forEach(
+      (r,i) => {
+
+        const row =
+          document.createElement(
+            'div'
+          );
+
+        row.className =
+          'rank-row' +
+          (
+            String(r.id) ===
+            ME.id
+              ? ' me'
+              : ''
+          );
+
+        const safe =
+          String(
+            r.username ||
+            '玩家'
+          ).replace(
+            /[&<>"']/g,
+            c =>
+              ({
+                '&':'&amp;',
+                '<':'&lt;',
+                '>':'&gt;',
+                '"':'&quot;',
+                "'":'&#39;'
+              }[c])
+          );
+
+        row.innerHTML =
+          '<span>#' +
+          (i+1) +
+          '</span>' +
+
+          '<span>' +
+          safe +
+          ' · Combo ' +
+          Math.round(
+            r.combo || 0
+          ) +
+          '</span>' +
+
+          '<b>' +
+          Math.round(
+            r.score || 0
+          ) +
+          '</b>';
+
+        el.rankList
+          .appendChild(
+            row
+          );
+
+      }
+    );
+
+  el.hud.style.display =
+    'none';
+
+  el.result.style.display =
+    'grid';
+
+  el.wait.disabled =
+    false;
+
+}
+
+/* =========================================================
+   UI
+========================================================= */
+
+function syncUI(){
+
+  el.round.textContent =
+    'ROUND ' +
+    String(
+      Math.max(
+        1,
+        roundId
+      )
+    ).padStart(
+      2,
+      '0'
+    );
+
+  const remain =
+    phase ===
+    STATES.COUNTDOWN
+
+      ? Math.max(
+          0,
+          Math.ceil(
+            (
+              phaseEndsAt -
+              Date.now()
+            ) /
+            1000
+          )
+        )
+
+      : phase ===
+        STATES.PLAYING
+
+        ? Math.max(
+            0,
+            Math.ceil(
+              (
+                phaseEndsAt -
+                Date.now()
+              ) /
+              1000
+            )
+          )
+
+        : 45;
+
+  el.timer.textContent =
+    String(remain);
+
+  el.timer.classList.toggle(
+    'danger',
+    phase ===
+    STATES.PLAYING &&
+    remain <= 5
+  );
+
+  const me =
+    players.get(
+      ME.id
+    ) ||
+    addPlayer(
+      ME
+    );
+
+  const observed =
+    sortedPlayers()
+      .filter(
+        p =>
+          p.online ||
+          p.score > 0
+      );
+
+  const top =
+    observed
+      .sort(
+        (a,b) =>
+          b.score -
+          a.score
+      )[0];
+
+  el.myScore.textContent =
+    Math.round(
+      clamp(
+        me.score,
+        0,
+        Number.MAX_SAFE_INTEGER
+      )
+    );
+
+  el.topScore.textContent =
+    Math.round(
+      clamp(
+        top?.score ||
+        0,
+        0,
+        Number.MAX_SAFE_INTEGER
+      )
+    );
+
+  el.combo.textContent =
+    Math.round(
+      me.combo
+    );
+
+  el.bestCombo.textContent =
+    Math.round(
+      me.bestCombo
+    );
+
+  el.players.textContent =
+    String(
+      Math.max(
+        1,
+        observed.length
+      )
+    );
+
+  if(
+    phase ===
+    STATES.PLAYING
+  ){
+
+    el.tip.textContent =
+      '多指一起搶也可以｜🪙 金幣直接點｜💣 紅色炸彈不要碰';
+
+  }else{
+
+    el.tip.textContent =
+      '本局結束後等待房主重新開局';
+
+  }
+
+  el.hud.style.display =
+    (
+      phase ===
+      STATES.MENU ||
+      phase ===
+      STATES.RESULT
+    )
+      ? 'none'
+      : 'block';
+
+}
+
+/* =========================================================
+   START BUTTON
+========================================================= */
+
+function handleStart(
+  e
+){
+
+  if(e){
+
+    e.preventDefault();
+
+    e.stopPropagation();
+
+  }
+
+  if(
+    phase ===
+    STATES.PURCHASING ||
+    phase ===
+    STATES.COUNTDOWN ||
+    phase ===
+    STATES.PLAYING ||
+    phase ===
+    STATES.RESULT
+  )return;
+
+  initAudio();
+
+  if(
+    phase ===
+    STATES.MENU ||
+    phase ===
+    STATES.WAIT_HOST
+  ){
+
+    if(
+      phase ===
+      STATES.MENU
+    ){
+
+      el.lobby.style.display =
+        'none';
+
+      el.hud.style.display =
+        'block';
+
+    }
+
+    requestEntry();
+
+  }
+
+}
+
+el.start.addEventListener(
+  'pointerup',
+  handleStart,
+  {
+    passive:false
+  }
+);
+
+el.start.addEventListener(
+  'click',
+  handleStart,
+  {
+    passive:false
+  }
+);
+
+window.startBoomGold =
+  handleStart;
+
+/* =========================================================
+   ENTRY
+========================================================= */
+
+for(
+  const b of
+  document.querySelectorAll(
+    '.entry'
+  )
+){
+
+  const pick =
+    e => {
+
+      if(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+      }
+
+      if(
+        phase !==
+        STATES.MENU
+      )return;
+
+      const v =
+        CFG.ENTRY.includes(
+          Number(
+            b.dataset.entry
+          )
+        )
+        ? Number(
+            b.dataset.entry
+          )
+        : 100;
+
+      selectedEntry =
+        v;
+
+      document
+        .querySelectorAll(
+          '.entry'
+        )
+        .forEach(
+          x =>
+            x.classList.toggle(
+              'active',
+              x === b
+            )
+        );
+
+      initAudio();
+
+    };
+
+  b.addEventListener(
+    'pointerup',
+    pick,
+    {
+      passive:false
+    }
+  );
+
+  b.addEventListener(
+    'click',
+    pick,
+    {
+      passive:false
+    }
+  );
+
+}
+
+/* =========================================================
+   WAIT
+========================================================= */
+
+el.wait.addEventListener(
+  'click',
+  e => {
+
+    e.preventDefault();
+
+    showToast(
+      '等待房主重新開局',
+      '#ffd45c'
+    );
+
+  }
+);
+
+/* =========================================================
+   HEARTBEAT
+========================================================= */
+
+function hello(){
+
+  send(
+    'BBG_HELLO',
+    {
+      player:ME
+    }
+  );
+
+  send(
+    'BBG_HEARTBEAT',
+    {
+      player:ME,
+
+      requestState:true
+
+    }
+  );
+
+}
+
+setInterval(
+  () => {
+
+    const p =
+      players.get(
+        ME.id
+      );
+
+    if(p){
+
+      p.online =
+        true;
+
+      p.lastSeen =
+        Date.now();
+
+    }
+
+    send(
+      'BBG_HEARTBEAT',
+      {
+        player:ME
+      }
+    );
+
+    const now =
+      Date.now();
+
+    for(
+      const q of
+      players.values()
+    ){
+
+      if(
+        now -
+        q.lastSeen >
+        CFG.HOST_TIMEOUT
+      ){
+
+        q.online =
+          false;
+
+      }
+
+    }
+
+    const previous =
+      hostId;
+
+    electHost();
+
+    if(
+      previous !==
+      hostId
+    ){
+
+      send(
+        'BBG_HOST',
+        {
+          hostId
+        }
+      );
+
+      if(
+        isHost() &&
+        phase !==
+        STATES.RESULT
+      ){
+
+        broadcastState(
+          true
+        );
+
+      }
+
+    }
+
+  },
+  CFG.HEARTBEAT
+);
+
+/* =========================================================
+   MAIN LOOP
+========================================================= */
+
+let lastTs =
+  0;
+
+function loop(ts){
+
+  const dt =
+    lastTs
+      ? Math.min(
+          (
+            ts -
+            lastTs
+          ) /
+          1000,
+          .033
+        )
+      : 0;
+
+  lastTs =
+    ts;
+
+  const now =
+    Date.now();
+
+  /*
+   * Background
+   */
+  ctx.drawImage(
+    bg,
+    0,
+    0,
+    W,
+    H
+  );
+
+  /*
+   * 中央氛圍
+   */
+  const pulse =
+    .5 +
+    .5*
+    Math.sin(
+      ts*.0014
+    );
+
+  ctx.globalAlpha =
+    .015 +
+    .012*pulse;
+
+  ctx.fillStyle =
+    '#ffd45c';
+
+  ctx.beginPath();
+
+  ctx.arc(
+    W*.5,
+    H*.48,
+    Math.min(
+      W,
+      H
+    )*.18,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.globalAlpha =
+    1;
+
+  /*
+   * Playing 時增加淡淡危險氛圍
+   */
+  if(
+    phase ===
+    STATES.PLAYING
+  ){
+
+    const elapsed =
+      clamp(
+        (
+          now -
+          startAt
+        ) /
+        CFG.ROUND_MS,
+        0,
+        1
+      );
+
+    /*
+     * 後半段紅色危險氛圍
+     */
+    if(
+      elapsed >
+      .62
+    ){
+
+      ctx.globalAlpha =
+        (
+          elapsed-
+          .62
+        )*.06;
+
+      ctx.fillStyle =
+        '#ff203d';
+
+      ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+      );
+
+      ctx.globalAlpha =
+        1;
+
+    }
+
+  }
+
+  updateFX(
+    dt
+  );
+
+  /*
+   * Countdown
+   */
+  if(
+    phase ===
+    STATES.COUNTDOWN &&
+    isHost() &&
+    now >=
+    phaseEndsAt
+  ){
+
+    startPlaying();
+
+  }
+
+  if(
+    phase ===
+    STATES.COUNTDOWN
+  ){
+
+    const sec =
+      Math.ceil(
+        Math.max(
+          0,
+          phaseEndsAt -
+          now
+        ) /
+        1000
+      );
+
+    if(
+      sec !==
+      countdownShown
+    ){
+
+      countdownShown =
+        sec;
+
+      if(
+        sec > 0
+      ){
+
+        showToast(
+          String(sec),
+          '#ffd45c'
+        );
+
+        sfx(
+          'tick'
+        );
+
+      }
+
+    }
+
+  }
+
+  /*
+   * Playing
+   */
+  if(
+    phase ===
+    STATES.PLAYING
+  ){
+
+    if(
+      isHost()
+    ){
+
+      spawnBatch(
+        now
+      );
+
+      if(
+        now >=
+        phaseEndsAt
+      ){
+
+        finishHost();
+
+      }
+
+      broadcastState(
+        false
+      );
+
+    }
+
+    /*
+     * 畫掉所有物件
+     */
+    for(
+      const it of
+      items.values()
+    ){
+
+      drawItem(
+        it,
+        now
+      );
+
+    }
+
+  }
+
+  /*
+   * 清理過期物件
+   */
+  for(
+    const [
+      id,
+      it
+    ] of
+    items
+  ){
+
+    if(
+      now >
+      it.expiresAt
+    ){
+
+      items.delete(
+        id
+      );
+
+    }
+
+  }
+
+  /*
+   * FX
+   */
+  drawFX();
+
+  syncUI();
+
+  requestAnimationFrame(
+    loop
+  );
+
+}
+
+requestAnimationFrame(
+  loop
+);
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+el.lobby.style.display =
+  'grid';
+
 })();
 </script>
+
 </body>
 </html>
