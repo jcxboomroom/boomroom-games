@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#090b12">
+<title>爆爆你畫我猜</title>
+<style>
+:root{--bg:#090b12;--panel:#111522;--panel2:#171b2b;--line:#2b3248;--text:#f6f7fb;--muted:#9aa3b8;--accent:#63e6ff;--accent2:#b56cff;--good:#55e38a;--bad:#ff657d;--gold:#ffd166}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;user-select:none}
+body{min-height:100dvh}
+button,input{font:inherit}
+button{border:0;color:var(--text);cursor:pointer}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,720px);height:100%;display:flex;flex-direction:column;padding:calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));gap:8px}
+.top{height:48px;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
+.brand{font-weight:900;letter-spacing:.5px}.brand small{display:block;color:var(--muted);font-size:10px;font-weight:700}
+.topActions{display:flex;gap:7px}.iconBtn{width:42px;height:42px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:19px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+h1,h2,p{margin:0}.hero{padding:20px 16px}.hero h1{font-size:clamp(26px,7vw,44px);line-height:1.05}.hero p{margin-top:8px;color:var(--muted);font-size:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;justify-content:center}.badge{padding:6px 9px;border-radius:999px;background:#0c0f19;border:1px solid var(--line);font-size:11px;color:#cbd2e4}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.stat{padding:9px 6px;background:#0c0f18;border:1px solid var(--line);border-radius:12px;text-align:center}.stat b{display:block;font-size:15px}.stat span{font-size:10px;color:var(--muted)}
+.cta{width:100%;min-height:52px;border-radius:15px;background:linear-gradient(135deg,#56ddff,#9c62ff);font-weight:900;font-size:16px;box-shadow:0 8px 24px #0005}.cta:active,.tool:active,.iconBtn:active{transform:scale(.97)}
+.secondary{background:#1a2030;border:1px solid var(--line);box-shadow:none}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.hud{display:flex;gap:6px;justify-content:space-between;align-items:center;flex:0 0 auto}.hud .pill{background:#0e1220;border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:11px;min-width:0}.pill b{font-size:14px}
+#canvasWrap{position:relative;flex:1;min-height:220px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#f7f8fb;touch-action:none}
+#drawCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#wordBadge{position:absolute;top:9px;left:50%;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:#101422dd;border:1px solid #ffffff20;font-weight:900;font-size:13px;z-index:3;pointer-events:none}
+#roleBadge{position:absolute;top:9px;left:9px;padding:6px 8px;border-radius:9px;background:#101422dd;border:1px solid #ffffff20;font-size:10px;font-weight:800;z-index:3;pointer-events:none}
+#cursorHint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);padding:6px 9px;border-radius:9px;background:#101422cc;color:#dce2f2;font-size:10px;pointer-events:none}
+.guessArea{display:flex;gap:7px;flex:0 0 auto}.guessArea input{flex:1;min-width:0;height:48px;border-radius:14px;border:1px solid var(--line);background:#0d111c;color:white;padding:0 13px;outline:none}.guessArea input:focus{border-color:var(--accent)}.guessArea button{width:92px;border-radius:14px;background:var(--accent);color:#061018;font-weight:900}
+.tools{display:flex;gap:6px;flex:0 0 auto}.tool{height:42px;min-width:42px;border-radius:12px;background:#111625;border:1px solid var(--line);font-weight:800}.tool.active{outline:2px solid var(--accent)}.color{width:42px;padding:0;border-radius:50%;border:3px solid #fff}
+.players{display:flex;gap:6px;overflow:hidden;flex:0 0 auto}.player{min-width:100px;padding:7px 9px;border-radius:11px;background:#0d111c;border:1px solid var(--line);font-size:10px}.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{font-style:normal;color:var(--muted)}
+.notice{min-height:26px;color:#cbd2e4;font-size:12px;text-align:center}
+.result{display:flex;flex-direction:column;gap:12px}.resultTitle{font-size:34px;font-weight:1000}.reward{font-size:28px;color:var(--gold);font-weight:1000}
+.modal{position:fixed;inset:0;background:#05070ccc;display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}.modalCard{width:min(100%,520px);max-height:85dvh;overflow:auto;background:#121625;border:1px solid var(--line);border-radius:20px;padding:18px}.modalCard h2{margin-bottom:10px}.modalCard p,.modalCard li{color:#c5ccdc;font-size:13px;line-height:1.65}.modalCard ul{padding-left:20px}.close{float:right;background:#202638;border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+.dev{font-size:10px;color:#ffcf70;text-align:center}.hidden{display:none!important}
+@media(min-width:700px){.shell{padding-left:18px;padding-right:18px}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <header class="top">
+    <div class="brand">💥 爆爆你畫我猜<small>BOOMROOM UGC · ONE-SHOT</small></div>
+    <div class="topActions"><button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button><button id="helpBtn" class="iconBtn" aria-label="玩法">?</button></div>
+  </header>
+  <main id="main" class="screen"></main>
+</div></div>
+
+<div id="helpModal" class="modal">
+ <div class="modalCard">
+  <button id="closeHelp" class="close">關閉</button>
+  <h2>怎麼玩？</h2>
+  <p><b>目標：</b>畫家不能說出題目，其他玩家搶先猜中。</p>
+  <ul>
+   <li>每位參賽玩家 Entry：100 銀幣。</li>
+   <li>本局開始前鎖定獎池：實際付款總額 − 10% 平台手續費。</li>
+   <li>房內沒有官方玩家名單 API 時，本遊戲只認定透過 Game Event 觀察到且已回報付款的玩家，不偽造玩家。</li>
+   <li>預設由穩定的第一位已觀察玩家擔任本局畫家；重要題目由畫家本地產生，不把答案廣播出去。</li>
+   <li>猜對者取得本局獎池；若無人猜中，依預先規則判定為平手處理。</li>
+   <li>正式比賽結束後不能在同一遊戲實例重玩，等待房主關閉並重新建立下一局。</li>
+  </ul>
+  <p>操作：畫家拖曳畫圖；猜題玩家輸入答案。右上角 🔊 可靜音。</p>
+ </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================
+   BOOMROOM UGC GAME INFO
+========================= */
+const GAME_INFO = {
+  id: "boom_draw_guess",
+  category: "派對競技",
+  name: "爆爆你畫我猜",
+  description: "限時畫圖，搶先猜中就贏走本局獎池。",
+  version: "1.0.0",
+  entryCost: 100,
+  maxPlayers: 10,
+  controlModes: ["Pointer", "Touch", "Keyboard"],
+  duration: 60,
+  multiplayer: true,
+  rewardEnabled: true
+};
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  PLATFORM_FEE_RATE: 0.10,
+  MIN_PLAYERS: 2,
+  MAX_PLAYERS: 10,
+  DRAW_TIME: 60,
+  HEARTBEAT_MS: 4000,
+  PLAYER_TIMEOUT_MS: 12000,
+  EVENT_DEDUPE_MAX: 600,
+  MAX_STROKES: 120,
+  MAX_POINTS_PER_STROKE: 80,
+  MAX_GUESS_LENGTH: 32,
+  MAX_NAME_LENGTH: 24,
+  MAX_AVATAR_LENGTH: 300,
+  MAX_PARTICLES: 90,
+  DEBUG: false
+});
+
+/* =========================
+   STATE MACHINE
+========================= */
+const STATES = Object.freeze({
+  LOBBY: "LOBBY",
+  PURCHASING: "PURCHASING",
+  READY: "READY",
+  COUNTDOWN: "COUNTDOWN",
+  PLAYING: "PLAYING",
+  RESULT: "RESULT",
+  WAITING_FOR_MAYOR_CLOSE: "WAITING_FOR_MAYOR_CLOSE",
+  GAME_CLOSED: "GAME_CLOSED"
+});
+
+let state = STATES.LOBBY;
+let gameOverCalled = false;
+let isPurchasing = false;
+let purchaseConfirmed = false;
+let roundId = "";
+let roundSeed = 0;
+let roundStartTime = 0;
+let countdownTimer = null;
+let heartbeatTimer = null;
+let rafId = 0;
+let lastFrame = 0;
+let gameElapsed = 0;
+let remaining = CONFIG.DRAW_TIME;
+let score = 0;
+let finalReward = 0;
+let finalRank = 1;
+let finalReason = "";
+let prizePool = 0;
+let totalPool = 0;
+let platformFee = 0;
+let matchStarted = false;
+let matchEnded = false;
+let drawerId = "";
+let secretWord = "";
+let currentStroke = null;
+let tool = "pen";
+let brushSize = 7;
+let brushColor = "#151923";
+let muted = false;
+let audioCtx = null;
+let soundCooldown = 0;
+let fps = 60;
+
+/* =========================
+   PLAYER REGISTRY
+========================= */
+const meRaw = safeGetUser();
+const ME = {
+  id: safeString(meRaw && meRaw.id, "local_" + Math.random().toString(36).slice(2,10), 64),
+  username: safeString(meRaw && meRaw.username, "玩家", CONFIG.MAX_NAME_LENGTH),
+  avatar: safeString(meRaw && meRaw.avatar, "", CONFIG.MAX_AVATAR_LENGTH),
+  joinedAt: Date.now()
+};
+
+const players = new Map();
+const seenEvents = new Set();
+const pendingStrokes = new Map();
+
+function safeString(v, fallback, maxLen){
+  if(typeof v !== "string" || !v.trim()) return fallback;
+  return v.trim().slice(0,maxLen);
+}
+function finite(v, fallback=0){
+  return Number.isFinite(v) ? v : fallback;
+}
+function clamp(v,min,max){ return Math.min(max, Math.max(min, finite(v,min))); }
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function addPlayer(id, username, avatar, status="WAITING", paid=false){
+  if(!id || typeof id !== "string" || id.length>64) return null;
+  let p = players.get(id);
+  if(!p){
+    p = {id, username:safeString(username,"玩家",CONFIG.MAX_NAME_LENGTH), avatar:safeString(avatar,"",CONFIG.MAX_AVATAR_LENGTH),
+         status, paid:!!paid, score:0, reward:0, lastSeen:Date.now(), joinedAt:Date.now()};
+    players.set(id,p);
+  }else{
+    p.username = safeString(username,p.username,CONFIG.MAX_NAME_LENGTH);
+    p.avatar = safeString(avatar,p.avatar,CONFIG.MAX_AVATAR_LENGTH);
+    p.status = status || p.status;
+    p.lastSeen = Date.now();
+    if(paid) p.paid = true;
+  }
+  return p;
+}
+addPlayer(ME.id, ME.username, ME.avatar, "LOCAL", false);
+
+/* =========================
+   SDK SAFE ADAPTER
+========================= */
+function sdkAvailable(){
+  return !!(window.BoomRoomSDK && typeof window.BoomRoomSDK === "object");
+}
+function safeGetUser(){
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==="function"){
+      return window.BoomRoomSDK.getUser() || {};
+    }
+  }catch(_){}
+  return {};
+}
+function sendEvent(eventName,payload){
+  if(!/^[A-Z0-9_]{1,40}$/.test(eventName)) return false;
+  if(!payload || typeof payload!=="object" || Array.isArray(payload)) return false;
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==="function"){
+      window.BoomRoomSDK.sendGameEvent(eventName,payload);
+      return true;
+    }
+  }catch(_){}
+  return false;
+}
+function requestPurchaseOnce(){
+  if(isPurchasing || purchaseConfirmed || matchStarted || matchEnded) return;
+  isPurchasing = true;
+  setState(STATES.PURCHASING);
+  render();
+  const itemId = GAME_INFO.id + "_entry_" + GAME_INFO.version;
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase==="function"){
+      window.BoomRoomSDK.requestPurchase(itemId, CONFIG.ENTRY_FEE);
+    }else{
+      isPurchasing = false;
+      setNotice("開發測試模式：未連接 BoomRoom SDK，不能模擬付款。");
+      setState(STATES.LOBBY);
+      render();
+    }
+  }catch(_){
+    isPurchasing = false;
+    setNotice("付款服務暫時不可用。");
+    setState(STATES.LOBBY);
+    render();
+  }
+}
+window.onPurchaseSuccess = function(itemId){
+  if(matchStarted || matchEnded || purchaseConfirmed || !isPurchasing) return;
+  if(itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
+  isPurchasing = false;
+  purchaseConfirmed = true;
+  addPlayer(ME.id,ME.username,ME.avatar,"READY",true);
+  sendEvent("PLAYER_HELLO",{roundId:"LOBBY",userId:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:Date.now(),paid:true});
+  setState(STATES.READY);
+  setNotice("已完成 Entry，等待本局參賽者與畫家確認。");
+  render();
+  maybeStart();
+};
+window.onPurchaseFailed = function(itemId){
+  if(itemId !== GAME_INFO.id + "_entry_" + GAME_INFO.version) return;
+  isPurchasing = false;
+  setState(STATES.LOBBY);
+  setNotice("付款失敗，本局未收取 Entry。");
+  render();
+};
+function callGameOver(reward){
+  const safeReward = clamp(Math.floor(finite(reward,0)),0,Math.max(0,Math.floor(prizePool)));
+  if(gameOverCalled) return;
+  gameOverCalled = true;
+  finalReward = safeReward;
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==="function"){
+      window.BoomRoomSDK.gameOver(safeReward);
+    }
+  }catch(_){}
+}
+
+/* =========================
+   HOST ELECTION
+   Stable fallback: smallest joinedAt then id.
+   No getHost() assumption.
+========================= */
+function electHost(){
+  const eligible = [...players.values()]
+    .filter(p=>p && p.id && p.status!=="LEFT")
+    .sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0)) || a.id.localeCompare(b.id));
+  return eligible.length ? eligible[0].id : ME.id;
+}
+function isHost(){ return electHost() === ME.id; }
+
+/* =========================
+   ROUND / ECONOMY
+========================= */
+function makeRoundId(){
+  return GAME_INFO.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7);
+}
+function makeSeed(){
+  let x = Date.now() ^ 0x9e3779b9;
+  for(let i=0;i<ME.id.length;i++) x = Math.imul(x ^ ME.id.charCodeAt(i),16777619);
+  return x >>> 0;
+}
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t>>>15, t|1);
+    t ^= t + Math.imul(t ^ t>>>7, t|61);
+    return ((t ^ t>>>14)>>>0)/4294967296;
+  };
+}
+function calculateEconomy(){
+  const paid = [...players.values()].filter(p=>p.paid && p.status!=="LEFT").length;
+  totalPool = Math.max(0, Math.floor(paid * CONFIG.ENTRY_FEE));
+  platformFee = Math.max(0, Math.floor(totalPool * CONFIG.PLATFORM_FEE_RATE));
+  prizePool = Math.max(0, totalPool - platformFee);
+}
+function paidPlayers(){
+  return [...players.values()].filter(p=>p.paid && p.status!=="LEFT");
+}
+function setRoundStart(){
+  roundId = makeRoundId();
+  roundSeed = makeSeed();
+  roundStartTime = Date.now() + 1500;
+  drawerId = electHost();
+  calculateEconomy();
+  sendEvent("ROUND_START",{
+    roundId, seed:roundSeed, startTime:roundStartTime, maxDuration:CONFIG.DRAW_TIME,
+    drawerId, entryCost:CONFIG.ENTRY_FEE, totalPool, platformFee, prizePool
+  });
+}
+function validRound(payload){
+  return payload && typeof payload==="object" && payload.roundId === roundId;
+}
+
+/* =========================
+   WORD SYSTEM
+========================= */
+const WORDS = [
+ "披薩","火箭","恐龍","西瓜","貓咪","漢堡","雨傘","摩天輪","章魚","冰淇淋",
+ "太空人","棒球","吉他","蛋糕","鯨魚","機器人","寶箱","彩虹","電風扇","滑板",
+ "獅子","香蕉","眼鏡","熱氣球","城堡","雪人","炸雞","仙人掌","海盜船","蝙蝠"
+];
+function chooseSecret(seed){
+  const r = mulberry32(seed ^ 0xA53C9E11);
+  return WORDS[Math.floor(r()*WORDS.length)] || WORDS[0];
+}
+
+/* =========================
+   CANVAS
+========================= */
+const canvas = document.getElementById("drawCanvas");
+let ctx = null;
+function initCanvas(){
+  if(!canvas) return;
+  ctx = canvas.getContext("2d",{alpha:false,desynchronized:true});
+  resizeCanvas();
+  window.addEventListener("resize",resizeCanvas,{passive:true});
+}
+function resizeCanvas(){
+  if(!canvas || !ctx) return;
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1,2);
+  canvas.width = Math.max(1,Math.floor(rect.width*dpr));
+  canvas.height = Math.max(1,Math.floor(rect.height*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle="#f7f8fb";
+  ctx.fillRect(0,0,rect.width,rect.height);
+}
+function clearCanvas(){
+  if(!ctx) return;
+  const r=canvas.getBoundingClientRect();
+  ctx.fillStyle="#f7f8fb";ctx.fillRect(0,0,r.width,r.height);
+}
+function drawSegment(a,b,color,size){
+  if(!ctx || !a || !b) return;
+  const r=canvas.getBoundingClientRect();
+  const x1=clamp(a.x,0,r.width),y1=clamp(a.y,0,r.height);
+  const x2=clamp(b.x,0,r.width),y2=clamp(b.y,0,r.height);
+  ctx.strokeStyle=color;ctx.lineWidth=clamp(size,2,28);ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+}
+function drawStroke(stroke){
+  if(!stroke || !Array.isArray(stroke.points) || stroke.points.length<2) return;
+  const color = stroke.color==="#ffffff" ? "#f7f8fb" : safeString(stroke.color, "#151923",20);
+  const size=clamp(stroke.size,2,28);
+  for(let i=1;i<stroke.points.length;i++) drawSegment(stroke.points[i-1],stroke.points[i],color,size);
+}
+function normalizePoint(e){
+  const r=canvas.getBoundingClientRect();
+  return {x:clamp(e.clientX-r.left,0,r.width),y:clamp(e.clientY-r.top,0,r.height)};
+}
+function beginStroke(e){
+  if(!isDrawer() || state!==STATES.PLAYING || matchEnded) return;
+  e.preventDefault();
+  ensureAudio();
+  const p=normalizePoint(e);
+  currentStroke={id:ME.id+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,5),color:brushColor,size:brushSize,points:[p]};
+  try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+}
+function moveStroke(e){
+  if(!currentStroke) return;
+  e.preventDefault();
+  const p=normalizePoint(e);
+  const last=currentStroke.points[currentStroke.points.length-1];
+  const dx=p.x-last.x,dy=p.y-last.y;
+  if(Math.hypot(dx,dy)<1.5) return;
+  if(currentStroke.points.length<CONFIG.MAX_POINTS_PER_STROKE){
+    currentStroke.points.push(p);
+    drawSegment(last,p,currentStroke.color,currentStroke.size);
+  }
+}
+function endStroke(e){
+  if(!currentStroke) return;
+  e.preventDefault();
+  if(currentStroke.points.length===1) currentStroke.points.push({...currentStroke.points[0],x:currentStroke.points[0].x+0.1});
+  const safeStroke={id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,points:currentStroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE)};
+  sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke:safeStroke});
+  currentStroke=null;
+}
+function applyRemoteStroke(stroke){
+  if(!stroke || stroke.id && pendingStrokes.has(stroke.id)) return;
+  if(stroke.id) pendingStrokes.set(stroke.id,true);
+  drawStroke(stroke);
+  if(pendingStrokes.size>CONFIG.MAX_STROKES*3){
+    const first=pendingStrokes.keys().next().value;pendingStrokes.delete(first);
+  }
+}
+function isDrawer(){return !!drawerId && drawerId===ME.id;}
+
+/* =========================
+   INPUT / GUESSING
+========================= */
+function submitGuess(){
+  if(state!==STATES.PLAYING || isDrawer() || matchEnded) return;
+  const input=document.getElementById("guessInput");
+  if(!input) return;
+  const guess=safeString(input.value,"",CONFIG.MAX_GUESS_LENGTH);
+  input.value="";
+  if(!guess) return;
+  sendEvent("GAME_EVENT",{roundId,type:"GUESS",userId:ME.id,username:ME.username,guess,at:Date.now()});
+  showGuessFeedback("已送出");
+}
+function normalizeAnswer(s){return s.replace(/\s+/g,"").toLowerCase();}
+function processGuess(payload){
+  if(!validRound(payload) || payload.type!=="GUESS" || matchEnded) return;
+  const uid=safeString(payload.userId,"",64);
+  const p=players.get(uid);
+  if(!p || !p.paid) return;
+  const guess=safeString(payload.guess,"",CONFIG.MAX_GUESS_LENGTH);
+  if(!guess) return;
+  if(normalizeAnswer(guess)!==normalizeAnswer(secretWord)) return;
+  finishMatch(uid,safeString(payload.username,p.username,CONFIG.MAX_NAME_LENGTH),"猜中題目");
+}
+function finishMatch(winnerId,winnerName,reason){
+  if(matchEnded) return;
+  matchEnded=true;
+  state=STATES.RESULT;
+  finalReason=reason;
+  const winner=players.get(winnerId);
+  if(winner){
+    winner.score=Math.max(0, winner.score+1000);
+    score = winnerId===ME.id ? winner.score : score;
+  }
+  const paid=paidPlayers();
+  finalRank = winnerId===ME.id ? 1 : Math.min(paid.length,2);
+  const reward = winnerId===ME.id ? Math.floor(Math.max(0,prizePool)) : 0;
+  finalReward=clamp(reward,0,Math.max(0,prizePool));
+  if(winner) winner.reward=finalReward;
+  for(const p of paid) if(p.id!==winnerId) p.status="LOST";
+  if(winner) winner.status="WIN";
+  callGameOver(finalReward);
+  sendEvent("PLAYER_END",{roundId,userId:ME.id,status:winnerId===ME.id?"WIN":"LOST",score:clamp(score,0,1e9),reward:finalReward,reason});
+  sendEvent("ROUND_END",{roundId,winnerId,reason,prizePool,reward:finalReward});
+  setTimeout(()=>{ if(state===STATES.RESULT) { state=STATES.WAITING_FOR_MAYOR_CLOSE; render(); } }, 1800);
+  render();
+}
+function finishTie(){
+  if(matchEnded) return;
+  matchEnded=true;
+  state=STATES.RESULT;
+  finalReason="時間到，無人猜中";
+  const paid=paidPlayers();
+  const winners=paid.filter(p=>p.id!==drawerId);
+  const count=Math.max(1,winners.length);
+  finalReward = winners.some(p=>p.id===ME.id) ? Math.floor(prizePool/count) : 0;
+  finalRank=1;
+  callGameOver(finalReward);
+  sendEvent("PLAYER_END",{roundId,userId:ME.id,status:"TIE",score:clamp(score,0,1e9),reward:finalReward,reason:finalReason});
+  sendEvent("ROUND_END",{roundId,winnerId:null,reason:finalReason,prizePool});
+  setTimeout(()=>{ if(state===STATES.RESULT) { state=STATES.WAITING_FOR_MAYOR_CLOSE; render(); } },1800);
+  render();
+}
+
+/* =========================
+   GAME START
+========================= */
+function maybeStart(){
+  if(matchStarted || matchEnded || !purchaseConfirmed) return;
+  const paid=paidPlayers();
+  if(paid.length<CONFIG.MIN_PLAYERS){
+    setNotice("等待至少 2 位已付款參賽者。");
+    render();
+    return;
+  }
+  if(!isHost()){
+    setNotice("你已準備。等待房主／本局畫家開始。");
+    render();
+    return;
+  }
+  setRoundStart();
+  matchStarted=true;
+  state=STATES.COUNTDOWN;
+  secretWord=chooseSecret(roundSeed);
+  startCountdown();
+  render();
+}
+function startCountdown(){
+  clearTimeout(countdownTimer);
+  let n=3;
+  setNotice("準備開始 · "+n);
+  countdownTimer=setInterval(()=>{
+    n--;
+    if(n>0){playTone(520+n*90,.06);setNotice("準備開始 · "+n);render();}
+    else{
+      clearInterval(countdownTimer);countdownTimer=null;
+      roundStartTime=Date.now();
+      state=STATES.PLAYING; gameElapsed=0; remaining=CONFIG.DRAW_TIME;
+      addPlayer(ME.id,ME.username,ME.avatar,"PLAYING",purchaseConfirmed);
+      sendEvent("PLAYER_STATE",{roundId,status:"PLAYING",score:0,hp:1});
+      playTone(760,.12);render();
+    }
+  },900);
+}
+
+/* =========================
+   EVENTS
+========================= */
+window.addEventListener("message",(e)=>{
+  try{
+    const data=typeof e.data==="string"?JSON.parse(e.data):e.data;
+    if(!data || data.action!=="gameEventReceived") return;
+    const userId=safeString(data.userId,"",64);
+    const eventName=safeString(data.eventName,"",40);
+    const payload=data.payload;
+    if(!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload!=="object") return;
+    const key=eventName+"|"+userId+"|"+safeString(payload.roundId,"NO_ROUND",80)+"|"+safeString(payload.eventId,"",80);
+    if(seenEvents.has(key)) return;
+    seenEvents.add(key);
+    if(seenEvents.size>CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
+    handleEvent(userId,eventName,payload);
+  }catch(_){}
+});
+function handleEvent(userId,eventName,payload){
+  if(eventName==="PLAYER_HELLO"){
+    addPlayer(userId,payload.username,payload.avatar,"READY",!!payload.paid);
+    render(); maybeStart(); return;
+  }
+  if(eventName==="ROUND_START"){
+    if(roundId && payload.roundId!==roundId) return;
+    if(typeof payload.roundId!=="string" || payload.roundId.length>100) return;
+    roundId=payload.roundId;
+    roundSeed=finite(payload.seed,0)>>>0;
+    roundStartTime=finite(payload.startTime,Date.now());
+    drawerId=safeString(payload.drawerId,"",64);
+    totalPool=clamp(Math.floor(finite(payload.totalPool,0)),0,1000000);
+    platformFee=clamp(Math.floor(finite(payload.platformFee,0)),0,totalPool);
+    prizePool=clamp(Math.floor(finite(payload.prizePool,0)),0,totalPool-platformFee);
+    matchStarted=true; matchEnded=false; gameOverCalled=false; state=STATES.COUNTDOWN;
+    if(isDrawer()) secretWord=chooseSecret(roundSeed);
+    startCountdown(); render(); return;
+  }
+  if(eventName==="GAME_EVENT"){
+    if(!validRound(payload)) return;
+    if(payload.type==="STROKE" && !isDrawer()) applyRemoteStroke(payload.stroke);
+    if(payload.type==="GUESS" && isDrawer()) processGuess(payload);
+    return;
+  }
+  if(eventName==="PLAYER_STATE"){
+    if(!validRound(payload)) return;
+    const p=addPlayer(userId,"玩家","",payload.status||"PLAYING",false);
+    if(p) p.score=clamp(Math.floor(finite(payload.score,0)),0,1e9);
+    render(); return;
+  }
+  if(eventName==="PLAYER_END"){
+    if(!validRound(payload)) return;
+    const p=players.get(userId)||addPlayer(userId,"玩家","");
+    if(p){p.status=safeString(payload.status,"END",20);p.score=clamp(Math.floor(finite(payload.score,0)),0,1e9);p.reward=clamp(Math.floor(finite(payload.reward,0)),0,Math.max(0,prizePool));}
+    render(); return;
+  }
+  if(eventName==="ROUND_END"){
+    if(!validRound(payload) || matchEnded) return;
+    matchEnded=true; state=STATES.RESULT;
+    const winnerId=safeString(payload.winnerId,"",64);
+    finalReward=winnerId===ME.id?clamp(Math.floor(finite(payload.reward,0)),0,prizePool):0;
+    finalReason=safeString(payload.reason,"本局結束",60);
+    callGameOver(finalReward);
+    render();
+    setTimeout(()=>{if(state===STATES.RESULT){state=STATES.WAITING_FOR_MAYOR_CLOSE;render();}},1800);
+  }
+}
+
+/* =========================
+   AUDIO / HAPTIC
+========================= */
+function ensureAudio(){
+  if(muted) return;
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+  }catch(_){}
+}
+function playTone(freq,duration=.08){
+  if(muted) return;
+  const now=performance.now();
+  if(now-soundCooldown<35) return;
+  soundCooldown=now;
+  ensureAudio(); if(!audioCtx) return;
+  try{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type="sine";o.frequency.value=clamp(freq,120,1600);g.gain.value=.035;
+    o.connect(g);g.connect(audioCtx.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);
+    o.stop(audioCtx.currentTime+duration);
+  }catch(_){}
+}
+function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}}
+function toggleSound(){
+  muted=!muted;
+  if(!muted) ensureAudio();
+  document.getElementById("soundBtn").textContent=muted?"🔇":"🔊";
+}
+
+/* =========================
+   UI
+========================= */
+let noticeText="";
+function setNotice(t){noticeText=safeString(t,"",100)}
+function showGuessFeedback(t){setNotice(t);setTimeout(()=>{if(!matchEnded){setNotice("") ;render()}},900);render();}
+function setState(s){if(Object.values(STATES).includes(s)) state=s}
+function render(){
+  const main=document.getElementById("main");
+  if(!main)return;
+  if(state===STATES.LOBBY || state===STATES.PURCHASING || state===STATES.READY){renderLobby(main);return}
+  if(state===STATES.COUNTDOWN || state===STATES.PLAYING){renderGame(main);return}
+  renderResult(main);
+}
+function renderLobby(main){
+  calculateEconomy();
+  const paid=paidPlayers().length;
+  const sdk=sdkAvailable();
+  main.innerHTML=`
+    <section class="panel hero center">
+      <div>
+        <h1>🎨 爆爆你畫我猜</h1>
+        <p>限時畫圖，猜中者拿走本局獎池。</p>
+        <div class="badges">
+          <span class="badge">派對競技</span><span class="badge">2–10 人</span><span class="badge">約 60 秒</span><span class="badge">手機觸控</span>
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="stats">
+        <div class="stat"><b>${CONFIG.ENTRY_FEE}</b><span>Entry 銀幣</span></div>
+        <div class="stat"><b>${paid}</b><span>已付款</span></div>
+        <div class="stat"><b>${totalPool}</b><span>總投入</span></div>
+        <div class="stat"><b>${prizePool}</b><span>勝利獎池</span></div>
+      </div>
+      <div style="height:8px"></div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.5">平台手續費 ${platformFee} 銀幣（10%）。正式開始後獎池鎖定，結束後本局不可重玩。</p>
+    </section>
+    <section class="panel">
+      <div class="players">${renderPlayers()}</div>
+      <div class="notice">${esc(noticeText || (paid<CONFIG.MIN_PLAYERS?"先完成 Entry，再等待至少 2 位參賽者。":"已達開賽人數，準備開始。"))}</div>
+      <button id="joinBtn" class="cta" ${isPurchasing||purchaseConfirmed||matchEnded?"disabled":""}>${isPurchasing?"付款處理中…":purchaseConfirmed?"✓ 已完成 Entry":"支付 100 銀幣參賽"}</button>
+      ${!sdk?'<div class="dev">開發測試模式：BoomRoom SDK 未連接，無法模擬購買。</div>':''}
+    </section>`;
+  const btn=document.getElementById("joinBtn");
+  if(btn && !purchaseConfirmed && !isPurchasing)btn.addEventListener("click",()=>{ensureAudio();requestPurchaseOnce()});
+}
+function renderPlayers(){
+  const arr=[...players.values()].slice(0,6);
+  if(!arr.length)return '<div class="player"><b>尚無參賽者</b><em>等待加入</em></div>';
+  return arr.map(p=>`<div class="player"><b>${esc(p.username)}${p.id===drawerId?" 🎨":""}</b><em>${p.paid?"已付款":"等待中"} · ${esc(p.status)}</em></div>`).join("")
+    +(players.size>6?`<div class="player"><b>+${players.size-6}</b><em>更多玩家</em></div>`:"");
+}
+function renderGame(main){
+  const drawer=isDrawer();
+  const t=state===STATES.COUNTDOWN?"準備…":Math.max(0,Math.ceil(remaining));
+  main.innerHTML=`
+    <div class="hud">
+      <div class="pill">⏱ <b id="timer">${t}</b> 秒</div>
+      <div class="pill">🎨 <b>${drawer?"你":"畫家"}</b></div>
+      <div class="pill">🏆 <b>${prizePool}</b> 銀幣</div>
+    </div>
+    <section id="canvasWrap">
+      <canvas id="drawCanvas"></canvas>
+      <div id="roleBadge">${drawer?"🎨 你是畫家":"🔎 猜題中"}</div>
+      <div id="wordBadge">${drawer?("題目："+esc(secretWord)):"看圖猜一猜"}</div>
+      <div id="cursorHint">${drawer?"拖曳畫圖，別說出答案！":"想到答案就輸入送出"}</div>
+    </section>
+    ${drawer?`
+      <div class="tools">
+        <button class="tool active" data-tool="pen">✏️</button>
+        <button class="tool" data-tool="eraser">◻️</button>
+        <button class="tool color" data-color="#151923" style="background:#151923"></button>
+        <button class="tool color" data-color="#e64b5d" style="background:#e64b5d"></button>
+        <button class="tool color" data-color="#3275e8" style="background:#3275e8"></button>
+        <button class="tool color" data-color="#36a96a" style="background:#36a96a"></button>
+        <button class="tool" id="clearBtn">清除</button>
+      </div>`:`
+      <div class="guessArea"><input id="guessInput" maxlength="${CONFIG.MAX_GUESS_LENGTH}" autocomplete="off" placeholder="輸入你的答案…"><button id="guessBtn">猜！</button></div>
+    `}
+    <div class="notice">${esc(noticeText || (drawer?"其他玩家正在搶答…":"搶在別人前猜中！"))}</div>
+    <div class="players">${renderPlayers()}</div>`;
+  // Reconnect canvas context because innerHTML recreated it.
+  const c=document.getElementById("drawCanvas");
+  if(c){window.__canvas=c;initGameCanvas(c);redrawKnownStrokes()}
+  if(drawer){
+    document.querySelectorAll("[data-color]").forEach(b=>b.addEventListener("click",()=>{brushColor=b.dataset.color;tool="pen";syncTools()}));
+    document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{tool=b.dataset.tool;if(tool==="eraser")brushColor="#f7f8fb";syncTools()}));
+    document.getElementById("clearBtn")?.addEventListener("click",()=>{
+      clearCanvas();sendEvent("GAME_EVENT",{roundId,type:"CLEAR_CANVAS"});
+    });
+  }else{
+    document.getElementById("guessBtn")?.addEventListener("click",submitGuess);
+    document.getElementById("guessInput")?.addEventListener("keydown",e=>{if(e.key==="Enter")submitGuess()});
+  }
+}
+let knownStrokes=[];
+function initGameCanvas(c){
+  window.canvas=c; ctx=c.getContext("2d",{alpha:false,desynchronized:true});
+  resizeCanvas();
+  c.addEventListener("pointerdown",beginStroke,{passive:false});
+  c.addEventListener("pointermove",moveStroke,{passive:false});
+  c.addEventListener("pointerup",endStroke,{passive:false});
+  c.addEventListener("pointercancel",endStroke,{passive:false});
+}
+function redrawKnownStrokes(){clearCanvas();for(const s of knownStrokes)drawStroke(s)}
+function syncTools(){
+  document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));
+}
+function renderResult(main){
+  const mine=finalReward>0;
+  const total=Math.max(0,Math.floor(prizePool));
+  const paid=paidPlayers().length;
+  main.innerHTML=`
+   <section class="panel hero center result">
+     <div class="resultTitle">${mine?"🏆 勝利":"本局結束"}</div>
+     <p>${esc(finalReason||"比賽已完成")}</p>
+     <div class="reward">+${finalReward} 銀幣</div>
+     <div class="stats">
+       <div class="stat"><b>第 ${finalRank} 名</b><span>排名</span></div>
+       <div class="stat"><b>${score}</b><span>Score</span></div>
+       <div class="stat"><b>${total}</b><span>獎池</span></div>
+       <div class="stat"><b>${platformFee}</b><span>平台費</span></div>
+     </div>
+   </section>
+   <section class="panel">
+     <p style="font-weight:900">本局已結束</p>
+     <p style="margin-top:5px;color:var(--muted);font-size:12px;line-height:1.5">參賽 ${paid} 人 · 總投入 ${totalPool} 銀幣 · 平台手續費 ${platformFee} 銀幣 · 最終獎池 ${total} 銀幣</p>
+     <div class="notice">等待市長關閉目前遊戲並重新開啟下一局</div>
+   </section>`;
+}
+
+/* =========================
+   GAME LOOP / PERFORMANCE
+========================= */
+function gameLoop(ts){
+  const dt=Math.min(Math.max((ts-lastFrame)/1000,0),0.033);
+  lastFrame=ts;
+  fps=0.9*fps+0.1*(1/Math.max(dt,0.001));
+  if(state===STATES.PLAYING && !matchEnded){
+    gameElapsed += dt;
+    remaining=clamp(CONFIG.DRAW_TIME-gameElapsed,0,CONFIG.DRAW_TIME);
+    if(remaining<=0){
+      if(isDrawer()) finishTie();
+    }
+  }
+  rafId=requestAnimationFrame(gameLoop);
+}
+function heartbeat(){
+  if(!matchStarted || !roundId || matchEnded) return;
+  sendEvent("PLAYER_HEARTBEAT",{roundId,status:state,timestamp:Date.now()});
+  const now=Date.now();
+  for(const [id,p] of players){
+    if(id!==ME.id && now-p.lastSeen>CONFIG.PLAYER_TIMEOUT_MS)p.status="TIMEOUT";
+  }
+}
+
+/* =========================
+   CANVAS EVENT OVERRIDE SUPPORT
+========================= */
+const originalHandleEvent = handleEvent;
+handleEvent = function(userId,eventName,payload){
+  if(eventName==="GAME_EVENT" && validRound(payload)){
+    if(payload.type==="STROKE" && !isDrawer()){
+      if(payload.stroke && typeof payload.stroke==="object"){
+        knownStrokes.push(payload.stroke);
+        if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();
+        applyRemoteStroke(payload.stroke);
+      }
+    }else if(payload.type==="CLEAR_CANVAS" && !isDrawer()){
+      knownStrokes=[];clearCanvas();
+    }else if(payload.type==="GUESS" && isDrawer()){
+      processGuess(payload);
+    }
+  }
+  if(eventName==="ROUND_START" && payload && typeof payload==="object"){
+    knownStrokes=[];clearCanvas();
+  }
+  originalHandleEvent(userId,eventName,payload);
+};
+
+/* =========================
+   LIFECYCLE / SAFETY
+========================= */
+function resetForNewInstance(){
+  // Only callable by a newly-created page/game instance, never from result UI.
+  state=STATES.LOBBY;gameOverCalled=false;isPurchasing=false;purchaseConfirmed=false;
+  roundId="";roundSeed=0;roundStartTime=0;gameElapsed=0;remaining=CONFIG.DRAW_TIME;
+  score=0;finalReward=0;finalRank=1;finalReason="";prizePool=0;totalPool=0;platformFee=0;
+  matchStarted=false;matchEnded=false;drawerId="";secretWord="";knownStrokes=[];players.clear();
+  addPlayer(ME.id,ME.username,ME.avatar,"LOCAL",false);clearCanvas();
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden && state===STATES.PLAYING){/* no high-speed background simulation */}
+});
+window.addEventListener("pagehide",()=>{clearInterval(countdownTimer);clearInterval(heartbeatTimer);cancelAnimationFrame(rafId)});
+
+/* =========================
+   HELP / SOUND
+========================= */
+document.getElementById("helpBtn").addEventListener("click",()=>document.getElementById("helpModal").classList.add("show"));
+document.getElementById("closeHelp").addEventListener("click",()=>document.getElementById("helpModal").classList.remove("show"));
+document.getElementById("soundBtn").addEventListener("click",toggleSound);
+
+/* =========================
+   DEBUG
+========================= */
+function debugOverlay(){
+  if(!CONFIG.DEBUG)return;
+  let el=document.getElementById("debug");
+  if(!el){el=document.createElement("div");el.id="debug";el.style.cssText="position:fixed;left:6px;bottom:6px;z-index:100;background:#000c;color:#7cffb2;font:10px monospace;padding:6px;pointer-events:none";document.body.appendChild(el)}
+  el.textContent=`FPS ${fps.toFixed(0)} | PLAYER ${ME.id} | ROUND ${roundId||"-"} | DRAWER ${drawerId||"-"} | STATE ${state} | PLAYERS ${players.size} | PAID ${paidPlayers().length}`;
+}
+
+/* =========================
+   INITIALIZATION
+========================= */
+function boot(){
+  setNotice(sdkAvailable()?"":"開發測試模式：BoomRoom SDK 未連接。");
+  render();
+  lastFrame=performance.now();
+  rafId=requestAnimationFrame(gameLoop);
+  heartbeatTimer=setInterval(heartbeat,CONFIG.HEARTBEAT_MS);
+  setInterval(debugOverlay,1000);
+  // Advertise presence without claiming payment.
+  sendEvent("PLAYER_HELLO",{roundId:"LOBBY",userId:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,paid:false});
+}
+boot();
+</script>
+</body>
+</html>
