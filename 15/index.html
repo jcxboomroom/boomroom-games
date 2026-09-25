@@ -572,7 +572,7 @@ function applyRoundStart(payload){
 
 function broadcastLobbySync(toUserId){
   if(!isHost()||!roundId)return;
-  sendEvent("LOBBY_SYNC",{roundId,phase:state,category:selectedCategory,voteDeadline,paymentDeadline,matchStarted,participantCount:participantPlayers().length,totalRounds,turnSeconds:activeTurnSeconds});
+  sendEvent("LOBBY_SYNC",{roundId,phase:state,category:selectedCategory,voteDeadline,paymentDeadline,matchStarted,participantCount:participantPlayers().length,totalRounds:selectedRounds,turnSeconds:activeTurnSeconds});
 }
 
 const usedWordIndexes=new Map();
@@ -821,7 +821,7 @@ function clearAllCanvas(){if(!isDrawer()||matchEnded)return;knownStrokes=[];loca
 function syncTools(){document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));document.querySelectorAll("[data-size]").forEach(b=>b.classList.toggle("active",Number(b.dataset.size)===brushSize))}
 
 function ensureAudio(){if(muted)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){}}
-function playTone(freq,duration=.08){if(muted)return;const now=performance.now();if(now-soundCooldown<35)return;soundCooldown=now;ensureAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=clamp(freq,120,1700);g.gain.value=.035;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.stop(audioCtx.currentTime+duration)}catch(_){}}
+function playTone(freq,duration=.08){if(muted)return;const now=performance.now();if(now-soundCooldown<35)return;soundCooldown=now;ensureAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=clamp(freq,120,1700);g.gain.value=.28;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.stop(audioCtx.currentTime+duration)}catch(_){}}
 function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}}
 function toggleSound(){muted=!muted;if(!muted)ensureAudio();document.getElementById("soundBtn").textContent=muted?"🔇":"🔊"}
 function showToast(t){const el=document.getElementById("toast");if(!el)return;el.textContent=safeString(t,"",100);el.classList.add("show");clearTimeout(showToast.t);showToast.t=setTimeout(()=>el.classList.remove("show"),1200)}
@@ -854,10 +854,14 @@ function startCountdown(){
 }
 
 function render(){
-  const main=document.getElementById("main");if(!main)return;
-  if(state===STATES.LOBBY||state===STATES.SELECT_CATEGORY||state===STATES.PURCHASING||state===STATES.READY){renderLobby(main);return}
-  if(state===STATES.COUNTDOWN||state===STATES.PLAYING){renderGame(main);return}
-  renderResult(main);
+  try {
+    const main=document.getElementById("main");if(!main)return;
+    if(state===STATES.LOBBY||state===STATES.SELECT_CATEGORY||state===STATES.PURCHASING||state===STATES.READY){renderLobby(main);return}
+    if(state===STATES.COUNTDOWN||state===STATES.PLAYING){renderGame(main);return}
+    renderResult(main);
+  } catch (err) {
+    console.error("Render error:", err);
+  }
 }
 function currentPaidCount(){return[...players.values()].filter(p=>p.paid&&p.status!=="LEFT").length}
 function renderPlayers(){
@@ -937,8 +941,6 @@ function renderResult(main){
   }).join('')}</div></section>
   <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
 }
-  <section class="panel"><p style="font-weight:1000">本局已結束</p><p class="tiny muted" style="margin-top:5px">參賽 ${participantPlayers().length} 人 · 總投入 ${intClamp(totalPool,0,1000000)} 銀幣 · 平台手續費 ${intClamp(platformFee,0,1000000)} 銀幣 · 最終獎池 ${intClamp(prizePool,0,1000000)} 銀幣</p><div class="notice">等待室長關閉目前遊戲並重新開啟下一局</div></section>`;
-}
 
 function gameLoop(ts){
   if(!rafRunning)return;
@@ -983,7 +985,11 @@ function boot(){
   loopHandle=requestAnimationFrame(gameLoop);
   heartbeatTimer=setInterval(heartbeat,CONFIG.HEARTBEAT_MS);
 }
-boot();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>
