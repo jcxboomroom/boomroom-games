@@ -759,6 +759,7 @@ function applyRoundEnd(payload){
 
 function handleEvent(userId,eventName,payload){
   const knownUser=players.get(userId); if(knownUser)knownUser.lastSeen=Date.now();
+  if(eventName==="TOGGLE_SOUND"){ toggleSound(); return; }
   if(eventName==="PLAYER_HELLO"){
     const p=addPlayer(userId,payload.username,payload.avatar,payload.paid?"READY":"WAITING",!!payload.paid);if(p){p.lastSeen=Date.now();p.joinedAt=finite(payload.joinedAt,p.joinedAt)}
     if(matchStarted&&!participants.has(userId))p.status="SPECTATOR";
