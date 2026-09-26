@@ -77,13 +77,6 @@ button:disabled{opacity:.45;cursor:default}
 </head>
 <body>
 <div id="app"><div class="shell">
-  <header class="top">
-    <div class="brand">💥 爆爆你畫我猜<small>BOOMROOM UGC · ONE-SHOT</small></div>
-    <div class="topActions">
-      <button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button>
-      <button id="helpBtn" class="iconBtn" aria-label="玩法">?</button>
-    </div>
-  </header>
   <main id="main" class="screen"></main>
 </div></div>
 
@@ -518,6 +511,10 @@ function castCategoryVote(categoryId){
   if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
   if(votedCategory)return;
   votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});
+  if(isHost() && categoryVotes.size >= players.size){
+    clearTimeout(voteTimer);
+    finishCategoryVoteAsHost();
+  }
   render();
 }
 function castRoundsVote(r){
@@ -552,17 +549,20 @@ function finishCategoryVoteAsHost(){
   selectedTurnSeconds=bestS;
   CONFIG.TURN_SECONDS=selectedTurnSeconds;
 
-  state=STATES.PURCHASING;paymentDeadline=Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000;
+  state=STATES.PURCHASING;paymentDeadline=Date.now()+1500;
   sendEvent("CATEGORY_VOTE_RESULT",{roundId,categoryId:selectedCategory,rounds:selectedRounds,turnSeconds:selectedTurnSeconds,paymentDeadline});
-  setNotice("投票完成！題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"（"+selectedRounds+"輪 / "+selectedTurnSeconds+"秒）。現在支付 Entry 參賽。");render();
-  clearTimeout(paymentTimer);paymentTimer=setTimeout(()=>startRoundAsHost(selectedCategory),CONFIG.PAYMENT_WINDOW_SECONDS*1000+200);
+  setNotice("投票完成！題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+"（"+selectedRounds+"輪 / "+selectedTurnSeconds+"秒）。即將開始遊戲！");render();
+  clearTimeout(paymentTimer);paymentTimer=setTimeout(()=>startRoundAsHost(selectedCategory), 1500);
 }
 
 function startRoundAsHost(category){
   if(!isHost()||matchStarted||matchEnded)return;
-  const paid=[...players.values()].filter(p=>p.paid&&p.status!=="LEFT").sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,CONFIG.MAX_PLAYERS);
+  for(const p of players.values()) {
+    if(p.status !== "LEFT") p.paid = true;
+  }
+  const paid=[...players.values()].filter(p=>p.status!=="LEFT").sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,CONFIG.MAX_PLAYERS);
   if(paid.length<CONFIG.MIN_PLAYERS){
-    setNotice(`報名人數不足 ${CONFIG.MIN_PLAYERS} 人，遊戲無法開始。已退回銀幣（由伺服器處理）。`);
+    setNotice(`人數不足 ${CONFIG.MIN_PLAYERS} 人，遊戲無法開始。`);
     matchEnded=true; state=STATES.LOBBY; render();
     return;
   }
@@ -571,7 +571,7 @@ function startRoundAsHost(category){
   matchStarted=true;matchEnded=false;rewardLocked=false;gameOverCalled=false;
   roundStartAt=Date.now()+1500;
   const order=paid.map(p=>p.id);
-  const payload={roundId,seed:roundSeed,startTime:roundStartAt,category:selectedCategory,entryCost:CONFIG.ENTRY_FEE,totalPool,platformFee,prizePool,participantIds:order,turnDuration:CONFIG.TURN_SECONDS};
+  const payload={roundId,seed:roundSeed,startTime:roundStartAt,category:selectedCategory,entryCost:CONFIG.ENTRY_FEE,totalPool,platformFee,prizePool,participantIds:order,turnDuration:CONFIG.TURN_SECONDS,turnSeconds:CONFIG.TURN_SECONDS,rounds:selectedRounds};
   sendEvent("ROUND_START",payload);
   applyRoundStart(payload);
 }
