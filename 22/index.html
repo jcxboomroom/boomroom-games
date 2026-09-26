@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆貓狗大戰</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff}
+.cta:active{transform:scale(.97)}
+.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
+.players{display:flex;gap:6px;overflow-x:auto}
+.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
+.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player em{display:block;font-style:normal;color:var(--muted)}
+.player.me{border-color:#42537b}
+
+#canvasWrap{position:relative;flex:1;min-height:260px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg,#1a1c29,#070912)}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.controlGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.controlBox{background:#0b0f18;border:1px solid var(--line);border-radius:12px;padding:8px;font-size:12px}
+.controlBox label{display:block;margin-bottom:4px;color:var(--muted);font-weight:bold}
+.controlBox input{width:100%;accent-color:var(--cyan)}
+.feedBox{max-height:75px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <main id="main" class="screen"></main>
+</div></div>
+
+<script>
+"use strict";
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  MIN_PLAYERS: 1,
+  MAX_PLAYERS: 8
+});
+
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+let sdkIsHost = false;
+let gameRoomId = "";
+let players = new Map();
+
+let state = "LOBBY"; // LOBBY, PLAYING, RESULT
+let hpCat = 100;
+let hpDog = 100;
+let wind = 0; // -5 to +5
+let angle = 45;
+let power = 50;
+let turn = "CAT"; // CAT or DOG
+let feed = [];
+
+// Canvas & Projectiles
+let canvas, ctx;
+let projectile = null; // { x, y, vx, vy, active }
+let gameLoopId = null;
+
+function isHost() { return sdkIsHost || players.size <= 1; }
+
+function safeString(v, fallback, maxLen) {
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+
+function addPlayer(id, username, avatar) {
+  if (!id) return;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), hp: 100 };
+    players.set(id, p);
+  } else {
+    p.username = safeString(username, p.username, 12);
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", 12);
+    ME.avatar = safeString(data.user.avatar, "", 300);
+    addPlayer(ME.id, ME.username, ME.avatar);
+  }
+  sdkIsHost = !!(data && data.isHost);
+  gameRoomId = (data && data.roomId) || "";
+
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
+    });
+  }
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (d && d.action === "initSDK") setupSDK(d);
+    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+function sendEvent(eventName, payload) {
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+    }
+  } catch (_) {}
+}
+
+function handleGameEvent(eventName, payload, senderId) {
+  if (eventName === "CATDOG_START") {
+    state = "PLAYING";
+    hpCat = 100;
+    hpDog = 100;
+    wind = Number(((Math.random() * 6) - 3).toFixed(1));
+    turn = "CAT";
+    projectile = null;
+    feed = ["🐾 貓狗大戰開打！貓咪先攻。風速：" + wind];
+    startCanvasLoop();
+    render();
+  } else if (eventName === "FIRE_SHOT") {
+    fireShotAction(payload.shooter, payload.angle, payload.power, payload.wind);
+  }
+}
+
+function startCanvasLoop() {
+  cancelAnimationFrame(gameLoopId);
+  const run = () => {
+    if (state !== "PLAYING") return;
+    updateGame();
+    drawGame();
+    gameLoopId = requestAnimationFrame(run);
+  };
+  gameLoopId = requestAnimationFrame(run);
+}
+
+function fireShotAction(shooter, ang, pow, wnd) {
+  const rad = (ang * Math.PI) / 180;
+  const speed = pow * 0.22;
+  const startX = shooter === "CAT" ? 70 : 290;
+  const startY = 190;
+  const vx = (shooter === "CAT" ? 1 : -1) * Math.cos(rad) * speed + wnd * 0.15;
+  const vy = -Math.sin(rad) * speed;
+
+  projectile = { x: startX, y: startY, vx, vy, shooter, active: true };
+}
+
+function updateGame() {
+  if (!projectile || !projectile.active) return;
+
+  projectile.x += projectile.vx;
+  projectile.y += projectile.vy;
+  projectile.vy += 0.25; // gravity
+
+  // Check bounds
+  if (projectile.y > 280 || projectile.x < 0 || projectile.x > 360) {
+    projectile.active = false;
+    feed.push("💨 砲彈落空！");
+    switchTurn();
+    return;
+  }
+
+  // Hit test against Cat (x: 50~90, y: 170~220) and Dog (x: 270~310, y: 170~220)
+  if (projectile.shooter === "DOG" && projectile.x >= 50 && projectile.x <= 90 && projectile.y >= 160 && projectile.y <= 220) {
+    projectile.active = false;
+    hpCat = Math.max(0, hpCat - 35);
+    feed.push("💥 小狗命中貓咪！貓咪 HP -35");
+    checkGameOver();
+  } else if (projectile.shooter === "CAT" && projectile.x >= 270 && projectile.x <= 310 && projectile.y >= 160 && projectile.y <= 220) {
+    projectile.active = false;
+    hpDog = Math.max(0, hpDog - 35);
+    feed.push("💥 貓咪命中地盤！小狗 HP -35");
+    checkGameOver();
+  }
+}
+
+function switchTurn() {
+  turn = turn === "CAT" ? "DOG" : "CAT";
+  wind = Number(((Math.random() * 6) - 3).toFixed(1));
+  feed.push(`🔄 換 ${turn === 'CAT' ? '貓咪' : '小狗'} 回合！當前風速：${wind}`);
+  render();
+}
+
+function checkGameOver() {
+  if (hpCat <= 0 || hpDog <= 0) {
+    state = "RESULT";
+    cancelAnimationFrame(gameLoopId);
+    const winnerName = hpCat <= 0 ? "小狗陣營" : "貓咪陣營";
+    feed.push(`🏆 ${winnerName} 獲得勝利！`);
+    try {
+      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+        window.BoomRoomSDK.gameOver(100);
+      }
+    } catch(_) {}
+  } else {
+    switchTurn();
+  }
+  render();
+}
+
+function drawGame() {
+  if (!canvas || !ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background skyline / buildings
+  ctx.fillStyle = "#111625";
+  ctx.fillRect(30, 200, 70, 80);  // Cat Roof
+  ctx.fillRect(260, 200, 70, 80); // Dog Roof
+
+  // Draw Cat
+  ctx.fillStyle = "#ff637a";
+  ctx.beginPath();
+  ctx.arc(65, 185, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(58, 180, 4, 6);
+  ctx.fillRect(68, 180, 4, 6);
+
+  // Draw Dog
+  ctx.fillStyle = "#62e7ff";
+  ctx.beginPath();
+  ctx.arc(295, 185, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(288, 180, 4, 6);
+  ctx.fillRect(298, 180, 4, 6);
+
+  // Draw Projectile
+  if (projectile && projectile.active) {
+    ctx.fillStyle = "#ffd166";
+    ctx.beginPath();
+    ctx.arc(projectile.x, projectile.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function renderPlayers() {
+  return [...players.values()].map(p => {
+    const isMe = p.id === ME.id;
+    return `<div class="player ${isMe?'me':''}">
+      <b>${esc(p.username)}</b>
+      <em>貓 HP: ${hpCat} | 狗 HP: ${hpDog}</em>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+function runLocalDevTest() {
+  players.clear();
+  addPlayer(ME.id, ME.username, ME.avatar);
+  sendEvent("CATDOG_START", {});
+  handleGameEvent("CATDOG_START", {}, ME.id);
+}
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+
+  if (state === "LOBBY") {
+    main.innerHTML = `
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>100 HP</b><span>初始血量</span></div><div class="stat"><b>經典砲擊</b><span>回合對決</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《貓狗大戰》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
+    `;
+    document.getElementById("startBtn")?.addEventListener("click", () => {
+      sendEvent("CATDOG_START", {});
+      handleGameEvent("CATDOG_START", {}, ME.id);
+    });
+    document.getElementById("devBtn")?.addEventListener("click", () => {
+      runLocalDevTest();
+    });
+    return;
+  }
+
+  if (state === "PLAYING") {
+    const isMyTurn = (turn === "CAT"); // Local player plays Cat for simplicity in 2-player/dev test
+
+    main.innerHTML = `
+      <div class="stats" style="flex:none;">
+        <div class="stat"><b>🐱 貓咪 HP: ${hpCat}</b><span>左側屋頂</span></div>
+        <div class="stat"><b>💨 風速: ${wind}</b><span>即時風向</span></div>
+        <div class="stat"><b>🐶 小狗 HP: ${hpDog}</b><span>右側屋頂</span></div>
+      </div>
+
+      <div id="canvasWrap">
+        <canvas id="gameCanvas" width="360" height="260"></canvas>
+      </div>
+
+      <div class="controlGrid">
+        <div class="controlBox">
+          <label>調整角度: <span id="angleVal">${angle}</span>°</label>
+          <input type="range" id="angleRange" min="10" max="80" value="${angle}">
+        </div>
+        <div class="controlBox">
+          <label>投擲力道: <span id="powerVal">${power}</span></label>
+          <input type="range" id="powerRange" min="20" max="100" value="${power}">
+        </div>
+      </div>
+
+      <button id="fireBtn" class="cta" ${isMyTurn ? '' : 'disabled'}>
+        ${isMyTurn ? '🔥 投擲砲擊！' : `等待 ${turn==='CAT'?'貓咪':'小狗'} 回合...`}
+      </button>
+
+      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+    `;
+
+    canvas = document.getElementById("gameCanvas");
+    if (canvas) {
+      ctx = canvas.getContext("2d");
+    }
+
+    document.getElementById("angleRange")?.addEventListener("input", e => {
+      angle = Number(e.target.value);
+      document.getElementById("angleVal").textContent = angle;
+    });
+
+    document.getElementById("powerRange")?.addEventListener("input", e => {
+      power = Number(e.target.value);
+      document.getElementById("powerVal").textContent = power;
+    });
+
+    document.getElementById("fireBtn")?.addEventListener("click", () => {
+      if (!isMyTurn) return;
+      const payload = { shooter: turn, angle, power, wind };
+      sendEvent("FIRE_SHOT", payload);
+      handleGameEvent("FIRE_SHOT", payload, ME.id);
+    });
+
+    startCanvasLoop();
+    return;
+  }
+
+  if (state === "RESULT") {
+    main.innerHTML = `
+      <section class="panel center" style="flex:1;">
+        <div>
+          <h2>🏆 貓狗大戰對決結束</h2>
+          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">貓 HP: ${hpCat} | 狗 HP: ${hpDog}</p>
+          <div class="feedBox" style="max-height:120px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("restartBtn")?.addEventListener("click", () => {
+      state = "LOBBY";
+      render();
+    });
+  }
+}
+
+// 預設初次渲染
+addPlayer(ME.id, ME.username, ME.avatar);
+render();
+</script>
+</body>
+</html>

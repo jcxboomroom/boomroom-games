@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆血腥大老二</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff;font-weight:1000;font-size:15px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta.danger{background:linear-gradient(135deg,#d90429,#ef233c);color:#fff}
+.cta:active{transform:scale(.97)}
+.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
+.players{display:flex;gap:6px;overflow-x:auto}
+.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
+.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player em{display:block;font-style:normal;color:var(--muted)}
+.player.me{border-color:#ff4d6d}.player.turn{border-color:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.2)}
+
+/* 🃏 Card styling */
+.handArea{display:flex;gap:4px;overflow-x:auto;padding:12px 4px 6px;min-height:100px;align-items:center}
+.card{width:50px;height:76px;background:#fff;color:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between;padding:4px;font-weight:bold;font-size:12px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:transform .15s;flex:none;cursor:pointer;position:relative}
+.card.red{color:#e63946}
+.card.selected{transform:translateY(-14px);border:2px solid var(--red);box-shadow:0 0 12px var(--red)}
+
+/* Table Center */
+.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;background:#1a080c;border:1px dashed #ff4d6d66;border-radius:16px;padding:12px;position:relative}
+.lastPlayBox{display:flex;gap:6px;margin-top:8px;justify-content:center}
+
+.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.feedBox{max-height:85px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
+.rankList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-top:8px}
+.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#0b101b;border:1px solid var(--line);border-radius:11px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <main id="main" class="screen"></main>
+</div></div>
+
+<script>
+"use strict";
+
+const SUITS = ["♣", "♦", "♥", "♠"];
+const RANKS = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+let sdkIsHost = false;
+let gameRoomId = "";
+
+let players = new Map();
+let hand = [];
+let selectedIndices = new Set();
+
+let state = "LOBBY"; // LOBBY, PLAYING, RESULT
+let currentTurnUserId = "";
+let lastPlay = null; // { userId, username, cardList: [] }
+let passCount = 0;
+let bloodyMultiplier = 1;
+let feed = [];
+
+function isHost() { return sdkIsHost || players.size <= 1; }
+
+function safeString(v, fallback, maxLen) {
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+
+function addPlayer(id, username, avatar) {
+  if (!id) return;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 13, score: 0 };
+    players.set(id, p);
+  } else {
+    p.username = safeString(username, p.username, 12);
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", 12);
+    ME.avatar = safeString(data.user.avatar, "", 300);
+    addPlayer(ME.id, ME.username, ME.avatar);
+  }
+  sdkIsHost = !!(data && data.isHost);
+  gameRoomId = (data && data.roomId) || "";
+
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
+    });
+  }
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (d && d.action === "initSDK") setupSDK(d);
+    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+function sendEvent(eventName, payload) {
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+    }
+  } catch (_) {}
+}
+
+function getCardValue(c) {
+  return RANKS.indexOf(c.rank) * 4 + SUITS.indexOf(c.suit);
+}
+
+function sortHand(cards) {
+  return cards.sort((a, b) => getCardValue(a) - getCardValue(b));
+}
+
+function generateFullDeck() {
+  const deck = [];
+  for (const r of RANKS) {
+    for (const s of SUITS) {
+      deck.push({ rank: r, suit: s });
+    }
+  }
+  return deck.sort(() => Math.random() - 0.5);
+}
+
+function handleGameEvent(eventName, payload, senderId) {
+  if (eventName === "TOGGLE_SOUND") return;
+
+  if (eventName === "BLOODY_START") {
+    state = "PLAYING";
+    lastPlay = null;
+    passCount = 0;
+    bloodyMultiplier = 1;
+    feed = ["🩸 血腥大老二開戰！殘牌重罰與鐵支爆擊啟動。"];
+    generateHand();
+    currentTurnUserId = payload.startUserId || ME.id;
+    render();
+  } else if (eventName === "PLAY_COMBO") {
+    lastPlay = { userId: payload.userId, username: payload.username, cardList: payload.cardList };
+    passCount = 0;
+    const p = players.get(payload.userId);
+    if (p) p.cardCount = Math.max(0, p.cardCount - payload.cardList.length);
+
+    // Check for 4-of-a-kind (Bomb / 鐵支)
+    if (payload.cardList.length === 4 && payload.cardList.every(c => c.rank === payload.cardList[0].rank)) {
+      bloodyMultiplier *= 2;
+      feed.push(`💥 【血腥爆擊】${esc(payload.username)} 打出鐵支！本局罰分加倍至 ${bloodyMultiplier}x！`);
+    }
+
+    feed.push(`🃏 ${esc(payload.username)} 出牌 [ ${payload.cardList.map(c=>c.suit+c.rank).join(" ")} ]`);
+
+    if (p && p.cardCount === 0) {
+      feed.push(`🏆 恭喜 ${esc(payload.username)} 率先清空手牌，奪得血腥大老二冠軍！`);
+      if (payload.userId === ME.id) {
+        try {
+          if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+            window.BoomRoomSDK.gameOver(150);
+          }
+        } catch(_) {}
+      }
+      state = "RESULT";
+    } else {
+      currentTurnUserId = payload.nextUserId;
+    }
+    render();
+  } else if (eventName === "PASS_TURN") {
+    passCount++;
+    feed.push(`🤐 ${esc(payload.username)} 選擇 PASS (過)`);
+    if (passCount >= players.size - 1) {
+      lastPlay = null;
+      feed.push(`🌟 全員 PASS！由 ${esc(payload.nextUsername)} 獲得自由發牌權！`);
+    }
+    currentTurnUserId = payload.nextUserId;
+    render();
+  }
+}
+
+function generateHand() {
+  const deck = generateFullDeck();
+  hand = sortHand(deck.slice(0, 13));
+  selectedIndices.clear();
+}
+
+function renderPlayers() {
+  return [...players.values()].map(p => {
+    const isMe = p.id === ME.id;
+    const isTurn = p.id === currentTurnUserId;
+    const penaltyScore = (p.cardCount || 13) * 10 * bloodyMultiplier;
+    return `<div class="player ${isMe?'me':''} ${isTurn?'turn':''}">
+      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
+      <em>剩餘: ${p.cardCount || 13} 張 (罰分:${penaltyScore})</em>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+function runLocalDevTest() {
+  players.clear();
+  addPlayer(ME.id, ME.username, ME.avatar);
+  addPlayer("dev_2", "小米", "");
+  addPlayer("dev_3", "阿樂", "");
+  addPlayer("dev_4", "可可", "");
+  sendEvent("BLOODY_START", { startUserId: ME.id });
+  handleGameEvent("BLOODY_START", { startUserId: ME.id }, ME.id);
+}
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+
+  if (state === "LOBBY") {
+    main.innerHTML = `
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${bloodyMultiplier}x</b><span>血腥倍率</span></div><div class="stat"><b>鐵支爆擊</b><span>刺激加倍</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《血腥大老二》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
+    `;
+    document.getElementById("startBtn")?.addEventListener("click", () => {
+      sendEvent("BLOODY_START", { startUserId: ME.id });
+      handleGameEvent("BLOODY_START", { startUserId: ME.id }, ME.id);
+    });
+    document.getElementById("devBtn")?.addEventListener("click", () => {
+      runLocalDevTest();
+    });
+    return;
+  }
+
+  if (state === "PLAYING") {
+    const isMyTurn = currentTurnUserId === ME.id;
+    main.innerHTML = `
+      <section class="tableCenter">
+        <div style="color:var(--red);font-weight:bold;font-size:12px;">🩸 血腥倍率：${bloodyMultiplier}x</div>
+        ${lastPlay ? `<div class="tiny muted" style="margin-top:4px;">上一手出牌 (${esc(lastPlay.username)})：</div><div class="lastPlayBox">${lastPlay.cardList.map(c => {
+          const isRed = c.suit === "♥" || c.suit === "♦";
+          return `<div class="card ${isRed?'red':''}"><div>${c.rank}</div><div style="font-size:16px;text-align:center;">${c.suit}</div><div style="text-align:right;">${c.rank}</div></div>`;
+        }).join("")}</div>` : '<div class="notice">🌟 自由牌權：出任意合法牌型！</div>'}
+      </section>
+
+      <section class="panel">
+        <div class="sectionTitle">房內玩家狀態</div>
+        <div class="players">${renderPlayers()}</div>
+      </section>
+
+      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+
+      <section class="panel">
+        <div class="sectionTitle">你的手牌 (${hand.length} 張，點擊選牌)：</div>
+        <div class="handArea">
+          ${hand.map((c, idx) => {
+            const isRed = c.suit === "♥" || c.suit === "♦";
+            const sel = selectedIndices.has(idx) ? "selected" : "";
+            return `<div class="card ${isRed?'red':''} ${sel}" data-idx="${idx}">
+              <div>${c.rank}</div>
+              <div style="font-size:16px;text-align:center;">${c.suit}</div>
+              <div style="text-align:right;">${c.rank}</div>
+            </div>`;
+          }).join("")}
+        </div>
+
+        <div class="actionRow">
+          <button id="playBtn" class="cta danger" ${isMyTurn && selectedIndices.size > 0 ? '' : 'disabled'}>
+            ${isMyTurn ? `出牌 (${selectedIndices.size} 張)` : '等待輪到你...'}
+          </button>
+          <button id="passBtn" class="cta secondary" ${isMyTurn && lastPlay ? '' : 'disabled'}>
+            PASS (過)
+          </button>
+        </div>
+      </section>
+    `;
+
+    document.querySelectorAll(".card").forEach(el => {
+      el.addEventListener("click", () => {
+        const idx = Number(el.dataset.idx);
+        if (selectedIndices.has(idx)) selectedIndices.delete(idx);
+        else selectedIndices.add(idx);
+        render();
+      });
+    });
+
+    document.getElementById("playBtn")?.addEventListener("click", () => {
+      if (!isMyTurn || selectedIndices.size === 0) return;
+      const playedCards = [...selectedIndices].map(i => hand[i]);
+      hand = hand.filter((_, i) => !selectedIndices.has(i));
+      selectedIndices.clear();
+
+      const nextUserIds = [...players.keys()];
+      const currentIdx = nextUserIds.indexOf(ME.id);
+      const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
+
+      const payload = { userId: ME.id, username: ME.username, cardList: playedCards, nextUserId };
+      sendEvent("PLAY_COMBO", payload);
+      handleGameEvent("PLAY_COMBO", payload, ME.id);
+    });
+
+    document.getElementById("passBtn")?.addEventListener("click", () => {
+      if (!isMyTurn || !lastPlay) return;
+      const nextUserIds = [...players.keys()];
+      const currentIdx = nextUserIds.indexOf(ME.id);
+      const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
+      const nextUsername = players.get(nextUserId)?.username || "玩家";
+
+      const payload = { userId: ME.id, username: ME.username, nextUserId, nextUsername };
+      sendEvent("PASS_TURN", payload);
+      handleGameEvent("PASS_TURN", payload, ME.id);
+    });
+
+    return;
+  }
+
+  if (state === "RESULT") {
+    const sorted = [...players.values()].sort((a,b) => a.cardCount - b.cardCount);
+    main.innerHTML = `
+      <section class="panel center" style="flex:1;">
+        <div style="width:100%;">
+          <h2>🩸 血腥大老二對決結算</h2>
+          <div class="rankList">
+            ${sorted.map((p, i) => `
+              <div class="rankRow">
+                <div class="rankNo">第 ${i+1} 名</div>
+                <div class="rankName"><b>${esc(p.username)}</b> ${p.id===ME.id?'(0張勝出)':''}</div>
+                <div class="rankScore">剩餘 ${p.cardCount} 張 (罰分 ${p.cardCount * 10 * bloodyMultiplier})</div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="feedBox" style="max-height:110px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("restartBtn")?.addEventListener("click", () => {
+      state = "LOBBY";
+      render();
+    });
+  }
+}
+
+// 預設初次渲染
+addPlayer(ME.id, ME.username, ME.avatar);
+render();
+</script>
+</body>
+</html>

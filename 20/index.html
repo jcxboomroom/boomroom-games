@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆小朋友下樓梯</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta:active{transform:scale(.97)}
+.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
+.players{display:flex;gap:6px;overflow-x:auto}
+.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
+.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player em{display:block;font-style:normal;color:var(--muted)}
+.player.me{border-color:#42537b}.player.dead{opacity:.4}
+
+#canvasWrap{position:relative;flex:1;min-height:300px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#05070f}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.ctrlRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.ctrlBtn{height:56px;border-radius:16px;background:#161f33;border:1px solid var(--line);font-size:22px;font-weight:bold;color:var(--cyan)}
+.ctrlBtn:active{background:var(--cyan);color:#070912}
+.feedBox{max-height:75px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <main id="main" class="screen"></main>
+</div></div>
+
+<script>
+"use strict";
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  MIN_PLAYERS: 1,
+  MAX_PLAYERS: 8
+});
+
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+let sdkIsHost = false;
+let gameRoomId = "";
+let players = new Map();
+
+let state = "LOBBY"; // LOBBY, PLAYING, RESULT
+let score = 0;
+let lives = 3;
+let feed = [];
+
+// Game Physics & Objects
+let canvas, ctx;
+let player = { x: 180, y: 50, w: 28, h: 36, vx: 0, vy: 0 };
+let platforms = [];
+let keys = { left: false, right: false };
+let cameraY = 0;
+let gameLoopId = null;
+
+function isHost() { return sdkIsHost || players.size <= 1; }
+
+function safeString(v, fallback, maxLen) {
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+
+function addPlayer(id, username, avatar) {
+  if (!id) return;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), lives: 3, score: 0, alive: true };
+    players.set(id, p);
+  } else {
+    p.username = safeString(username, p.username, 12);
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", 12);
+    ME.avatar = safeString(data.user.avatar, "", 300);
+    addPlayer(ME.id, ME.username, ME.avatar);
+  }
+  sdkIsHost = !!(data && data.isHost);
+  gameRoomId = (data && data.roomId) || "";
+
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
+    });
+  }
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (d && d.action === "initSDK") setupSDK(d);
+    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+function sendEvent(eventName, payload) {
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+    }
+  } catch (_) {}
+}
+
+function handleGameEvent(eventName, payload, senderId) {
+  if (eventName === "STAIRS_START") {
+    state = "PLAYING";
+    score = 0;
+    lives = 3;
+    feed = ["🏃 小朋友下樓梯開始！左右移動安全降落。"];
+    initGameWorld();
+    startCanvasLoop();
+    render();
+  }
+}
+
+function initGameWorld() {
+  player = { x: 180, y: 80, w: 26, h: 34, vx: 0, vy: 0 };
+  platforms = [];
+  cameraY = 0;
+  // Generate initial platforms
+  for (let i = 0; i < 10; i++) {
+    platforms.push({
+      x: Math.random() * 260,
+      y: 150 + i * 55,
+      w: 90,
+      h: 14,
+      type: Math.random() < 0.15 ? 'spike' : (Math.random() < 0.2 ? 'spring' : 'normal')
+    });
+  }
+}
+
+function startCanvasLoop() {
+  cancelAnimationFrame(gameLoopId);
+  const run = () => {
+    if (state !== "PLAYING") return;
+    updateGame();
+    drawGame();
+    gameLoopId = requestAnimationFrame(run);
+  };
+  gameLoopId = requestAnimationFrame(run);
+}
+
+function updateGame() {
+  // Movement
+  if (keys.left) player.vx = -4.5;
+  else if (keys.right) player.vx = 4.5;
+  else player.vx *= 0.8;
+
+  player.x += player.vx;
+  player.vy += 0.35; // Gravity
+  player.y += player.vy;
+
+  // Auto scroll upward
+  cameraY += 1.2;
+  score = Math.floor(cameraY / 10);
+
+  // Screen bounds
+  if (player.x < 0) player.x = 0;
+  if (player.x > 360 - player.w) player.x = 360 - player.w;
+
+  // Platform collision
+  platforms.forEach(p => {
+    if (
+      player.vy > 0 &&
+      player.x + player.w > p.x &&
+      player.x < p.x + p.w &&
+      player.y + player.h >= p.y &&
+      player.y + player.h <= p.y + p.h + 8
+    ) {
+      if (p.type === 'spike') {
+        lives--;
+        player.vy = -6;
+        feed.push("⚠️ 踩到刺釘！生命 -1");
+        if (lives <= 0) gameOver();
+      } else if (p.type === 'spring') {
+        player.vy = -12;
+        score += 20;
+      } else {
+        player.y = p.y - player.h;
+        player.vy = -1.2; // Move up with scrolling platform
+      }
+    }
+  });
+
+  // Top ceiling check
+  if (player.y < cameraY) {
+    lives--;
+    player.y = cameraY + 20;
+    feed.push("💥 撞到頂部天花板！生命 -1");
+    if (lives <= 0) gameOver();
+  }
+
+  // Bottom fall check
+  if (player.y > cameraY + 450) {
+    lives--;
+    player.y = cameraY + 100;
+    feed.push("⬇️ 跌落底部！生命 -1");
+    if (lives <= 0) gameOver();
+  }
+
+  // Recycle platforms
+  platforms.forEach(p => {
+    if (p.y < cameraY - 40) {
+      p.y = cameraY + 500 + Math.random() * 40;
+      p.x = Math.random() * 260;
+      const rnd = Math.random();
+      p.type = rnd < 0.15 ? 'spike' : (rnd < 0.3 ? 'spring' : 'normal');
+    }
+  });
+}
+
+function drawGame() {
+  if (!canvas || !ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(0, -cameraY);
+
+  // Draw Platforms
+  platforms.forEach(p => {
+    if (p.type === 'spike') {
+      ctx.fillStyle = '#ff4d6d';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      // Draw spikes
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < p.w; i += 15) {
+        ctx.beginPath();
+        ctx.moveTo(p.x + i, p.y);
+        ctx.lineTo(p.x + i + 7, p.y - 8);
+        ctx.lineTo(p.x + i + 15, p.y);
+        ctx.fill();
+      }
+    } else if (p.type === 'spring') {
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.fillStyle = '#070912';
+      ctx.fillRect(p.x + p.w / 2 - 8, p.y - 4, 16, 4);
+    } else {
+      ctx.fillStyle = '#62e7ff';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+    }
+  });
+
+  // Draw Player
+  ctx.fillStyle = '#b76cff';
+  ctx.beginPath();
+  ctx.roundRect(player.x, player.y, player.w, player.h, [8]);
+  ctx.fill();
+
+  // Draw Eyes
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(player.x + 6, player.y + 8, 4, 6);
+  ctx.fillRect(player.x + 16, player.y + 8, 4, 6);
+
+  ctx.restore();
+}
+
+function gameOver() {
+  state = "RESULT";
+  cancelAnimationFrame(gameLoopId);
+  feed.push(`🏁 遊戲結束！最終得分：${score} 分`);
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(score);
+    }
+  } catch(_) {}
+  render();
+}
+
+function renderPlayers() {
+  return [...players.values()].map(p => {
+    const isMe = p.id === ME.id;
+    return `<div class="player ${isMe?'me':''}">
+      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
+      <em>得分: ${p.score || score} 分</em>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+function runLocalDevTest() {
+  players.clear();
+  addPlayer(ME.id, ME.username, ME.avatar);
+  sendEvent("STAIRS_START", {});
+  handleGameEvent("STAIRS_START", {}, ME.id);
+}
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+
+  if (state === "LOBBY") {
+    main.innerHTML = `
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>3 點</b><span>初始生命</span></div><div class="stat"><b>經典街機</b><span>懷舊玩法</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《小朋友下樓梯》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
+    `;
+    document.getElementById("startBtn")?.addEventListener("click", () => {
+      sendEvent("STAIRS_START", {});
+      handleGameEvent("STAIRS_START", {}, ME.id);
+    });
+    document.getElementById("devBtn")?.addEventListener("click", () => {
+      runLocalDevTest();
+    });
+    return;
+  }
+
+  if (state === "PLAYING") {
+    main.innerHTML = `
+      <div class="stats" style="flex:none;">
+        <div class="stat"><b>❤️ ${"❤️".repeat(Math.max(0, lives))}</b><span>生命值</span></div>
+        <div class="stat"><b>${score} 層</b><span>下落高度</span></div>
+      </div>
+
+      <div id="canvasWrap">
+        <canvas id="gameCanvas" width="360" height="450"></canvas>
+      </div>
+
+      <div class="ctrlRow">
+        <button id="leftBtn" class="ctrlBtn">◀ 往左</button>
+        <button id="rightBtn" class="ctrlBtn">往右 ▶</button>
+      </div>
+
+      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+    `;
+
+    canvas = document.getElementById("gameCanvas");
+    if (canvas) {
+      ctx = canvas.getContext("2d");
+    }
+
+    const bindTouch = (btnId, dir) => {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener("pointerdown", e => { e.preventDefault(); keys[dir] = true; });
+      btn.addEventListener("pointerup", e => { e.preventDefault(); keys[dir] = false; });
+      btn.addEventListener("pointerleave", e => { e.preventDefault(); keys[dir] = false; });
+    };
+    bindTouch("leftBtn", "left");
+    bindTouch("rightBtn", "right");
+
+    startCanvasLoop();
+    return;
+  }
+
+  if (state === "RESULT") {
+    main.innerHTML = `
+      <section class="panel center" style="flex:1;">
+        <div>
+          <h2>🏆 小朋友下樓梯結算</h2>
+          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">最終下落高度：${score} 層</p>
+          <div class="feedBox" style="max-height:120px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("restartBtn")?.addEventListener("click", () => {
+      state = "LOBBY";
+      render();
+    });
+  }
+}
+
+// 預設初次渲染
+addPlayer(ME.id, ME.username, ME.avatar);
+render();
+</script>
+</body>
+</html>
