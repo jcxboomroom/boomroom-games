@@ -4,810 +4,5076 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#08050b">
+
 <title>爆爆馬戲團：極限跳火圈</title>
+
 <style>
 :root{
-  --bg:#f7e8d1;--ink:#24151a;--muted:#80656a;--cream:#fff7e8;
-  --red:#d93b4b;--red2:#a9233a;--gold:#f4b83f;--orange:#f47c32;
-  --pink:#ef5b82;--blue:#5eb9d5;--green:#62b77b;
-  --safeT:env(safe-area-inset-top,0px);--safeB:env(safe-area-inset-bottom,0px)
+  --bg:#f7e8d1;
+  --ink:#24151a;
+  --muted:#80656a;
+  --cream:#fff7e8;
+
+  --red:#d93b4b;
+  --red2:#a9233a;
+  --gold:#f4b83f;
+  --orange:#f47c32;
+  --pink:#ef5b82;
+  --blue:#5eb9d5;
+  --green:#62b77b;
+
+  --safeT:env(safe-area-inset-top,0px);
+  --safeB:env(safe-area-inset-bottom,0px);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
-font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;
-user-select:none;touch-action:none}
-button{font:inherit;border:0;color:inherit}
-#app{width:100%;height:100dvh;display:flex;justify-content:center;
-background:linear-gradient(180deg,#fff4df 0,#f4d9bd 100%)}
-.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;
-padding:calc(5px + var(--safeT)) 8px calc(5px + var(--safeB));gap:6px}
-.topbar{height:43px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 5px}
-.brand{font-weight:1000;font-size:15px;letter-spacing:.2px;color:#351820}
-.topActions{display:flex;gap:6px}
-.iconBtn{width:36px;height:36px;border-radius:50%;background:#fff8ea;border:2px solid #dfb889;
-font-size:17px;box-shadow:0 2px 0 #c99a6d}
-.iconBtn:active{transform:translateY(2px)}
-#main{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
-.panel{background:rgba(255,250,240,.95);border:1.5px solid #e1bc94;border-radius:17px;padding:11px;
-box-shadow:0 4px 16px rgba(107,57,35,.10)}
-.stats{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:5px}
-.stat{min-width:0;padding:6px 4px;background:#fff9ed;border:1px solid #ead1b2;border-radius:10px;text-align:center}
-.stat b{display:block;font-size:14px;white-space:nowrap;color:#3b2027}.stat span{display:block;font-size:8px;color:#967579;margin-top:1px}
-#gameWrap{position:relative;flex:1;min-height:250px;border-radius:19px;overflow:hidden;border:2px solid #a9474f;
-background:#f7dcae;box-shadow:0 7px 22px rgba(104,49,40,.20);touch-action:none}
-#gameCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-#centerMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;text-align:center}
-#centerMsg>div{opacity:0;transform:translateY(8px) scale(.92);transition:.18s}
-#centerMsg.show>div{opacity:1;transform:none}
-.msgBig{font-size:34px;font-weight:1000;color:#fff8df;text-shadow:0 3px 8px #5a1f26}
-.msgSmall{font-size:13px;font-weight:900;color:#fff4c8;margin-top:2px;text-shadow:0 2px 5px #5a1f26}
-.jump{height:60px;flex:none;border-radius:17px;background:linear-gradient(180deg,#ffd75c,#f39a2f);
-color:#3b170b;font-size:21px;font-weight:1000;border:2px solid #c86e25;
-box-shadow:0 5px 0 #a75320,0 8px 18px rgba(164,78,25,.18)}
-.jump:active{transform:translateY(3px);box-shadow:0 2px 0 #a75320}
-.notice{text-align:center;font-size:11px;color:#80656a;padding:4px}
-.players{display:flex;gap:6px;overflow:hidden}
-.player{min-width:92px;flex:1;padding:7px 8px;border-radius:11px;background:#fff9ed;border:1px solid #ead1b2;font-size:10px}
-.player b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{font-style:normal;color:#967579;font-size:9px}
-.cta{width:100%;min-height:49px;border-radius:14px;background:linear-gradient(135deg,#e84a55,#f39b36);
-color:#fff9eb;font-weight:1000;font-size:15px;border:2px solid #b73243;box-shadow:0 4px 0 #9c2a38}
-.cta.secondary{background:#fff8ea;color:#48232a;border:1.5px solid #d9b384;box-shadow:0 3px 0 #c39a70}
-.cta:active{transform:translateY(2px)}
-.resultScore{font-size:40px;font-weight:1000;color:#d58b19;text-shadow:0 2px 0 #fff}
-.rule{font-size:12px;line-height:1.65;color:#654a4e;text-align:left}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#fff0c8;border:1px solid #e2b44f;color:#9a6414;font-size:10px;font-weight:900}
-@media(max-height:620px){.topbar{height:37px}.iconBtn{width:33px;height:33px}.jump{height:52px}.panel{padding:9px}.stat{padding:5px 3px}.stat b{font-size:12px}}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--ink);
+
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    "Noto Sans TC",
+    "Microsoft JhengHei",
+    sans-serif;
+
+  user-select:none;
+  touch-action:none;
+}
+
+button{
+  font:inherit;
+  border:0;
+  color:inherit;
+}
+
+#app{
+  width:100%;
+  height:100dvh;
+
+  display:flex;
+  justify-content:center;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fff4df 0,
+      #f4d9bd 100%
+    );
+}
+
+.shell{
+  width:min(100%,760px);
+  height:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    calc(5px + var(--safeT))
+    8px
+    calc(5px + var(--safeB));
+
+  gap:6px;
+}
+
+.topbar{
+  height:43px;
+  flex:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:0 5px;
+}
+
+.brand{
+  font-weight:1000;
+  font-size:15px;
+  letter-spacing:.2px;
+  color:#351820;
+}
+
+.topActions{
+  display:flex;
+  gap:6px;
+}
+
+.iconBtn{
+  width:36px;
+  height:36px;
+
+  border-radius:50%;
+
+  background:#fff8ea;
+  border:2px solid #dfb889;
+
+  font-size:17px;
+
+  box-shadow:0 2px 0 #c99a6d;
+}
+
+.iconBtn:active{
+  transform:translateY(2px);
+}
+
+#main{
+  flex:1;
+  min-height:0;
+
+  display:flex;
+  flex-direction:column;
+
+  gap:6px;
+}
+
+.panel{
+  background:rgba(255,250,240,.95);
+
+  border:1.5px solid #e1bc94;
+  border-radius:17px;
+
+  padding:11px;
+
+  box-shadow:
+    0 4px 16px rgba(107,57,35,.10);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:
+    1.2fr 1fr 1fr 1fr;
+
+  gap:5px;
+}
+
+.stat{
+  min-width:0;
+
+  padding:6px 4px;
+
+  background:#fff9ed;
+  border:1px solid #ead1b2;
+  border-radius:10px;
+
+  text-align:center;
+}
+
+.stat b{
+  display:block;
+
+  font-size:14px;
+  white-space:nowrap;
+
+  color:#3b2027;
+}
+
+.stat span{
+  display:block;
+
+  font-size:8px;
+  color:#967579;
+
+  margin-top:1px;
+}
+
+#gameWrap{
+  position:relative;
+
+  flex:1;
+  min-height:250px;
+
+  border-radius:19px;
+  overflow:hidden;
+
+  border:2px solid #a9474f;
+
+  background:#f7dcae;
+
+  box-shadow:
+    0 7px 22px rgba(104,49,40,.20);
+
+  touch-action:none;
+}
+
+#gameCanvas{
+  position:absolute;
+
+  inset:0;
+
+  width:100%;
+  height:100%;
+
+  display:block;
+
+  touch-action:none;
+}
+
+#centerMsg{
+  position:absolute;
+  inset:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  pointer-events:none;
+
+  text-align:center;
+}
+
+#centerMsg>div{
+  opacity:0;
+
+  transform:
+    translateY(8px)
+    scale(.92);
+
+  transition:.18s;
+}
+
+#centerMsg.show>div{
+  opacity:1;
+  transform:none;
+}
+
+.msgBig{
+  font-size:34px;
+  font-weight:1000;
+
+  color:#fff8df;
+
+  text-shadow:
+    0 3px 8px #5a1f26;
+}
+
+.msgSmall{
+  font-size:13px;
+  font-weight:900;
+
+  color:#fff4c8;
+
+  margin-top:2px;
+
+  text-shadow:
+    0 2px 5px #5a1f26;
+}
+
+.jump{
+  height:60px;
+  flex:none;
+
+  border-radius:17px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffd75c,
+      #f39a2f
+    );
+
+  color:#3b170b;
+
+  font-size:21px;
+  font-weight:1000;
+
+  border:2px solid #c86e25;
+
+  box-shadow:
+    0 5px 0 #a75320,
+    0 8px 18px rgba(164,78,25,.18);
+}
+
+.jump:active{
+  transform:translateY(3px);
+
+  box-shadow:
+    0 2px 0 #a75320;
+}
+
+.notice{
+  text-align:center;
+
+  font-size:11px;
+
+  color:#80656a;
+
+  padding:4px;
+}
+
+.players{
+  display:flex;
+  gap:6px;
+  overflow:hidden;
+}
+
+.player{
+  min-width:92px;
+  flex:1;
+
+  padding:7px 8px;
+
+  border-radius:11px;
+
+  background:#fff9ed;
+  border:1px solid #ead1b2;
+
+  font-size:10px;
+}
+
+.player b{
+  display:block;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.player em{
+  font-style:normal;
+
+  color:#967579;
+
+  font-size:9px;
+}
+
+.cta{
+  width:100%;
+  min-height:49px;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e84a55,
+      #f39b36
+    );
+
+  color:#fff9eb;
+
+  font-weight:1000;
+  font-size:15px;
+
+  border:2px solid #b73243;
+
+  box-shadow:
+    0 4px 0 #9c2a38;
+}
+
+.cta.secondary{
+  background:#fff8ea;
+  color:#48232a;
+
+  border:1.5px solid #d9b384;
+
+  box-shadow:
+    0 3px 0 #c39a70;
+}
+
+.cta:active{
+  transform:translateY(2px);
+}
+
+.resultScore{
+  font-size:40px;
+  font-weight:1000;
+
+  color:#d58b19;
+
+  text-shadow:
+    0 2px 0 #fff;
+}
+
+.rule{
+  font-size:12px;
+  line-height:1.65;
+
+  color:#654a4e;
+
+  text-align:left;
+}
+
+.badge{
+  display:inline-block;
+
+  padding:4px 8px;
+
+  border-radius:999px;
+
+  background:#fff0c8;
+
+  border:1px solid #e2b44f;
+
+  color:#9a6414;
+
+  font-size:10px;
+  font-weight:900;
+}
+
+.muted{
+  color:#967579;
+}
+
+@media(max-height:620px){
+
+  .topbar{
+    height:37px;
+  }
+
+  .iconBtn{
+    width:33px;
+    height:33px;
+  }
+
+  .jump{
+    height:52px;
+  }
+
+  .panel{
+    padding:9px;
+  }
+
+  .stat{
+    padding:5px 3px;
+  }
+
+  .stat b{
+    font-size:12px;
+  }
+}
 </style>
 </head>
+
 <body>
-<div id="app"><div class="shell">
-  <div class="topbar">
-    <div class="brand">🎪 爆爆馬戲團 · 極限跳火圈</div>
-    <div class="topActions">
-      <button id="soundBtn" class="iconBtn" aria-label="音效">🔊</button>
-      <button id="helpBtn" class="iconBtn" aria-label="玩法">?</button>
+
+<div id="app">
+
+  <div class="shell">
+
+    <div class="topbar">
+
+      <div class="brand">
+        🎪 爆爆馬戲團 · 極限跳火圈
+      </div>
+
+      <div class="topActions">
+
+        <button
+          id="soundBtn"
+          class="iconBtn"
+          aria-label="音效">
+          🔊
+        </button>
+
+        <button
+          id="helpBtn"
+          class="iconBtn"
+          aria-label="玩法">
+          ?
+        </button>
+
+      </div>
+
     </div>
+
+    <main id="main"></main>
+
   </div>
-  <main id="main"></main>
-</div></div>
+
+</div>
 
 <script>
 "use strict";
 
 /* =========================================================
    BOOMROOM — Circus Fire Hoop
-   單檔 HTML / Canvas 2D / Mobile First
+   完整修改版
+
+   主要修改：
+
+   1. 火圈放大
+   2. 人物縮小
+   3. 火圈高度改為固定 3 段
+   4. 火圈只生成於可跳躍區間
+   5. 相鄰火圈高度差限制
+   6. 跳躍物理重新調整
+   7. 火圈碰撞判定放寬
+   8. 不再讓螢幕比例直接決定火圈是否跳得到
+   ========================================================= */
+
+
+/* =========================================================
+   GAME INFO
    ========================================================= */
 
 const GAME_INFO = Object.freeze({
+
   category:"arcade",
+
   name:"爆爆馬戲團：極限跳火圈",
-  description:"馬戲團自動前進，抓準火圈高度點擊起跳；穿越中心得分，連續成功提高 Combo 與倍率。",
+
+  description:
+    "馬戲團自動前進，抓準火圈高度點擊起跳；穿越中心得分，連續成功提高 Combo 與倍率。",
+
   entryCost:100,
+
   maxPlayers:8,
-  controlModes:["TOUCH","MOUSE","KEYBOARD"]
+
+  controlModes:[
+    "TOUCH",
+    "MOUSE",
+    "KEYBOARD"
+  ]
+
 });
+
+
+/* =========================================================
+   GAME CONFIG
+   ========================================================= */
 
 const CONFIG = Object.freeze({
+
   ENTRY_FEE:100,
+
   BASE_SPEED:235,
-  MAX_SPEED:390,
-  GRAVITY:1580,
-  JUMP_VY:-590,
+
+  MAX_SPEED:370,
+
+  /*
+   * 原本 GRAVITY 太大 + 火圈高度變動太大
+   * 容易造成某些圈完全跳不到。
+   *
+   * 現在重新配合人物尺寸。
+   */
+  GRAVITY:1420,
+
+  /*
+   * 跳躍速度。
+   */
+  JUMP_VY:-555,
+
+  /*
+   * 玩家在畫面的固定 X。
+   */
   PLAYER_X:0.235,
+
+  /*
+   * 地面高度。
+   */
   GROUND_RATIO:.83,
-  PERFECT_WINDOW:.19,
-  GOOD_WINDOW:.36,
+
+  /*
+   * 火圈變大後，
+   * PERFECT 判定稍微放寬。
+   */
+  PERFECT_WINDOW:.23,
+
+  GOOD_WINDOW:.44,
+
   MISS_LIFE_LOSS:1,
+
   START_LIVES:3,
-  MAX_RING_GAP:430,
-  MIN_RING_GAP:265,
+
+  /*
+   * 火圈之間距離。
+   */
+  MAX_RING_GAP:470,
+
+  MIN_RING_GAP:300,
+
   ROUND_TIME:72,
+
   SCORE_GOOD:100,
-  SCORE_PERFECT:180
+
+  SCORE_PERFECT:180,
+
+  /*
+   * =====================================================
+   * 新增：火圈尺寸
+   * =====================================================
+   *
+   * 原本：
+   * rand(34,41)
+   *
+   * 現在：
+   * 54 ~ 62
+   *
+   * 火圈明顯放大。
+   */
+  RING_MIN_RADIUS:54,
+
+  RING_MAX_RADIUS:62,
+
+  /*
+   * =====================================================
+   * 新增：人物縮小
+   * =====================================================
+   */
+  PLAYER_WIDTH:32,
+
+  PLAYER_HEIGHT:46,
+
+  /*
+   * =====================================================
+   * 固定火圈高度
+   *
+   * 這三個是「相對於地面」的高度。
+   *
+   * LOW：
+   * 比較容易
+   *
+   * MID：
+   * 標準
+   *
+   * HIGH：
+   * 需要完整跳躍
+   *
+   * 不會使用完全隨機 Y。
+   * =====================================================
+   */
+  RING_HEIGHT_LOW:.68,
+
+  RING_HEIGHT_MID:.57,
+
+  RING_HEIGHT_HIGH:.47,
+
+  /*
+   * 高低火圈之間最大跳級。
+   *
+   * 0 = 不允許變化
+   * 1 = 可以任意變化
+   *
+   * 現在使用「相鄰高度最多差一級」。
+   */
+  MAX_HEIGHT_STEP:1
+
 });
 
-let ME={id:"local_"+Math.random().toString(36).slice(2,10),username:"本地玩家",avatar:""};
+
+/* =========================================================
+   GLOBAL STATE
+   ========================================================= */
+
+let ME={
+  id:"local_"+Math.random().toString(36).slice(2,10),
+
+  username:"本地玩家",
+
+  avatar:""
+};
+
 let players=new Map();
-let sdkIsHost=false, gameRoomId="";
+
+let sdkIsHost=false;
+
+let gameRoomId="";
+
 let state="LOBBY";
-let canvas=null,ctx=null,wrap=null;
-let raf=0,lastTime=0;
-let W=360,H=500,dpr=1;
-let muted=false,audioCtx=null;
+
+let canvas=null;
+
+let ctx=null;
+
+let wrap=null;
+
+let raf=0;
+
+let lastTime=0;
+
+let W=360;
+
+let H=500;
+
+let dpr=1;
+
+let muted=false;
+
+let audioCtx=null;
+
 let gameOverCalled=false;
-let isPurchasing=false,hasPaid=false;
-let score=0,lives=CONFIG.START_LIVES,combo=0,bestCombo=0;
-let rings=[],particles=[],floatingTexts=[],stars=[];
-let player={x:0,y:0,groundY:0,vy:0,w:42,h:58,onGround:true,airTime:0,rotation:0,hitCooldown:0};
-let distance=0,speed=CONFIG.BASE_SPEED,elapsed=0,ringId=0;
-let nextRingX=0,lastRingHeight=0;
+
+let isPurchasing=false;
+
+let hasPaid=false;
+
+
+/* =========================================================
+   SCORE
+   ========================================================= */
+
+let score=0;
+
+let lives=CONFIG.START_LIVES;
+
+let combo=0;
+
+let bestCombo=0;
+
+
+/* =========================================================
+   WORLD
+   ========================================================= */
+
+let rings=[];
+
+let particles=[];
+
+let floatingTexts=[];
+
+let stars=[];
+
+let player={
+
+  x:0,
+
+  y:0,
+
+  groundY:0,
+
+  vy:0,
+
+  w:CONFIG.PLAYER_WIDTH,
+
+  h:CONFIG.PLAYER_HEIGHT,
+
+  onGround:true,
+
+  airTime:0,
+
+  rotation:0,
+
+  hitCooldown:0
+
+};
+
+let distance=0;
+
+let speed=CONFIG.BASE_SPEED;
+
+let elapsed=0;
+
+let ringId=0;
+
+let nextRingX=0;
+
+let lastRingHeight=0;
+
+let lastHeightIndex=1;
+
 let lastInput=0;
+
 let eventFeed=[];
+
 let seeded=Date.now()>>>0;
+
 let countdown=0;
 
-function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function safeString(v,f,m){if(v==null)return f;const s=String(v).trim();return s?s.slice(0,m):f;}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function lerp(a,b,t){return a+(b-a)*t;}
-function rand(a=0,b=1){seeded=(seeded*1664525+1013904223)>>>0;return a+((seeded>>>0)/4294967296)*(b-a);}
-function isHost(){return sdkIsHost||players.size<=1;}
+
+/* =========================================================
+   UTILITY
+   ========================================================= */
+
+function esc(s){
+
+  return String(s||"").replace(
+    /[&<>"']/g,
+
+    c=>({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[c])
+  );
+
+}
+
+
+function safeString(v,f,m){
+
+  if(v==null)return f;
+
+  const s=String(v).trim();
+
+  return s?s.slice(0,m):f;
+
+}
+
+
+function clamp(v,a,b){
+
+  return Math.max(
+    a,
+    Math.min(b,v)
+  );
+
+}
+
+
+function lerp(a,b,t){
+
+  return a+(b-a)*t;
+
+}
+
+
+function rand(a=0,b=1){
+
+  seeded=
+    (seeded*1664525+1013904223)>>>0;
+
+  return a+
+    ((seeded>>>0)/4294967296)*(b-a);
+
+}
+
+
+function isHost(){
+
+  return sdkIsHost||players.size<=1;
+
+}
+
+
+/* =========================================================
+   PLAYER SYSTEM
+   ========================================================= */
 
 function addPlayer(id,username,avatar){
+
   if(id==null)return;
+
   id=String(id);
+
   let p=players.get(id);
-  if(!p){p={id,username:safeString(username,"玩家",12),avatar:safeString(avatar,"",300),score:0};players.set(id,p);}
-  else p.username=safeString(username,p.username,12);
+
+  if(!p){
+
+    p={
+      id,
+
+      username:safeString(
+        username,
+        "玩家",
+        12
+      ),
+
+      avatar:safeString(
+        avatar,
+        "",
+        300
+      ),
+
+      score:0
+    };
+
+    players.set(id,p);
+
+  }else{
+
+    p.username=safeString(
+      username,
+      p.username,
+      12
+    );
+
+  }
+
   return p;
+
 }
+
+
+/* =========================================================
+   SDK
+   ========================================================= */
 
 function setupSDK(data){
+
   if(data&&data.user){
+
     players.delete(ME.id);
+
     ME.id=String(data.user.id);
-    ME.username=safeString(data.user.username,"玩家",12);
-    ME.avatar=safeString(data.user.avatar,"",300);
-    addPlayer(ME.id,ME.username,ME.avatar);
+
+    ME.username=safeString(
+      data.user.username,
+      "玩家",
+      12
+    );
+
+    ME.avatar=safeString(
+      data.user.avatar,
+      "",
+      300
+    );
+
+    addPlayer(
+      ME.id,
+      ME.username,
+      ME.avatar
+    );
+
   }
-  sdkIsHost=!!(data&&data.isHost);
-  gameRoomId=(data&&data.roomId)||"";
-  if(Array.isArray(data&&data.roomPlayers)) data.roomPlayers.forEach(p=>p&&addPlayer(p.id,p.username,p.avatar));
+
+  sdkIsHost=!!(
+    data&&data.isHost
+  );
+
+  gameRoomId=
+    (data&&data.roomId)||"";
+
+  if(
+    Array.isArray(
+      data&&data.roomPlayers
+    )
+  ){
+
+    data.roomPlayers.forEach(
+      p=>{
+        if(p){
+
+          addPlayer(
+            p.id,
+            p.username,
+            p.avatar
+          );
+
+        }
+      }
+    );
+
+  }
+
   render();
+
 }
-window.addEventListener("message",e=>{
-  try{
-    const d=typeof e.data==="string"?JSON.parse(e.data):e.data;
-    if(d&&d.action==="initSDK")setupSDK(d);
-    else if(d&&d.action==="gameEventReceived")handleGameEvent(d.eventName,d.payload,d.userId);
-  }catch(_){}
-});
+
+
+window.addEventListener(
+  "message",
+  e=>{
+
+    try{
+
+      const d=
+        typeof e.data==="string"
+        ?JSON.parse(e.data)
+        :e.data;
+
+      if(
+        d&&
+        d.action==="initSDK"
+      ){
+
+        setupSDK(d);
+
+      }
+
+      else if(
+        d&&
+        d.action==="gameEventReceived"
+      ){
+
+        handleGameEvent(
+          d.eventName,
+          d.payload,
+          d.userId
+        );
+
+      }
+
+    }catch(_){}
+
+  }
+);
+
+
 window.onBoomRoomSDKReady=function(){
+
   try{
-    if(window.BoomRoomSDK)setupSDK({
-      user:window.BoomRoomSDK.getUser(),
-      isHost:window.BoomRoomSDK.isHost,
-      roomId:window.BoomRoomSDK.roomId,
-      roomPlayers:window.BoomRoomSDK.roomPlayers||[]
-    });
+
+    if(window.BoomRoomSDK){
+
+      setupSDK({
+
+        user:
+          window.BoomRoomSDK.getUser(),
+
+        isHost:
+          window.BoomRoomSDK.isHost,
+
+        roomId:
+          window.BoomRoomSDK.roomId,
+
+        roomPlayers:
+          window.BoomRoomSDK.roomPlayers||[]
+
+      });
+
+    }
+
   }catch(_){}
+
 };
 
-function sendEvent(eventName,payload){
+
+function sendEvent(
+  eventName,
+  payload
+){
+
   try{
-    if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")
-      window.BoomRoomSDK.sendGameEvent(eventName,payload);
-    else if(window.parent!==window)
-      window.parent.postMessage(JSON.stringify({action:"sendGameEvent",eventName,payload}),"*");
+
+    if(
+      window.BoomRoomSDK&&
+      typeof window.BoomRoomSDK.sendGameEvent==="function"
+    ){
+
+      window.BoomRoomSDK.sendGameEvent(
+        eventName,
+        payload
+      );
+
+    }
+
+    else if(
+      window.parent!==window
+    ){
+
+      window.parent.postMessage(
+        JSON.stringify({
+
+          action:"sendGameEvent",
+
+          eventName,
+
+          payload
+
+        }),
+        "*"
+      );
+
+    }
+
   }catch(_){}
+
 }
 
-function handleGameEvent(name,payload,sender){
-  if(name==="CIRCUS_START" && state==="LOBBY") startWithPayment(false);
-  if(name==="CIRCUS_SOUND") setMuted(!!(payload&&payload.muted),false);
+
+function handleGameEvent(
+  name,
+  payload,
+  sender
+){
+
+  if(
+    name==="CIRCUS_START" &&
+    state==="LOBBY"
+  ){
+
+    startWithPayment(false);
+
+  }
+
+  if(
+    name==="CIRCUS_SOUND"
+  ){
+
+    setMuted(
+      !!(
+        payload&&
+        payload.muted
+      ),
+      false
+    );
+
+  }
+
 }
 
-function showMessage(big,small="",ms=650){
-  const box=document.getElementById("centerMsg");
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+function showMessage(
+  big,
+  small="",
+  ms=650
+){
+
+  const box=
+    document.getElementById(
+      "centerMsg"
+    );
+
   if(!box)return;
-  box.innerHTML=`<div><div class="msgBig">${big}</div><div class="msgSmall">${small}</div></div>`;
+
+  box.innerHTML=`
+    <div>
+      <div class="msgBig">
+        ${big}
+      </div>
+
+      <div class="msgSmall">
+        ${small}
+      </div>
+    </div>
+  `;
+
   box.classList.add("show");
-  clearTimeout(showMessage.t);
-  showMessage.t=setTimeout(()=>box.classList.remove("show"),ms);
+
+  clearTimeout(
+    showMessage.t
+  );
+
+  showMessage.t=setTimeout(
+    ()=>{
+      box.classList.remove(
+        "show"
+      );
+    },
+    ms
+  );
+
 }
+
+
+/* =========================================================
+   EVENT FEED
+   ========================================================= */
 
 function pushFeed(s){
+
   eventFeed.unshift(s);
-  if(eventFeed.length>8)eventFeed.length=8;
+
+  if(eventFeed.length>8){
+
+    eventFeed.length=8;
+
+  }
+
 }
+
+
+/* =========================================================
+   AUDIO
+   ========================================================= */
 
 function createAudio(){
+
   if(audioCtx||muted)return;
-  try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(_){}
-}
-function beep(freq=440,dur=.07,type="sine",gain=.035){
-  if(muted)return;
+
   try{
-    createAudio();if(!audioCtx)return;
-    if(audioCtx.state==="suspended")audioCtx.resume();
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type=type;o.frequency.value=freq;g.gain.value=gain;
-    o.connect(g);g.connect(audioCtx.destination);
-    g.gain.setValueAtTime(gain,audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);
-    o.start();o.stop(audioCtx.currentTime+dur+.01);
+
+    audioCtx=
+      new (
+        window.AudioContext||
+        window.webkitAudioContext
+      )();
+
   }catch(_){}
+
 }
-function setMuted(v,broadcast=true){
+
+
+function beep(
+  freq=440,
+  dur=.07,
+  type="sine",
+  gain=.035
+){
+
+  if(muted)return;
+
+  try{
+
+    createAudio();
+
+    if(!audioCtx)return;
+
+    if(
+      audioCtx.state==="suspended"
+    ){
+
+      audioCtx.resume();
+
+    }
+
+    const o=
+      audioCtx.createOscillator();
+
+    const g=
+      audioCtx.createGain();
+
+    o.type=type;
+
+    o.frequency.value=freq;
+
+    g.gain.value=gain;
+
+    o.connect(g);
+
+    g.connect(
+      audioCtx.destination
+    );
+
+    g.gain.setValueAtTime(
+      gain,
+      audioCtx.currentTime
+    );
+
+    g.gain.exponentialRampToValueAtTime(
+      .0001,
+      audioCtx.currentTime+dur
+    );
+
+    o.start();
+
+    o.stop(
+      audioCtx.currentTime+
+      dur+
+      .01
+    );
+
+  }catch(_){}
+
+}
+
+
+function setMuted(
+  v,
+  broadcast=true
+){
+
   muted=!!v;
-  document.getElementById("soundBtn").textContent=muted?"🔇":"🔊";
-  if(!muted)createAudio();
-  if(broadcast)sendEvent("CIRCUS_SOUND",{muted});
+
+  const btn=
+    document.getElementById(
+      "soundBtn"
+    );
+
+  if(btn){
+
+    btn.textContent=
+      muted?"🔇":"🔊";
+
+  }
+
+  if(!muted){
+
+    createAudio();
+
+  }
+
+  if(broadcast){
+
+    sendEvent(
+      "CIRCUS_SOUND",
+      {muted}
+    );
+
+  }
+
 }
+
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
 
 function initCanvas(){
-  canvas=document.getElementById("gameCanvas");
-  wrap=document.getElementById("gameWrap");
+
+  canvas=
+    document.getElementById(
+      "gameCanvas"
+    );
+
+  wrap=
+    document.getElementById(
+      "gameWrap"
+    );
+
   if(!canvas||!wrap)return;
-  const rect=wrap.getBoundingClientRect();
-  W=Math.max(300,rect.width);H=Math.max(280,rect.height);
-  dpr=Math.min(2,window.devicePixelRatio||1);
-  canvas.width=Math.floor(W*dpr);canvas.height=Math.floor(H*dpr);
-  ctx=canvas.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  player.x=W*CONFIG.PLAYER_X;
-  player.groundY=H*CONFIG.GROUND_RATIO;
-  player.y=player.groundY-player.h;
+
+  const rect=
+    wrap.getBoundingClientRect();
+
+  W=Math.max(
+    300,
+    rect.width
+  );
+
+  H=Math.max(
+    280,
+    rect.height
+  );
+
+  dpr=Math.min(
+    2,
+    window.devicePixelRatio||1
+  );
+
+  canvas.width=
+    Math.floor(W*dpr);
+
+  canvas.height=
+    Math.floor(H*dpr);
+
+  ctx=
+    canvas.getContext("2d");
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+  player.w=
+    CONFIG.PLAYER_WIDTH;
+
+  player.h=
+    CONFIG.PLAYER_HEIGHT;
+
+  player.x=
+    W*CONFIG.PLAYER_X;
+
+  player.groundY=
+    H*CONFIG.GROUND_RATIO;
+
+  player.y=
+    player.groundY-
+    player.h;
+
 }
+
+
 function resize(){
-  if(state==="PLAYING"){initCanvas();buildBackground();}
+
+  if(state==="PLAYING"){
+
+    initCanvas();
+
+    /*
+     * resize 後不要重新隨機火圈高度。
+     *
+     * 已存在火圈維持它原本的「高度級別」。
+     */
+    rebuildRingPositions();
+
+    buildBackground();
+
+  }
+
 }
-window.addEventListener("resize",resize);
+
+
+window.addEventListener(
+  "resize",
+  resize
+);
+
+
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
 
 function buildBackground(){
-  stars.length=0;
-  for(let i=0;i<75;i++)stars.push({x:rand(0,W),y:rand(0,H*.58),r:rand(.5,1.8),a:rand(.25,.85),tw:rand(0,6.28)});
+
+  stars=[];
+
+  for(let i=0;i<75;i++){
+
+    stars.push({
+
+      x:rand(0,W),
+
+      y:rand(
+        0,
+        H*.58
+      ),
+
+      r:rand(.5,1.8),
+
+      a:rand(.25,.85),
+
+      tw:rand(0,6.28)
+
+    });
+
+  }
+
 }
 
-function makeRing(x,y,kind="normal"){
-  const r=rand(34,41);
-  return {id:++ringId,x,y,r,passed:false,scored:false,kind,
-    pulse:rand(0,6.28),rot:rand(-.15,.15),flame:rand(0,6.28)};
+
+/* =========================================================
+   FIRE RING
+   ========================================================= */
+
+function makeRing(
+  x,
+  y,
+  kind="normal",
+  heightIndex=1
+){
+
+  /*
+   * 火圈現在固定大小範圍。
+   *
+   * 不會再出現非常小的圈。
+   */
+
+  const r=rand(
+    CONFIG.RING_MIN_RADIUS,
+    CONFIG.RING_MAX_RADIUS
+  );
+
+  return {
+
+    id:++ringId,
+
+    x,
+
+    y,
+
+    r,
+
+    heightIndex,
+
+    passed:false,
+
+    scored:false,
+
+    kind,
+
+    pulse:rand(
+      0,
+      6.28
+    ),
+
+    rot:rand(
+      -.15,
+      .15
+    ),
+
+    flame:rand(
+      0,
+      6.28
+    )
+
+  };
+
 }
+
+
+/* =========================================================
+   固定火圈高度
+   ========================================================= */
+
+function getRingY(
+  heightIndex
+){
+
+  /*
+   * 注意：
+   *
+   * 這裡不是直接使用固定 pixel。
+   *
+   * 而是使用「距離地面比例」。
+   *
+   * 因此手機長畫面、短畫面都能保持
+   * 一致的 LOW / MID / HIGH 三個跳躍級別。
+   */
+
+  const ground=
+    H*CONFIG.GROUND_RATIO;
+
+  const heightRatios=[
+
+    CONFIG.RING_HEIGHT_LOW,
+
+    CONFIG.RING_HEIGHT_MID,
+
+    CONFIG.RING_HEIGHT_HIGH
+
+  ];
+
+  const ratio=
+    heightRatios[
+      clamp(
+        heightIndex,
+        0,
+        2
+      )
+    ];
+
+  /*
+   * ringY = 地面往上移動的距離
+   *
+   * 例如：
+   *
+   * LOW  = 比較低
+   * MID  = 中間
+   * HIGH = 比較高
+   */
+
+  const jumpHeight=
+    H*(CONFIG.GROUND_RATIO-ratio);
+
+  return ground-jumpHeight;
+
+}
+
+
+/* =========================================================
+   下一個火圈高度
+   ========================================================= */
+
+function getNextHeightIndex(){
+
+  /*
+   * 高度不再完全亂數。
+   *
+   * 只允許：
+   *
+   * LOW -> LOW / MID
+   * MID -> LOW / MID / HIGH
+   * HIGH -> MID / HIGH
+   *
+   * 所以絕對不會：
+   *
+   * LOW -> HIGH
+   *
+   * HIGH -> LOW
+   *
+   * 直接跳兩級。
+   */
+
+  const current=
+    lastHeightIndex;
+
+  let options=[];
+
+  if(current===0){
+
+    options=[
+      0,
+      0,
+      1,
+      1
+
+    ];
+
+  }
+
+  else if(current===1){
+
+    options=[
+      0,
+      1,
+      1,
+      2
+
+    ];
+
+  }
+
+  else{
+
+    options=[
+      1,
+      1,
+      2,
+      2
+
+    ];
+
+  }
+
+  /*
+   * 遊戲剛開始時，
+   * 多一點中低火圈。
+   */
+
+  if(elapsed<8){
+
+    options=[
+      0,
+      0,
+      1,
+      1
+    ];
+
+  }
+
+  const next=
+    options[
+      Math.floor(
+        rand(
+          0,
+          options.length
+        )
+      )
+    ];
+
+  lastHeightIndex=next;
+
+  return next;
+
+}
+
+
+/* =========================================================
+   建立下一個火圈
+   ========================================================= */
 
 function nextRing(){
-  const difficulty=clamp(elapsed/CONFIG.ROUND_TIME,0,1);
-  const gap=lerp(CONFIG.MAX_RING_GAP,CONFIG.MIN_RING_GAP,difficulty);
 
-  // 重要：火圈高度必須落在角色實際跳躍弧線能穿越的範圍。
-  // 角色地面高度 = groundY，跳躍最高點約為 groundY - 178px。
-  // 火圈中心不能高於「最高可達高度 + 火圈內徑」，也不能低到需要趴地。
-  const ground=H*CONFIG.GROUND_RATIO;
-  const jumpApex=ground-178;
-  const reachableMinY=clamp(jumpApex+34,H*.32,H*.57);
-  const reachableMaxY=clamp(ground-58,H*.48,H*.69);
+  const difficulty=
+    clamp(
+      elapsed/
+      CONFIG.ROUND_TIME,
+      0,
+      1
+    );
 
-  nextRingX=Math.max(nextRingX+gap+rand(-24,28),W+170);
+  /*
+   * 隨著時間增加，
+   * 火圈間距慢慢縮短。
+   */
 
-  // 70% 落在舒服的中間區域，避免連續出現極端高度。
-  let target;
-  if(rand()<.70){
-    target=lerp(reachableMaxY-18,reachableMinY+18,rand());
-  }else{
-    target=lerp(reachableMaxY,reachableMinY,rand());
-  }
+  const gap=
+    lerp(
+      CONFIG.MAX_RING_GAP,
+      CONFIG.MIN_RING_GAP,
+      difficulty
+    );
 
-  target=clamp(target,reachableMinY,reachableMaxY);
+  /*
+   * 高度固定為三個標準級別。
+   */
 
-  // 相鄰火圈高度不要突然跳太多，讓玩家能讀懂下一個動作。
-  const prev=lastRingHeight || (ground-92);
-  target=lerp(prev,target,.62);
-  target=clamp(target,reachableMinY,reachableMaxY);
-  lastRingHeight=target;
+  const heightIndex=
+    getNextHeightIndex();
+
+  const y=
+    getRingY(
+      heightIndex
+    );
+
+  nextRingX=
+    Math.max(
+      nextRingX+
+      gap+
+      rand(-18,18),
+
+      W+180
+    );
 
   let kind="normal";
-  if(difficulty>.18&&rand()<.10)kind="gold";
-  if(difficulty>.55&&rand()<.07)kind="tiny";
-  rings.push(makeRing(nextRingX,lastRingHeight,kind));
-}
 
-function resetWorld(){
-  score=0;lives=CONFIG.START_LIVES;combo=0;bestCombo=0;distance=0;elapsed=0;
-  speed=CONFIG.BASE_SPEED;rings=[];particles=[];floatingTexts=[];eventFeed=[];
-  ringId=0;nextRingX=W+230;lastRingHeight=H*.61;
-  player={x:W*CONFIG.PLAYER_X,y:H*.83-58,groundY:H*.83,vy:0,w:42,h:58,onGround:true,airTime:0,rotation:0,hitCooldown:0};
-  for(let i=0;i<5;i++)nextRing();
-}
+  if(
+    difficulty>.18&&
+    rand()<.10
+  ){
 
-function startWithPayment(isDev=false){
-  if(state!=="LOBBY" || isPurchasing)return;
-  if(isDev){hasPaid=true;beginRound();return;}
-  if(hasPaid){beginRound();return;}
-  if(!(window.BoomRoomSDK&&typeof window.BoomRoomSDK.requestPurchase==="function")){
-    showMessage("尚未連接","請使用本地測試或確認 BoomRoom SDK",900);
-    return;
+    kind="gold";
+
   }
-  isPurchasing=true;
-  showMessage("ENTRY 100","正在確認入場…",1000);
-  try{
-    window.BoomRoomSDK.requestPurchase("circus_fire_hoop_entry",GAME_INFO.entryCost);
-  }catch(_){
-    isPurchasing=false;
-    showMessage("購買失敗","請稍後再試",800);
-  }
-}
-window.onPurchaseSuccess=function(itemId){
-  if(itemId!=="circus_fire_hoop_entry")return;
-  isPurchasing=false;hasPaid=true;
-  showMessage("ENTRY OK","入場成功！",500);
-  setTimeout(beginRound,260);
-};
-window.onPurchaseFailed=function(itemId){
-  if(itemId!=="circus_fire_hoop_entry")return;
-  isPurchasing=false;hasPaid=false;
-  showMessage("未能入場","銀幣不足或購買取消",900);
-};
 
-function beginRound(){
-  if(state!=="LOBBY")return;
-  state="COUNTDOWN";countdown=3;gameOverCalled=false;
-  resetWorld();render();
-  showMessage("3","準備跳過火圈");
-  const tick=()=>{
-    if(state!=="COUNTDOWN")return;
-    countdown--;
-    if(countdown>0){showMessage(String(countdown),"看準火圈中心");beep(420,.08,"square",.035);setTimeout(tick,700);}
-    else{
-      if(state!=="COUNTDOWN")return;
-      showMessage("GO!","起跳！",500);beep(760,.12,"sine",.045);
-      state="PLAYING";lastTime=performance.now();render();startLoop();
-    }
-  };
-  setTimeout(tick,700);
+  /*
+   * tiny 改掉。
+   *
+   * 原本 tiny 火圈會造成遊戲突然變難。
+   *
+   * 現在即使特殊圈，
+   * 仍然使用大尺寸。
+   */
+
+  rings.push(
+    makeRing(
+      nextRingX,
+      y,
+      kind,
+      heightIndex
+    )
+  );
+
 }
 
-function jump(){
-  if(state!=="PLAYING")return;
-  const now=performance.now();
-  if(now-lastInput<85)return;
-  lastInput=now;
-  createAudio();
-  if(player.onGround){
-    player.vy=CONFIG.JUMP_VY;player.onGround=false;player.airTime=0;beep(330,.06,"triangle",.025);
-    spawnBurst(player.x+player.w*.5,player.y+player.h,7,"dust");
-  }else if(player.airTime>.20 && player.vy>30 && player.y>player.groundY-player.h-120){
-    // 小幅空中修正，避免手機觸控完全失去可玩性；不是二段跳
-    player.vy=-370;beep(280,.045,"triangle",.018);
-  }
-}
 
-function onGamePointer(e){
-  if(state!=="PLAYING")return;
-  e.preventDefault();jump();
-}
-document.addEventListener("keydown",e=>{
-  if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();jump();}
-  if(e.code==="KeyM")setMuted(!muted);
-});
+/* =========================================================
+   RESIZE 後重新計算已存在火圈位置
+   ========================================================= */
 
-function startLoop(){
-  cancelAnimationFrame(raf);lastTime=performance.now();
-  const loop=t=>{
-    if(state!=="PLAYING")return;
-    const dt=Math.min(.033,Math.max(.001,(t-lastTime)/1000));lastTime=t;
-    update(dt);draw();raf=requestAnimationFrame(loop);
-  };
-  raf=requestAnimationFrame(loop);
-}
-
-function update(dt){
-  elapsed+=dt;
-  distance+=speed*dt;
-  speed=lerp(CONFIG.BASE_SPEED,CONFIG.MAX_SPEED,clamp(elapsed/CONFIG.ROUND_TIME,0,1));
-  player.groundY=H*CONFIG.GROUND_RATIO;
-  player.x=W*CONFIG.PLAYER_X;
-  player.hitCooldown=Math.max(0,player.hitCooldown-dt);
-
-  if(!player.onGround){
-    player.airTime+=dt;player.y+=player.vy*dt;player.vy+=CONFIG.GRAVITY*dt;
-    player.rotation=clamp(player.vy/1100,-.55,.7);
-    if(player.y>=player.groundY-player.h){
-      player.y=player.groundY-player.h;player.vy=0;player.onGround=true;player.airTime=0;player.rotation=0;
-      spawnBurst(player.x+player.w*.5,player.y+player.h,8,"dust");
-    }
-  }
+function rebuildRingPositions(){
 
   for(const r of rings){
-    r.x-=speed*dt;
-    r.pulse+=dt*5;r.flame+=dt*9;
-    // 垂直穿圈判定：玩家身體真正穿過火圈的高度區間
-    const pcx=player.x+player.w*.5;
-    const pcy=player.y+player.h*.52;
-    const dx=Math.abs(pcx-r.x);
-    const dy=Math.abs(pcy-r.y);
-    const xWindow=r.r+player.w*.42;
 
-    if(!r.passed && r.x<pcx && !r.scored){
-      r.passed=true;
-      const normalized=Math.abs((pcy-r.y)/r.r);
-      if(normalized<=CONFIG.PERFECT_WINDOW){
-        combo++;bestCombo=Math.max(bestCombo,combo);
-        const gain=CONFIG.SCORE_PERFECT+Math.min(220,combo*12)+(r.kind==="gold"?100:0);
-        score+=gain;
-        pushFeed(`🔥 PERFECT 穿圈！ +${gain}`);
-        floatingTexts.push({x:r.x,y:r.y-55,text:`PERFECT  +${gain}`,life:1,vy:-42,type:"perfect"});
-        spawnBurst(r.x,r.y,24,"fire");
-        beep(900+Math.min(combo,8)*45,.12,"sine",.045);
-      }else if(normalized<=CONFIG.GOOD_WINDOW){
-        combo++;bestCombo=Math.max(bestCombo,combo);
-        const gain=CONFIG.SCORE_GOOD+Math.min(150,combo*8)+(r.kind==="gold"?80:0);
-        score+=gain;
-        pushFeed(`🎪 漂亮穿越！ +${gain}`);
-        floatingTexts.push({x:r.x,y:r.y-45,text:`GOOD  +${gain}`,life:1,vy:-38,type:"good"});
-        spawnBurst(r.x,r.y,14,"spark");
-        beep(620,.08,"triangle",.035);
-      }else{
-        combo=0;
-        score=Math.max(0,score-30);
-        pushFeed("⚠️ 擦邊通過，Combo 中斷");
-        floatingTexts.push({x:r.x,y:r.y-45,text:"擦邊 -30",life:1,vy:-30,type:"bad"});
-        beep(180,.1,"sawtooth",.022);
-      }
+    if(
+      typeof r.heightIndex!=="number"
+    ){
+
+      r.heightIndex=
+        lastHeightIndex;
+
     }
 
-    // 火圈中心與玩家身體的安全碰撞區
-    if(!r.passed && player.hitCooldown<=0 && dx<xWindow && dy<r.r*.72){
-      // 若玩家高度不在圈洞範圍，才算撞火焰；洞內則安全
-      const hole=Math.hypot(pcx-r.x,pcy-r.y);
-      if(hole>r.r*.62){
-        hitRing(r);
-      }
-    }
+    r.y=
+      getRingY(
+        r.heightIndex
+      );
+
   }
 
-  rings=rings.filter(r=>r.x>-100);
-  while(nextRingX<W+CONFIG.MAX_RING_GAP*1.7)nextRing();
-
-  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=p.g*dt;p.life-=dt;p.rot+=p.vr*dt;}
-  particles=particles.filter(p=>p.life>0);
-  for(const f of floatingTexts){f.y+=f.vy*dt;f.life-=dt;}
-  floatingTexts=floatingTexts.filter(f=>f.life>0);
-
-  if(elapsed>=CONFIG.ROUND_TIME){
-    finishGame("🏁 完美演出！");
-  }
 }
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+function resetWorld(){
+
+  score=0;
+
+  lives=
+    CONFIG.START_LIVES;
+
+  combo=0;
+
+  bestCombo=0;
+
+  distance=0;
+
+  elapsed=0;
+
+  speed=
+    CONFIG.BASE_SPEED;
+
+  rings=[];
+
+  particles=[];
+
+  floatingTexts=[];
+
+  eventFeed=[];
+
+  ringId=0;
+
+  nextRingX=
+    W+230;
+
+  lastRingHeight=
+    getRingY(1);
+
+  /*
+   * 從 MID 開始。
+   */
+
+  lastHeightIndex=1;
+
+  player={
+
+    x:
+      W*CONFIG.PLAYER_X,
+
+    y:
+      H*CONFIG.GROUND_RATIO-
+      CONFIG.PLAYER_HEIGHT,
+
+    groundY:
+      H*CONFIG.GROUND_RATIO,
+
+    vy:0,
+
+    w:
+      CONFIG.PLAYER_WIDTH,
+
+    h:
+      CONFIG.PLAYER_HEIGHT,
+
+    onGround:true,
+
+    airTime:0,
+
+    rotation:0,
+
+    hitCooldown:0
+
+  };
+
+  /*
+   * 預先產生火圈。
+   */
+
+  for(
+    let i=0;
+    i<6;
+    i++
+  ){
+
+    nextRing();
+
+  }
+
+}
+
+
+/* =========================================================
+   PAYMENT
+   ========================================================= */
+
+function startWithPayment(
+  isDev=false
+){
+
+  if(
+    state!=="LOBBY"||
+    isPurchasing
+  ){
+
+    return;
+
+  }
+
+  if(isDev){
+
+    hasPaid=true;
+
+    beginRound();
+
+    return;
+
+  }
+
+  if(hasPaid){
+
+    beginRound();
+
+    return;
+
+  }
+
+  if(
+    !(
+      window.BoomRoomSDK&&
+      typeof window.BoomRoomSDK.requestPurchase==="function"
+    )
+  ){
+
+    showMessage(
+      "尚未連接",
+      "請使用本地測試或確認 BoomRoom SDK",
+      900
+    );
+
+    return;
+
+  }
+
+  isPurchasing=true;
+
+  showMessage(
+    "ENTRY 100",
+    "正在確認入場…",
+    1000
+  );
+
+  try{
+
+    window.BoomRoomSDK.requestPurchase(
+      "circus_fire_hoop_entry",
+      GAME_INFO.entryCost
+    );
+
+  }catch(_){
+
+    isPurchasing=false;
+
+    showMessage(
+      "購買失敗",
+      "請稍後再試",
+      800
+    );
+
+  }
+
+}
+
+
+window.onPurchaseSuccess=function(
+  itemId
+){
+
+  if(
+    itemId!=="circus_fire_hoop_entry"
+  ){
+
+    return;
+
+  }
+
+  isPurchasing=false;
+
+  hasPaid=true;
+
+  showMessage(
+    "ENTRY OK",
+    "入場成功！",
+    500
+  );
+
+  setTimeout(
+    beginRound,
+    260
+  );
+
+};
+
+
+window.onPurchaseFailed=function(
+  itemId
+){
+
+  if(
+    itemId!=="circus_fire_hoop_entry"
+  ){
+
+    return;
+
+  }
+
+  isPurchasing=false;
+
+  hasPaid=false;
+
+  showMessage(
+    "未能入場",
+    "銀幣不足或購買取消",
+    900
+  );
+
+};
+
+
+/* =========================================================
+   START ROUND
+   ========================================================= */
+
+function beginRound(){
+
+  if(state!=="LOBBY")return;
+
+  state="COUNTDOWN";
+
+  countdown=3;
+
+  gameOverCalled=false;
+
+  resetWorld();
+
+  render();
+
+  showMessage(
+    "3",
+    "準備跳過火圈"
+  );
+
+  const tick=()=>{
+
+    if(
+      state!=="COUNTDOWN"
+    ){
+
+      return;
+
+    }
+
+    countdown--;
+
+    if(countdown>0){
+
+      showMessage(
+        String(countdown),
+        "看準火圈中心"
+      );
+
+      beep(
+        420,
+        .08,
+        "square",
+        .035
+      );
+
+      setTimeout(
+        tick,
+        700
+      );
+
+    }
+
+    else{
+
+      if(
+        state!=="COUNTDOWN"
+      ){
+
+        return;
+
+      }
+
+      showMessage(
+        "GO!",
+        "起跳！",
+        500
+      );
+
+      beep(
+        760,
+        .12,
+        "sine",
+        .045
+      );
+
+      state="PLAYING";
+
+      lastTime=
+        performance.now();
+
+      render();
+
+      startLoop();
+
+    }
+
+  };
+
+  setTimeout(
+    tick,
+    700
+  );
+
+}
+
+
+/* =========================================================
+   JUMP
+   ========================================================= */
+
+function jump(){
+
+  if(
+    state!=="PLAYING"
+  ){
+
+    return;
+
+  }
+
+  const now=
+    performance.now();
+
+  if(
+    now-lastInput<85
+  ){
+
+    return;
+
+  }
+
+  lastInput=now;
+
+  createAudio();
+
+  /*
+   * 一般起跳。
+   */
+
+  if(player.onGround){
+
+    player.vy=
+      CONFIG.JUMP_VY;
+
+    player.onGround=false;
+
+    player.airTime=0;
+
+    beep(
+      330,
+      .06,
+      "triangle",
+      .025
+    );
+
+    spawnBurst(
+      player.x+
+      player.w*.5,
+
+      player.y+
+      player.h,
+
+      7,
+
+      "dust"
+    );
+
+    return;
+
+  }
+
+  /*
+   * 保留原本的空中修正。
+   *
+   * 但是限制非常嚴格，
+   * 不會變成真正的二段跳。
+   */
+
+  if(
+    player.airTime>.22&&
+    player.vy>40&&
+    player.y>
+      player.groundY-
+      player.h-
+      105
+  ){
+
+    player.vy=-300;
+
+    beep(
+      280,
+      .045,
+      "triangle",
+      .018
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+function onGamePointer(e){
+
+  if(
+    state!=="PLAYING"
+  ){
+
+    return;
+
+  }
+
+  e.preventDefault();
+
+  jump();
+
+}
+
+
+document.addEventListener(
+  "keydown",
+  e=>{
+
+    if(
+      e.code==="Space"||
+      e.code==="ArrowUp"
+    ){
+
+      e.preventDefault();
+
+      jump();
+
+    }
+
+    if(
+      e.code==="KeyM"
+    ){
+
+      setMuted(
+        !muted
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   LOOP
+   ========================================================= */
+
+function startLoop(){
+
+  cancelAnimationFrame(
+    raf
+  );
+
+  lastTime=
+    performance.now();
+
+  const loop=t=>{
+
+    if(
+      state!=="PLAYING"
+    ){
+
+      return;
+
+    }
+
+    const dt=
+      Math.min(
+        .033,
+        Math.max(
+          .001,
+          (t-lastTime)/1000
+        )
+      );
+
+    lastTime=t;
+
+    update(dt);
+
+    draw();
+
+    raf=
+      requestAnimationFrame(
+        loop
+      );
+
+  };
+
+  raf=
+    requestAnimationFrame(
+      loop
+    );
+
+}
+
+
+/* =========================================================
+   UPDATE
+   ========================================================= */
+
+function update(dt){
+
+  elapsed+=dt;
+
+  distance+=
+    speed*dt;
+
+  /*
+   * 速度逐漸提升。
+   */
+
+  speed=
+    lerp(
+      CONFIG.BASE_SPEED,
+      CONFIG.MAX_SPEED,
+      clamp(
+        elapsed/
+        CONFIG.ROUND_TIME,
+        0,
+        1
+      )
+    );
+
+  /*
+   * 永遠以當前畫面地面為準。
+   */
+
+  player.groundY=
+    H*CONFIG.GROUND_RATIO;
+
+  player.x=
+    W*CONFIG.PLAYER_X;
+
+  player.hitCooldown=
+    Math.max(
+      0,
+      player.hitCooldown-dt
+    );
+
+
+  /* =====================================================
+     PLAYER PHYSICS
+     ===================================================== */
+
+  if(!player.onGround){
+
+    player.airTime+=dt;
+
+    player.y+=
+      player.vy*dt;
+
+    player.vy+=
+      CONFIG.GRAVITY*dt;
+
+    player.rotation=
+      clamp(
+        player.vy/1100,
+        -.45,
+        .55
+      );
+
+    if(
+      player.y>=
+      player.groundY-
+      player.h
+    ){
+
+      player.y=
+        player.groundY-
+        player.h;
+
+      player.vy=0;
+
+      player.onGround=true;
+
+      player.airTime=0;
+
+      player.rotation=0;
+
+      spawnBurst(
+        player.x+
+        player.w*.5,
+
+        player.y+
+        player.h,
+
+        8,
+
+        "dust"
+      );
+
+    }
+
+  }
+
+
+  /* =====================================================
+     RINGS
+     ===================================================== */
+
+  for(const r of rings){
+
+    r.x-=
+      speed*dt;
+
+    r.pulse+=
+      dt*5;
+
+    r.flame+=
+      dt*9;
+
+
+    /*
+     * 玩家中心點。
+     */
+
+    const pcx=
+      player.x+
+      player.w*.5;
+
+    const pcy=
+      player.y+
+      player.h*.5;
+
+
+    /*
+     * X 方向容錯。
+     *
+     * 火圈變大後，
+     * 玩家比較容易進入火圈。
+     */
+
+    const dx=
+      Math.abs(
+        pcx-r.x
+      );
+
+
+    /*
+     * =================================================
+     * 穿圈計分
+     * =================================================
+     */
+
+    if(
+      !r.passed&&
+      r.x<pcx&&
+      !r.scored
+    ){
+
+      r.passed=true;
+
+      /*
+       * 用火圈半徑做比例。
+       */
+
+      const normalized=
+        Math.abs(
+          (pcy-r.y)/
+          r.r
+        );
+
+
+      if(
+        normalized<=
+        CONFIG.PERFECT_WINDOW
+      ){
+
+        combo++;
+
+        bestCombo=
+          Math.max(
+            bestCombo,
+            combo
+          );
+
+        const gain=
+          CONFIG.SCORE_PERFECT+
+          Math.min(
+            220,
+            combo*12
+          )+
+          (
+            r.kind==="gold"
+            ?100
+            :0
+          );
+
+        score+=gain;
+
+        pushFeed(
+          `🔥 PERFECT 穿圈！ +${gain}`
+        );
+
+        floatingTexts.push({
+
+          x:r.x,
+
+          y:r.y-60,
+
+          text:
+            `PERFECT +${gain}`,
+
+          life:1,
+
+          vy:-42,
+
+          type:"perfect"
+
+        });
+
+        spawnBurst(
+          r.x,
+          r.y,
+          24,
+          "fire"
+        );
+
+        beep(
+          900+
+          Math.min(
+            combo,
+            8
+          )*45,
+
+          .12,
+
+          "sine",
+
+          .045
+        );
+
+      }
+
+      else if(
+        normalized<=
+        CONFIG.GOOD_WINDOW
+      ){
+
+        combo++;
+
+        bestCombo=
+          Math.max(
+            bestCombo,
+            combo
+          );
+
+        const gain=
+          CONFIG.SCORE_GOOD+
+          Math.min(
+            150,
+            combo*8
+          )+
+          (
+            r.kind==="gold"
+            ?80
+            :0
+          );
+
+        score+=gain;
+
+        pushFeed(
+          `🎪 漂亮穿越！ +${gain}`
+        );
+
+        floatingTexts.push({
+
+          x:r.x,
+
+          y:r.y-50,
+
+          text:
+            `GOOD +${gain}`,
+
+          life:1,
+
+          vy:-38,
+
+          type:"good"
+
+        });
+
+        spawnBurst(
+          r.x,
+          r.y,
+          14,
+          "spark"
+        );
+
+        beep(
+          620,
+          .08,
+          "triangle",
+          .035
+        );
+
+      }
+
+      else{
+
+        combo=0;
+
+        score=
+          Math.max(
+            0,
+            score-30
+          );
+
+        pushFeed(
+          "⚠️ 擦邊通過，Combo 中斷"
+        );
+
+        floatingTexts.push({
+
+          x:r.x,
+
+          y:r.y-45,
+
+          text:"擦邊 -30",
+
+          life:1,
+
+          vy:-30,
+
+          type:"bad"
+
+        });
+
+        beep(
+          180,
+          .1,
+          "sawtooth",
+          .022
+        );
+
+      }
+
+    }
+
+
+    /*
+     * =================================================
+     * 火圈碰撞
+     * =================================================
+     *
+     * 現在火圈半徑比較大。
+     *
+     * 只有當玩家真的碰到外圈火焰，
+     * 才算撞到。
+     */
+
+    if(
+      !r.passed&&
+      player.hitCooldown<=0
+    ){
+
+      /*
+       * 玩家和火圈的距離。
+       */
+
+      const dist=
+        Math.hypot(
+          pcx-r.x,
+          pcy-r.y
+        );
+
+      /*
+       * 火圈洞口。
+       *
+       * 內圈更寬。
+       */
+
+      const safeRadius=
+        r.r*.72;
+
+      /*
+       * 外圈碰撞範圍。
+       */
+
+      const outerRadius=
+        r.r+
+        player.w*.22;
+
+      if(
+        dist<=outerRadius&&
+        dist>=safeRadius
+      ){
+
+        hitRing(r);
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * 移除離開畫面的火圈。
+   */
+
+  rings=
+    rings.filter(
+      r=>r.x>-130
+    );
+
+
+  /*
+   * 確保畫面右邊永遠有火圈。
+   */
+
+  while(
+    nextRingX<
+    W+
+    CONFIG.MAX_RING_GAP*1.7
+  ){
+
+    nextRing();
+
+  }
+
+
+  /* =====================================================
+     PARTICLES
+     ===================================================== */
+
+  for(const p of particles){
+
+    p.x+=
+      p.vx*dt;
+
+    p.y+=
+      p.vy*dt;
+
+    p.vy+=
+      p.g*dt;
+
+    p.life-=dt;
+
+    p.rot+=
+      p.vr*dt;
+
+  }
+
+  particles=
+    particles.filter(
+      p=>p.life>0
+    );
+
+
+  /* =====================================================
+     FLOATING TEXT
+     ===================================================== */
+
+  for(const f of floatingTexts){
+
+    f.y+=
+      f.vy*dt;
+
+    f.life-=dt;
+
+  }
+
+  floatingTexts=
+    floatingTexts.filter(
+      f=>f.life>0
+    );
+
+
+  /* =====================================================
+     END GAME
+     ===================================================== */
+
+  if(
+    elapsed>=
+    CONFIG.ROUND_TIME
+  ){
+
+    finishGame(
+      "🏁 完美演出！"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   HIT RING
+   ========================================================= */
 
 function hitRing(r){
-  player.hitCooldown=.85;lives--;combo=0;
-  r.passed=true;r.x=-200;
-  pushFeed(`💥 撞到火圈！生命 -1`);
-  showMessage("BOOM!","小心火焰！",420);
-  spawnBurst(player.x+player.w*.5,player.y+player.h*.45,28,"hit");
-  beep(95,.22,"sawtooth",.05);
-  if(navigator.vibrate)try{navigator.vibrate([35,25,55]);}catch(_){}
-  if(lives<=0)finishGame("🎪 演出失誤");
+
+  player.hitCooldown=.85;
+
+  lives--;
+
+  combo=0;
+
+  r.passed=true;
+
+  r.x=-200;
+
+  pushFeed(
+    "💥 撞到火圈！生命 -1"
+  );
+
+  showMessage(
+    "BOOM!",
+    "小心火焰！",
+    420
+  );
+
+  spawnBurst(
+    player.x+
+    player.w*.5,
+
+    player.y+
+    player.h*.45,
+
+    28,
+
+    "hit"
+  );
+
+  beep(
+    95,
+    .22,
+    "sawtooth",
+    .05
+  );
+
+  if(
+    navigator.vibrate
+  ){
+
+    try{
+
+      navigator.vibrate(
+        [35,25,55]
+      );
+
+    }catch(_){}
+
+  }
+
+  if(
+    lives<=0
+  ){
+
+    finishGame(
+      "🎪 演出失誤"
+    );
+
+  }
+
 }
+
+
+/* =========================================================
+   FINISH
+   ========================================================= */
 
 function finishGame(title){
-  if(state==="RESULT")return;
-  state="RESULT";cancelAnimationFrame(raf);
-  pushFeed(`${title} 最終得分 ${score}`);
-  if(!gameOverCalled){
-    gameOverCalled=true;
-    try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(score);}catch(_){}
+
+  if(
+    state==="RESULT"
+  ){
+
+    return;
+
   }
+
+  state="RESULT";
+
+  cancelAnimationFrame(
+    raf
+  );
+
+  pushFeed(
+    `${title} 最終得分 ${score}`
+  );
+
+  if(!gameOverCalled){
+
+    gameOverCalled=true;
+
+    try{
+
+      if(
+        window.BoomRoomSDK&&
+        typeof window.BoomRoomSDK.gameOver==="function"
+      ){
+
+        window.BoomRoomSDK.gameOver(
+          score
+        );
+
+      }
+
+    }catch(_){}
+
+  }
+
   render();
+
 }
 
-function spawnBurst(x,y,n,type){
-  for(let i=0;i<n;i++){
-    let c=type==="hit"?"red":type==="dust"?"dust":type==="fire"?"fire":"spark";
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+function spawnBurst(
+  x,
+  y,
+  n,
+  type
+){
+
+  for(
+    let i=0;
+    i<n;
+    i++
+  ){
+
+    let c=
+      type==="hit"
+      ?"red"
+      :
+      type==="dust"
+      ?"dust"
+      :
+      type==="fire"
+      ?"fire"
+      :
+      "spark";
+
     particles.push({
-      x,y,vx:rand(-120,120),vy:rand(-170,-30),g:type==="dust"?260:360,
-      life:rand(.35,.8),max:.8,size:rand(2,6),rot:rand(0,6.28),vr:rand(-5,5),type:c
+
+      x,
+
+      y,
+
+      vx:rand(
+        -120,
+        120
+      ),
+
+      vy:rand(
+        -170,
+        -30
+      ),
+
+      g:
+        type==="dust"
+        ?260
+        :360,
+
+      life:rand(
+        .35,
+        .8
+      ),
+
+      max:.8,
+
+      size:rand(
+        2,
+        6
+      ),
+
+      rot:rand(
+        0,
+        6.28
+      ),
+
+      vr:rand(
+        -5,
+        5
+      ),
+
+      type:c
+
     });
+
   }
+
 }
+
+
+/* =========================================================
+   DRAW
+   ========================================================= */
 
 function draw(){
+
   if(!ctx)return;
-  ctx.clearRect(0,0,W,H);
-  drawSky();drawTent();drawGround();
-  rings.forEach(drawRing);
+
+  ctx.clearRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+  drawSky();
+
+  drawTent();
+
+  drawGround();
+
+
+  /*
+   * 下一個火圈的淡淡引導線。
+   */
+
+  const next=
+    rings.find(
+      r=>r.x>
+      player.x+20
+    );
+
+  if(next){
+
+    ctx.save();
+
+    ctx.globalAlpha=.12;
+
+    ctx.strokeStyle=
+      "#fff6ca";
+
+    ctx.lineWidth=2;
+
+    ctx.setLineDash(
+      [5,8]
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      player.x+
+      player.w*.5,
+
+      player.y+
+      player.h*.5
+    );
+
+    ctx.lineTo(
+      next.x,
+      next.y
+    );
+
+    ctx.stroke();
+
+    ctx.restore();
+
+  }
+
+
+  rings.forEach(
+    drawRing
+  );
+
   drawPlayer();
-  particles.forEach(drawParticle);
-  floatingTexts.forEach(drawFloat);
+
+  particles.forEach(
+    drawParticle
+  );
+
+  floatingTexts.forEach(
+    drawFloat
+  );
+
   drawVignette();
+
+  updateHUD();
+
 }
+
+
+/* =========================================================
+   SKY
+   ========================================================= */
 
 function drawSky(){
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,"#f8d9a8");g.addColorStop(.52,"#f7c982");g.addColorStop(1,"#ed9b66");
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
 
-  // 暖色舞台燈
+  const g=
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
+
+  g.addColorStop(
+    0,
+    "#f8d9a8"
+  );
+
+  g.addColorStop(
+    .52,
+    "#f7c982"
+  );
+
+  g.addColorStop(
+    1,
+    "#ed9b66"
+  );
+
+  ctx.fillStyle=g;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
   const beams=[
-    {x:W*.16,a:.15,r:70},{x:W*.50,a:.18,r:90},{x:W*.84,a:.15,r:70}
+
+    {
+      x:W*.16,
+      a:.15,
+      r:70
+    },
+
+    {
+      x:W*.50,
+      a:.18,
+      r:90
+    },
+
+    {
+      x:W*.84,
+      a:.15,
+      r:70
+    }
+
   ];
+
+
   for(const b of beams){
-    const rg=ctx.createRadialGradient(b.x,H*.20,4,b.x,H*.35,b.r);
-    rg.addColorStop(0,"rgba(255,248,201,.65)");rg.addColorStop(1,"rgba(255,248,201,0)");
-    ctx.fillStyle=rg;ctx.fillRect(b.x-b.r,H*.02,b.r*2,H*.55);
+
+    const rg=
+      ctx.createRadialGradient(
+        b.x,
+        H*.20,
+        4,
+
+        b.x,
+        H*.35,
+        b.r
+      );
+
+    rg.addColorStop(
+      0,
+      "rgba(255,248,201,.65)"
+    );
+
+    rg.addColorStop(
+      1,
+      "rgba(255,248,201,0)"
+    );
+
+    ctx.fillStyle=rg;
+
+    ctx.fillRect(
+      b.x-b.r,
+      H*.02,
+      b.r*2,
+      H*.55
+    );
+
   }
 
-  // 遠處小燈泡
-  for(let x=18;x<W;x+=34){
-    ctx.fillStyle="#ffe9a7";ctx.beginPath();ctx.arc(x,H*.15,2.2,0,Math.PI*2);ctx.fill();
+
+  for(
+    let x=18;
+    x<W;
+    x+=34
+  ){
+
+    ctx.fillStyle=
+      "#ffe9a7";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x,
+      H*.15,
+      2.2,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
   }
+
 }
+
+
+/* =========================================================
+   TENT
+   ========================================================= */
 
 function drawTent(){
-  const top=H*.055;
+
+  const top=
+    H*.055;
+
   ctx.save();
 
-  // 帳篷屋頂
-  ctx.fillStyle="#f7e4bd";
-  ctx.beginPath();ctx.moveTo(0,top+72);ctx.lineTo(W*.5,top);ctx.lineTo(W,top+72);ctx.closePath();ctx.fill();
 
-  const stripeW=W/7;
-  for(let i=-1;i<8;i++){
-    ctx.fillStyle=i%2===0?"#d83c4d":"#fff0cf";
+  ctx.fillStyle=
+    "#f7e4bd";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    top+72
+  );
+
+  ctx.lineTo(
+    W*.5,
+    top
+  );
+
+  ctx.lineTo(
+    W,
+    top+72
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+
+  const stripeW=
+    W/7;
+
+
+  for(
+    let i=-1;
+    i<8;
+    i++
+  ){
+
+    ctx.fillStyle=
+      i%2===0
+      ?"#d83c4d"
+      :"#fff0cf";
+
     ctx.beginPath();
-    ctx.moveTo(W*.5,top);
-    ctx.lineTo(W*.5+(i-3)*stripeW,top+72);
-    ctx.lineTo(W*.5+(i-2)*stripeW,top+72);
-    ctx.closePath();ctx.fill();
+
+    ctx.moveTo(
+      W*.5,
+      top
+    );
+
+    ctx.lineTo(
+      W*.5+
+      (i-3)*stripeW,
+      top+72
+    );
+
+    ctx.lineTo(
+      W*.5+
+      (i-2)*stripeW,
+      top+72
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
   }
 
-  // 頂端旗子
-  ctx.fillStyle="#f2b53e";ctx.beginPath();ctx.arc(W*.5,top,7,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="#a33b46";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W*.5,top-3);ctx.lineTo(W*.5,top-24);ctx.stroke();
-  ctx.fillStyle="#d83c4d";ctx.beginPath();ctx.moveTo(W*.5,top-24);ctx.lineTo(W*.5+22,top-18);ctx.lineTo(W*.5,top-13);ctx.closePath();ctx.fill();
 
-  // 左右柱子
-  ctx.fillStyle="#b53a45";ctx.fillRect(7,top+54,10,H*.28);ctx.fillRect(W-17,top+54,10,H*.28);
-  ctx.fillStyle="#f2b53e";ctx.fillRect(7,top+58,10,7);ctx.fillRect(W-17,top+58,10,7);
+  ctx.fillStyle=
+    "#f2b53e";
 
-  // 觀眾剪影
-  const ay=H*.71;
-  for(let x=8;x<W;x+=23){
-    const bob=Math.sin(x*1.7+performance.now()/350)*1.5;
-    ctx.fillStyle="#71394a";ctx.beginPath();ctx.arc(x,ay+bob,4,0,Math.PI*2);ctx.fill();
-    ctx.fillRect(x-5,ay+5+bob,10,8);
+  ctx.beginPath();
+
+  ctx.arc(
+    W*.5,
+    top,
+    7,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  ctx.strokeStyle=
+    "#a33b46";
+
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    W*.5,
+    top-3
+  );
+
+  ctx.lineTo(
+    W*.5,
+    top-24
+  );
+
+  ctx.stroke();
+
+
+  ctx.fillStyle=
+    "#d83c4d";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    W*.5,
+    top-24
+  );
+
+  ctx.lineTo(
+    W*.5+22,
+    top-18
+  );
+
+  ctx.lineTo(
+    W*.5,
+    top-13
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+
+  /*
+   * 柱子
+   */
+
+  ctx.fillStyle=
+    "#b53a45";
+
+  ctx.fillRect(
+    7,
+    top+54,
+    10,
+    H*.28
+  );
+
+  ctx.fillRect(
+    W-17,
+    top+54,
+    10,
+    H*.28
+  );
+
+
+  ctx.fillStyle=
+    "#f2b53e";
+
+  ctx.fillRect(
+    7,
+    top+58,
+    10,
+    7
+  );
+
+  ctx.fillRect(
+    W-17,
+    top+58,
+    10,
+    7
+  );
+
+
+  /*
+   * 觀眾
+   */
+
+  const ay=
+    H*.71;
+
+  for(
+    let x=8;
+    x<W;
+    x+=23
+  ){
+
+    const bob=
+      Math.sin(
+        x*1.7+
+        performance.now()/350
+      )*1.5;
+
+    ctx.fillStyle=
+      "#71394a";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      x,
+      ay+bob,
+      4,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.fillRect(
+      x-5,
+      ay+5+bob,
+      10,
+      8
+    );
+
   }
+
   ctx.restore();
+
 }
+
+
+/* =========================================================
+   GROUND
+   ========================================================= */
 
 function drawGround(){
-  const gy=H*.83;
-  // 舞台木板
-  ctx.fillStyle="#8c4d3e";ctx.fillRect(0,gy,W,H-gy);
-  for(let x=-(distance%72);x<W;x+=72){
-    ctx.fillStyle="#a95d48";ctx.fillRect(x,gy+4,62,3);
-    ctx.fillStyle="#6f3d38";ctx.fillRect(x,gy+18,52,2);
-  }
-  // 金色舞台邊
-  ctx.fillStyle="#f4bd45";ctx.fillRect(0,gy-3,W,5);
-  ctx.fillStyle="#fff0ad";ctx.fillRect(0,gy-3,W,1);
 
-  // 聚光在地面
-  const g=ctx.createRadialGradient(W*.5,gy,10,W*.5,gy,Math.min(W*.7,H*.55));
-  g.addColorStop(0,"rgba(255,244,185,.34)");g.addColorStop(1,"rgba(255,244,185,0)");
-  ctx.fillStyle=g;ctx.fillRect(0,gy-5,W,H-gy+5);
+  const gy=
+    H*.83;
+
+
+  ctx.fillStyle=
+    "#8c4d3e";
+
+  ctx.fillRect(
+    0,
+    gy,
+    W,
+    H-gy
+  );
+
+
+  for(
+    let x=-(distance%72);
+    x<W;
+    x+=72
+  ){
+
+    ctx.fillStyle=
+      "#a95d48";
+
+    ctx.fillRect(
+      x,
+      gy+4,
+      62,
+      3
+    );
+
+    ctx.fillStyle=
+      "#6f3d38";
+
+    ctx.fillRect(
+      x,
+      gy+18,
+      52,
+      2
+    );
+
+  }
+
+
+  ctx.fillStyle=
+    "#f4bd45";
+
+  ctx.fillRect(
+    0,
+    gy-3,
+    W,
+    5
+  );
+
+
+  ctx.fillStyle=
+    "#fff0ad";
+
+  ctx.fillRect(
+    0,
+    gy-3,
+    W,
+    1
+  );
+
+
+  const g=
+    ctx.createRadialGradient(
+      W*.5,
+      gy,
+      10,
+
+      W*.5,
+      gy,
+      Math.min(
+        W*.7,
+        H*.55
+      )
+    );
+
+  g.addColorStop(
+    0,
+    "rgba(255,244,185,.34)"
+  );
+
+  g.addColorStop(
+    1,
+    "rgba(255,244,185,0)"
+  );
+
+  ctx.fillStyle=g;
+
+  ctx.fillRect(
+    0,
+    gy-5,
+    W,
+    H-gy+5
+  );
+
 }
+
+
+/* =========================================================
+   FIRE RING DRAW
+   ========================================================= */
 
 function drawRing(r){
-  const pulse=Math.sin(r.pulse)*1.2;
-  const rr=r.r+pulse;
-  ctx.save();
-  ctx.translate(r.x,r.y);
 
-  // 外圈暖光
-  ctx.shadowBlur=13;
-  ctx.shadowColor=r.kind==="gold"?"rgba(255,210,75,.7)":"rgba(224,55,54,.55)";
-  ctx.strokeStyle=r.kind==="gold"?"#e6ad35":"#c92f3e";
-  ctx.lineWidth=11;
-  ctx.beginPath();ctx.arc(0,0,rr,0,Math.PI*2);ctx.stroke();
+  const pulse=
+    Math.sin(
+      r.pulse
+    )*1.4;
+
+  const rr=
+    r.r+
+    pulse;
+
+  ctx.save();
+
+  ctx.translate(
+    r.x,
+    r.y
+  );
+
+
+  /*
+   * =====================================================
+   * 大火圈
+   * =====================================================
+   */
+
+  ctx.shadowBlur=18;
+
+  ctx.shadowColor=
+    r.kind==="gold"
+    ?"rgba(255,210,75,.85)"
+    :"rgba(224,55,54,.65)";
+
+
+  /*
+   * 外圈
+   */
+
+  ctx.strokeStyle=
+    r.kind==="gold"
+    ?"#e6ad35"
+    :"#c92f3e";
+
+  ctx.lineWidth=14;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    rr,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+
   ctx.shadowBlur=0;
 
-  ctx.strokeStyle="#ffe7a0";ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(0,0,rr-6,0,Math.PI*2);ctx.stroke();
 
-  // 火焰只在外緣，中心洞保持非常乾淨，方便判斷。
-  const flames=12;
-  for(let i=0;i<flames;i++){
-    const a=i/flames*Math.PI*2+r.flame*.025;
-    const wob=.7+.3*Math.sin(r.flame+i*1.7);
-    const x=Math.cos(a)*(rr+7),y=Math.sin(a)*(rr+7);
-    ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);
-    ctx.fillStyle=i%2?"#f26a27":"#ffd04b";
-    ctx.beginPath();ctx.moveTo(0,-8*wob);ctx.quadraticCurveTo(5,-1,0,7);ctx.quadraticCurveTo(-5,-1,0,-8*wob);ctx.fill();
+  /*
+   * 內金邊
+   */
+
+  ctx.strokeStyle=
+    "#ffe7a0";
+
+  ctx.lineWidth=4;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    rr-7,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+
+  /*
+   * =====================================================
+   * 火焰
+   * =====================================================
+   *
+   * 火焰全部在外圈。
+   *
+   * 中間保持非常乾淨。
+   */
+
+  const flames=16;
+
+  for(
+    let i=0;
+    i<flames;
+    i++
+  ){
+
+    const a=
+      i/flames*
+      Math.PI*2+
+      r.flame*.025;
+
+    const wob=
+      .7+
+      .3*
+      Math.sin(
+        r.flame+
+        i*1.7
+      );
+
+    const x=
+      Math.cos(a)*
+      (rr+9);
+
+    const y=
+      Math.sin(a)*
+      (rr+9);
+
+    ctx.save();
+
+    ctx.translate(
+      x,
+      y
+    );
+
+    ctx.rotate(
+      a+
+      Math.PI/2
+    );
+
+    ctx.fillStyle=
+      i%2
+      ?"#f26a27"
+      :"#ffd04b";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      -10*wob
+    );
+
+    ctx.quadraticCurveTo(
+      6,
+      -1,
+      0,
+      9
+    );
+
+    ctx.quadraticCurveTo(
+      -6,
+      -1,
+      0,
+      -10*wob
+    );
+
+    ctx.fill();
+
     ctx.restore();
+
   }
 
-  // 中心洞
-  ctx.fillStyle="rgba(255,239,197,.12)";
-  ctx.beginPath();ctx.arc(0,0,rr-12,0,Math.PI*2);ctx.fill();
 
-  if(r.kind==="gold"){
-    ctx.fillStyle="#fff2a7";ctx.font="900 9px system-ui";ctx.textAlign="center";ctx.fillText("BONUS",0,3);
+  /*
+   * =====================================================
+   * 火圈中心
+   * =====================================================
+   *
+   * 用很淡的色彩表示安全區。
+   */
+
+  ctx.fillStyle=
+    "rgba(255,239,197,.10)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    rr-15,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 中心小十字提示
+   */
+
+  ctx.globalAlpha=.22;
+
+  ctx.strokeStyle=
+    "#fff8d2";
+
+  ctx.lineWidth=1.5;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -10,
+    0
+  );
+
+  ctx.lineTo(
+    10,
+    0
+  );
+
+  ctx.moveTo(
+    0,
+    -10
+  );
+
+  ctx.lineTo(
+    0,
+    10
+  );
+
+  ctx.stroke();
+
+  ctx.globalAlpha=1;
+
+
+  /*
+   * GOLD
+   */
+
+  if(
+    r.kind==="gold"
+  ){
+
+    ctx.fillStyle=
+      "#fff2a7";
+
+    ctx.font=
+      "900 10px system-ui";
+
+    ctx.textAlign=
+      "center";
+
+    ctx.textBaseline=
+      "middle";
+
+    ctx.fillText(
+      "BONUS",
+      0,
+      0
+    );
+
   }
+
+
   ctx.restore();
+
 }
+
+
+/* =========================================================
+   PLAYER DRAW
+   ========================================================= */
 
 function drawPlayer(){
-  const p=player;
-  ctx.save();
-  ctx.translate(p.x+p.w*.5,p.y+p.h*.5);ctx.rotate(p.rotation);
-  if(p.hitCooldown>0&&Math.floor(p.hitCooldown*18)%2===0)ctx.globalAlpha=.45;
 
-  // 跳躍陰影
-  if(!p.onGround){
-    ctx.globalAlpha=.20;ctx.fillStyle="#5a2731";ctx.beginPath();ctx.ellipse(0,p.h*.66,20,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  const p=player;
+
+  ctx.save();
+
+  ctx.translate(
+    p.x+
+    p.w*.5,
+
+    p.y+
+    p.h*.5
+  );
+
+  ctx.rotate(
+    p.rotation
+  );
+
+
+  /*
+   * HIT 閃爍
+   */
+
+  if(
+    p.hitCooldown>0&&
+    Math.floor(
+      p.hitCooldown*18
+    )%2===0
+  ){
+
+    ctx.globalAlpha=.45;
+
   }
 
-  // 腿
-  ctx.strokeStyle="#f8c9a8";ctx.lineWidth=7;ctx.lineCap="round";
-  ctx.beginPath();ctx.moveTo(-7,17);ctx.lineTo(-11,29);ctx.moveTo(7,17);ctx.lineTo(11,29);ctx.stroke();
-  // 鞋
-  ctx.strokeStyle="#6b2639";ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-12,29);ctx.lineTo(-17,29);ctx.moveTo(12,29);ctx.lineTo(17,29);ctx.stroke();
 
-  // 身體
-  const body=ctx.createLinearGradient(-16,-8,16,20);
-  body.addColorStop(0,"#e94358");body.addColorStop(1,"#a52348");
-  ctx.fillStyle=body;ctx.beginPath();ctx.roundRect(-16,-10,32,31,9);ctx.fill();
-  ctx.fillStyle="#ffd55c";ctx.fillRect(-15,2,30,4);
+  /*
+   * 跳躍陰影
+   */
 
-  // 手
-  ctx.strokeStyle="#f8c9a8";ctx.lineWidth=6;
-  ctx.beginPath();ctx.moveTo(-13,-2);ctx.lineTo(-24,7);ctx.moveTo(13,-2);ctx.lineTo(24,7);ctx.stroke();
+  if(!p.onGround){
 
-  // 頭
-  ctx.fillStyle="#f8c9a8";ctx.beginPath();ctx.arc(0,-20,14,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=.20;
 
-  // 帽子
-  ctx.fillStyle="#d7354d";ctx.beginPath();ctx.moveTo(-13,-28);ctx.lineTo(0,-49);ctx.lineTo(13,-28);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#ffd35a";ctx.fillRect(-15,-29,30,4);
-  ctx.fillStyle="#f6c54a";ctx.beginPath();ctx.arc(0,-50,3.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=
+      "#5a2731";
 
-  // 臉
-  ctx.fillStyle="#40202a";ctx.beginPath();ctx.arc(-5,-20,1.8,0,Math.PI*2);ctx.arc(5,-20,1.8,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="#8b3c4c";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,-17,5,0.15,Math.PI-.15);ctx.stroke();
+    ctx.beginPath();
+
+    ctx.ellipse(
+      0,
+      p.h*.65,
+      14,
+      4,
+      0,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.globalAlpha=1;
+
+  }
+
+
+  /*
+   * =====================================================
+   * 人物縮小版
+   * =====================================================
+   */
+
+
+  /*
+   * 腿
+   */
+
+  ctx.strokeStyle=
+    "#f8c9a8";
+
+  ctx.lineWidth=5;
+
+  ctx.lineCap="round";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -5,
+    12
+  );
+
+  ctx.lineTo(
+    -8,
+    21
+  );
+
+  ctx.moveTo(
+    5,
+    12
+  );
+
+  ctx.lineTo(
+    8,
+    21
+  );
+
+  ctx.stroke();
+
+
+  /*
+   * 鞋
+   */
+
+  ctx.strokeStyle=
+    "#6b2639";
+
+  ctx.lineWidth=5;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -8,
+    21
+  );
+
+  ctx.lineTo(
+    -13,
+    21
+  );
+
+  ctx.moveTo(
+    8,
+    21
+  );
+
+  ctx.lineTo(
+    13,
+    21
+  );
+
+  ctx.stroke();
+
+
+  /*
+   * 身體
+   */
+
+  const body=
+    ctx.createLinearGradient(
+      -12,
+      -6,
+      12,
+      15
+    );
+
+  body.addColorStop(
+    0,
+    "#e94358"
+  );
+
+  body.addColorStop(
+    1,
+    "#a52348"
+  );
+
+  ctx.fillStyle=body;
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    -12,
+    -7,
+    24,
+    23,
+    7
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 腰帶
+   */
+
+  ctx.fillStyle=
+    "#ffd55c";
+
+  ctx.fillRect(
+    -11,
+    1,
+    22,
+    3
+  );
+
+
+  /*
+   * 手
+   */
+
+  ctx.strokeStyle=
+    "#f8c9a8";
+
+  ctx.lineWidth=5;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -10,
+    -2
+  );
+
+  ctx.lineTo(
+    -18,
+    5
+  );
+
+  ctx.moveTo(
+    10,
+    -2
+  );
+
+  ctx.lineTo(
+    18,
+    5
+  );
+
+  ctx.stroke();
+
+
+  /*
+   * 頭
+   */
+
+  ctx.fillStyle=
+    "#f8c9a8";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    -15,
+    10,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 帽子
+   */
+
+  ctx.fillStyle=
+    "#d7354d";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -10,
+    -21
+  );
+
+  ctx.lineTo(
+    0,
+    -36
+  );
+
+  ctx.lineTo(
+    10,
+    -21
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+
+  ctx.fillStyle=
+    "#ffd35a";
+
+  ctx.fillRect(
+    -11,
+    -22,
+    22,
+    3
+  );
+
+
+  /*
+   * 帽子球
+   */
+
+  ctx.fillStyle=
+    "#f6c54a";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    -37,
+    2.5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 眼睛
+   */
+
+  ctx.fillStyle=
+    "#40202a";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    -4,
+    -15,
+    1.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.arc(
+    4,
+    -15,
+    1.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 嘴
+   */
+
+  ctx.strokeStyle=
+    "#8b3c4c";
+
+  ctx.lineWidth=1.2;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    -12,
+    3.5,
+    .15,
+    Math.PI-.15
+  );
+
+  ctx.stroke();
+
 
   ctx.restore();
 
-  // 跳躍提示弧
+
+  /*
+   * 跳躍提示圈
+   */
+
   if(!p.onGround){
-    ctx.globalAlpha=.24;ctx.strokeStyle="#fff1a0";ctx.lineWidth=2;
-    ctx.beginPath();ctx.arc(p.x+p.w*.5,p.y+p.h*.5,27+Math.sin(performance.now()/90)*2,0,Math.PI*2);ctx.stroke();
+
+    ctx.globalAlpha=.24;
+
+    ctx.strokeStyle=
+      "#fff1a0";
+
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      p.x+
+      p.w*.5,
+
+      p.y+
+      p.h*.5,
+
+      23+
+      Math.sin(
+        performance.now()/90
+      )*2,
+
+      0,
+      Math.PI*2
+    );
+
+    ctx.stroke();
+
     ctx.globalAlpha=1;
+
   }
+
 }
+
+
+/* =========================================================
+   PARTICLE DRAW
+   ========================================================= */
 
 function drawParticle(p){
-  ctx.save();ctx.globalAlpha=clamp(p.life/(p.max||.8),0,1);ctx.translate(p.x,p.y);ctx.rotate(p.rot);
-  ctx.fillStyle=p.type==="red"?"#ff3f32":p.type==="dust"?"#d9a07b":p.type==="fire"?"#ffb52e":"#ffe36a";
-  ctx.fillRect(-p.size*.5,-p.size*.5,p.size,p.size);ctx.restore();
+
+  ctx.save();
+
+  ctx.globalAlpha=
+    clamp(
+      p.life/
+      (p.max||.8),
+      0,
+      1
+    );
+
+  ctx.translate(
+    p.x,
+    p.y
+  );
+
+  ctx.rotate(
+    p.rot
+  );
+
+  ctx.fillStyle=
+    p.type==="red"
+    ?" #ff3f32"
+    :
+    p.type==="dust"
+    ?"#d9a07b"
+    :
+    p.type==="fire"
+    ?"#ffb52e"
+    :
+    "#ffe36a";
+
+  ctx.fillRect(
+    -p.size*.5,
+    -p.size*.5,
+    p.size,
+    p.size
+  );
+
+  ctx.restore();
+
 }
+
+
+/* =========================================================
+   FLOATING TEXT
+   ========================================================= */
+
 function drawFloat(f){
-  ctx.save();ctx.globalAlpha=clamp(f.life,0,1);ctx.font=`1000 ${f.type==="perfect"?20:15}px system-ui`;ctx.textAlign="center";
-  ctx.fillStyle=f.type==="perfect"?"#fff19b":f.type==="bad"?"#ff7a7a":"#ffd05a";
-  ctx.shadowBlur=10;ctx.shadowColor=ctx.fillStyle;ctx.fillText(f.text,f.x,f.y);ctx.restore();
+
+  ctx.save();
+
+  ctx.globalAlpha=
+    clamp(
+      f.life,
+      0,
+      1
+    );
+
+  ctx.font=
+    `1000 ${
+      f.type==="perfect"
+      ?20
+      :15
+    }px system-ui`;
+
+  ctx.textAlign=
+    "center";
+
+  ctx.fillStyle=
+    f.type==="perfect"
+    ?"#fff19b"
+    :
+    f.type==="bad"
+    ?"#ff7a7a"
+    :
+    "#ffd05a";
+
+  ctx.shadowBlur=10;
+
+  ctx.shadowColor=
+    ctx.fillStyle;
+
+  ctx.fillText(
+    f.text,
+    f.x,
+    f.y
+  );
+
+  ctx.restore();
+
 }
+
+
+/* =========================================================
+   VIGNETTE
+   ========================================================= */
+
 function drawVignette(){
-  const g=ctx.createRadialGradient(W*.5,H*.42,Math.min(W,H)*.30,W*.5,H*.42,Math.max(W,H)*.78);
-  g.addColorStop(0,"rgba(255,255,255,0)");
-  g.addColorStop(1,"rgba(91,37,42,.14)");
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+  const g=
+    ctx.createRadialGradient(
+      W*.5,
+      H*.42,
+      Math.min(W,H)*.30,
+
+      W*.5,
+      H*.42,
+      Math.max(W,H)*.78
+    );
+
+  g.addColorStop(
+    0,
+    "rgba(255,255,255,0)"
+  );
+
+  g.addColorStop(
+    1,
+    "rgba(91,37,42,.14)"
+  );
+
+  ctx.fillStyle=g;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
 }
+
+
+/* =========================================================
+   PLAYERS
+   ========================================================= */
 
 function renderPlayers(){
-  const arr=[...players.values()];
-  return arr.slice(0,6).map(p=>`<div class="player ${p.id===ME.id?"me":""}">
-    <b>${esc(p.username)}</b><em>${p.id===ME.id?"你":"房內玩家"} · ${p.score||0} 分</em></div>`).join("");
+
+  const arr=[
+    ...players.values()
+  ];
+
+  return arr
+    .slice(0,6)
+    .map(
+      p=>`
+
+      <div class="player ${
+        p.id===ME.id
+        ?"me"
+        :""
+      }">
+
+        <b>
+          ${esc(p.username)}
+        </b>
+
+        <em>
+          ${
+            p.id===ME.id
+            ?"你"
+            :"房內玩家"
+          }
+          · ${p.score||0} 分
+        </em>
+
+      </div>
+
+      `
+    )
+    .join("");
+
 }
+
+
+/* =========================================================
+   LOBBY
+   ========================================================= */
 
 function renderLobby(){
-  document.getElementById("main").innerHTML=`
+
+  document.getElementById(
+    "main"
+  ).innerHTML=`
+
     <section class="panel">
+
       <div class="stats">
-        <div class="stat"><b>${GAME_INFO.entryCost}</b><span>Entry 銀幣</span></div>
-        <div class="stat"><b>${players.size}</b><span>房內玩家</span></div>
-        <div class="stat"><b>3 ❤️</b><span>初始生命</span></div>
-        <div class="stat"><b>72 秒</b><span>極限演出</span></div>
+
+        <div class="stat">
+
+          <b>
+            ${GAME_INFO.entryCost}
+          </b>
+
+          <span>
+            Entry 銀幣
+          </span>
+
+        </div>
+
+        <div class="stat">
+
+          <b>
+            ${players.size}
+          </b>
+
+          <span>
+            房內玩家
+          </span>
+
+        </div>
+
+        <div class="stat">
+
+          <b>
+            3 ❤️
+          </b>
+
+          <span>
+            初始生命
+          </span>
+
+        </div>
+
+        <div class="stat">
+
+          <b>
+            72 秒
+          </b>
+
+          <span>
+            極限演出
+          </span>
+
+        </div>
+
       </div>
+
     </section>
+
+
     <section class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
-        <b>🎪 馬戲團大舞台</b><span class="badge">經典跳火圈</span>
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:7px
+        "
+      >
+
+        <b>
+          🎪 馬戲團大舞台
+        </b>
+
+        <span class="badge">
+          經典跳火圈
+        </span>
+
       </div>
+
+
       <div class="rule">
+
         角色會自動向前奔跑。<br>
-        <b style="color:#c63b49">看準火圈洞口</b>，點擊「起跳」讓角色穿過火圈。越接近中心越容易拿到 <b style="color:#fff19b">PERFECT</b>。
-        連續成功會增加 Combo；火圈越來越快、間距越來越緊。
+
+        <b style="color:#c63b49">
+          看準火圈洞口
+        </b>
+
+        點擊「起跳」讓角色穿過火圈。<br>
+
+        火圈現在固定為
+        <b>低、中、高</b>
+        三種標準高度，不會出現跳不到的高度。<br>
+
+        越接近中心越容易拿到
+        <b style="color:#d58b19">
+          PERFECT
+        </b>。
+
+        連續成功會增加 Combo。
+
       </div>
+
     </section>
-    <section class="panel"><div style="font-weight:900;margin-bottom:7px">房內玩家</div><div class="players">${renderPlayers()||'<div class="muted">等待玩家加入…</div>'}</div></section>
-    ${isHost()?'<button id="startBtn" class="cta">🎪 開始馬戲團演出</button>':'<div class="notice">等待室長開始遊戲…</div>'}
-    <button id="devBtn" class="cta secondary">🧪 本地測試：立即體驗</button>
+
+
+    <section class="panel">
+
+      <div
+        style="
+          font-weight:900;
+          margin-bottom:7px
+        "
+      >
+        房內玩家
+      </div>
+
+      <div class="players">
+
+        ${
+          renderPlayers()||
+          '<div class="muted">等待玩家加入…</div>'
+        }
+
+      </div>
+
+    </section>
+
+
+    ${
+      isHost()
+      ?
+      `
+        <button
+          id="startBtn"
+          class="cta"
+        >
+          🎪 開始馬戲團演出
+        </button>
+      `
+      :
+      `
+        <div class="notice">
+          等待室長開始遊戲…
+        </div>
+      `
+    }
+
+
+    <button
+      id="devBtn"
+      class="cta secondary"
+    >
+      🧪 本地測試：立即體驗
+    </button>
+
   `;
-  document.getElementById("startBtn")?.addEventListener("click",()=>{
-    if(isPurchasing)return;
-    sendEvent("CIRCUS_START",{});
-    startWithPayment(false);
-  });
-  document.getElementById("devBtn")?.addEventListener("click",()=>startWithPayment(true));
+
+
+  document
+    .getElementById("startBtn")
+    ?.addEventListener(
+      "click",
+      ()=>{
+
+        if(isPurchasing)return;
+
+        sendEvent(
+          "CIRCUS_START",
+          {}
+        );
+
+        startWithPayment(false);
+
+      }
+    );
+
+
+  document
+    .getElementById("devBtn")
+    ?.addEventListener(
+      "click",
+      ()=>{
+        startWithPayment(true);
+      }
+    );
+
 }
+
+
+/* =========================================================
+   PLAYING
+   ========================================================= */
 
 function renderPlaying(){
-  document.getElementById("main").innerHTML=`
-    <div class="stats" style="flex:none">
-      <div class="stat"><b id="lifeHUD">❤️❤️❤️</b><span>生命</span></div>
-      <div class="stat"><b id="scoreHUD">0</b><span>分數</span></div>
-      <div class="stat"><b id="comboHUD">x0</b><span>Combo</span></div>
-      <div class="stat"><b id="speedHUD">1.0x</b><span>速度</span></div>
+
+  document.getElementById(
+    "main"
+  ).innerHTML=`
+
+    <div
+      class="stats"
+      style="flex:none"
+    >
+
+      <div class="stat">
+
+        <b id="lifeHUD">
+          ❤️❤️❤️
+        </b>
+
+        <span>
+          生命
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b id="scoreHUD">
+          0
+        </b>
+
+        <span>
+          分數
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b id="comboHUD">
+          x0
+        </b>
+
+        <span>
+          Combo
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b id="speedHUD">
+          1.0x
+        </b>
+
+        <span>
+          速度
+        </span>
+
+      </div>
+
     </div>
+
+
     <div id="gameWrap">
-      <canvas id="gameCanvas"></canvas>
-      <div id="centerMsg"><div></div></div>
+
+      <canvas
+        id="gameCanvas"
+      ></canvas>
+
+      <div id="centerMsg">
+
+        <div></div>
+
+      </div>
+
     </div>
-    <div style="text-align:center;font-size:10px;color:#8a6665;margin:-1px 0 1px">看準火圈中心線，提前一點起跳最穩</div>
-    <button id="jumpBtn" class="jump">🔥 點擊起跳</button>
+
+
+    <div
+      style="
+        text-align:center;
+        font-size:10px;
+        color:#8a6665;
+        margin:-1px 0 1px
+      "
+    >
+      看準火圈中心線，提前一點起跳最穩
+    </div>
+
+
+    <button
+      id="jumpBtn"
+      class="jump"
+    >
+      🔥 點擊起跳
+    </button>
+
   `;
-  initCanvas();buildBackground();
-  document.getElementById("jumpBtn").addEventListener("pointerdown",onGamePointer,{passive:false});
-  canvas.addEventListener("pointerdown",onGamePointer,{passive:false});
+
+
+  initCanvas();
+
+  buildBackground();
+
+
+  document
+    .getElementById(
+      "jumpBtn"
+    )
+    .addEventListener(
+      "pointerdown",
+      onGamePointer,
+      {
+        passive:false
+      }
+    );
+
+
+  canvas.addEventListener(
+    "pointerdown",
+    onGamePointer,
+    {
+      passive:false
+    }
+  );
+
+
   startLoop();
+
 }
+
+
+/* =========================================================
+   RESULT
+   ========================================================= */
 
 function renderResult(){
-  document.getElementById("main").innerHTML=`
-    <section class="panel" style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center">
+
+  document.getElementById(
+    "main"
+  ).innerHTML=`
+
+    <section
+      class="panel"
+      style="
+        flex:1;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        text-align:center
+      "
+    >
+
       <div style="width:100%">
-        <div style="font-size:48px">🎪</div>
-        <h2 style="margin:6px 0">馬戲團演出結束</h2>
-        <div class="resultScore">${score}</div>
-        <div class="muted">最終分數</div>
-        <div class="stats" style="margin:18px 0">
-          <div class="stat"><b>${bestCombo}</b><span>最高 Combo</span></div>
-          <div class="stat"><b>${Math.round(elapsed)}s</b><span>演出時間</span></div>
-          <div class="stat"><b>${lives}</b><span>剩餘生命</span></div>
-          <div class="stat"><b>${Math.round(distance/100)}m</b><span>奔跑距離</span></div>
+
+        <div
+          style="font-size:48px"
+        >
+          🎪
         </div>
-        <div class="rule" style="background:#0d0910;border:1px solid #2c202f;border-radius:12px;padding:10px">
-          ${eventFeed.slice(0,5).map(esc).join("<br>")}
+
+
+        <h2
+          style="margin:6px 0"
+        >
+          馬戲團演出結束
+        </h2>
+
+
+        <div class="resultScore">
+          ${score}
         </div>
-        <button id="restartBtn" class="cta" style="margin-top:14px">🎪 再來一場</button>
+
+
+        <div class="muted">
+          最終分數
+        </div>
+
+
+        <div
+          class="stats"
+          style="margin:18px 0"
+        >
+
+          <div class="stat">
+
+            <b>
+              ${bestCombo}
+            </b>
+
+            <span>
+              最高 Combo
+            </span>
+
+          </div>
+
+
+          <div class="stat">
+
+            <b>
+              ${Math.round(elapsed)}s
+            </b>
+
+            <span>
+              演出時間
+            </span>
+
+          </div>
+
+
+          <div class="stat">
+
+            <b>
+              ${lives}
+            </b>
+
+            <span>
+              剩餘生命
+            </span>
+
+          </div>
+
+
+          <div class="stat">
+
+            <b>
+              ${Math.round(distance/100)}m
+            </b>
+
+            <span>
+              奔跑距離
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="rule"
+          style="
+            background:#0d0910;
+            border:1px solid #2c202f;
+            border-radius:12px;
+            padding:10px
+          "
+        >
+
+          ${
+            eventFeed
+              .slice(0,5)
+              .map(esc)
+              .join("<br>")
+          }
+
+        </div>
+
+
+        <button
+          id="restartBtn"
+          class="cta"
+          style="margin-top:14px"
+        >
+          🎪 再來一場
+        </button>
+
       </div>
+
     </section>
+
   `;
-  document.getElementById("restartBtn").addEventListener("click",()=>{state="LOBBY";render();});
+
+
+  document
+    .getElementById(
+      "restartBtn"
+    )
+    .addEventListener(
+      "click",
+      ()=>{
+
+        state="LOBBY";
+
+        render();
+
+      }
+    );
+
 }
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
 
 function render(){
-  const main=document.getElementById("main");
+
+  const main=
+    document.getElementById(
+      "main"
+    );
+
   if(!main)return;
-  if(state==="LOBBY")renderLobby();
-  else if(state==="COUNTDOWN"){renderPlaying();}
-  else if(state==="PLAYING")renderPlaying();
-  else if(state==="RESULT")renderResult();
-}
 
-function updateHUD(){
-  const a=document.getElementById("lifeHUD"),b=document.getElementById("scoreHUD"),c=document.getElementById("comboHUD"),d=document.getElementById("speedHUD");
-  if(a)a.textContent="❤️".repeat(Math.max(0,lives))+"🖤".repeat(Math.max(0,CONFIG.START_LIVES-lives));
-  if(b)b.textContent=score;
-  if(c)c.textContent=`x${combo}`;
-  if(d)d.textContent=(speed/CONFIG.BASE_SPEED).toFixed(1)+"x";
-}
 
-const oldDraw=draw;
-function draw(){
-  if(!ctx)return;
-  ctx.clearRect(0,0,W,H);drawSky();drawTent();drawGround();
+  if(
+    state==="LOBBY"
+  ){
 
-  // 第一個即將到來的火圈，提供非常淡的視覺引導線。
-  const next=rings.find(r=>r.x>player.x+20);
-  if(next){
-    ctx.save();
-    ctx.globalAlpha=.16;ctx.strokeStyle="#fff6ca";ctx.lineWidth=2;ctx.setLineDash([5,8]);
-    ctx.beginPath();ctx.moveTo(player.x+player.w*.5,player.y+player.h*.5);
-    ctx.lineTo(next.x,next.y);ctx.stroke();ctx.restore();
+    renderLobby();
+
   }
 
-  rings.forEach(drawRing);drawPlayer();
-  particles.forEach(drawParticle);floatingTexts.forEach(drawFloat);drawVignette();updateHUD();
+  else if(
+    state==="COUNTDOWN"
+  ){
+
+    renderPlaying();
+
+  }
+
+  else if(
+    state==="PLAYING"
+  ){
+
+    renderPlaying();
+
+  }
+
+  else if(
+    state==="RESULT"
+  ){
+
+    renderResult();
+
+  }
+
 }
 
-document.getElementById("soundBtn").addEventListener("click",()=>setMuted(!muted));
-document.getElementById("helpBtn").addEventListener("click",()=>{
-  alert("🎪 馬戲團跳火圈\\n\\n1. 角色會自動奔跑。\\n2. 看準火圈高度，點擊起跳。\\n3. 穿越中心 = PERFECT，高分＋Combo。\\n4. 擦邊會中斷 Combo。\\n5. 撞到火焰會失去 1 點生命。\\n6. 火圈會逐漸加速、縮短間距。\\n\\n手機：點擊畫面或起跳按鈕\\n電腦：Space / ↑");
-});
 
-addPlayer(ME.id,ME.username,ME.avatar);
+/* =========================================================
+   HUD
+   ========================================================= */
+
+function updateHUD(){
+
+  const a=
+    document.getElementById(
+      "lifeHUD"
+    );
+
+  const b=
+    document.getElementById(
+      "scoreHUD"
+    );
+
+  const c=
+    document.getElementById(
+      "comboHUD"
+    );
+
+  const d=
+    document.getElementById(
+      "speedHUD"
+    );
+
+
+  if(a){
+
+    a.textContent=
+      "❤️".repeat(
+        Math.max(
+          0,
+          lives
+        )
+      )+
+      "🖤".repeat(
+        Math.max(
+          0,
+          CONFIG.START_LIVES-
+          lives
+        )
+      );
+
+  }
+
+
+  if(b){
+
+    b.textContent=
+      score;
+
+  }
+
+
+  if(c){
+
+    c.textContent=
+      `x${combo}`;
+
+  }
+
+
+  if(d){
+
+    d.textContent=
+      (
+        speed/
+        CONFIG.BASE_SPEED
+      ).toFixed(1)+
+      "x";
+
+  }
+
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+document
+  .getElementById(
+    "soundBtn"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+      setMuted(
+        !muted
+      );
+    }
+  );
+
+
+document
+  .getElementById(
+    "helpBtn"
+  )
+  .addEventListener(
+    "click",
+    ()=>{
+
+      alert(
+`🎪 馬戲團跳火圈
+
+【基本玩法】
+
+1. 角色會自動奔跑。
+2. 看準火圈中心。
+3. 點擊畫面或「起跳」。
+4. 讓人物從火圈中心穿過。
+5. 越接近中心越容易得到 PERFECT。
+6. 連續成功會增加 Combo。
+7. 撞到火焰會失去 1 點生命。
+
+【新版火圈】
+
+🔥 火圈比原版大很多。
+🤡 人物比原版小。
+📍 火圈只會出現在低、中、高三種固定高度。
+🎯 不會再出現完全隨機、根本跳不到的高度。
+📱 不同手機畫面比例也會維持相同的跳躍邏輯。
+
+【操作】
+
+手機：
+點擊畫面 / 點擊起跳
+
+電腦：
+Space / ↑
+
+音效：
+M
+`
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   INITIAL PLAYER
+   ========================================================= */
+
+addPlayer(
+  ME.id,
+  ME.username,
+  ME.avatar
+);
+
+
+/* =========================================================
+   INITIAL RENDER
+   ========================================================= */
+
 render();
+
 </script>
+
 </body>
 </html>

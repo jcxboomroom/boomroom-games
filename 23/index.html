@@ -2,409 +2,2903 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#070912">
-<title>爆爆皮卡丘排球</title>
-<style>
-:root{
-  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
-  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
-  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
-button{font:inherit;border:0;color:var(--text);cursor:pointer}
-button:disabled{opacity:.4;cursor:default}
-#app{width:100%;height:100dvh;display:flex;justify-content:center}
-.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
-.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
-.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
-.center{display:flex;align-items:center;justify-content:center;text-align:center}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
-.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
-.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
-.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
-.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
-.cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff}
-.cta:active{transform:scale(.97)}
-.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
-.players{display:flex;gap:6px;overflow-x:auto}
-.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
-.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player em{display:block;font-style:normal;color:var(--muted)}
-.player.me{border-color:#42537b}
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 
-#canvasWrap{position:relative;flex:1;min-height:260px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg,#1a2035,#070912)}
-#gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-.ctrlGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
-.ctrlBtn{height:52px;border-radius:14px;background:#161f33;border:1px solid var(--line);font-size:18px;font-weight:bold;color:var(--cyan)}
-.ctrlBtn:active{background:var(--cyan);color:#070912}
-.feedBox{max-height:75px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px}
+<meta name="theme-color" content="#070912">
+
+<title>爆爆皮卡丘排球</title>
+
+<style>
+
+:root{
+  --bg:#070912;
+  --panel:#111625;
+  --panel2:#161c2d;
+  --line:#2b3550;
+
+  --text:#f7f8fb;
+  --muted:#98a3ba;
+
+  --cyan:#62e7ff;
+  --purple:#b76cff;
+  --green:#4ee08a;
+  --red:#ff637a;
+  --gold:#ffd166;
+}
+
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      #1b2540 0%,
+      #070912 55%
+    );
+
+  color:var(--text);
+
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    "Noto Sans TC",
+    "Microsoft JhengHei",
+    sans-serif;
+
+  user-select:none;
+}
+
+button{
+  font:inherit;
+  border:0;
+  color:var(--text);
+  cursor:pointer;
+  touch-action:none;
+}
+
+button:disabled{
+  opacity:.4;
+  cursor:default;
+}
+
+#app{
+  width:100%;
+  height:100dvh;
+
+  display:flex;
+  justify-content:center;
+}
+
+.shell{
+  width:min(100%,760px);
+  height:100%;
+
+  display:flex;
+  flex-direction:column;
+
+  padding:
+    calc(8px + env(safe-area-inset-top,0px))
+    10px
+    calc(8px + env(safe-area-inset-bottom,0px));
+
+  gap:8px;
+}
+
+.screen{
+  flex:1;
+  min-height:0;
+
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.panel{
+  background:
+    linear-gradient(
+      180deg,
+      var(--panel2),
+      var(--panel)
+    );
+
+  border:1px solid var(--line);
+  border-radius:18px;
+
+  padding:12px;
+
+  box-shadow:
+    0 8px 30px rgba(0,0,0,.18);
+}
+
+.center{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+}
+
+.stat{
+  padding:8px 5px;
+
+  background:#0b0f18;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  text-align:center;
+}
+
+.stat b{
+  display:block;
+  font-size:15px;
+}
+
+.stat span{
+  font-size:9px;
+  color:var(--muted);
+}
+
+.sectionTitle{
+  font-size:13px;
+  font-weight:1000;
+  margin-bottom:8px;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.tiny{
+  font-size:10px;
+  line-height:1.45;
+}
+
+.cta{
+  width:100%;
+  min-height:48px;
+
+  border-radius:14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--cyan),
+      var(--purple)
+    );
+
+  color:#070912;
+
+  font-weight:1000;
+  font-size:15px;
+
+  box-shadow:
+    0 5px 20px rgba(98,231,255,.12);
+
+  transition:
+    transform .08s,
+    filter .12s;
+}
+
+.cta:active{
+  transform:scale(.97);
+  filter:brightness(1.1);
+}
+
+.cta.secondary{
+  background:#192032;
+  color:#fff;
+  border:1px solid var(--line);
+}
+
+.notice{
+  min-height:22px;
+
+  color:#d1d6e4;
+
+  font-size:11px;
+
+  text-align:center;
+}
+
+.players{
+  display:flex;
+  gap:6px;
+
+  overflow-x:auto;
+
+  scrollbar-width:none;
+}
+
+.players::-webkit-scrollbar{
+  display:none;
+}
+
+.player{
+  min-width:100px;
+
+  padding:6px 8px;
+
+  border-radius:11px;
+
+  background:#0b101c;
+
+  border:1px solid var(--line);
+
+  font-size:10px;
+
+  flex:none;
+}
+
+.player b{
+  display:block;
+
+  font-size:12px;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.player em{
+  display:block;
+
+  font-style:normal;
+
+  color:var(--muted);
+}
+
+.player.me{
+  border-color:#42537b;
+}
+
+
+/* =========================
+   GAME
+========================= */
+
+#canvasWrap{
+
+  position:relative;
+
+  flex:1;
+  min-height:260px;
+
+  border-radius:16px;
+
+  overflow:hidden;
+
+  border:1px solid var(--line);
+
+  background:
+    linear-gradient(
+      180deg,
+      #1a2035,
+      #070912
+    );
+
+  box-shadow:
+    inset 0 0 30px rgba(0,0,0,.3);
+}
+
+#gameCanvas{
+
+  position:absolute;
+
+  inset:0;
+
+  width:100%;
+  height:100%;
+
+  display:block;
+
+  touch-action:none;
+}
+
+
+/* =========================
+   GAME HUD
+========================= */
+
+.gameHud{
+
+  position:absolute;
+
+  top:8px;
+  left:8px;
+  right:8px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  pointer-events:none;
+
+  z-index:3;
+}
+
+.scoreBadge{
+
+  min-width:92px;
+
+  padding:7px 10px;
+
+  border-radius:12px;
+
+  background:rgba(7,9,18,.72);
+
+  border:1px solid rgba(255,255,255,.12);
+
+  backdrop-filter:blur(8px);
+
+  font-size:11px;
+
+  font-weight:900;
+}
+
+.scoreBadge.yellow{
+  color:var(--gold);
+}
+
+.scoreBadge.red{
+  color:var(--red);
+}
+
+
+/* =========================
+   CONTROLS
+========================= */
+
+.ctrlGrid{
+
+  display:grid;
+
+  grid-template-columns:
+    1.1fr
+    1.1fr
+    1fr
+    1fr;
+
+  gap:6px;
+
+  margin-top:2px;
+}
+
+.ctrlBtn{
+
+  height:56px;
+
+  border-radius:15px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #1b2740,
+      #11192b
+    );
+
+  border:1px solid var(--line);
+
+  font-size:19px;
+
+  font-weight:bold;
+
+  color:var(--cyan);
+
+  box-shadow:
+    0 4px 0 #080b13;
+
+  transition:
+    transform .05s,
+    background .05s;
+}
+
+.ctrlBtn:active,
+.ctrlBtn.active{
+
+  transform:
+    translateY(3px);
+
+  background:
+    var(--cyan);
+
+  color:#070912;
+
+  box-shadow:
+    0 1px 0 #080b13;
+}
+
+.ctrlBtn.jump{
+  color:var(--gold);
+}
+
+.ctrlBtn.smash{
+  color:var(--red);
+}
+
+.ctrlBtn.smash.ready{
+  box-shadow:
+    0 0 15px rgba(255,99,122,.2),
+    0 4px 0 #080b13;
+}
+
+
+/* =========================
+   FEED
+========================= */
+
+.feedBox{
+
+  max-height:68px;
+
+  overflow-y:auto;
+
+  font-size:10px;
+
+  background:#0b0f18;
+
+  border:1px solid var(--line);
+
+  border-radius:10px;
+
+  padding:6px;
+
+  scrollbar-width:none;
+}
+
+.feedBox::-webkit-scrollbar{
+  display:none;
+}
+
+.feedBox div{
+  line-height:1.5;
+}
+
+
+/* =========================
+   RESULT
+========================= */
+
+.resultTitle{
+  font-size:28px;
+  margin:0 0 10px;
+}
+
+.resultScore{
+
+  font-size:22px;
+
+  font-weight:1000;
+
+  color:var(--gold);
+
+  margin:12px 0;
+}
+
+.tip{
+
+  margin-top:10px;
+
+  padding:8px;
+
+  border-radius:10px;
+
+  background:#0b0f18;
+
+  color:var(--muted);
+
+  font-size:10px;
+}
+
 </style>
 </head>
+
+
 <body>
-<div id="app"><div class="shell">
-  <main id="main" class="screen"></main>
-</div></div>
+
+<div id="app">
+
+  <div class="shell">
+
+    <main
+      id="main"
+      class="screen">
+    </main>
+
+  </div>
+
+</div>
+
 
 <script>
+
 "use strict";
 
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
 const CONFIG = Object.freeze({
-  ENTRY_FEE: 100,
-  MIN_PLAYERS: 1,
-  MAX_PLAYERS: 8
+
+  ENTRY_FEE:100,
+
+  MIN_PLAYERS:1,
+
+  MAX_PLAYERS:8,
+
+  WIN_SCORE:5,
+
+  /* 玩家移動 */
+
+  PLAYER_ACCEL:0.45,
+
+  PLAYER_DECEL:0.78,
+
+  PLAYER_MAX_SPEED:2.55,
+
+  /* 跳躍 */
+
+  GRAVITY:0.30,
+
+  JUMP_POWER:7.6,
+
+  /* 球 */
+
+  BALL_GRAVITY:0.115,
+
+  BALL_MAX_SPEED_X:4.1,
+
+  BALL_MAX_SPEED_Y:5.8,
+
+  BALL_START_SPEED:2.1,
+
+  /* 擊球 */
+
+  NORMAL_HIT_POWER:5.8,
+
+  SMASH_POWER:8.5,
+
+  HIT_COOLDOWN:12,
+
+  SMASH_COOLDOWN:38,
+
+  /* AI */
+
+  AI_SPEED:1.55
+
 });
 
-let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
-let sdkIsHost = false;
-let gameRoomId = "";
-let players = new Map();
 
-let state = "LOBBY"; // LOBBY, PLAYING, RESULT
-let scoreP1 = 0;
-let scoreP2 = 0;
-let feed = [];
+/* =========================================================
+   PLAYER / SDK
+========================================================= */
 
-// Game Physics & Objects
-let canvas, ctx;
-let p1 = { x: 80, y: 220, w: 32, h: 32, vx: 0, vy: 0, color: "#ffd166" }; // Pikachu Left
-let p2 = { x: 280, y: 220, w: 32, h: 32, vx: 0, vy: 0, color: "#ff637a" }; // Pikachu Right
-let ball = { x: 180, y: 100, vx: 2, vy: -2, r: 12 };
-let keys = { left1: false, right1: false, jump1: false, smash1: false };
-let gameLoopId = null;
+let ME = {
 
-function isHost() { return sdkIsHost || players.size <= 1; }
+  id:
+    "local_" +
+    Math.random()
+      .toString(36)
+      .slice(2,10),
 
-function safeString(v, fallback, maxLen) {
-  if (v === null || v === undefined) return fallback;
-  const s = String(v).trim();
-  return s ? s.slice(0, maxLen) : fallback;
+  username:"本地玩家",
+
+  avatar:"",
+
+  joinedAt:Date.now()
+
+};
+
+let sdkIsHost=false;
+
+let gameRoomId="";
+
+let players=new Map();
+
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let state="LOBBY";
+
+let scoreP1=0;
+
+let scoreP2=0;
+
+let feed=[];
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+let canvas=null;
+
+let ctx=null;
+
+let gameLoopId=null;
+
+
+/* =========================================================
+   GAME OBJECTS
+========================================================= */
+
+const p1={
+
+  x:65,
+
+  y:210,
+
+  w:32,
+
+  h:32,
+
+  vx:0,
+
+  vy:0,
+
+  color:"#ffd166",
+
+  hitCooldown:0,
+
+  smashCooldown:0
+
+};
+
+
+const p2={
+
+  x:285,
+
+  y:210,
+
+  w:32,
+
+  h:32,
+
+  vx:0,
+
+  vy:0,
+
+  color:"#ff637a",
+
+  hitCooldown:0
+
+};
+
+
+const ball={
+
+  x:180,
+
+  y:90,
+
+  vx:2.1,
+
+  vy:-2,
+
+  r:11,
+
+  hitCooldown:0,
+
+  trail:[]
+
+};
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const keys={
+
+  left1:false,
+
+  right1:false,
+
+  jump1:false,
+
+  smash1:false
+
+};
+
+
+/* =========================================================
+   UTILITY
+========================================================= */
+
+function clamp(v,min,max){
+
+  return Math.max(
+    min,
+    Math.min(max,v)
+  );
+
 }
 
-function addPlayer(id, username, avatar) {
-  if (!id) return;
-  id = String(id);
-  let p = players.get(id);
-  if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), score: 0 };
-    players.set(id, p);
-  } else {
-    p.username = safeString(username, p.username, 12);
+
+function safeString(v,fallback,maxLen){
+
+  if(
+    v===null ||
+    v===undefined
+  ){
+
+    return fallback;
+
   }
+
+  const s=String(v).trim();
+
+  return s
+    ? s.slice(0,maxLen)
+    : fallback;
+
+}
+
+
+function esc(s){
+
+  return String(s||"")
+    .replace(
+      /[&<>"']/g,
+      c=>({
+
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+
+      }[c])
+    );
+
+}
+
+
+function isHost(){
+
+  return sdkIsHost ||
+         players.size<=1;
+
+}
+
+
+/* =========================================================
+   PLAYERS
+========================================================= */
+
+function addPlayer(
+  id,
+  username,
+  avatar
+){
+
+  if(!id) return;
+
+  id=String(id);
+
+  let p=players.get(id);
+
+  if(!p){
+
+    p={
+
+      id,
+
+      username:
+        safeString(
+          username,
+          "玩家",
+          12
+        ),
+
+      avatar:
+        safeString(
+          avatar,
+          "",
+          300
+        ),
+
+      score:0
+
+    };
+
+    players.set(id,p);
+
+  }else{
+
+    p.username=
+      safeString(
+        username,
+        p.username,
+        12
+      );
+
+  }
+
   return p;
 }
 
-function setupSDK(data) {
-  if (data && data.user) {
-    players.delete(ME.id);
-    ME.id = String(data.user.id);
-    ME.username = safeString(data.user.username, "玩家", 12);
-    ME.avatar = safeString(data.user.avatar, "", 300);
-    addPlayer(ME.id, ME.username, ME.avatar);
-  }
-  sdkIsHost = !!(data && data.isHost);
-  gameRoomId = (data && data.roomId) || "";
 
-  if (Array.isArray(data.roomPlayers)) {
-    data.roomPlayers.forEach(rp => {
-      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
-    });
+/* =========================================================
+   SDK
+========================================================= */
+
+function setupSDK(data){
+
+  if(data && data.user){
+
+    players.delete(ME.id);
+
+    ME.id=
+      String(data.user.id);
+
+    ME.username=
+      safeString(
+        data.user.username,
+        "玩家",
+        12
+      );
+
+    ME.avatar=
+      safeString(
+        data.user.avatar,
+        "",
+        300
+      );
+
+    addPlayer(
+      ME.id,
+      ME.username,
+      ME.avatar
+    );
+
   }
+
+  sdkIsHost=
+    !!(
+      data &&
+      data.isHost
+    );
+
+  gameRoomId=
+    (data && data.roomId) ||
+    "";
+
+  if(
+    Array.isArray(
+      data.roomPlayers
+    )
+  ){
+
+    data.roomPlayers.forEach(
+      rp=>{
+
+        if(
+          rp &&
+          rp.id!=null
+        ){
+
+          addPlayer(
+            rp.id,
+            rp.username,
+            rp.avatar
+          );
+
+        }
+
+      }
+    );
+
+  }
+
   render();
+
 }
 
-window.addEventListener("message", e => {
-  try {
-    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    if (d && d.action === "initSDK") setupSDK(d);
-    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
-  } catch (_) {}
-});
 
-window.onBoomRoomSDKReady = function() {
-  if (window.BoomRoomSDK) {
-    setupSDK({
-      user: window.BoomRoomSDK.getUser(),
-      isHost: window.BoomRoomSDK.isHost,
-      roomId: window.BoomRoomSDK.roomId,
-      roomPlayers: window.BoomRoomSDK.roomPlayers || []
-    });
+/* =========================================================
+   SDK EVENTS
+========================================================= */
+
+window.addEventListener(
+  "message",
+  e=>{
+
+    try{
+
+      const d=
+        typeof e.data==="string"
+          ? JSON.parse(e.data)
+          : e.data;
+
+      if(
+        d &&
+        d.action==="initSDK"
+      ){
+
+        setupSDK(d);
+
+      }
+
+      else if(
+        d &&
+        d.action==="gameEventReceived"
+      ){
+
+        handleGameEvent(
+          d.eventName,
+          d.payload,
+          d.userId
+        );
+
+      }
+
+    }catch(_){}
+
   }
+);
+
+
+window.onBoomRoomSDKReady=function(){
+
+  if(window.BoomRoomSDK){
+
+    setupSDK({
+
+      user:
+        window.BoomRoomSDK.getUser(),
+
+      isHost:
+        window.BoomRoomSDK.isHost,
+
+      roomId:
+        window.BoomRoomSDK.roomId,
+
+      roomPlayers:
+        window.BoomRoomSDK.roomPlayers || []
+
+    });
+
+  }
+
 };
 
-function sendEvent(eventName, payload) {
-  try {
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
-      window.BoomRoomSDK.sendGameEvent(eventName, payload);
-    } else if (window.parent !== window) {
-      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+
+function sendEvent(
+  eventName,
+  payload
+){
+
+  try{
+
+    if(
+      window.BoomRoomSDK &&
+      typeof
+      window.BoomRoomSDK.sendGameEvent
+      ==="function"
+    ){
+
+      window.BoomRoomSDK.sendGameEvent(
+        eventName,
+        payload
+      );
+
     }
-  } catch (_) {}
+
+    else if(
+      window.parent!==window
+    ){
+
+      window.parent.postMessage(
+
+        JSON.stringify({
+
+          action:
+            "sendGameEvent",
+
+          eventName,
+
+          payload
+
+        }),
+
+        "*"
+
+      );
+
+    }
+
+  }catch(_){}
+
 }
 
-function handleGameEvent(eventName, payload, senderId) {
-  if (eventName === "PIKA_VOLLEY_START") {
-    state = "PLAYING";
-    scoreP1 = 0;
-    scoreP2 = 0;
-    feed = ["⚡ 皮卡丘排球開戰！先得 5 分者獲勝。"];
-    resetBall("P2");
-    startCanvasLoop();
-    render();
+
+/* =========================================================
+   GAME EVENTS
+========================================================= */
+
+function handleGameEvent(
+  eventName,
+  payload,
+  senderId
+){
+
+  if(
+    eventName===
+    "PIKA_VOLLEY_START"
+  ){
+
+    startGame();
+
   }
+
 }
 
-function startCanvasLoop() {
-  cancelAnimationFrame(gameLoopId);
-  const run = () => {
-    if (state !== "PLAYING") return;
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame(){
+
+  state="PLAYING";
+
+  scoreP1=0;
+
+  scoreP2=0;
+
+  feed=[
+    "⚡ 皮卡丘排球開戰！",
+    "🎯 先拿到 5 分獲勝",
+    "💡 左右移動＋跳躍＋扣球"
+  ];
+
+  resetBall("P2");
+
+  render();
+
+  startCanvasLoop();
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetBall(
+  servingSide
+){
+
+  ball.x=
+    servingSide==="P1"
+      ? 100
+      : 260;
+
+  ball.y=88;
+
+  ball.vx=
+    servingSide==="P1"
+      ? CONFIG.BALL_START_SPEED
+      : -CONFIG.BALL_START_SPEED;
+
+  ball.vy=-2;
+
+  ball.hitCooldown=18;
+
+  ball.trail=[];
+
+  p1.x=65;
+
+  p1.y=210;
+
+  p1.vx=0;
+
+  p1.vy=0;
+
+  p1.hitCooldown=0;
+
+  p1.smashCooldown=0;
+
+  p2.x=285;
+
+  p2.y=210;
+
+  p2.vx=0;
+
+  p2.vy=0;
+
+  p2.hitCooldown=0;
+
+  keys.jump1=false;
+
+  keys.smash1=false;
+
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function startCanvasLoop(){
+
+  cancelAnimationFrame(
+    gameLoopId
+  );
+
+  const run=()=>{
+
+    if(state!=="PLAYING")
+      return;
+
     updateGame();
+
     drawGame();
-    gameLoopId = requestAnimationFrame(run);
+
+    updateGameHUD();
+
+    gameLoopId=
+      requestAnimationFrame(run);
+
   };
-  gameLoopId = requestAnimationFrame(run);
+
+  gameLoopId=
+    requestAnimationFrame(run);
+
 }
 
-function resetBall(servingSide) {
-  ball.x = servingSide === "P1" ? 100 : 260;
-  ball.y = 80;
-  ball.vx = servingSide === "P1" ? 3 : -3;
-  ball.vy = -3;
+
+/* =========================================================
+   PLAYER MOVEMENT
+========================================================= */
+
+function updateP1(){
+
+  /* 左右加速度 */
+
+  if(keys.left1){
+
+    p1.vx-=
+      CONFIG.PLAYER_ACCEL;
+
+  }
+
+  else if(keys.right1){
+
+    p1.vx+=
+      CONFIG.PLAYER_ACCEL;
+
+  }
+
+  else{
+
+    p1.vx*=
+      CONFIG.PLAYER_DECEL;
+
+  }
+
+
+  p1.vx=
+    clamp(
+      p1.vx,
+      -CONFIG.PLAYER_MAX_SPEED,
+      CONFIG.PLAYER_MAX_SPEED
+    );
+
+
+  p1.x+=p1.vx;
+
+
+  /* 重力 */
+
+  p1.vy+=
+    CONFIG.GRAVITY;
+
+  p1.y+=
+    p1.vy;
+
+
+  /* 跳 */
+
+  if(
+    keys.jump1 &&
+    p1.y>=210
+  ){
+
+    p1.vy=
+      -CONFIG.JUMP_POWER;
+
+    p1.y=
+      209;
+
+    keys.jump1=false;
+
+  }
+
+
+  /* 地面 */
+
+  if(p1.y>210){
+
+    p1.y=210;
+
+    p1.vy=0;
+
+  }
+
+
+  /* 左場 */
+
+  p1.x=
+    clamp(
+      p1.x,
+      18,
+      145
+    );
+
 }
 
-function updateGame() {
-  // P1 Movement
-  if (keys.left1) p1.vx = -4;
-  else if (keys.right1) p1.vx = 4;
-  else p1.vx *= 0.8;
 
-  p1.x += p1.vx;
-  p1.vy += 0.45; // gravity
-  p1.y += p1.vy;
+/* =========================================================
+   AI
+========================================================= */
 
-  if (keys.jump1 && p1.y >= 210) {
-    p1.vy = -10;
+function updateAI(){
+
+  let targetX=285;
+
+  if(ball.x>190){
+
+    targetX=
+      ball.x-16;
+
   }
 
-  // Floor bound P1
-  if (p1.y > 210) { p1.y = 210; p1.vy = 0; }
-  if (p1.x < 20) p1.x = 20;
-  if (p1.x > 150) p1.x = 150; // Left side of net
 
-  // Simple AI for P2 (Right side)
-  if (ball.x > 180) {
-    if (p2.x > ball.x + 10) p2.x -= 3.5;
-    else if (p2.x < ball.x - 10) p2.x += 3.5;
-    if (ball.y < 150 && p2.y >= 210) p2.vy = -10;
-  } else {
-    if (p2.x < 280) p2.x += 2;
-  }
-  p2.y += p2.vy;
-  p2.vy += 0.45;
-  if (p2.y > 210) { p2.y = 210; p2.vy = 0; }
-  if (p2.x < 190) p2.x = 190;
-  if (p2.x > 330) p2.x = 330;
+  const diff=
+    targetX-p2.x;
 
-  // Ball physics
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-  ball.vy += 0.22; // gravity on ball
 
-  // Wall bounds
-  if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -1; }
-  if (ball.x > 360 - ball.r) { ball.x = 360 - ball.r; ball.vx *= -1; }
-  if (ball.y < ball.r) { ball.y = ball.r; ball.vy *= -1; }
+  if(
+    Math.abs(diff)>6
+  ){
 
-  // Net collision (x: 175 ~ 185, y: 150 ~ 250)
-  if (ball.x >= 172 && ball.x <= 188 && ball.y >= 150) {
-    ball.vx *= -1;
-    ball.x = ball.x < 180 ? 170 : 190;
+    p2.x+=
+      Math.sign(diff) *
+      CONFIG.AI_SPEED;
+
   }
 
-  // P1 collision
-  const dx1 = ball.x - (p1.x + p1.w / 2);
-  const dy1 = ball.y - (p1.y + p1.h / 2);
-  if (Math.hypot(dx1, dy1) < ball.r + p1.w / 2) {
-    ball.vx = dx1 * 0.2 + p1.vx * 0.5;
-    ball.vy = dy1 * 0.2 - 7;
-    feed.push("⚡ P1 擊球！");
+
+  p2.x=
+    clamp(
+      p2.x,
+      195,
+      330
+    );
+
+
+  /* AI 跳躍 */
+
+  if(
+    ball.x>190 &&
+    ball.y<145 &&
+    p2.y>=210 &&
+    Math.random()<0.018
+  ){
+
+    p2.vy=-7;
+
   }
 
-  // P2 collision
-  const dx2 = ball.x - (p2.x + p2.w / 2);
-  const dy2 = ball.y - (p2.y + p2.h / 2);
-  if (Math.hypot(dx2, dy2) < ball.r + p2.w / 2) {
-    ball.vx = dx2 * 0.2 + p2.vx * 0.5;
-    ball.vy = dy2 * 0.2 - 7;
-    feed.push("⚡ P2 擊球！");
+
+  p2.vy+=
+    CONFIG.GRAVITY;
+
+  p2.y+=
+    p2.vy;
+
+
+  if(p2.y>210){
+
+    p2.y=210;
+
+    p2.vy=0;
+
   }
 
-  // Ground collision (Score)
-  if (ball.y > 245) {
-    if (ball.x < 180) {
-      scoreP2++;
-      feed.push("🔴 P2 得分！ (比分 " + scoreP1 + " : " + scoreP2 + ")");
-      resetBall("P1");
-    } else {
-      scoreP1++;
-      feed.push("🟡 P1 得分！ (比分 " + scoreP1 + " : " + scoreP2 + ")");
-      resetBall("P2");
+}
+
+
+/* =========================================================
+   BALL
+========================================================= */
+
+function updateBall(){
+
+  ball.x+=ball.vx;
+
+  ball.y+=ball.vy;
+
+  ball.vy+=
+    CONFIG.BALL_GRAVITY;
+
+
+  /* 速度限制 */
+
+  ball.vx=
+    clamp(
+      ball.vx,
+      -CONFIG.BALL_MAX_SPEED_X,
+      CONFIG.BALL_MAX_SPEED_X
+    );
+
+  ball.vy=
+    clamp(
+      ball.vy,
+      -CONFIG.BALL_MAX_SPEED_Y,
+      CONFIG.BALL_MAX_SPEED_Y
+    );
+
+
+  /* 軌跡 */
+
+  ball.trail.push({
+
+    x:ball.x,
+
+    y:ball.y
+
+  });
+
+
+  if(ball.trail.length>8){
+
+    ball.trail.shift();
+
+  }
+
+
+  /* 左牆 */
+
+  if(
+    ball.x<ball.r
+  ){
+
+    ball.x=ball.r;
+
+    ball.vx=
+      Math.abs(ball.vx)*.85;
+
+  }
+
+
+  /* 右牆 */
+
+  if(
+    ball.x>
+    360-ball.r
+  ){
+
+    ball.x=
+      360-ball.r;
+
+    ball.vx=
+      -Math.abs(ball.vx)*.85;
+
+  }
+
+
+  /* 天花板 */
+
+  if(
+    ball.y<ball.r
+  ){
+
+    ball.y=ball.r;
+
+    ball.vy=
+      Math.abs(ball.vy)*.75;
+
+  }
+
+
+  /* 球網 */
+
+  if(
+    ball.x>=172 &&
+    ball.x<=188 &&
+    ball.y>=150 &&
+    ball.y<=245
+  ){
+
+    if(ball.vx>0){
+
+      ball.x=170;
+
+      ball.vx=
+        -Math.abs(ball.vx)*.78;
+
     }
-    checkGameOver();
+
+    else{
+
+      ball.x=190;
+
+      ball.vx=
+        Math.abs(ball.vx)*.78;
+
+    }
+
   }
+
 }
 
-function checkGameOver() {
-  if (scoreP1 >= 5 || scoreP2 >= 5) {
-    state = "RESULT";
-    cancelAnimationFrame(gameLoopId);
-    const winner = scoreP1 >= 5 ? "P1 (你)" : "P2 (AI對手)";
-    feed.push(`🏆 遊戲結束！獲勝者：${winner}`);
-    try {
-      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-        window.BoomRoomSDK.gameOver(scoreP1 * 20);
-      }
-    } catch(_) {}
-    render();
-  }
+
+/* =========================================================
+   COLLISION
+========================================================= */
+
+function distanceToPlayer(
+  player
+){
+
+  const cx=
+    player.x+
+    player.w/2;
+
+  const cy=
+    player.y+
+    player.h/2;
+
+  const dx=
+    ball.x-cx;
+
+  const dy=
+    ball.y-cy;
+
+  return {
+
+    dx,
+
+    dy,
+
+    dist:
+      Math.hypot(dx,dy)
+
+  };
+
 }
 
-function drawGame() {
-  if (!canvas || !ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw Net
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(177, 160, 6, 90);
+function hitP1(){
 
-  // Draw P1
-  ctx.fillStyle = p1.color;
-  ctx.beginPath();
-  ctx.roundRect(p1.x, p1.y, p1.w, p1.h, [10]);
-  ctx.fill();
+  const d=
+    distanceToPlayer(p1);
 
-  // Draw P2
-  ctx.fillStyle = p2.color;
-  ctx.beginPath();
-  ctx.roundRect(p2.x, p2.y, p2.w, p2.h, [10]);
-  ctx.fill();
 
-  // Draw Ball (Volleyball)
-  ctx.fillStyle = "#ffd166";
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = "#111";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-}
-
-function renderPlayers() {
-  return [...players.values()].map(p => {
-    const isMe = p.id === ME.id;
-    return `<div class="player ${isMe?'me':''}">
-      <b>${esc(p.username)}</b>
-      <em>比分: ${scoreP1} : ${scoreP2}</em>
-    </div>`;
-  }).join("");
-}
-
-function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-
-function runLocalDevTest() {
-  players.clear();
-  addPlayer(ME.id, ME.username, ME.avatar);
-  sendEvent("PIKA_VOLLEY_START", {});
-  handleGameEvent("PIKA_VOLLEY_START", {}, ME.id);
-}
-
-function render() {
-  const main = document.getElementById("main");
-  if (!main) return;
-
-  if (state === "LOBBY") {
-    main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>5 分</b><span>先到獲勝</span></div><div class="stat"><b>神級懷舊</b><span>經典對決</span></div></div></section>
-      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《皮卡丘排球》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
-      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
-    `;
-    document.getElementById("startBtn")?.addEventListener("click", () => {
-      sendEvent("PIKA_VOLLEY_START", {});
-      handleGameEvent("PIKA_VOLLEY_START", {}, ME.id);
-    });
-    document.getElementById("devBtn")?.addEventListener("click", () => {
-      runLocalDevTest();
-    });
+  if(
+    d.dist >
+    ball.r+
+    p1.w/2
+  )
     return;
+
+
+  if(
+    p1.hitCooldown>0 ||
+    ball.hitCooldown>0
+  )
+    return;
+
+
+  /* 從哪個方向彈 */
+
+  let nx=
+    d.dx/
+    Math.max(d.dist,1);
+
+
+  /* 扣球 */
+
+  if(
+    keys.smash1 &&
+    p1.smashCooldown<=0
+  ){
+
+    ball.vx=
+      nx*2.8+
+      p1.vx*.5+
+      1.2;
+
+    ball.vy=
+      -CONFIG.SMASH_POWER;
+
+    p1.smashCooldown=
+      CONFIG.SMASH_COOLDOWN;
+
+    keys.smash1=false;
+
+    feed.push(
+      "⚡ P1 超級扣球！"
+    );
+
   }
 
-  if (state === "PLAYING") {
-    main.innerHTML = `
-      <div class="stats" style="flex:none;">
-        <div class="stat"><b>🟡 P1: ${scoreP1} 分</b><span>我方陣營</span></div>
-        <div class="stat"><b>VS</b><span>排球對決</span></div>
-        <div class="stat"><b>🔴 P2: ${scoreP2} 分</b><span>對手陣營</span></div>
+  else{
+
+    ball.vx=
+      nx*1.8+
+      p1.vx*.55;
+
+    ball.vy=
+      -CONFIG.NORMAL_HIT_POWER;
+
+    feed.push(
+      "🟡 P1 擊球！"
+    );
+
+  }
+
+
+  /* 避免卡進角色 */
+
+  ball.y=
+    Math.min(
+      ball.y,
+      p1.y-ball.r-2
+    );
+
+
+  p1.hitCooldown=
+    CONFIG.HIT_COOLDOWN;
+
+  ball.hitCooldown=
+    CONFIG.HIT_COOLDOWN;
+
+}
+
+
+function hitP2(){
+
+  const d=
+    distanceToPlayer(p2);
+
+
+  if(
+    d.dist >
+    ball.r+
+    p2.w/2
+  )
+    return;
+
+
+  if(
+    p2.hitCooldown>0 ||
+    ball.hitCooldown>0
+  )
+    return;
+
+
+  const nx=
+    d.dx/
+    Math.max(d.dist,1);
+
+
+  ball.vx=
+    nx*1.8+
+    p2.vx*.35;
+
+
+  ball.vy=
+    -5.7;
+
+
+  ball.y=
+    Math.min(
+      ball.y,
+      p2.y-ball.r-2
+    );
+
+
+  p2.hitCooldown=
+    CONFIG.HIT_COOLDOWN;
+
+  ball.hitCooldown=
+    CONFIG.HIT_COOLDOWN;
+
+
+  feed.push(
+    "🔴 P2 擊球！"
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE GAME
+========================================================= */
+
+function updateGame(){
+
+  if(p1.hitCooldown>0)
+    p1.hitCooldown--;
+
+  if(p1.smashCooldown>0)
+    p1.smashCooldown--;
+
+  if(p2.hitCooldown>0)
+    p2.hitCooldown--;
+
+  if(ball.hitCooldown>0)
+    ball.hitCooldown--;
+
+
+  updateP1();
+
+  updateAI();
+
+  updateBall();
+
+  hitP1();
+
+  hitP2();
+
+
+  /* 落地 */
+
+  if(ball.y>245){
+
+    if(ball.x<180){
+
+      scoreP2++;
+
+      feed.push(
+        "🔴 P2 得分！ " +
+        scoreP1+
+        " : "+
+        scoreP2
+      );
+
+      resetBall("P1");
+
+    }
+
+    else{
+
+      scoreP1++;
+
+      feed.push(
+        "🟡 P1 得分！ " +
+        scoreP1+
+        " : "+
+        scoreP2
+      );
+
+      resetBall("P2");
+
+    }
+
+
+    if(feed.length>12){
+
+      feed=
+        feed.slice(-12);
+
+    }
+
+
+    checkGameOver();
+
+  }
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function checkGameOver(){
+
+  if(
+    scoreP1>=CONFIG.WIN_SCORE ||
+    scoreP2>=CONFIG.WIN_SCORE
+  ){
+
+    state="RESULT";
+
+    cancelAnimationFrame(
+      gameLoopId
+    );
+
+
+    const winner=
+      scoreP1>=CONFIG.WIN_SCORE
+        ? "P1（你）"
+        : "P2（AI 對手）";
+
+
+    feed.push(
+      "🏆 遊戲結束！獲勝者："+winner
+    );
+
+
+    try{
+
+      if(
+        window.BoomRoomSDK &&
+        typeof
+        window.BoomRoomSDK.gameOver
+        ==="function"
+      ){
+
+        window.BoomRoomSDK.gameOver(
+          scoreP1*20
+        );
+
+      }
+
+    }catch(_){}
+
+
+    render();
+
+  }
+
+}
+
+
+/* =========================================================
+   DRAW
+========================================================= */
+
+function drawGame(){
+
+  if(!canvas || !ctx)
+    return;
+
+
+  const W=360;
+
+  const H=250;
+
+
+  ctx.clearRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  /* 天空 */
+
+  const sky=
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
+
+
+  sky.addColorStop(
+    0,
+    "#202a49"
+  );
+
+  sky.addColorStop(
+    1,
+    "#080b15"
+  );
+
+
+  ctx.fillStyle=sky;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  /* 地板 */
+
+  ctx.fillStyle="#10182a";
+
+  ctx.fillRect(
+    0,
+    235,
+    W,
+    15
+  );
+
+
+  /* 地板線 */
+
+  ctx.strokeStyle=
+    "rgba(98,231,255,.18)";
+
+  ctx.lineWidth=1;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    0,
+    235
+  );
+
+  ctx.lineTo(
+    W,
+    235
+  );
+
+  ctx.stroke();
+
+
+  /* 中線 */
+
+  ctx.strokeStyle=
+    "rgba(255,255,255,.08)";
+
+  ctx.setLineDash([4,5]);
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    180,
+    0
+  );
+
+  ctx.lineTo(
+    180,
+    235
+  );
+
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+
+
+  /* 球網陰影 */
+
+  ctx.fillStyle=
+    "rgba(0,0,0,.3)";
+
+  ctx.fillRect(
+    174,
+    158,
+    12,
+    80
+  );
+
+
+  /* 球網 */
+
+  ctx.fillStyle="#f5f7ff";
+
+  ctx.fillRect(
+    177,
+    150,
+    6,
+    88
+  );
+
+
+  /* 網頂 */
+
+  ctx.fillStyle=
+    "#ffffff";
+
+  ctx.fillRect(
+    175,
+    150,
+    10,
+    3
+  );
+
+
+  /* 球軌跡 */
+
+  ball.trail.forEach(
+    (pos,i)=>{
+
+      const alpha=
+        (i+1)/
+        ball.trail.length*
+        .16;
+
+      ctx.fillStyle=
+        `rgba(255,209,102,${alpha})`;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        pos.x,
+        pos.y,
+        ball.r*
+        ((i+1)/
+        ball.trail.length)*
+        .7,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+    }
+  );
+
+
+  /* 角色 */
+
+  drawPikachu(
+    p1,
+    "#ffd166",
+    true
+  );
+
+  drawPikachu(
+    p2,
+    "#ff637a",
+    false
+  );
+
+
+  /* 球陰影 */
+
+  ctx.fillStyle=
+    "rgba(0,0,0,.25)";
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    ball.x,
+    235,
+    9,
+    3,
+    0,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /* 球 */
+
+  ctx.fillStyle=
+    "#ffd166";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    ball.x,
+    ball.y,
+    ball.r,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  ctx.strokeStyle=
+    "#fff1ad";
+
+  ctx.lineWidth=1.5;
+
+  ctx.stroke();
+
+
+  /* 球高光 */
+
+  ctx.fillStyle=
+    "rgba(255,255,255,.65)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    ball.x-3,
+    ball.y-3,
+    2.5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+}
+
+
+/* =========================================================
+   DRAW CHARACTER
+========================================================= */
+
+function drawPikachu(
+  p,
+  color,
+  isPlayer
+){
+
+  const x=p.x;
+
+  const y=p.y;
+
+
+  /* 陰影 */
+
+  ctx.fillStyle=
+    "rgba(0,0,0,.22)";
+
+  ctx.beginPath();
+
+  ctx.ellipse(
+    x+p.w/2,
+    235,
+    16,
+    4,
+    0,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /* 身體 */
+
+  ctx.fillStyle=color;
+
+  ctx.beginPath();
+
+  ctx.roundRect(
+    x,
+    y,
+    p.w,
+    p.h,
+    10
+  );
+
+  ctx.fill();
+
+
+  /* 耳朵 */
+
+  ctx.fillStyle=color;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x+5,
+    y+4
+  );
+
+  ctx.lineTo(
+    x+1,
+    y-8
+  );
+
+  ctx.lineTo(
+    x+10,
+    y+1
+  );
+
+  ctx.fill();
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    x+22,
+    y+4
+  );
+
+  ctx.lineTo(
+    x+30,
+    y-8
+  );
+
+  ctx.lineTo(
+    x+26,
+    y+7
+  );
+
+  ctx.fill();
+
+
+  /* 眼睛 */
+
+  ctx.fillStyle="#171717";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+10,
+    y+13,
+    2.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+23,
+    y+13,
+    2.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /* 臉頰 */
+
+  ctx.fillStyle=
+    isPlayer
+      ? "#ff5a5f"
+      : "#ff8899";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+5,
+    y+21,
+    3.2,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x+27,
+    y+21,
+    3.2,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+}
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateGameHUD(){
+
+  const p1Score=
+    document.getElementById(
+      "hudP1"
+    );
+
+  const p2Score=
+    document.getElementById(
+      "hudP2"
+    );
+
+
+  if(p1Score){
+
+    p1Score.textContent=
+      "🟡 P1  "+scoreP1;
+
+  }
+
+
+  if(p2Score){
+
+    p2Score.textContent=
+      "🔴 P2  "+scoreP2;
+
+  }
+
+
+  const smashBtn=
+    document.getElementById(
+      "smashBtn"
+    );
+
+
+  if(smashBtn){
+
+    if(
+      p1.smashCooldown<=0
+    ){
+
+      smashBtn.classList.add(
+        "ready"
+      );
+
+      smashBtn.textContent=
+        "⚡ 扣球";
+
+    }
+
+    else{
+
+      smashBtn.classList.remove(
+        "ready"
+      );
+
+      smashBtn.textContent=
+        "⚡ "+
+        Math.ceil(
+          p1.smashCooldown/10
+        );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PLAYERS UI
+========================================================= */
+
+function renderPlayers(){
+
+  return [
+
+    ...players.values()
+
+  ].map(p=>{
+
+    const isMe=
+      p.id===ME.id;
+
+    return `
+
+      <div class="player ${isMe?"me":""}">
+
+        <b>
+          ${esc(p.username)}
+        </b>
+
+        <em>
+          ${isMe?"你":"房內玩家"}
+        </em>
+
       </div>
 
-      <div id="canvasWrap">
-        <canvas id="gameCanvas" width="360" height="250"></canvas>
+    `;
+
+  }).join("");
+
+}
+
+
+/* =========================================================
+   TOUCH CONTROLS
+========================================================= */
+
+function bindTouch(
+  btnId,
+  keyName
+){
+
+  const btn=
+    document.getElementById(
+      btnId
+    );
+
+  if(!btn)
+    return;
+
+
+  const press=e=>{
+
+    e.preventDefault();
+
+    keys[keyName]=true;
+
+    btn.classList.add(
+      "active"
+    );
+
+    try{
+
+      btn.setPointerCapture(
+        e.pointerId
+      );
+
+    }catch(_){}
+
+  };
+
+
+  const release=e=>{
+
+    e.preventDefault();
+
+    keys[keyName]=false;
+
+    btn.classList.remove(
+      "active"
+    );
+
+  };
+
+
+  btn.addEventListener(
+    "pointerdown",
+    press
+  );
+
+  btn.addEventListener(
+    "pointerup",
+    release
+  );
+
+  btn.addEventListener(
+    "pointercancel",
+    release
+  );
+
+  btn.addEventListener(
+    "lostpointercapture",
+    release
+  );
+
+}
+
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+  const main=
+    document.getElementById(
+      "main"
+    );
+
+  if(!main)
+    return;
+
+
+  /* =========================
+     LOBBY
+  ========================= */
+
+  if(state==="LOBBY"){
+
+    main.innerHTML=`
+
+      <section class="panel">
+
+        <div class="stats">
+
+          <div class="stat">
+            <b>100</b>
+            <span>Entry 銀幣</span>
+          </div>
+
+          <div class="stat">
+            <b>${players.size}</b>
+            <span>房內玩家</span>
+          </div>
+
+          <div class="stat">
+            <b>5 分</b>
+            <span>先到獲勝</span>
+          </div>
+
+          <div class="stat">
+            <b>休閒版</b>
+            <span>慢速操作</span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section class="panel">
+
+        <div class="sectionTitle">
+          房內玩家
+        </div>
+
+        <div class="players">
+          ${renderPlayers()}
+        </div>
+
+      </section>
+
+
+      ${
+        isHost()
+
+        ?
+
+        `<button
+          id="startBtn"
+          class="cta">
+          👑 室長：開始《皮卡丘排球》
+        </button>`
+
+        :
+
+        `<div class="notice">
+          等待室長開始遊戲...
+        </div>`
+      }
+
+
+      <section class="panel">
+
+        <div class="sectionTitle">
+          🎮 操作方式
+        </div>
+
+        <div class="tiny muted">
+
+          ◀ ▶ 移動皮卡丘<br>
+
+          ▲ 跳躍<br>
+
+          ⚡ 扣球：球靠近時使用，可打出強力球<br>
+
+          💡 現在球速已降低，方便手機操作
+
+        </div>
+
+      </section>
+
+
+      <button
+        id="devBtn"
+        class="cta secondary">
+
+        🧪 本地測試：直接開局
+
+      </button>
+
+    `;
+
+
+    document
+      .getElementById("startBtn")
+      ?.addEventListener(
+        "click",
+        ()=>{
+
+          sendEvent(
+            "PIKA_VOLLEY_START",
+            {}
+          );
+
+          handleGameEvent(
+            "PIKA_VOLLEY_START",
+            {},
+            ME.id
+          );
+
+        }
+      );
+
+
+    document
+      .getElementById("devBtn")
+      ?.addEventListener(
+        "click",
+        ()=>{
+
+          runLocalDevTest();
+
+        }
+      );
+
+
+    return;
+
+  }
+
+
+  /* =========================
+     PLAYING
+  ========================= */
+
+  if(state==="PLAYING"){
+
+    main.innerHTML=`
+
+      <div
+        id="canvasWrap">
+
+        <canvas
+          id="gameCanvas"
+          width="360"
+          height="250">
+        </canvas>
+
+
+        <div
+          class="gameHud">
+
+          <div
+            id="hudP1"
+            class="scoreBadge yellow">
+            🟡 P1  ${scoreP1}
+          </div>
+
+          <div
+            class="scoreBadge">
+            先到 ${CONFIG.WIN_SCORE} 分
+          </div>
+
+          <div
+            id="hudP2"
+            class="scoreBadge red">
+            🔴 P2  ${scoreP2}
+          </div>
+
+        </div>
+
       </div>
+
 
       <div class="ctrlGrid">
-        <button id="leftBtn" class="ctrlBtn">◀</button>
-        <button id="rightBtn" class="ctrlBtn">▶</button>
-        <button id="jumpBtn" class="ctrlBtn" style="color:var(--gold);">▲ 跳</button>
-        <button id="smashBtn" class="ctrlBtn" style="color:var(--red);">⚡ 扣</button>
+
+        <button
+          id="leftBtn"
+          class="ctrlBtn">
+          ◀
+        </button>
+
+        <button
+          id="rightBtn"
+          class="ctrlBtn">
+          ▶
+        </button>
+
+        <button
+          id="jumpBtn"
+          class="ctrlBtn jump">
+          ▲ 跳
+        </button>
+
+        <button
+          id="smashBtn"
+          class="ctrlBtn smash ready">
+          ⚡ 扣球
+        </button>
+
       </div>
 
-      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+
+      <div class="feedBox">
+
+        ${
+          feed
+            .slice(-5)
+            .map(
+              f=>`<div>${esc(f)}</div>`
+            )
+            .join("")
+        }
+
+      </div>
+
     `;
 
-    canvas = document.getElementById("gameCanvas");
-    if (canvas) {
-      ctx = canvas.getContext("2d");
+
+    canvas=
+      document.getElementById(
+        "gameCanvas"
+      );
+
+
+    if(canvas){
+
+      ctx=
+        canvas.getContext(
+          "2d"
+        );
+
     }
 
-    const bindTouch = (btnId, keyName) => {
-      const btn = document.getElementById(btnId);
-      if (!btn) return;
-      btn.addEventListener("pointerdown", e => { e.preventDefault(); keys[keyName] = true; });
-      btn.addEventListener("pointerup", e => { e.preventDefault(); keys[keyName] = false; });
-      btn.addEventListener("pointerleave", e => { e.preventDefault(); keys[keyName] = false; });
-    };
-    bindTouch("leftBtn", "left1");
-    bindTouch("rightBtn", "right1");
-    bindTouch("jumpBtn", "jump1");
-    bindTouch("smashBtn", "smash1");
+
+    bindTouch(
+      "leftBtn",
+      "left1"
+    );
+
+    bindTouch(
+      "rightBtn",
+      "right1"
+    );
+
+    bindTouch(
+      "jumpBtn",
+      "jump1"
+    );
+
+    bindTouch(
+      "smashBtn",
+      "smash1"
+    );
+
 
     startCanvasLoop();
+
     return;
+
   }
 
-  if (state === "RESULT") {
-    main.innerHTML = `
-      <section class="panel center" style="flex:1;">
+
+  /* =========================
+     RESULT
+  ========================= */
+
+  if(state==="RESULT"){
+
+    const playerWon=
+      scoreP1>scoreP2;
+
+
+    main.innerHTML=`
+
+      <section
+        class="panel center"
+        style="flex:1;">
+
         <div>
-          <h2>🏆 皮卡丘排球結算</h2>
-          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">最終比分：P1 [ ${scoreP1} ] : [ ${scoreP2} ] P2</p>
-          <div class="feedBox" style="max-height:120px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
-          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+
+          <h2 class="resultTitle">
+
+            ${
+              playerWon
+                ? "🏆 勝利！"
+                : "💥 再接再厲！"
+            }
+
+          </h2>
+
+
+          <div class="resultScore">
+
+            P1
+            [ ${scoreP1} ]
+            :
+            [ ${scoreP2} ]
+            P2
+
+          </div>
+
+
+          <div class="feedBox"
+               style="max-height:130px;margin-top:12px;">
+
+            ${
+              feed
+                .map(
+                  f=>`<div>${esc(f)}</div>`
+                )
+                .join("")
+            }
+
+          </div>
+
+
+          <div class="tip">
+
+            💡 小技巧：<br>
+
+            不需要一直按跳躍。
+            等球接近時跳起來，再按 ⚡ 扣球。
+
+          </div>
+
+
+          <button
+            id="restartBtn"
+            class="cta"
+            style="margin-top:16px;">
+
+            返回大廳
+
+          </button>
+
         </div>
+
       </section>
+
     `;
-    document.getElementById("restartBtn")?.addEventListener("click", () => {
-      state = "LOBBY";
-      render();
-    });
+
+
+    document
+      .getElementById(
+        "restartBtn"
+      )
+      ?.addEventListener(
+        "click",
+        ()=>{
+
+          state="LOBBY";
+
+          render();
+
+        }
+      );
+
   }
+
 }
 
-// 預設初次渲染
-addPlayer(ME.id, ME.username, ME.avatar);
+
+/* =========================================================
+   LOCAL DEV
+========================================================= */
+
+function runLocalDevTest(){
+
+  players.clear();
+
+  addPlayer(
+    ME.id,
+    ME.username,
+    ME.avatar
+  );
+
+
+  sendEvent(
+    "PIKA_VOLLEY_START",
+    {}
+  );
+
+
+  handleGameEvent(
+    "PIKA_VOLLEY_START",
+    {},
+    ME.id
+  );
+
+}
+
+
+/* =========================================================
+   KEYBOARD SUPPORT
+========================================================= */
+
+window.addEventListener(
+  "keydown",
+  e=>{
+
+    if(state!=="PLAYING")
+      return;
+
+
+    if(
+      e.key==="ArrowLeft" ||
+      e.key==="a"
+    ){
+
+      e.preventDefault();
+
+      keys.left1=true;
+
+    }
+
+
+    if(
+      e.key==="ArrowRight" ||
+      e.key==="d"
+    ){
+
+      e.preventDefault();
+
+      keys.right1=true;
+
+    }
+
+
+    if(
+      e.key==="ArrowUp" ||
+      e.key==="w" ||
+      e.key===" "
+    ){
+
+      e.preventDefault();
+
+      keys.jump1=true;
+
+    }
+
+
+    if(
+      e.key==="x" ||
+      e.key==="X"
+    ){
+
+      e.preventDefault();
+
+      keys.smash1=true;
+
+    }
+
+  }
+);
+
+
+window.addEventListener(
+  "keyup",
+  e=>{
+
+    if(
+      e.key==="ArrowLeft" ||
+      e.key==="a"
+    ){
+
+      keys.left1=false;
+
+    }
+
+
+    if(
+      e.key==="ArrowRight" ||
+      e.key==="d"
+    ){
+
+      keys.right1=false;
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+addPlayer(
+  ME.id,
+  ME.username,
+  ME.avatar
+);
+
 render();
+
 </script>
+
 </body>
 </html>
