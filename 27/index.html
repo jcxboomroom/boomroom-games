@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆 LF2：經典快打</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff}
+.cta:active{transform:scale(.97)}
+.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
+
+.charGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.charCard{background:#161f33;border:2px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;transition:.15s}
+.charCard.selected{border-color:var(--gold);background:rgba(183,108,255,.2);box-shadow:0 0 15px rgba(255,209,102,.3)}
+.charCard b{display:block;font-size:15px;margin-top:6px}
+.charCard span{font-size:10px;color:var(--muted)}
+
+#canvasWrap{position:relative;flex:1;min-height:260px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg,#1c1630,#070912)}
+#gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.controlGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.ctrlBtn{height:52px;border-radius:14px;background:#161f33;border:1px solid var(--line);font-size:15px;font-weight:bold;color:var(--cyan)}
+.ctrlBtn:active{background:var(--cyan);color:#070912}
+.feedBox{max-height:75px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <main id="main" class="screen"></main>
+</div></div>
+
+<script>
+"use strict";
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  MIN_PLAYERS: 1,
+  MAX_PLAYERS: 8
+});
+
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+let sdkIsHost = false;
+let gameRoomId = "";
+let players = new Map();
+
+let state = "LOBBY"; // LOBBY, SELECT_CHAR, PLAYING, RESULT
+let selectedChar = "DAVIS"; // DAVIS, FIREN, FREEZE
+let gameMode = "STAGE"; // STAGE (闖關模式), PVP (對決模式)
+let hpP1 = 100;
+let hpP2 = 100;
+let stageLevel = 1;
+let feed = [];
+
+// Game Physics & Objects
+let canvas, ctx;
+let p1 = { x: 70, y: 175, w: 32, h: 44, vx: 0, vy: 0, dir: 1, hp: 100, maxHp: 100, mp: 100, color: "#62e7ff", name: "Davis" };
+let enemies = [];
+let projectiles = [];
+let particles = [];
+let keys = { left: false, right: false, up: false, down: false };
+let gameLoopId = null;
+
+function isHost() { return sdkIsHost || players.size <= 1; }
+
+function safeString(v, fallback, maxLen) {
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+
+function addPlayer(id, username, avatar) {
+  if (!id) return;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), hp: 100 };
+    players.set(id, p);
+  } else {
+    p.username = safeString(username, p.username, 12);
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", 12);
+    ME.avatar = safeString(data.user.avatar, "", 300);
+    addPlayer(ME.id, ME.username, ME.avatar);
+  }
+  sdkIsHost = !!(data && data.isHost);
+  gameRoomId = (data && data.roomId) || "";
+
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
+    });
+  }
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (d && d.action === "initSDK") setupSDK(d);
+    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+function sendEvent(eventName, payload) {
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+    }
+  } catch (_) {}
+}
+
+function handleGameEvent(eventName, payload, senderId) {
+  if (eventName === "LF2_START") {
+    state = "PLAYING";
+    stageLevel = payload.stage || 1;
+    gameMode = payload.mode || "STAGE";
+    initGameWorld();
+    startCanvasLoop();
+    render();
+  }
+}
+
+function initGameWorld() {
+  const charConfigs = {
+    DAVIS: { name: "Davis", color: "#62e7ff", hp: 100 },
+    FIREN: { name: "Firen", color: "#ff637a", hp: 120 },
+    FREEZE: { name: "Freeze", color: "#4ee08a", hp: 90 }
+  };
+  const cfg = charConfigs[selectedChar] || charConfigs.DAVIS;
+
+  p1 = { x: 60, y: 175, w: 30, h: 44, vx: 0, vy: 0, dir: 1, hp: cfg.hp, maxHp: cfg.hp, mp: 100, color: cfg.color, name: cfg.name };
+  enemies = [];
+  projectiles = [];
+  particles = [];
+
+  if (gameMode === "STAGE") {
+    feed = [`🛡️ 進入第 ${stageLevel} 關！擊退來襲的強敵！`];
+    // Spawn enemies based on stageLevel
+    const count = 1 + stageLevel;
+    for (let i = 0; i < count; i++) {
+      enemies.push({
+        x: 240 + Math.random() * 80,
+        y: 175,
+        w: 30,
+        h: 44,
+        vx: 0,
+        vy: 0,
+        dir: -1,
+        hp: 40 + stageLevel * 10,
+        maxHp: 40 + stageLevel * 10,
+        color: "#b76cff",
+        name: `Bandit #${i+1}`
+      });
+    }
+  } else {
+    feed = [`⚔️ 玩家對決模式啟動！`];
+    enemies.push({
+      x: 260, y: 175, w: 30, h: 44, vx: 0, vy: 0, dir: -1, hp: 100, maxHp: 100, color: "#ff637a", name: "Deep"
+    });
+  }
+}
+
+function startCanvasLoop() {
+  cancelAnimationFrame(gameLoopId);
+  const run = () => {
+    if (state !== "PLAYING") return;
+    updateGame();
+    drawGame();
+    gameLoopId = requestAnimationFrame(run);
+  };
+  gameLoopId = requestAnimationFrame(run);
+}
+
+function spawnParticles(x, y, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 7,
+      vy: (Math.random() - 0.5) * 7,
+      life: 1.0,
+      color
+    });
+  }
+}
+
+function playerAttack() {
+  spawnParticles(p1.x + (p1.dir > 0 ? 35 : -5), p1.y + 20, p1.color, 6);
+  enemies.forEach(e => {
+    if (Math.hypot(p1.x - e.x, p1.y - e.y) < 55) {
+      e.hp -= 25;
+      e.vx = p1.dir * 7;
+      e.vy = -5;
+      spawnParticles(e.x + 15, e.y + 20, '#ffd166', 10);
+      feed.push(`👊 ${p1.name} 拳腳命中 ${e.name}！`);
+    }
+  });
+  checkStageCleared();
+}
+
+function playerSkill() {
+  if (p1.mp < 30) {
+    feed.push("⚡ MP 氣力不足！");
+    return;
+  }
+  p1.mp -= 30;
+  projectiles.push({
+    x: p1.x + (p1.dir > 0 ? 30 : -10),
+    y: p1.y + 18,
+    w: 18,
+    h: 14,
+    vx: p1.dir * 8,
+    shooter: "P1",
+    color: p1.color
+  });
+  feed.push(`🔥 ${p1.name} 施展必殺氣功波！`);
+}
+
+function updateGame() {
+  // P1 Movement
+  if (keys.left) { p1.vx = -3.8; p1.dir = -1; }
+  else if (keys.right) { p1.vx = 3.8; p1.dir = 1; }
+  else p1.vx *= 0.8;
+
+  p1.x += p1.vx;
+  p1.vy += 0.45;
+  p1.y += p1.vy;
+  if (p1.y > 175) { p1.y = 175; p1.vy = 0; }
+  if (p1.x < 10) p1.x = 10;
+  if (p1.x > 330) p1.x = 330;
+
+  // Regen MP slowly
+  if (p1.mp < 100) p1.mp = Math.min(100, p1.mp + 0.2);
+
+  // Enemies update
+  enemies.forEach(e => {
+    if (e.hp <= 0) return;
+    // AI track P1
+    if (e.x > p1.x + 30) { e.vx = -2.2; e.dir = -1; }
+    else if (e.x < p1.x - 30) { e.vx = 2.2; e.dir = 1; }
+    else {
+      e.vx = 0;
+      if (Math.random() < 0.04) {
+        p1.hp = Math.max(0, p1.hp - 8);
+        spawnParticles(p1.x + 15, p1.y + 20, '#ff637a', 6);
+        feed.push(`💥 ${e.name} 反擊命中！${p1.name} HP -8`);
+        if (p1.hp <= 0) gameOver();
+      }
+    }
+    e.x += e.vx;
+    e.vy += 0.45;
+    e.y += e.vy;
+    if (e.y > 175) { e.y = 175; e.vy = 0; }
+  });
+
+  // Projectiles update
+  projectiles.forEach((proj, idx) => {
+    proj.x += proj.vx;
+    enemies.forEach(e => {
+      if (e.hp > 0 && Math.hypot(proj.x - (e.x + 15), proj.y - (e.y + 20)) < 30) {
+        e.hp -= 45;
+        e.vx = proj.vx > 0 ? 10 : -10;
+        e.vy = -6;
+        spawnParticles(e.x + 15, e.y + 20, '#ffd166', 15);
+        feed.push(`⚡ 氣功波重創 ${e.name}！`);
+        projectiles.splice(idx, 1);
+        checkStageCleared();
+      }
+    });
+    if (proj && (proj.x < 0 || proj.x > 360)) {
+      projectiles.splice(idx, 1);
+    }
+  });
+
+  // Particles update
+  particles.forEach((pt, idx) => {
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life -= 0.04;
+    if (pt.life <= 0) particles.splice(idx, 1);
+  });
+}
+
+function checkStageCleared() {
+  const aliveEnemies = enemies.filter(e => e.hp > 0);
+  if (aliveEnemies.length === 0) {
+    if (gameMode === "STAGE") {
+      feed.push(`🎉 第 ${stageLevel} 關通過！即將進入下一關！`);
+      setTimeout(() => {
+        stageLevel++;
+        initGameWorld();
+      }, 1500);
+    } else {
+      gameOver(true);
+    }
+  }
+}
+
+function gameOver(isWin = false) {
+  state = "RESULT";
+  cancelAnimationFrame(gameLoopId);
+  const msg = isWin ? `🏆 恭喜通關！擊敗所有強敵！` : `💀 挑戰失敗！勝敗乃兵家常事。`;
+  feed.push(msg);
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(isWin ? 200 : 50);
+    }
+  } catch(_) {}
+  render();
+}
+
+function drawGame() {
+  if (!canvas || !ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Ground line
+  ctx.strokeStyle = "#b76cff";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, 219);
+  ctx.lineTo(360, 219);
+  ctx.stroke();
+
+  // Draw P1
+  ctx.fillStyle = p1.color;
+  ctx.fillRect(p1.x, p1.y, p1.w, p1.h);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(p1.x + (p1.dir > 0 ? 18 : 6), p1.y + 8, 6, 6);
+
+  // Draw Enemies
+  enemies.forEach(e => {
+    if (e.hp <= 0) return;
+    ctx.fillStyle = e.color;
+    ctx.fillRect(e.x, e.y, e.w, e.h);
+    // Enemy HP bar
+    ctx.fillStyle = "#ff637a";
+    ctx.fillRect(e.x, e.y - 8, e.w * (e.hp / e.maxHp), 4);
+  });
+
+  // Draw Projectiles
+  projectiles.forEach(proj => {
+    ctx.fillStyle = proj.color || "#ffd166";
+    ctx.beginPath();
+    ctx.arc(proj.x, proj.y, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+  });
+
+  // Draw Particles
+  particles.forEach(pt => {
+    ctx.fillStyle = pt.color;
+    ctx.globalAlpha = pt.life;
+    ctx.fillRect(pt.x, pt.y, 4, 4);
+    ctx.globalAlpha = 1.0;
+  });
+}
+
+function renderPlayers() {
+  return [...players.values()].map(p => {
+    const isMe = p.id === ME.id;
+    return `<div class="player ${isMe?'me':''}">
+      <b>${esc(p.username)}</b>
+      <em>HP: ${p1.hp} | 關卡: ${stageLevel}</em>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+function runLocalDevTest() {
+  players.clear();
+  addPlayer(ME.id, ME.username, ME.avatar);
+  sendEvent("LF2_START", { mode: gameMode, stage: 1 });
+  handleGameEvent("LF2_START", { mode: gameMode, stage: 1 }, ME.id);
+}
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+
+  if (state === "LOBBY") {
+    main.innerHTML = `
+      <section class="panel">
+        <div class="sectionTitle">🥋 選擇你的英雄角色：</div>
+        <div class="charGrid">
+          <div class="charCard ${selectedChar==='DAVIS'?'selected':''}" data-char="DAVIS">
+            <span style="font-size:24px;">🔵</span>
+            <b>Davis</b>
+            <span>氣功波均衡</span>
+          </div>
+          <div class="charCard ${selectedChar==='FIREN'?'selected':''}" data-char="FIREN">
+            <span style="font-size:24px;">🔴</span>
+            <b>Firen</b>
+            <span>烈焰高血量</span>
+          </div>
+          <div class="charCard ${selectedChar==='FREEZE'?'selected':''}" data-char="FREEZE">
+            <span style="font-size:24px;">🟢</span>
+            <b>Freeze</b>
+            <span>靈活冰凍流</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="sectionTitle">🛡️ 選擇遊戲模式：</div>
+        <div style="display:flex;gap:8px">
+          <button class="miniTag ${gameMode==='STAGE'?'active':''}" data-mode="STAGE">🛡️ 經典闖關模式</button>
+          <button class="miniTag ${gameMode==='PVP'?'active':''}" data-mode="PVP">⚔️ 雙人對決模式</button>
+        </div>
+      </section>
+
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>無限連招</b><span>經典爽感</span></div><div class="stat"><b>華麗特效</b><span>粒子氣功</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《LF2 經典快打》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
+    `;
+
+    document.querySelectorAll("[data-char]").forEach(b => {
+      b.addEventListener("click", () => {
+        selectedChar = b.dataset.char;
+        render();
+      });
+    });
+
+    document.querySelectorAll("[data-mode]").forEach(b => {
+      b.addEventListener("click", () => {
+        gameMode = b.dataset.mode;
+        render();
+      });
+    });
+
+    document.getElementById("startBtn")?.addEventListener("click", () => {
+      sendEvent("LF2_START", { mode: gameMode, stage: 1 });
+      handleGameEvent("LF2_START", { mode: gameMode, stage: 1 }, ME.id);
+    });
+    document.getElementById("devBtn")?.addEventListener("click", () => {
+      runLocalDevTest();
+    });
+    return;
+  }
+
+  if (state === "PLAYING") {
+    main.innerHTML = `
+      <div class="stats" style="flex:none;">
+        <div class="stat"><b>❤️ HP: ${p1.hp}/${p1.maxHp}</b><span>${p1.name}</span></div>
+        <div class="stat"><b>⚡ MP: ${Math.floor(p1.mp)}</b><span>氣力值</span></div>
+        <div class="stat"><b>🛡️ 第 ${stageLevel} 關</b><span>闖關進度</span></div>
+      </div>
+
+      <div id="canvasWrap">
+        <canvas id="gameCanvas" width="360" height="240"></canvas>
+      </div>
+
+      <div class="controlGrid">
+        <button id="leftBtn" class="ctrlBtn">◀ 走</button>
+        <button id="rightBtn" class="ctrlBtn">▶ 走</button>
+        <button id="atkBtn" class="ctrlBtn" style="color:var(--gold);">👊 拳腳</button>
+        <button id="skillBtn" class="ctrlBtn" style="color:var(--cyan);">🔥 氣功波</button>
+      </div>
+
+      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+    `;
+
+    canvas = document.getElementById("gameCanvas");
+    if (canvas) {
+      ctx = canvas.getContext("2d");
+    }
+
+    const bindTouch = (btnId, keyName) => {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener("pointerdown", e => { e.preventDefault(); keys[keyName] = true; });
+      btn.addEventListener("pointerup", e => { e.preventDefault(); keys[keyName] = false; });
+      btn.addEventListener("pointerleave", e => { e.preventDefault(); keys[keyName] = false; });
+    };
+    bindTouch("leftBtn", "left");
+    bindTouch("rightBtn", "right");
+
+    document.getElementById("atkBtn")?.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      playerAttack();
+    });
+    document.getElementById("skillBtn")?.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      playerSkill();
+    });
+
+    startCanvasLoop();
+    return;
+  }
+
+  if (state === "RESULT") {
+    main.innerHTML = `
+      <section class="panel center" style="flex:1;">
+        <div>
+          <h2>🏆 LF2 快打對決結算</h2>
+          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">最終到達關卡：第 ${stageLevel} 關</p>
+          <div class="feedBox" style="max-height:120px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("restartBtn")?.addEventListener("click", () => {
+      state = "LOBBY";
+      render();
+    });
+  }
+}
+
+// 預設初次渲染
+addPlayer(ME.id, ME.username, ME.avatar);
+render();
+</script>
+</body>
+</html>

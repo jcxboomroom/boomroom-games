@@ -32,12 +32,12 @@ button:disabled{opacity:.4;cursor:default}
 .player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
 .player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .player em{display:block;font-style:normal;color:var(--muted)}
-.player.me{border-color:#42537b}.player.dead{opacity:.4}
+.player.me{border-color:#42537b}
 
 #canvasWrap{position:relative;flex:1;min-height:300px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#05070f}
 #gameCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
-.ctrlRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
-.ctrlBtn{height:56px;border-radius:16px;background:#161f33;border:1px solid var(--line);font-size:22px;font-weight:bold;color:var(--cyan)}
+.ctrlRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px}
+.ctrlBtn{height:56px;border-radius:16px;background:#161f33;border:1px solid var(--line);font-size:18px;font-weight:bold;color:var(--cyan)}
 .ctrlBtn:active{background:var(--cyan);color:#070912}
 .feedBox{max-height:75px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px}
 </style>
@@ -64,17 +64,24 @@ let players = new Map();
 let state = "LOBBY"; // LOBBY, PLAYING, RESULT
 let score = 0;
 let lives = 3;
+let hitCooldown = 0;
 let feed = [];
 
 // Game Physics & Objects
 let canvas, ctx;
-let player = { x: 180, y: 50, w: 28, h: 36, vx: 0, vy: 0 };
+let player = { x: 180, y: 50, w: 26, h: 34, vx: 0, vy: 0 };
 let platforms = [];
 let keys = { left: false, right: false };
 let cameraY = 0;
 let gameLoopId = null;
 
 function isHost() { return sdkIsHost || players.size <= 1; }
+
+function vibrate(pattern) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  } catch(_) {}
+}
 
 function safeString(v, fallback, maxLen) {
   if (v === null || v === undefined) return fallback;
@@ -87,7 +94,7 @@ function addPlayer(id, username, avatar) {
   id = String(id);
   let p = players.get(id);
   if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), lives: 3, score: 0, alive: true };
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), lives: 3, score: 0 };
     players.set(id, p);
   } else {
     p.username = safeString(username, p.username, 12);
@@ -148,25 +155,37 @@ function handleGameEvent(eventName, payload, senderId) {
     state = "PLAYING";
     score = 0;
     lives = 3;
-    feed = ["🏃 小朋友下樓梯開始！左右移動安全降落。"];
+    hitCooldown = 0;
+    feed = ["🏃 小朋友下樓梯開始！左右移動與點擊跳躍。"];
     initGameWorld();
     startCanvasLoop();
     render();
   }
 }
 
+function getRandomPlatformType() {
+  const rnd = Math.random();
+  if (rnd < 0.08) return 'heart'; // 8% heart
+  if (rnd < 0.20) return 'spike'; // 12% spike
+  if (rnd < 0.32) return 'spring'; // 12% spring
+  return 'normal';
+}
+
 function initGameWorld() {
-  player = { x: 180, y: 80, w: 26, h: 34, vx: 0, vy: 0 };
+  player = { x: 180, y: 60, w: 26, h: 34, vx: 0, vy: 0 };
   platforms = [];
   cameraY = 0;
-  // Generate initial platforms
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
+    let pType = 'normal';
+    if (i >= 3) {
+      pType = getRandomPlatformType();
+    }
     platforms.push({
       x: Math.random() * 260,
-      y: 150 + i * 55,
+      y: 120 + i * 45,
       w: 90,
-      h: 14,
-      type: Math.random() < 0.15 ? 'spike' : (Math.random() < 0.2 ? 'spring' : 'normal')
+      h: 12,
+      type: pType
     });
   }
 }
@@ -183,20 +202,26 @@ function startCanvasLoop() {
 }
 
 function updateGame() {
-  // Movement
-  if (keys.left) player.vx = -4.5;
-  else if (keys.right) player.vx = 4.5;
-  else player.vx *= 0.8;
+  if (hitCooldown > 0) hitCooldown--;
+
+  const heartsEl = document.getElementById("hudHearts");
+  if (heartsEl) heartsEl.textContent = "❤️".repeat(Math.max(0, lives));
+  const scoreEl = document.getElementById("hudScore");
+  if (scoreEl) scoreEl.textContent = score + " 層";
+
+  // Smooth horizontal movement
+  if (keys.left) player.vx = -3.5;
+  else if (keys.right) player.vx = 3.5;
+  else player.vx *= 0.75;
 
   player.x += player.vx;
-  player.vy += 0.35; // Gravity
+  player.vy += 0.25;
+  if (player.vy > 5.0) player.vy = 5.0;
   player.y += player.vy;
 
-  // Auto scroll upward
-  cameraY += 1.2;
-  score = Math.floor(cameraY / 10);
+  cameraY += 0.7;
+  score = Math.floor(cameraY / 15);
 
-  // Screen bounds
   if (player.x < 0) player.x = 0;
   if (player.x > 360 - player.w) player.x = 360 - player.w;
 
@@ -210,65 +235,90 @@ function updateGame() {
       player.y + player.h <= p.y + p.h + 8
     ) {
       if (p.type === 'spike') {
-        lives--;
-        player.vy = -6;
-        feed.push("⚠️ 踩到刺釘！生命 -1");
-        if (lives <= 0) gameOver();
+        if (hitCooldown === 0) {
+          lives--;
+          hitCooldown = 75;
+          player.vy = -3.0;
+          feed.push("⚠️ 踩到刺釘！生命 -1");
+          vibrate([40, 60, 40]);
+          if (lives <= 0) gameOver();
+        }
       } else if (p.type === 'spring') {
-        player.vy = -12;
-        score += 20;
+        player.vy = -5.5;
+        score += 15;
+      } else if (p.type === 'heart') {
+        lives = Math.min(5, lives + 1);
+        p.type = 'normal';
+        feed.push("💖 吃到愛心！生命 +1 HP");
+        vibrate([30, 30, 30]);
+        player.y = p.y - player.h;
+        player.vy = -0.5;
       } else {
         player.y = p.y - player.h;
-        player.vy = -1.2; // Move up with scrolling platform
+        player.vy = -0.5;
       }
     }
   });
 
-  // Top ceiling check
-  if (player.y < cameraY) {
-    lives--;
-    player.y = cameraY + 20;
-    feed.push("💥 撞到頂部天花板！生命 -1");
-    if (lives <= 0) gameOver();
+  // Top ceiling check (Solid red bar only)
+  if (player.y < cameraY + 16) {
+    if (hitCooldown === 0) {
+      lives--;
+      hitCooldown = 75;
+      player.y = cameraY + 24;
+      player.vy = 3.5;
+      feed.push("💥 撞到頂部紅牆！生命 -1，被擊落！");
+      vibrate([40, 60, 40]);
+      if (lives <= 0) gameOver();
+    }
   }
 
   // Bottom fall check
   if (player.y > cameraY + 450) {
-    lives--;
-    player.y = cameraY + 100;
+    if (hitCooldown === 0) {
+      lives--;
+      vibrate([40, 60, 40]);
+    }
+    hitCooldown = 75;
+    player.y = cameraY + 80;
+    player.vy = -3.0;
     feed.push("⬇️ 跌落底部！生命 -1");
     if (lives <= 0) gameOver();
   }
 
-  // Recycle platforms
+  // Recycle platforms above
   platforms.forEach(p => {
-    if (p.y < cameraY - 40) {
-      p.y = cameraY + 500 + Math.random() * 40;
+    if (p.y < cameraY - 30) {
+      p.y = cameraY + 500 + Math.random() * 30;
       p.x = Math.random() * 260;
-      const rnd = Math.random();
-      p.type = rnd < 0.15 ? 'spike' : (rnd < 0.3 ? 'spring' : 'normal');
+      p.type = (p.y - cameraY > 200) ? getRandomPlatformType() : 'normal';
     }
   });
 }
 
 function drawGame() {
   if (!canvas || !ctx) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#05070f";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.save();
   ctx.translate(0, -cameraY);
+
+  // 🌟 Draw Top Bar (Solid Red only, no white spikes)
+  ctx.fillStyle = '#ff4d6d';
+  ctx.fillRect(0, cameraY, 360, 16);
 
   // Draw Platforms
   platforms.forEach(p => {
     if (p.type === 'spike') {
       ctx.fillStyle = '#ff4d6d';
       ctx.fillRect(p.x, p.y, p.w, p.h);
-      // Draw spikes
       ctx.fillStyle = '#fff';
       for (let i = 0; i < p.w; i += 15) {
         ctx.beginPath();
         ctx.moveTo(p.x + i, p.y);
-        ctx.lineTo(p.x + i + 7, p.y - 8);
+        ctx.lineTo(p.x + i + 7, p.y - 6);
         ctx.lineTo(p.x + i + 15, p.y);
         ctx.fill();
       }
@@ -276,7 +326,13 @@ function drawGame() {
       ctx.fillStyle = '#ffd166';
       ctx.fillRect(p.x, p.y, p.w, p.h);
       ctx.fillStyle = '#070912';
-      ctx.fillRect(p.x + p.w / 2 - 8, p.y - 4, 16, 4);
+      ctx.fillRect(p.x + p.w / 2 - 6, p.y - 3, 12, 3);
+    } else if (p.type === 'heart') {
+      ctx.fillStyle = '#ff758f';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      ctx.fillStyle = '#fff';
+      ctx.font = "12px sans-serif";
+      ctx.fillText("💖", p.x + p.w / 2 - 8, p.y + 11);
     } else {
       ctx.fillStyle = '#62e7ff';
       ctx.fillRect(p.x, p.y, p.w, p.h);
@@ -284,23 +340,28 @@ function drawGame() {
   });
 
   // Draw Player
-  ctx.fillStyle = '#b76cff';
-  ctx.beginPath();
-  ctx.roundRect(player.x, player.y, player.w, player.h, [8]);
-  ctx.fill();
+  if (hitCooldown === 0 || Math.floor(Date.now() / 80) % 2 === 0) {
+    ctx.fillStyle = '#b76cff';
+    ctx.beginPath();
+    ctx.roundRect(player.x, player.y, player.w, player.h, [6]);
+    ctx.fill();
 
-  // Draw Eyes
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(player.x + 6, player.y + 8, 4, 6);
-  ctx.fillRect(player.x + 16, player.y + 8, 4, 6);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(player.x + 5, player.y + 7, 3, 5);
+    ctx.fillRect(player.x + 18, player.y + 7, 3, 5);
+  }
 
   ctx.restore();
+}
+
+function doJump() {
+  player.vy = -7.5;
 }
 
 function gameOver() {
   state = "RESULT";
   cancelAnimationFrame(gameLoopId);
-  feed.push(`🏁 遊戲結束！最終得分：${score} 分`);
+  feed.push(`🏁 遊戲結束！最終下落層數：${score} 層`);
   try {
     if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
       window.BoomRoomSDK.gameOver(score);
@@ -313,13 +374,13 @@ function renderPlayers() {
   return [...players.values()].map(p => {
     const isMe = p.id === ME.id;
     return `<div class="player ${isMe?'me':''}">
-      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
-      <em>得分: ${p.score || score} 分</em>
+      <b>${esc(p.username)}</b>
+      <em>下落: ${p.score || score} 層</em>
     </div>`;
   }).join("");
 }
 
-function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])) }
 
 function runLocalDevTest() {
   players.clear();
@@ -334,7 +395,7 @@ function render() {
 
   if (state === "LOBBY") {
     main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>3 點</b><span>初始生命</span></div><div class="stat"><b>經典街機</b><span>懷舊玩法</span></div></div></section>
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>3 點</b><span>初始生命</span></div><div class="stat"><b>頂部紅牆</b><span>經典防禦</span></div></div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
       ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《小朋友下樓梯》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
       <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
@@ -352,16 +413,17 @@ function render() {
   if (state === "PLAYING") {
     main.innerHTML = `
       <div class="stats" style="flex:none;">
-        <div class="stat"><b>❤️ ${"❤️".repeat(Math.max(0, lives))}</b><span>生命值</span></div>
-        <div class="stat"><b>${score} 層</b><span>下落高度</span></div>
+        <div class="stat"><b id="hudHearts">${"❤️".repeat(Math.max(0, lives))}</b><span>生命值</span></div>
+        <div class="stat"><b id="hudScore">${score} 層</b><span>下落深度</span></div>
       </div>
 
       <div id="canvasWrap">
-        <canvas id="gameCanvas" width="360" height="450"></canvas>
+        <canvas id="gameCanvas" width="360" height="420"></canvas>
       </div>
 
       <div class="ctrlRow">
         <button id="leftBtn" class="ctrlBtn">◀ 往左</button>
+        <button id="jumpBtn" class="ctrlBtn" style="color:var(--gold);">▲ 跳躍</button>
         <button id="rightBtn" class="ctrlBtn">往右 ▶</button>
       </div>
 
@@ -383,6 +445,11 @@ function render() {
     bindTouch("leftBtn", "left");
     bindTouch("rightBtn", "right");
 
+    document.getElementById("jumpBtn")?.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      doJump();
+    });
+
     startCanvasLoop();
     return;
   }
@@ -392,7 +459,7 @@ function render() {
       <section class="panel center" style="flex:1;">
         <div>
           <h2>🏆 小朋友下樓梯結算</h2>
-          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">最終下落高度：${score} 層</p>
+          <p style="font-size:18px;font-weight:bold;color:var(--gold);margin:10px 0;">最終下落層數：${score} 層</p>
           <div class="feedBox" style="max-height:120px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
           <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
         </div>
