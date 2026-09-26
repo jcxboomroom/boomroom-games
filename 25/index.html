@@ -1,463 +1,429 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+
+  <meta name="theme-color" content="#08050b">
+
+  <title>極限跳火圈</title>
+
+  <style>
+
+    :root{
+      --bg:#f7e8d1;
+      --ink:#24151a;
+      --muted:#80656a;
+      --cream:#fff7e8;
+
+      --red:#d93b4b;
+      --red2:#a9233a;
+      --gold:#f4b83f;
+      --orange:#f47c32;
+      --pink:#ef5b82;
+      --blue:#5eb9d5;
+      --green:#62b77b;
+
+      --safeT:env(safe-area-inset-top,0px);
+      --safeB:env(safe-area-inset-bottom,0px);
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    html,
+    body{
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+      background:var(--bg);
+      color:var(--ink);
 
-<meta name="theme-color" content="#08050b">
+      font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        "Noto Sans TC",
+        "Microsoft JhengHei",
+        sans-serif;
 
-<title>極限跳火圈</title>
+      user-select:none;
+      touch-action:none;
+    }
 
-<style>
+    button{
+      font:inherit;
+      border:0;
+      color:inherit;
+    }
 
-:root{
-  --bg:#f7e8d1;
-  --ink:#24151a;
-  --muted:#80656a;
-  --cream:#fff7e8;
+    #app{
+      width:100%;
+      height:100dvh;
 
-  --red:#d93b4b;
-  --red2:#a9233a;
-  --gold:#f4b83f;
-  --orange:#f47c32;
-  --pink:#ef5b82;
-  --blue:#5eb9d5;
-  --green:#62b77b;
+      display:flex;
+      justify-content:center;
 
-  --safeT:env(safe-area-inset-top,0px);
-  --safeB:env(safe-area-inset-bottom,0px);
-}
+      background:
+        linear-gradient(
+          180deg,
+          #fff4df 0%,
+          #f4d9bd 100%
+        );
+    }
 
+    .shell{
+      width:min(100%,760px);
+      height:100%;
 
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-}
+      display:flex;
+      flex-direction:column;
 
+      padding:
+        calc(5px + var(--safeT))
+        8px
+        calc(5px + var(--safeB));
 
-html,
-body{
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
+      gap:6px;
+    }
 
-  background:var(--bg);
-  color:var(--ink);
+    #main{
+      flex:1;
+      min-height:0;
 
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    "Noto Sans TC",
-    "Microsoft JhengHei",
-    sans-serif;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
 
-  user-select:none;
-  touch-action:none;
-}
+    .panel{
+      background:rgba(255,250,240,.95);
 
+      border:1.5px solid #e1bc94;
+      border-radius:17px;
 
-button{
-  font:inherit;
-  border:0;
-  color:inherit;
-}
+      padding:11px;
 
+      box-shadow:
+        0 4px 16px rgba(107,57,35,.10);
+    }
 
-#app{
-  width:100%;
-  height:100dvh;
+    .stats{
+      display:grid;
 
-  display:flex;
-  justify-content:center;
+      grid-template-columns:
+        1.2fr
+        1fr
+        1fr
+        1fr;
 
-  background:
-    linear-gradient(
-      180deg,
-      #fff4df 0%,
-      #f4d9bd 100%
-    );
-}
+      gap:5px;
+    }
 
+    .stat{
+      min-width:0;
 
-.shell{
-  width:min(100%,760px);
-  height:100%;
+      padding:6px 4px;
 
-  display:flex;
-  flex-direction:column;
+      background:#fff9ed;
+      border:1px solid #ead1b2;
+      border-radius:10px;
 
-  padding:
-    calc(5px + var(--safeT))
-    8px
-    calc(5px + var(--safeB));
+      text-align:center;
+    }
 
-  gap:6px;
-}
+    .stat b{
+      display:block;
 
+      font-size:14px;
 
-#main{
-  flex:1;
-  min-height:0;
+      white-space:nowrap;
 
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
+      color:#3b2027;
+    }
 
+    .stat span{
+      display:block;
 
-.panel{
-  background:rgba(255,250,240,.95);
+      font-size:8px;
 
-  border:1.5px solid #e1bc94;
-  border-radius:17px;
+      color:#967579;
 
-  padding:11px;
+      margin-top:1px;
+    }
 
-  box-shadow:
-    0 4px 16px rgba(107,57,35,.10);
-}
+    #gameWrap{
+      position:relative;
 
+      flex:1;
+      min-height:250px;
 
-.stats{
-  display:grid;
+      border-radius:19px;
+      overflow:hidden;
 
-  grid-template-columns:
-    1.2fr
-    1fr
-    1fr
-    1fr;
+      border:2px solid #a9474f;
 
-  gap:5px;
-}
+      background:#f7dcae;
 
+      box-shadow:
+        0 7px 22px rgba(104,49,40,.20);
 
-.stat{
-  min-width:0;
+      touch-action:none;
+    }
 
-  padding:6px 4px;
+    #gameCanvas{
+      position:absolute;
 
-  background:#fff9ed;
-  border:1px solid #ead1b2;
-  border-radius:10px;
+      inset:0;
 
-  text-align:center;
-}
+      width:100%;
+      height:100%;
 
+      display:block;
 
-.stat b{
-  display:block;
+      touch-action:none;
+    }
 
-  font-size:14px;
+    #centerMsg{
+      position:absolute;
 
-  white-space:nowrap;
+      inset:0;
 
-  color:#3b2027;
-}
+      display:flex;
+      align-items:center;
+      justify-content:center;
 
+      pointer-events:none;
 
-.stat span{
-  display:block;
+      text-align:center;
+    }
 
-  font-size:8px;
+    #centerMsg>div{
+      opacity:0;
 
-  color:#967579;
+      transform:
+        translateY(8px)
+        scale(.92);
 
-  margin-top:1px;
-}
+      transition:.18s;
+    }
 
+    #centerMsg.show>div{
+      opacity:1;
+      transform:none;
+    }
 
-#gameWrap{
-  position:relative;
+    .msgBig{
+      font-size:34px;
+      font-weight:1000;
 
-  flex:1;
-  min-height:250px;
+      color:#fff8df;
 
-  border-radius:19px;
-  overflow:hidden;
+      text-shadow:
+        0 3px 8px #5a1f26;
+    }
 
-  border:2px solid #a9474f;
+    .msgSmall{
+      font-size:13px;
+      font-weight:900;
 
-  background:#f7dcae;
+      color:#fff4c8;
 
-  box-shadow:
-    0 7px 22px rgba(104,49,40,.20);
+      margin-top:2px;
 
-  touch-action:none;
-}
+      text-shadow:
+        0 2px 5px #5a1f26;
+    }
 
+    .jump{
+      height:60px;
+      flex:none;
 
-#gameCanvas{
-  position:absolute;
+      border-radius:17px;
 
-  inset:0;
+      background:
+        linear-gradient(
+          180deg,
+          #ffd75c,
+          #f39a2f
+        );
 
-  width:100%;
-  height:100%;
+      color:#3b170b;
 
-  display:block;
+      font-size:21px;
+      font-weight:1000;
 
-  touch-action:none;
-}
+      border:2px solid #c86e25;
 
+      box-shadow:
+        0 5px 0 #a75320,
+        0 8px 18px rgba(164,78,25,.18);
+    }
 
-#centerMsg{
-  position:absolute;
+    .jump:active{
+      transform:translateY(3px);
 
-  inset:0;
+      box-shadow:
+        0 2px 0 #a75320;
+    }
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+    .notice{
+      text-align:center;
 
-  pointer-events:none;
+      font-size:11px;
 
-  text-align:center;
-}
+      color:#80656a;
 
+      padding:4px;
+    }
 
-#centerMsg>div{
-  opacity:0;
+    .players{
+      display:flex;
+      gap:6px;
 
-  transform:
-    translateY(8px)
-    scale(.92);
+      overflow:hidden;
+    }
 
-  transition:.18s;
-}
+    .player{
+      min-width:92px;
+      flex:1;
 
+      padding:7px 8px;
 
-#centerMsg.show>div{
-  opacity:1;
-  transform:none;
-}
+      border-radius:11px;
 
+      background:#fff9ed;
 
-.msgBig{
-  font-size:34px;
-  font-weight:1000;
+      border:1px solid #ead1b2;
 
-  color:#fff8df;
+      font-size:10px;
+    }
 
-  text-shadow:
-    0 3px 8px #5a1f26;
-}
+    .player b{
+      display:block;
 
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
 
-.msgSmall{
-  font-size:13px;
-  font-weight:900;
+    .player em{
+      font-style:normal;
 
-  color:#fff4c8;
+      color:#967579;
 
-  margin-top:2px;
+      font-size:9px;
+    }
 
-  text-shadow:
-    0 2px 5px #5a1f26;
-}
+    .cta{
+      width:100%;
+      min-height:49px;
 
+      border-radius:14px;
 
-.jump{
-  height:60px;
-  flex:none;
+      background:
+        linear-gradient(
+          135deg,
+          #e84a55,
+          #f39b36
+        );
 
-  border-radius:17px;
+      color:#fff9eb;
 
-  background:
-    linear-gradient(
-      180deg,
-      #ffd75c,
-      #f39a2f
-    );
+      font-weight:1000;
+      font-size:15px;
 
-  color:#3b170b;
+      border:2px solid #b73243;
 
-  font-size:21px;
-  font-weight:1000;
+      box-shadow:
+        0 4px 0 #9c2a38;
+    }
 
-  border:2px solid #c86e25;
+    .cta.secondary{
+      background:#fff8ea;
 
-  box-shadow:
-    0 5px 0 #a75320,
-    0 8px 18px rgba(164,78,25,.18);
-}
+      color:#48232a;
 
+      border:1.5px solid #d9b384;
 
-.jump:active{
-  transform:translateY(3px);
+      box-shadow:
+        0 3px 0 #c39a70;
+    }
 
-  box-shadow:
-    0 2px 0 #a75320;
-}
+    .cta:active{
+      transform:translateY(2px);
+    }
 
+    .resultScore{
+      font-size:40px;
 
-.notice{
-  text-align:center;
+      font-weight:1000;
 
-  font-size:11px;
+      color:#d58b19;
 
-  color:#80656a;
+      text-shadow:
+        0 2px 0 #fff;
+    }
 
-  padding:4px;
-}
+    .rule{
+      font-size:12px;
+      line-height:1.65;
 
+      color:#654a4e;
 
-.players{
-  display:flex;
-  gap:6px;
+      text-align:left;
+    }
 
-  overflow:hidden;
-}
+    .badge{
+      display:inline-block;
 
+      padding:4px 8px;
 
-.player{
-  min-width:92px;
-  flex:1;
+      border-radius:999px;
 
-  padding:7px 8px;
+      background:#fff0c8;
 
-  border-radius:11px;
+      border:1px solid #e2b44f;
 
-  background:#fff9ed;
+      color:#9a6414;
 
-  border:1px solid #ead1b2;
+      font-size:10px;
 
-  font-size:10px;
-}
+      font-weight:900;
+    }
 
+    .muted{
+      color:#967579;
+    }
 
-.player b{
-  display:block;
+    @media(max-height:620px){
 
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+      .jump{
+        height:52px;
+      }
 
+      .panel{
+        padding:9px;
+      }
 
-.player em{
-  font-style:normal;
+      .stat{
+        padding:5px 3px;
+      }
 
-  color:#967579;
+      .stat b{
+        font-size:12px;
+      }
 
-  font-size:9px;
-}
+    }
 
-
-.cta{
-  width:100%;
-  min-height:49px;
-
-  border-radius:14px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #e84a55,
-      #f39b36
-    );
-
-  color:#fff9eb;
-
-  font-weight:1000;
-  font-size:15px;
-
-  border:2px solid #b73243;
-
-  box-shadow:
-    0 4px 0 #9c2a38;
-}
-
-
-.cta.secondary{
-  background:#fff8ea;
-
-  color:#48232a;
-
-  border:1.5px solid #d9b384;
-
-  box-shadow:
-    0 3px 0 #c39a70;
-}
-
-
-.cta:active{
-  transform:translateY(2px);
-}
-
-
-.resultScore{
-  font-size:40px;
-
-  font-weight:1000;
-
-  color:#d58b19;
-
-  text-shadow:
-    0 2px 0 #fff;
-}
-
-
-.rule{
-  font-size:12px;
-  line-height:1.65;
-
-  color:#654a4e;
-
-  text-align:left;
-}
-
-
-.badge{
-  display:inline-block;
-
-  padding:4px 8px;
-
-  border-radius:999px;
-
-  background:#fff0c8;
-
-  border:1px solid #e2b44f;
-
-  color:#9a6414;
-
-  font-size:10px;
-
-  font-weight:900;
-}
-
-
-.muted{
-  color:#967579;
-}
-
-
-@media(max-height:620px){
-
-  .jump{
-    height:52px;
-  }
-
-  .panel{
-    padding:9px;
-  }
-
-  .stat{
-    padding:5px 3px;
-  }
-
-  .stat b{
-    font-size:12px;
-  }
-
-}
-
-</style>
+  </style>
 </head>
-
 
 <body>
 
@@ -471,1243 +437,261 @@ button{
 
 </div>
 
-
 <script>
 
-"use strict";
+  "use strict";
 
 
-/* =========================================================
-   GAME INFO
-   ========================================================= */
+  /* =========================================================
+     GAME INFO
+     ========================================================= */
 
-const GAME_INFO = Object.freeze({
+  const GAME_INFO = Object.freeze({
 
-  category:"arcade",
+    category:"arcade",
 
-  name:"極限跳火圈",
+    name:"極限跳火圈",
 
-  description:
-    "馬戲團自動前進，抓準火圈高度點擊起跳；穿越中心得分，連續成功提高 Combo 與倍率。",
+    description:
+      "馬戲團自動前進，抓準火圈高度點擊起跳；穿越中心得分，連續成功提高 Combo 與倍率。",
 
-  entryCost:100,
+    entryCost:100,
 
-  maxPlayers:8,
+    maxPlayers:8,
 
-  controlModes:[
-    "TOUCH",
-    "MOUSE",
-    "KEYBOARD"
-  ]
+    controlModes:[
+      "TOUCH",
+      "MOUSE",
+      "KEYBOARD"
+    ]
 
-});
+  });
 
 
-/* =========================================================
-   CONFIG
-   ========================================================= */
+  /* =========================================================
+     CONFIG
+     ========================================================= */
 
-const CONFIG = Object.freeze({
+  const CONFIG = Object.freeze({
 
-  ENTRY_FEE:100,
+    ENTRY_FEE:100,
 
-  BASE_SPEED:215,
+    BASE_SPEED:215,
 
-  MAX_SPEED:340,
+    MAX_SPEED:340,
 
-  /*
-   * 跳躍物理
-   *
-   * 跳躍最高約：
-   *
-   * 610² / (2×1420)
-   * ≈131px
-   */
 
-  GRAVITY:1420,
+    /*
+     * 跳躍物理
+     */
 
-  JUMP_VY:-610,
+    GRAVITY:1420,
 
+    JUMP_VY:-610,
 
-  /*
-   * 人物固定水平位置
-   */
 
-  PLAYER_X:.235,
+    /*
+     * 玩家水平位置
+     */
 
+    PLAYER_X:.235,
 
-  /*
-   * 地面
-   */
 
-  GROUND_RATIO:.83,
+    /*
+     * 地面
+     */
 
+    GROUND_RATIO:.83,
 
-  /*
-   * 人物尺寸
-   */
 
-  PLAYER_W:34,
+    /*
+     * 玩家縮小
+     */
 
-  PLAYER_H:47,
+    PLAYER_W:28,
 
+    PLAYER_H:40,
 
-  /*
-   * 火圈
-   */
 
-  RING_RADIUS:58,
+    /*
+     * 火圈放大
+     */
 
-  RING_DEPTH:.58,
+    RING_RADIUS:68,
 
-  RING_HOLE:.66,
+    RING_DEPTH:.58,
 
+    /*
+     * 洞口比例放大
+     */
 
-  /*
-   * 判定
-   */
+    RING_HOLE:.74,
 
-  PERFECT_WINDOW:.18,
 
-  GOOD_WINDOW:.42,
+    /*
+     * 判定放寬
+     *
+     * 數值越大越容易成功。
+     */
 
+    PERFECT_WINDOW:.30,
 
-  /*
-   * 生命
-   */
+    GOOD_WINDOW:.78,
 
-  MISS_LIFE_LOSS:1,
 
-  START_LIVES:3,
+    /*
+     * 判定額外容錯
+     */
 
+    JUDGE_X_SCALE:1.12,
 
-  /*
-   * 火圈距離
-   */
+    JUDGE_Y_SCALE:1.18,
 
-  MAX_RING_GAP:455,
 
-  MIN_RING_GAP:310,
+    /*
+     * 火圈邊緣碰撞容錯
+     */
 
+    RING_COLLISION_X:.72,
 
-  /*
-   * 一場遊戲 72 秒
-   */
+    RING_COLLISION_Y:.82,
 
-  ROUND_TIME:72,
 
+    /*
+     * 生命
+     */
 
-  /*
-   * 分數
-   */
+    MISS_LIFE_LOSS:1,
 
-  SCORE_GOOD:100,
+    START_LIVES:3,
 
-  SCORE_PERFECT:180
 
-});
+    /*
+     * 火圈距離
+     */
 
+    MAX_RING_GAP:425,
 
-/* =========================================================
-   USER / ROOM
-   ========================================================= */
+    MIN_RING_GAP:275,
 
-let ME={
 
-  id:
-    "local_"+
-    Math.random()
-      .toString(36)
-      .slice(2,10),
+    /*
+     * 一場遊戲
+     */
 
-  username:"本地玩家",
+    ROUND_TIME:72,
 
-  avatar:""
 
-};
+    /*
+     * 分數
+     */
 
+    SCORE_GOOD:100,
 
-let players=new Map();
+    SCORE_PERFECT:180
 
-let sdkIsHost=false;
+  });
 
-let gameRoomId="";
 
+  /* =========================================================
+     USER / ROOM
+     ========================================================= */
 
-/* =========================================================
-   STATE
-   ========================================================= */
-
-let state="LOBBY";
-
-let canvas=null;
-
-let ctx=null;
-
-let wrap=null;
-
-let raf=0;
-
-let lastTime=0;
-
-let W=360;
-
-let H=500;
-
-let dpr=1;
-
-let muted=false;
-
-let audioCtx=null;
-
-let gameOverCalled=false;
-
-let isPurchasing=false;
-
-let hasPaid=false;
-
-
-/* =========================================================
-   SCORE
-   ========================================================= */
-
-let score=0;
-
-let lives=
-  CONFIG.START_LIVES;
-
-let combo=0;
-
-let bestCombo=0;
-
-
-/* =========================================================
-   WORLD
-   ========================================================= */
-
-let rings=[];
-
-let particles=[];
-
-let floatingTexts=[];
-
-let stars=[];
-
-
-let player={
-
-  x:0,
-
-  y:0,
-
-  groundY:0,
-
-  vy:0,
-
-  w:CONFIG.PLAYER_W,
-
-  h:CONFIG.PLAYER_H,
-
-  onGround:true,
-
-  airTime:0,
-
-  rotation:0,
-
-  hitCooldown:0
-
-};
-
-
-let distance=0;
-
-let speed=
-  CONFIG.BASE_SPEED;
-
-let elapsed=0;
-
-let ringId=0;
-
-let nextRingX=0;
-
-let lastRingHeight=0;
-
-let lastInput=0;
-
-let eventFeed=[];
-
-let seeded=
-  Date.now()>>>0;
-
-let countdown=0;
-
-
-/* =========================================================
-   UTILITY
-   ========================================================= */
-
-function esc(s){
-
-  return String(s||"")
-    .replace(
-      /[&<>"']/g,
-      c=>({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-      }[c])
-    );
-
-}
-
-
-function safeString(v,f,m){
-
-  if(v==null)return f;
-
-  const s=
-    String(v).trim();
-
-  return s
-    ?s.slice(0,m)
-    :f;
-
-}
-
-
-function clamp(v,a,b){
-
-  return Math.max(
-    a,
-    Math.min(b,v)
-  );
-
-}
-
-
-function lerp(a,b,t){
-
-  return a+
-    (b-a)*t;
-
-}
-
-
-function rand(a=0,b=1){
-
-  seeded=
-    (
-      seeded*1664525+
-      1013904223
-    )>>>0;
-
-  return a+
-    (
-      (seeded>>>0)/
-      4294967296
-    )*(b-a);
-
-}
-
-
-function isHost(){
-
-  return sdkIsHost||
-    players.size<=1;
-
-}
-
-
-/* =========================================================
-   PLAYERS
-   ========================================================= */
-
-function addPlayer(
-  id,
-  username,
-  avatar
-){
-
-  if(id==null)return;
-
-  id=String(id);
-
-  let p=
-    players.get(id);
-
-  if(!p){
-
-    p={
-
-      id,
-
-      username:
-        safeString(
-          username,
-          "玩家",
-          12
-        ),
-
-      avatar:
-        safeString(
-          avatar,
-          "",
-          300
-        ),
-
-      score:0
-
-    };
-
-    players.set(
-      id,
-      p
-    );
-
-  }else{
-
-    p.username=
-      safeString(
-        username,
-        p.username,
-        12
-      );
-
-  }
-
-  return p;
-
-}
-
-
-/* =========================================================
-   SDK
-   ========================================================= */
-
-function setupSDK(data){
-
-  if(data&&data.user){
-
-    players.delete(
-      ME.id
-    );
-
-    ME.id=
-      String(
-        data.user.id
-      );
-
-    ME.username=
-      safeString(
-        data.user.username,
-        "玩家",
-        12
-      );
-
-    ME.avatar=
-      safeString(
-        data.user.avatar,
-        "",
-        300
-      );
-
-    addPlayer(
-      ME.id,
-      ME.username,
-      ME.avatar
-    );
-
-  }
-
-
-  sdkIsHost=
-    !!(
-      data&&
-      data.isHost
-    );
-
-
-  gameRoomId=
-    (data&&data.roomId)||"";
-
-
-  if(
-    Array.isArray(
-      data&&
-      data.roomPlayers
-    )
-  ){
-
-    data.roomPlayers.forEach(
-      p=>{
-
-        if(p){
-
-          addPlayer(
-            p.id,
-            p.username,
-            p.avatar
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-
-  render();
-
-}
-
-
-window.addEventListener(
-  "message",
-  e=>{
-
-    try{
-
-      const d=
-        typeof e.data==="string"
-          ?JSON.parse(e.data)
-          :e.data;
-
-
-      if(
-        d&&
-        d.action==="initSDK"
-      ){
-
-        setupSDK(d);
-
-      }
-
-
-      else if(
-        d&&
-        d.action==="gameEventReceived"
-      ){
-
-        handleGameEvent(
-          d.eventName,
-          d.payload,
-          d.userId
-        );
-
-      }
-
-    }catch(_){}
-
-  }
-);
-
-
-window.onBoomRoomSDKReady=
-function(){
-
-  try{
-
-    if(
-      window.BoomRoomSDK
-    ){
-
-      setupSDK({
-
-        user:
-          window.BoomRoomSDK
-            .getUser(),
-
-        isHost:
-          window.BoomRoomSDK
-            .isHost,
-
-        roomId:
-          window.BoomRoomSDK
-            .roomId,
-
-        roomPlayers:
-          window.BoomRoomSDK
-            .roomPlayers||[]
-
-      });
-
-    }
-
-  }catch(_){}
-
-};
-
-
-function sendEvent(
-  eventName,
-  payload
-){
-
-  try{
-
-    if(
-      window.BoomRoomSDK&&
-      typeof
-      window.BoomRoomSDK
-        .sendGameEvent
-      ==="function"
-    ){
-
-      window.BoomRoomSDK
-        .sendGameEvent(
-          eventName,
-          payload
-        );
-
-    }
-
-    else if(
-      window.parent!==window
-    ){
-
-      window.parent.postMessage(
-        JSON.stringify({
-
-          action:
-            "sendGameEvent",
-
-          eventName,
-
-          payload
-
-        }),
-        "*"
-      );
-
-    }
-
-  }catch(_){}
-
-}
-
-
-function handleGameEvent(
-  name,
-  payload,
-  sender
-){
-
-  if(
-    name==="CIRCUS_START"&&
-    state==="LOBBY"
-  ){
-
-    startWithPayment(false);
-
-  }
-
-
-  if(
-    name==="CIRCUS_SOUND"
-  ){
-
-    setMuted(
-      !!(
-        payload&&
-        payload.muted
-      ),
-      false
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   MESSAGE
-   ========================================================= */
-
-function showMessage(
-  big,
-  small="",
-  ms=650
-){
-
-  const box=
-    document.getElementById(
-      "centerMsg"
-    );
-
-  if(!box)return;
-
-
-  box.innerHTML=`
-
-    <div>
-
-      <div class="msgBig">
-        ${big}
-      </div>
-
-      <div class="msgSmall">
-        ${small}
-      </div>
-
-    </div>
-
-  `;
-
-
-  box.classList.add(
-    "show"
-  );
-
-
-  clearTimeout(
-    showMessage.t
-  );
-
-
-  showMessage.t=
-    setTimeout(
-      ()=>{
-
-        box.classList.remove(
-          "show"
-        );
-
-      },
-      ms
-    );
-
-}
-
-
-/* =========================================================
-   FEED
-   ========================================================= */
-
-function pushFeed(s){
-
-  eventFeed.unshift(s);
-
-  if(
-    eventFeed.length>8
-  ){
-
-    eventFeed.length=8;
-
-  }
-
-}
-
-
-/* =========================================================
-   AUDIO
-   ========================================================= */
-
-function createAudio(){
-
-  if(
-    audioCtx||
-    muted
-  )return;
-
-
-  try{
-
-    audioCtx=
-      new(
-        window.AudioContext||
-        window.webkitAudioContext
-      )();
-
-  }catch(_){}
-
-}
-
-
-function beep(
-  freq=440,
-  dur=.07,
-  type="sine",
-  gain=.035
-){
-
-  if(muted)return;
-
-
-  try{
-
-    createAudio();
-
-    if(!audioCtx)return;
-
-
-    if(
-      audioCtx.state==="suspended"
-    ){
-
-      audioCtx.resume();
-
-    }
-
-
-    const o=
-      audioCtx
-        .createOscillator();
-
-
-    const g=
-      audioCtx
-        .createGain();
-
-
-    o.type=type;
-
-    o.frequency.value=
-      freq;
-
-    g.gain.value=
-      gain;
-
-
-    o.connect(g);
-
-    g.connect(
-      audioCtx.destination
-    );
-
-
-    g.gain.setValueAtTime(
-      gain,
-      audioCtx.currentTime
-    );
-
-
-    g.gain
-      .exponentialRampToValueAtTime(
-        .0001,
-        audioCtx.currentTime+
-        dur
-      );
-
-
-    o.start();
-
-
-    o.stop(
-      audioCtx.currentTime+
-      dur+
-      .01
-    );
-
-  }catch(_){}
-
-}
-
-
-function setMuted(
-  v,
-  broadcast=true
-){
-
-  muted=!!v;
-
-
-  if(!muted){
-
-    createAudio();
-
-  }
-
-
-  if(broadcast){
-
-    sendEvent(
-      "CIRCUS_SOUND",
-      {muted}
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CANVAS
-   ========================================================= */
-
-function initCanvas(){
-
-  canvas=
-    document.getElementById(
-      "gameCanvas"
-    );
-
-
-  wrap=
-    document.getElementById(
-      "gameWrap"
-    );
-
-
-  if(
-    !canvas||
-    !wrap
-  )return;
-
-
-  const rect=
-    wrap.getBoundingClientRect();
-
-
-  W=
-    Math.max(
-      300,
-      rect.width
-    );
-
-
-  H=
-    Math.max(
-      280,
-      rect.height
-    );
-
-
-  dpr=
-    Math.min(
-      2,
-      window.devicePixelRatio||1
-    );
-
-
-  canvas.width=
-    Math.floor(
-      W*dpr
-    );
-
-
-  canvas.height=
-    Math.floor(
-      H*dpr
-    );
-
-
-  ctx=
-    canvas.getContext(
-      "2d"
-    );
-
-
-  ctx.setTransform(
-    dpr,
-    0,
-    0,
-    dpr,
-    0,
-    0
-  );
-
-
-  player.x=
-    W*
-    CONFIG.PLAYER_X;
-
-
-  player.groundY=
-    H*
-    CONFIG.GROUND_RATIO;
-
-
-  player.y=
-    player.groundY-
-    player.h;
-
-}
-
-
-function resize(){
-
-  if(
-    state==="PLAYING"||
-    state==="COUNTDOWN"
-  ){
-
-    initCanvas();
-
-  }
-
-}
-
-
-window.addEventListener(
-  "resize",
-  resize
-);
-
-
-/* =========================================================
-   BACKGROUND
-   ========================================================= */
-
-function buildBackground(){
-
-  stars=[];
-
-
-  for(
-    let i=0;
-    i<75;
-    i++
-  ){
-
-    stars.push({
-
-      x:
-        rand(
-          0,
-          W
-        ),
-
-      y:
-        rand(
-          0,
-          H*.58
-        ),
-
-      r:
-        rand(
-          .5,
-          1.8
-        ),
-
-      a:
-        rand(
-          .25,
-          .85
-        ),
-
-      tw:
-        rand(
-          0,
-          6.28
-        )
-
-    });
-
-  }
-
-}
-
-
-/* =========================================================
-   RING
-   ========================================================= */
-
-function makeRing(
-  x,
-  y,
-  kind="normal"
-){
-
-  return {
+  let ME={
 
     id:
-      ++ringId,
+      "local_"+
+      Math.random()
+        .toString(36)
+        .slice(2,10),
 
-    x,
+    username:"本地玩家",
 
-    y,
-
-    r:
-      CONFIG.RING_RADIUS,
-
-    passed:false,
-
-    scored:false,
-
-    kind,
-
-    pulse:
-      rand(
-        0,
-        6.28
-      ),
-
-    flame:
-      rand(
-        0,
-        6.28
-      )
+    avatar:""
 
   };
 
-}
+
+  let players=new Map();
+
+  let sdkIsHost=false;
+
+  let gameRoomId="";
 
 
-/* =========================================================
-   FIXED RING HEIGHT
-   ========================================================= */
+  /* =========================================================
+     STATE
+     ========================================================= */
 
-function getFixedRingHeight(){
+  let state="LOBBY";
 
-  const ground=
-    H*
-    CONFIG.GROUND_RATIO;
+  let canvas=null;
 
+  let ctx=null;
 
-  return ground-105;
+  let wrap=null;
 
-}
+  let raf=0;
 
+  let lastTime=0;
 
-/* =========================================================
-   NEXT RING
-   ========================================================= */
+  let W=360;
 
-function nextRing(){
+  let H=500;
 
-  const difficulty=
-    clamp(
-      elapsed/
-      CONFIG.ROUND_TIME,
-      0,
-      1
-    );
+  let dpr=1;
 
+  let muted=false;
 
-  const gap=
-    lerp(
-      CONFIG.MAX_RING_GAP,
-      CONFIG.MIN_RING_GAP,
-      difficulty
-    );
+  let audioCtx=null;
+
+  let gameOverCalled=false;
+
+  let isPurchasing=false;
+
+  let hasPaid=false;
 
 
-  nextRingX=
-    Math.max(
-      nextRingX+
-      gap+
-      rand(
-        -20,
-        20
-      ),
+  /* =========================================================
+     SCORE
+     ========================================================= */
 
-      W+180
-    );
+  let score=0;
 
-
-  const fixed=
-    getFixedRingHeight();
-
-
-  let target=
-    fixed+
-    rand(
-      -5,
-      5
-    );
-
-
-  target=
-    clamp(
-      target,
-      fixed-6,
-      fixed+6
-    );
-
-
-  lastRingHeight=
-    target;
-
-
-  let kind="normal";
-
-
-  if(
-    difficulty>.18&&
-    rand()<.10
-  ){
-
-    kind="gold";
-
-  }
-
-
-  rings.push(
-    makeRing(
-      nextRingX,
-      target,
-      kind
-    )
-  );
-
-}
-
-
-/* =========================================================
-   RESET WORLD
-   ========================================================= */
-
-function resetWorld(){
-
-  score=0;
-
-  lives=
+  let lives=
     CONFIG.START_LIVES;
 
-  combo=0;
+  let combo=0;
 
-  bestCombo=0;
-
-  distance=0;
-
-  elapsed=0;
-
-  speed=
-    CONFIG.BASE_SPEED;
-
-  rings=[];
-
-  particles=[];
-
-  floatingTexts=[];
-
-  eventFeed=[];
-
-  ringId=0;
-
-  nextRingX=
-    W+240;
+  let bestCombo=0;
 
 
-  lastRingHeight=
-    getFixedRingHeight();
+  /* =========================================================
+     WORLD
+     ========================================================= */
+
+  let rings=[];
+
+  let particles=[];
+
+  let floatingTexts=[];
+
+  let stars=[];
 
 
-  player={
+  let player={
 
-    x:
-      W*
-      CONFIG.PLAYER_X,
+    x:0,
 
-    y:
-      H*
-      CONFIG.GROUND_RATIO-
-      CONFIG.PLAYER_H,
+    y:0,
 
-    groundY:
-      H*
-      CONFIG.GROUND_RATIO,
+    groundY:0,
 
     vy:0,
 
-    w:
-      CONFIG.PLAYER_W,
+    w:CONFIG.PLAYER_W,
 
-    h:
-      CONFIG.PLAYER_H,
+    h:CONFIG.PLAYER_H,
 
     onGround:true,
 
@@ -1720,535 +704,1388 @@ function resetWorld(){
   };
 
 
-  for(
-    let i=0;
-    i<5;
-    i++
-  ){
+  let distance=0;
 
-    nextRing();
+  let speed=
+    CONFIG.BASE_SPEED;
 
-  }
+  let elapsed=0;
 
-}
+  let ringId=0;
 
+  let nextRingX=0;
 
-/* =========================================================
-   PAYMENT
-   ========================================================= */
+  let lastRingHeight=0;
 
-function startWithPayment(
-  isDev=false
-){
+  let lastInput=0;
 
-  if(
-    state!=="LOBBY"||
-    isPurchasing
-  )return;
+  let eventFeed=[];
+
+  let seeded=
+    Date.now()>>>0;
+
+  let countdown=0;
 
 
-  if(isDev){
+  /* =========================================================
+     UTILITY
+     ========================================================= */
 
-    hasPaid=true;
+  function esc(s){
 
-    beginRound();
-
-    return;
-
-  }
-
-
-  if(hasPaid){
-
-    beginRound();
-
-    return;
-
-  }
-
-
-  if(!(
-    window.BoomRoomSDK&&
-    typeof
-    window.BoomRoomSDK
-      .requestPurchase
-    ==="function"
-  )){
-
-    showMessage(
-      "尚未連接",
-      "請使用本地測試或確認 BoomRoom SDK",
-      900
-    );
-
-    return;
-
-  }
-
-
-  isPurchasing=true;
-
-
-  showMessage(
-    "ENTRY 100",
-    "正在確認入場…",
-    1000
-  );
-
-
-  try{
-
-    window.BoomRoomSDK
-      .requestPurchase(
-        "circus_fire_hoop_entry",
-        GAME_INFO.entryCost
+    return String(s||"")
+      .replace(
+        /[&<>"']/g,
+        c=>({
+          "&":"&amp;",
+          "<":"&lt;",
+          ">":"&gt;",
+          '"':"&quot;",
+          "'":"&#39;"
+        }[c])
       );
 
-  }catch(_){
-
-    isPurchasing=false;
+  }
 
 
-    showMessage(
-      "購買失敗",
-      "請稍後再試",
-      800
+  function safeString(v,f,m){
+
+    if(v==null)return f;
+
+    const s=
+      String(v).trim();
+
+    return s
+      ?s.slice(0,m)
+      :f;
+
+  }
+
+
+  function clamp(v,a,b){
+
+    return Math.max(
+      a,
+      Math.min(b,v)
     );
 
   }
 
-}
+
+  function lerp(a,b,t){
+
+    return a+
+      (b-a)*t;
+
+  }
 
 
-window.onPurchaseSuccess=
-function(itemId){
+  function rand(a=0,b=1){
 
-  if(
-    itemId!==
-    "circus_fire_hoop_entry"
-  )return;
+    seeded=
+      (
+        seeded*1664525+
+        1013904223
+      )>>>0;
 
+    return a+
+      (
+        (seeded>>>0)/
+        4294967296
+      )*(b-a);
 
-  isPurchasing=false;
-
-  hasPaid=true;
-
-
-  showMessage(
-    "ENTRY OK",
-    "入場成功！",
-    500
-  );
+  }
 
 
-  setTimeout(
-    beginRound,
-    260
-  );
+  function isHost(){
 
-};
+    return sdkIsHost||
+      players.size<=1;
 
-
-window.onPurchaseFailed=
-function(itemId){
-
-  if(
-    itemId!==
-    "circus_fire_hoop_entry"
-  )return;
+  }
 
 
-  isPurchasing=false;
+  /* =========================================================
+     PLAYERS
+     ========================================================= */
 
-  hasPaid=false;
+  function addPlayer(
+    id,
+    username,
+    avatar
+  ){
+
+    if(id==null)return;
+
+    id=String(id);
+
+    let p=
+      players.get(id);
+
+    if(!p){
+
+      p={
+
+        id,
+
+        username:
+          safeString(
+            username,
+            "玩家",
+            12
+          ),
+
+        avatar:
+          safeString(
+            avatar,
+            "",
+            300
+          ),
+
+        score:0
+
+      };
+
+      players.set(
+        id,
+        p
+      );
+
+    }else{
+
+      p.username=
+        safeString(
+          username,
+          p.username,
+          12
+        );
+
+    }
+
+    return p;
+
+  }
 
 
-  showMessage(
-    "未能入場",
-    "銀幣不足或購買取消",
-    900
-  );
+  /* =========================================================
+     SDK
+     ========================================================= */
 
-};
+  function setupSDK(data){
 
+    if(data&&data.user){
 
-/* =========================================================
-   BEGIN ROUND
-   ========================================================= */
+      players.delete(
+        ME.id
+      );
 
-function beginRound(){
+      ME.id=
+        String(
+          data.user.id
+        );
 
-  if(
-    state!=="LOBBY"
-  )return;
+      ME.username=
+        safeString(
+          data.user.username,
+          "玩家",
+          12
+        );
 
+      ME.avatar=
+        safeString(
+          data.user.avatar,
+          "",
+          300
+        );
 
-  state="COUNTDOWN";
+      addPlayer(
+        ME.id,
+        ME.username,
+        ME.avatar
+      );
 
-  countdown=3;
-
-  gameOverCalled=false;
-
-
-  /*
-   * 先建立 Canvas
-   */
-  render();
-
-
-  /*
-   * Canvas 建立完成後再 reset。
-   */
-  resetWorld();
-
-  render();
-
-
-  showMessage(
-    "3",
-    "準備跳過火圈",
-    700
-  );
+    }
 
 
-  beep(
-    420,
-    .08,
-    "square",
-    .035
-  );
+    sdkIsHost=
+      !!(
+        data&&
+        data.isHost
+      );
 
 
-  const tick=()=>{
+    gameRoomId=
+      (data&&data.roomId)||"";
+
 
     if(
-      state!=="COUNTDOWN"
+      Array.isArray(
+        data&&
+        data.roomPlayers
+      )
+    ){
+
+      data.roomPlayers.forEach(
+        p=>{
+
+          if(p){
+
+            addPlayer(
+              p.id,
+              p.username,
+              p.avatar
+            );
+
+          }
+
+        }
+      );
+
+    }
+
+
+    render();
+
+  }
+
+
+  window.addEventListener(
+    "message",
+    e=>{
+
+      try{
+
+        const d=
+          typeof e.data==="string"
+            ?JSON.parse(e.data)
+            :e.data;
+
+
+        if(
+          d&&
+          d.action==="initSDK"
+        ){
+
+          setupSDK(d);
+
+        }
+
+
+        else if(
+          d&&
+          d.action==="gameEventReceived"
+        ){
+
+          handleGameEvent(
+            d.eventName,
+            d.payload,
+            d.userId
+          );
+
+        }
+
+      }catch(_){}
+
+    }
+  );
+
+
+  window.onBoomRoomSDKReady=
+  function(){
+
+    try{
+
+      if(
+        window.BoomRoomSDK
+      ){
+
+        setupSDK({
+
+          user:
+            window.BoomRoomSDK
+              .getUser(),
+
+          isHost:
+            window.BoomRoomSDK
+              .isHost,
+
+          roomId:
+            window.BoomRoomSDK
+              .roomId,
+
+          roomPlayers:
+            window.BoomRoomSDK
+              .roomPlayers||[]
+
+        });
+
+      }
+
+    }catch(_){}
+
+  };
+
+
+  function sendEvent(
+    eventName,
+    payload
+  ){
+
+    try{
+
+      if(
+        window.BoomRoomSDK&&
+        typeof
+        window.BoomRoomSDK
+          .sendGameEvent
+        ==="function"
+      ){
+
+        window.BoomRoomSDK
+          .sendGameEvent(
+            eventName,
+            payload
+          );
+
+      }
+
+      else if(
+        window.parent!==window
+      ){
+
+        window.parent.postMessage(
+          JSON.stringify({
+
+            action:
+              "sendGameEvent",
+
+            eventName,
+
+            payload
+
+          }),
+          "*"
+        );
+
+      }
+
+    }catch(_){}
+
+  }
+
+
+  function handleGameEvent(
+    name,
+    payload,
+    sender
+  ){
+
+    if(
+      name==="CIRCUS_START"&&
+      state==="LOBBY"
+    ){
+
+      startWithPayment(false);
+
+    }
+
+
+    if(
+      name==="CIRCUS_SOUND"
+    ){
+
+      setMuted(
+        !!(
+          payload&&
+          payload.muted
+        ),
+        false
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     MESSAGE
+     ========================================================= */
+
+  function showMessage(
+    big,
+    small="",
+    ms=650
+  ){
+
+    const box=
+      document.getElementById(
+        "centerMsg"
+      );
+
+    if(!box)return;
+
+
+    box.innerHTML=`
+
+      <div>
+
+        <div class="msgBig">
+          ${big}
+        </div>
+
+        <div class="msgSmall">
+          ${small}
+        </div>
+
+      </div>
+
+    `;
+
+
+    box.classList.add(
+      "show"
+    );
+
+
+    clearTimeout(
+      showMessage.t
+    );
+
+
+    showMessage.t=
+      setTimeout(
+        ()=>{
+
+          box.classList.remove(
+            "show"
+          );
+
+        },
+        ms
+      );
+
+  }
+
+
+  /* =========================================================
+     FEED
+     ========================================================= */
+
+  function pushFeed(s){
+
+    eventFeed.unshift(s);
+
+    if(
+      eventFeed.length>8
+    ){
+
+      eventFeed.length=8;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     AUDIO
+     ========================================================= */
+
+  function createAudio(){
+
+    if(
+      audioCtx||
+      muted
     )return;
 
 
-    countdown--;
+    try{
+
+      audioCtx=
+        new(
+          window.AudioContext||
+          window.webkitAudioContext
+        )();
+
+    }catch(_){}
+
+  }
+
+
+  function beep(
+    freq=440,
+    dur=.07,
+    type="sine",
+    gain=.035
+  ){
+
+    if(muted)return;
+
+
+    try{
+
+      createAudio();
+
+      if(!audioCtx)return;
+
+
+      if(
+        audioCtx.state==="suspended"
+      ){
+
+        audioCtx.resume();
+
+      }
+
+
+      const o=
+        audioCtx
+          .createOscillator();
+
+
+      const g=
+        audioCtx
+          .createGain();
+
+
+      o.type=type;
+
+      o.frequency.value=
+        freq;
+
+      g.gain.value=
+        gain;
+
+
+      o.connect(g);
+
+      g.connect(
+        audioCtx.destination
+      );
+
+
+      g.gain.setValueAtTime(
+        gain,
+        audioCtx.currentTime
+      );
+
+
+      g.gain
+        .exponentialRampToValueAtTime(
+          .0001,
+          audioCtx.currentTime+
+          dur
+        );
+
+
+      o.start();
+
+
+      o.stop(
+        audioCtx.currentTime+
+        dur+
+        .01
+      );
+
+    }catch(_){}
+
+  }
+
+
+  function setMuted(
+    v,
+    broadcast=true
+  ){
+
+    muted=!!v;
+
+
+    if(!muted){
+
+      createAudio();
+
+    }
+
+
+    if(broadcast){
+
+      sendEvent(
+        "CIRCUS_SOUND",
+        {muted}
+      );
+
+    }
+
+  }
+
+
+  /* =========================================================
+     CANVAS
+     ========================================================= */
+
+  function initCanvas(){
+
+    canvas=
+      document.getElementById(
+        "gameCanvas"
+      );
+
+
+    wrap=
+      document.getElementById(
+        "gameWrap"
+      );
 
 
     if(
-      countdown>0
+      !canvas||
+      !wrap
+    )return;
+
+
+    const rect=
+      wrap.getBoundingClientRect();
+
+
+    W=
+      Math.max(
+        300,
+        rect.width
+      );
+
+
+    H=
+      Math.max(
+        280,
+        rect.height
+      );
+
+
+    dpr=
+      Math.min(
+        2,
+        window.devicePixelRatio||1
+      );
+
+
+    canvas.width=
+      Math.floor(
+        W*dpr
+      );
+
+
+    canvas.height=
+      Math.floor(
+        H*dpr
+      );
+
+
+    ctx=
+      canvas.getContext(
+        "2d"
+      );
+
+
+    ctx.setTransform(
+      dpr,
+      0,
+      0,
+      dpr,
+      0,
+      0
+    );
+
+
+    player.x=
+      W*
+      CONFIG.PLAYER_X;
+
+
+    player.groundY=
+      H*
+      CONFIG.GROUND_RATIO;
+
+
+    player.y=
+      player.groundY-
+      player.h;
+
+  }
+
+
+  function resize(){
+
+    if(
+      state==="PLAYING"||
+      state==="COUNTDOWN"
     ){
 
-      showMessage(
-        String(countdown),
-        "看準火圈中心",
-        700
+      initCanvas();
+
+    }
+
+  }
+
+
+  window.addEventListener(
+    "resize",
+    resize
+  );
+
+
+  /* =========================================================
+     BACKGROUND
+     ========================================================= */
+
+  function buildBackground(){
+
+    stars=[];
+
+
+    for(
+      let i=0;
+      i<75;
+      i++
+    ){
+
+      stars.push({
+
+        x:
+          rand(
+            0,
+            W
+          ),
+
+        y:
+          rand(
+            0,
+            H*.58
+          ),
+
+        r:
+          rand(
+            .5,
+            1.8
+          ),
+
+        a:
+          rand(
+            .25,
+            .85
+          ),
+
+        tw:
+          rand(
+            0,
+            6.28
+          )
+
+      });
+
+    }
+
+  }
+
+
+  /* =========================================================
+     RING
+     ========================================================= */
+
+  function makeRing(
+    x,
+    y,
+    kind="normal"
+  ){
+
+    return {
+
+      id:
+        ++ringId,
+
+      x,
+
+      y,
+
+      r:
+        CONFIG.RING_RADIUS,
+
+      passed:false,
+
+      scored:false,
+
+      kind,
+
+      pulse:
+        rand(
+          0,
+          6.28
+        ),
+
+      flame:
+        rand(
+          0,
+          6.28
+        )
+
+    };
+
+  }
+
+
+  /* =========================================================
+     FIXED RING HEIGHT
+     ========================================================= */
+
+  function getFixedRingHeight(){
+
+    const ground=
+      H*
+      CONFIG.GROUND_RATIO;
+
+
+    /*
+     * 火圈稍微降低，
+     * 配合縮小後人物更容易穿過。
+     */
+
+    return ground-92;
+
+  }
+
+
+  /* =========================================================
+     NEXT RING
+     ========================================================= */
+
+  function nextRing(){
+
+    const difficulty=
+      clamp(
+        elapsed/
+        CONFIG.ROUND_TIME,
+        0,
+        1
       );
 
 
-      beep(
-        420,
-        .08,
-        "square",
-        .035
+    /*
+     * 隨時間縮短距離，
+     * 但保留最低安全距離。
+     */
+
+    const gap=
+      lerp(
+        CONFIG.MAX_RING_GAP,
+        CONFIG.MIN_RING_GAP,
+        difficulty
       );
 
 
-      setTimeout(
-        tick,
-        700
-      );
+    /*
+     * nextRingX 永遠代表最右邊
+     * 已生成火圈的位置。
+     */
 
+    if(
+      nextRingX<
+      W+120
+    ){
+
+      nextRingX=
+        W+190;
 
     }else{
+
+      nextRingX+=
+        gap+
+        rand(
+          -22,
+          22
+        );
+
+    }
+
+
+    const fixed=
+      getFixedRingHeight();
+
+
+    let target=
+      fixed+
+      rand(
+        -4,
+        4
+      );
+
+
+    target=
+      clamp(
+        target,
+        fixed-6,
+        fixed+6
+      );
+
+
+    lastRingHeight=
+      target;
+
+
+    let kind="normal";
+
+
+    if(
+      difficulty>.18&&
+      rand()<.10
+    ){
+
+      kind="gold";
+
+    }
+
+
+    rings.push(
+      makeRing(
+        nextRingX,
+        target,
+        kind
+      )
+    );
+
+  }
+
+
+  /* =========================================================
+     KEEP RINGS AHEAD
+     ========================================================= */
+
+  function maintainRings(){
+
+    /*
+     * 永遠確保右側還有足夠火圈。
+     *
+     * 不是只看 rings.length，
+     * 而是看 nextRingX 是否已經
+     * 延伸到畫面右側足夠遠。
+     */
+
+    const aheadDistance=
+      W+1050;
+
+
+    let safety=0;
+
+
+    while(
+      nextRingX<
+      aheadDistance&&
+      safety<12
+    ){
+
+      nextRing();
+
+      safety++;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     RESET WORLD
+     ========================================================= */
+
+  function resetWorld(){
+
+    score=0;
+
+    lives=
+      CONFIG.START_LIVES;
+
+    combo=0;
+
+    bestCombo=0;
+
+    distance=0;
+
+    elapsed=0;
+
+    speed=
+      CONFIG.BASE_SPEED;
+
+    rings=[];
+
+    particles=[];
+
+    floatingTexts=[];
+
+    eventFeed=[];
+
+    ringId=0;
+
+    /*
+     * 第一個火圈從玩家前方開始。
+     */
+
+    nextRingX=
+      W+190;
+
+
+    lastRingHeight=
+      getFixedRingHeight();
+
+
+    player={
+
+      x:
+        W*
+        CONFIG.PLAYER_X,
+
+      y:
+        H*
+        CONFIG.GROUND_RATIO-
+        CONFIG.PLAYER_H,
+
+      groundY:
+        H*
+        CONFIG.GROUND_RATIO,
+
+      vy:0,
+
+      w:
+        CONFIG.PLAYER_W,
+
+      h:
+        CONFIG.PLAYER_H,
+
+      onGround:true,
+
+      airTime:0,
+
+      rotation:0,
+
+      hitCooldown:0
+
+    };
+
+
+    /*
+     * 初始直接準備足夠多火圈。
+     */
+
+    maintainRings();
+
+  }
+
+
+  /* =========================================================
+     PAYMENT
+     ========================================================= */
+
+  function startWithPayment(
+    isDev=false
+  ){
+
+    if(
+      state!=="LOBBY"||
+      isPurchasing
+    )return;
+
+
+    if(isDev){
+
+      hasPaid=true;
+
+      beginRound();
+
+      return;
+
+    }
+
+
+    if(hasPaid){
+
+      beginRound();
+
+      return;
+
+    }
+
+
+    if(!(
+      window.BoomRoomSDK&&
+      typeof
+      window.BoomRoomSDK
+        .requestPurchase
+      ==="function"
+    )){
+
+      showMessage(
+        "尚未連接",
+        "請使用本地測試或確認 BoomRoom SDK",
+        900
+      );
+
+      return;
+
+    }
+
+
+    isPurchasing=true;
+
+
+    showMessage(
+      "ENTRY 100",
+      "正在確認入場…",
+      1000
+    );
+
+
+    try{
+
+      window.BoomRoomSDK
+        .requestPurchase(
+          "circus_fire_hoop_entry",
+          GAME_INFO.entryCost
+        );
+
+    }catch(_){
+
+      isPurchasing=false;
+
+
+      showMessage(
+        "購買失敗",
+        "請稍後再試",
+        800
+      );
+
+    }
+
+  }
+
+
+  window.onPurchaseSuccess=
+  function(itemId){
+
+    if(
+      itemId!==
+      "circus_fire_hoop_entry"
+    )return;
+
+
+    isPurchasing=false;
+
+    hasPaid=true;
+
+
+    showMessage(
+      "ENTRY OK",
+      "入場成功！",
+      500
+    );
+
+
+    setTimeout(
+      beginRound,
+      260
+    );
+
+  };
+
+
+  window.onPurchaseFailed=
+  function(itemId){
+
+    if(
+      itemId!==
+      "circus_fire_hoop_entry"
+    )return;
+
+
+    isPurchasing=false;
+
+    hasPaid=false;
+
+
+    showMessage(
+      "未能入場",
+      "銀幣不足或購買取消",
+      900
+    );
+
+  };
+
+
+  /* =========================================================
+     BEGIN ROUND
+     ========================================================= */
+
+  function beginRound(){
+
+    if(
+      state!=="LOBBY"
+    )return;
+
+
+    state="COUNTDOWN";
+
+    countdown=3;
+
+    gameOverCalled=false;
+
+
+    render();
+
+
+    resetWorld();
+
+    render();
+
+
+    showMessage(
+      "3",
+      "準備跳過火圈",
+      700
+    );
+
+
+    beep(
+      420,
+      .08,
+      "square",
+      .035
+    );
+
+
+    const tick=()=>{
 
       if(
         state!=="COUNTDOWN"
       )return;
 
 
-      showMessage(
-        "GO!",
-        "起跳！",
-        500
-      );
+      countdown--;
 
 
-      beep(
-        760,
-        .12,
-        "sine",
-        .045
-      );
+      if(
+        countdown>0
+      ){
+
+        showMessage(
+          String(countdown),
+          "看準火圈中心",
+          700
+        );
 
 
-      state="PLAYING";
+        beep(
+          420,
+          .08,
+          "square",
+          .035
+        );
 
 
-      lastTime=
-        performance.now();
+        setTimeout(
+          tick,
+          700
+        );
 
 
-      render();
+      }else{
+
+        if(
+          state!=="COUNTDOWN"
+        )return;
 
 
-      startLoop();
-
-    }
-
-  };
-
-
-  setTimeout(
-    tick,
-    700
-  );
-
-}
+        showMessage(
+          "GO!",
+          "起跳！",
+          500
+        );
 
 
-/* =========================================================
-   JUMP
-   ========================================================= */
-
-function jump(){
-
-  if(
-    state!=="PLAYING"
-  )return;
+        beep(
+          760,
+          .12,
+          "sine",
+          .045
+        );
 
 
-  const now=
-    performance.now();
+        state="PLAYING";
 
 
-  if(
-    now-lastInput<100
-  )return;
+        lastTime=
+          performance.now();
 
 
-  lastInput=now;
+        render();
 
 
-  createAudio();
+        startLoop();
+
+      }
+
+    };
 
 
-  /*
-   * 只允許地面跳。
-   */
-
-  if(
-    player.onGround
-  ){
-
-    player.vy=
-      CONFIG.JUMP_VY;
-
-    player.onGround=false;
-
-    player.airTime=0;
-
-
-    beep(
-      330,
-      .06,
-      "triangle",
-      .025
-    );
-
-
-    spawnBurst(
-      player.x+
-      player.w*.5,
-
-      player.y+
-      player.h,
-
-      7,
-
-      "dust"
+    setTimeout(
+      tick,
+      700
     );
 
   }
 
-}
 
+  /* =========================================================
+     JUMP
+     ========================================================= */
 
-/* =========================================================
-   INPUT
-   ========================================================= */
-
-function onGamePointer(e){
-
-  if(
-    state!=="PLAYING"
-  )return;
-
-
-  e.preventDefault();
-
-  jump();
-
-}
-
-
-document.addEventListener(
-  "keydown",
-  e=>{
-
-    if(
-      e.code==="Space"||
-      e.code==="ArrowUp"
-    ){
-
-      e.preventDefault();
-
-      jump();
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   LOOP
-   ========================================================= */
-
-function startLoop(){
-
-  cancelAnimationFrame(
-    raf
-  );
-
-
-  lastTime=
-    performance.now();
-
-
-  const loop=t=>{
+  function jump(){
 
     if(
       state!=="PLAYING"
     )return;
 
 
-    const dt=
-      Math.min(
-        .033,
-        Math.max(
-          .001,
-          (t-lastTime)/
-          1000
-        )
-      );
-
-
-    lastTime=t;
-
-
-    update(dt);
-
-    draw();
-
-
-    raf=
-      requestAnimationFrame(
-        loop
-      );
-
-  };
-
-
-  raf=
-    requestAnimationFrame(
-      loop
-    );
-
-}
-
-
-/* =========================================================
-   UPDATE
-   ========================================================= */
-
-function update(dt){
-
-  elapsed+=dt;
-
-
-  distance+=
-    speed*dt;
-
-
-  speed=
-    lerp(
-      CONFIG.BASE_SPEED,
-      CONFIG.MAX_SPEED,
-      clamp(
-        elapsed/
-        CONFIG.ROUND_TIME,
-        0,
-        1
-      )
-    );
-
-
-  player.groundY=
-    H*
-    CONFIG.GROUND_RATIO;
-
-
-  player.x=
-    W*
-    CONFIG.PLAYER_X;
-
-
-  player.hitCooldown=
-    Math.max(
-      0,
-      player.hitCooldown-dt
-    );
-
-
-  /* =======================================================
-     PLAYER PHYSICS
-     ======================================================= */
-
-  if(
-    !player.onGround
-  ){
-
-    player.airTime+=dt;
-
-
-    player.y+=
-      player.vy*dt;
-
-
-    player.vy+=
-      CONFIG.GRAVITY*dt;
-
-
-    player.rotation=
-      clamp(
-        player.vy/1300,
-        -.38,
-        .48
-      );
+    const now=
+      performance.now();
 
 
     if(
-      player.y>=
-      player.groundY-
-      player.h
+      now-lastInput<100
+    )return;
+
+
+    lastInput=now;
+
+
+    createAudio();
+
+
+    /*
+     * 只允許地面跳。
+     */
+
+    if(
+      player.onGround
     ){
 
-      player.y=
-        player.groundY-
-        player.h;
+      player.vy=
+        CONFIG.JUMP_VY;
 
-      player.vy=0;
-
-      player.onGround=true;
+      player.onGround=false;
 
       player.airTime=0;
 
-      player.rotation=0;
+
+      beep(
+        330,
+        .06,
+        "triangle",
+        .025
+      );
 
 
       spawnBurst(
@@ -2258,7 +2095,7 @@ function update(dt){
         player.y+
         player.h,
 
-        8,
+        7,
 
         "dust"
       );
@@ -2268,281 +2105,199 @@ function update(dt){
   }
 
 
-  /* =======================================================
-     RINGS
-     ======================================================= */
+  /* =========================================================
+     INPUT
+     ========================================================= */
 
-  for(
-    const r of rings
-  ){
+  function onGamePointer(e){
 
-    r.x-=
+    if(
+      state!=="PLAYING"
+    )return;
+
+
+    e.preventDefault();
+
+    jump();
+
+  }
+
+
+  document.addEventListener(
+    "keydown",
+    e=>{
+
+      if(
+        e.code==="Space"||
+        e.code==="ArrowUp"
+      ){
+
+        e.preventDefault();
+
+        jump();
+
+      }
+
+    }
+  );
+
+
+  /* =========================================================
+     LOOP
+     ========================================================= */
+
+  function startLoop(){
+
+    cancelAnimationFrame(
+      raf
+    );
+
+
+    lastTime=
+      performance.now();
+
+
+    const loop=t=>{
+
+      if(
+        state!=="PLAYING"
+      )return;
+
+
+      const dt=
+        Math.min(
+          .033,
+          Math.max(
+            .001,
+            (t-lastTime)/
+            1000
+          )
+        );
+
+
+      lastTime=t;
+
+
+      update(dt);
+
+      draw();
+
+
+      raf=
+        requestAnimationFrame(
+          loop
+        );
+
+    };
+
+
+    raf=
+      requestAnimationFrame(
+        loop
+      );
+
+  }
+
+
+  /* =========================================================
+     UPDATE
+     ========================================================= */
+
+  function update(dt){
+
+    elapsed+=dt;
+
+
+    distance+=
       speed*dt;
 
 
-    r.pulse+=
-      dt*5;
-
-
-    r.flame+=
-      dt*9;
-
-
-    /*
-     * 玩家中心
-     */
-
-    const pcx=
-      player.x+
-      player.w*.5;
-
-
-    const pcy=
-      player.y+
-      player.h*.47;
-
-
-    const xDistance=
-      Math.abs(
-        pcx-r.x
+    speed=
+      lerp(
+        CONFIG.BASE_SPEED,
+        CONFIG.MAX_SPEED,
+        clamp(
+          elapsed/
+          CONFIG.ROUND_TIME,
+          0,
+          1
+        )
       );
 
 
-    /*
-     * 中心穿越判定
-     */
+    player.groundY=
+      H*
+      CONFIG.GROUND_RATIO;
+
+
+    player.x=
+      W*
+      CONFIG.PLAYER_X;
+
+
+    player.hitCooldown=
+      Math.max(
+        0,
+        player.hitCooldown-dt
+      );
+
+
+    /* =======================================================
+       PLAYER PHYSICS
+       ======================================================= */
 
     if(
-      !r.passed&&
-      !r.scored&&
-      xDistance<16
+      !player.onGround
     ){
 
-      const holeRadius=
-        r.r*
-        CONFIG.RING_HOLE;
+      player.airTime+=dt;
 
 
-      const verticalDistance=
-        Math.abs(
-          pcy-r.y
+      player.y+=
+        player.vy*dt;
+
+
+      player.vy+=
+        CONFIG.GRAVITY*dt;
+
+
+      player.rotation=
+        clamp(
+          player.vy/1300,
+          -.38,
+          .48
         );
 
-
-      const normalized=
-        verticalDistance/
-        holeRadius;
-
-
-      /* PERFECT */
 
       if(
-        normalized<=
-        CONFIG.PERFECT_WINDOW
+        player.y>=
+        player.groundY-
+        player.h
       ){
 
-        r.passed=true;
+        player.y=
+          player.groundY-
+          player.h;
 
-        r.scored=true;
+        player.vy=0;
 
+        player.onGround=true;
 
-        combo++;
+        player.airTime=0;
 
-
-        bestCombo=
-          Math.max(
-            bestCombo,
-            combo
-          );
-
-
-        const gain=
-          CONFIG.SCORE_PERFECT+
-          Math.min(
-            220,
-            combo*12
-          )+
-          (
-            r.kind==="gold"
-              ?100
-              :0
-          );
-
-
-        score+=gain;
-
-
-        pushFeed(
-          `🔥 PERFECT 穿圈！ +${gain}`
-        );
-
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-60,
-
-          text:
-            `PERFECT  +${gain}`,
-
-          life:1,
-
-          vy:-42,
-
-          type:"perfect"
-
-        });
+        player.rotation=0;
 
 
         spawnBurst(
-          r.x,
-          r.y,
-          24,
-          "fire"
-        );
+          player.x+
+          player.w*.5,
 
+          player.y+
+          player.h,
 
-        beep(
-          900+
-          Math.min(
-            combo,
-            8
-          )*45,
+          8,
 
-          .12,
-
-          "sine",
-
-          .045
-        );
-
-      }
-
-
-      /* GOOD */
-
-      else if(
-        normalized<=
-        CONFIG.GOOD_WINDOW
-      ){
-
-        r.passed=true;
-
-        r.scored=true;
-
-
-        combo++;
-
-
-        bestCombo=
-          Math.max(
-            bestCombo,
-            combo
-          );
-
-
-        const gain=
-          CONFIG.SCORE_GOOD+
-          Math.min(
-            150,
-            combo*8
-          )+
-          (
-            r.kind==="gold"
-              ?80
-              :0
-          );
-
-
-        score+=gain;
-
-
-        pushFeed(
-          `🎪 漂亮穿越！ +${gain}`
-        );
-
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-48,
-
-          text:
-            `GOOD  +${gain}`,
-
-          life:1,
-
-          vy:-38,
-
-          type:"good"
-
-        });
-
-
-        spawnBurst(
-          r.x,
-          r.y,
-          14,
-          "spark"
-        );
-
-
-        beep(
-          620,
-          .08,
-          "triangle",
-          .035
-        );
-
-      }
-
-
-      /* MISS */
-
-      else{
-
-        r.passed=true;
-
-
-        combo=0;
-
-
-        score=
-          Math.max(
-            0,
-            score-30
-          );
-
-
-        pushFeed(
-          "⚠️ 沒穿進中心，Combo 中斷"
-        );
-
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-45,
-
-          text:"MISS -30",
-
-          life:1,
-
-          vy:-30,
-
-          type:"bad"
-
-        });
-
-
-        beep(
-          180,
-          .1,
-          "sawtooth",
-          .022
+          "dust"
         );
 
       }
@@ -2550,50 +2305,420 @@ function update(dt){
     }
 
 
-    /*
-     * 火圈外圍撞擊
-     */
+    /* =======================================================
+       RINGS
+       ======================================================= */
 
-    if(
-      !r.passed&&
-      player.hitCooldown<=0
+    for(
+      const r of rings
     ){
 
-      const dx=
-        Math.abs(
-          pcx-r.x
-        );
+      r.x-=
+        speed*dt;
 
 
-      const dy=
-        Math.abs(
-          pcy-r.y
-        );
+      r.pulse+=
+        dt*5;
 
+
+      r.flame+=
+        dt*9;
+
+
+      /*
+       * 玩家中心。
+       *
+       * 玩家縮小後使用身體中心稍微偏上，
+       * 更接近實際穿圈位置。
+       */
+
+      const pcx=
+        player.x+
+        player.w*.5;
+
+
+      const pcy=
+        player.y+
+        player.h*.43;
+
+
+      /*
+       * =====================================================
+       * 新版火圈穿越判定
+       * =====================================================
+       *
+       * 火圈是橢圓，
+       * 所以 X / Y 分別使用不同半徑。
+       *
+       * 不再使用舊版：
+       *
+       *     xDistance < 16
+       *
+       * 那個判定太嚴格。
+       */
 
       if(
-        dx<
-        r.r*.55&&
-        dy<
-        r.r*.70
+        !r.passed&&
+        !r.scored
       ){
 
-        const holeDistance=
+        const dx=
+          pcx-r.x;
+
+        const dy=
+          pcy-r.y;
+
+
+        /*
+         * 實際洞口橢圓半徑
+         */
+
+        const holeX=
+          r.r*
+          CONFIG.RING_HOLE*
+          CONFIG.JUDGE_X_SCALE;
+
+
+        const holeY=
+          r.r*
+          CONFIG.RING_DEPTH*
+          CONFIG.RING_HOLE*
+          CONFIG.JUDGE_Y_SCALE;
+
+
+        /*
+         * 橢圓正規化距離。
+         *
+         * <= 1
+         * 就代表玩家中心在容錯後的洞口內。
+         */
+
+        const normalized=
           Math.sqrt(
             Math.pow(
-              pcx-r.x,
+              dx/holeX,
               2
             )+
             Math.pow(
-              pcy-r.y,
+              dy/holeY,
               2
             )
           );
 
 
+        /*
+         * PERFECT
+         *
+         * 中心區域。
+         */
+
         if(
-          holeDistance>
+          normalized<=
+          CONFIG.PERFECT_WINDOW
+        ){
+
+          r.passed=true;
+
+          r.scored=true;
+
+
+          combo++;
+
+
+          bestCombo=
+            Math.max(
+              bestCombo,
+              combo
+            );
+
+
+          const gain=
+            CONFIG.SCORE_PERFECT+
+            Math.min(
+              220,
+              combo*12
+            )+
+            (
+              r.kind==="gold"
+                ?100
+                :0
+            );
+
+
+          score+=gain;
+
+
+          pushFeed(
+            `🔥 PERFECT 穿圈！ +${gain}`
+          );
+
+
+          floatingTexts.push({
+
+            x:r.x,
+
+            y:r.y-60,
+
+            text:
+              `PERFECT  +${gain}`,
+
+            life:1,
+
+            vy:-42,
+
+            type:"perfect"
+
+          });
+
+
+          spawnBurst(
+            r.x,
+            r.y,
+            24,
+            "fire"
+          );
+
+
+          beep(
+            900+
+            Math.min(
+              combo,
+              8
+            )*45,
+
+            .12,
+
+            "sine",
+
+            .045
+          );
+
+        }
+
+
+        /*
+         * GOOD
+         */
+
+        else if(
+          normalized<=
+          CONFIG.GOOD_WINDOW
+        ){
+
+          r.passed=true;
+
+          r.scored=true;
+
+
+          combo++;
+
+
+          bestCombo=
+            Math.max(
+              bestCombo,
+              combo
+            );
+
+
+          const gain=
+            CONFIG.SCORE_GOOD+
+            Math.min(
+              150,
+              combo*8
+            )+
+            (
+              r.kind==="gold"
+                ?80
+                :0
+            );
+
+
+          score+=gain;
+
+
+          pushFeed(
+            `🎪 漂亮穿越！ +${gain}`
+          );
+
+
+          floatingTexts.push({
+
+            x:r.x,
+
+            y:r.y-48,
+
+            text:
+              `GOOD  +${gain}`,
+
+            life:1,
+
+            vy:-38,
+
+            type:"good"
+
+          });
+
+
+          spawnBurst(
+            r.x,
+            r.y,
+            14,
+            "spark"
+          );
+
+
+          beep(
+            620,
+            .08,
+            "triangle",
+            .035
+          );
+
+        }
+
+
+        /*
+         * 如果火圈已經明顯通過玩家，
+         * 才判定 MISS。
+         *
+         * 這是另一個重要改善：
+         * 不會因為玩家還在接近火圈時
+         * 就過早判定失敗。
+         */
+
+        else if(
+          pcx>
+          r.x+
           r.r*.88
+        ){
+
+          r.passed=true;
+
+
+          combo=0;
+
+
+          score=
+            Math.max(
+              0,
+              score-30
+            );
+
+
+          pushFeed(
+            "⚠️ 沒穿進中心，Combo 中斷"
+          );
+
+
+          floatingTexts.push({
+
+            x:r.x,
+
+            y:r.y-45,
+
+            text:"MISS -30",
+
+            life:1,
+
+            vy:-30,
+
+            type:"bad"
+
+          });
+
+
+          beep(
+            180,
+            .1,
+            "sawtooth",
+            .022
+          );
+
+        }
+
+      }
+
+
+      /*
+       * =====================================================
+       * 火圈外圍碰撞
+       * =====================================================
+       */
+
+      if(
+        !r.passed&&
+        player.hitCooldown<=0
+      ){
+
+        const dx=
+          pcx-r.x;
+
+        const dy=
+          pcy-r.y;
+
+
+        /*
+         * 火圈外圈判定。
+         *
+         * 比舊版稍微寬鬆，
+         * 但只會在真的靠近火圈邊緣時觸發。
+         */
+
+        const outerX=
+          r.r*
+          CONFIG.RING_COLLISION_X;
+
+        const outerY=
+          r.r*
+          CONFIG.RING_DEPTH*
+          CONFIG.RING_COLLISION_Y;
+
+
+        const outerDistance=
+          Math.sqrt(
+            Math.pow(
+              dx/outerX,
+              2
+            )+
+            Math.pow(
+              dy/outerY,
+              2
+            )
+          );
+
+
+        /*
+         * 洞口範圍內不撞。
+         */
+
+        const holeX=
+          r.r*
+          CONFIG.RING_HOLE*
+          1.02;
+
+        const holeY=
+          r.r*
+          CONFIG.RING_DEPTH*
+          CONFIG.RING_HOLE*
+          1.05;
+
+
+        const insideHole=
+          Math.sqrt(
+            Math.pow(
+              dx/holeX,
+              2
+            )+
+            Math.pow(
+              dy/holeY,
+              2
+            )
+          )<=1;
+
+
+        if(
+          outerDistance<1.0&&
+          !insideHole
         ){
 
           hitRing(r);
@@ -2604,640 +2729,593 @@ function update(dt){
 
     }
 
-  }
 
+    /*
+     * 移除離開左側的火圈
+     */
 
-  rings=
-    rings.filter(
-      r=>r.x>-140
-    );
-
-
-  while(
-    nextRingX<
-    W+
-    CONFIG.MAX_RING_GAP*1.7
-  ){
-
-    nextRing();
-
-  }
-
-
-  /* =======================================================
-     PARTICLES
-     ======================================================= */
-
-  for(
-    const p of particles
-  ){
-
-    p.x+=
-      p.vx*dt;
-
-    p.y+=
-      p.vy*dt;
-
-    p.vy+=
-      p.g*dt;
-
-    p.life-=dt;
-
-    p.rot+=
-      p.vr*dt;
-
-  }
-
-
-  particles=
-    particles.filter(
-      p=>p.life>0
-    );
-
-
-  /* =======================================================
-     FLOATING TEXT
-     ======================================================= */
-
-  for(
-    const f of floatingTexts
-  ){
-
-    f.y+=
-      f.vy*dt;
-
-    f.life-=dt;
-
-  }
-
-
-  floatingTexts=
-    floatingTexts.filter(
-      f=>f.life>0
-    );
-
-
-  /* =======================================================
-     END
-     ======================================================= */
-
-  if(
-    elapsed>=
-    CONFIG.ROUND_TIME
-  ){
-
-    finishGame(
-      "🏁 完美演出！"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   HIT RING
-   ========================================================= */
-
-function hitRing(r){
-
-  player.hitCooldown=.85;
-
-  lives-=
-    CONFIG.MISS_LIFE_LOSS;
-
-  combo=0;
-
-  r.passed=true;
-
-  r.x=-200;
-
-
-  pushFeed(
-    "💥 撞到火圈！生命 -1"
-  );
-
-
-  showMessage(
-    "BOOM!",
-    "小心火焰！",
-    420
-  );
-
-
-  spawnBurst(
-    player.x+
-    player.w*.5,
-
-    player.y+
-    player.h*.45,
-
-    28,
-
-    "hit"
-  );
-
-
-  beep(
-    95,
-    .22,
-    "sawtooth",
-    .05
-  );
-
-
-  if(
-    navigator.vibrate
-  ){
-
-    try{
-
-      navigator.vibrate(
-        [35,25,55]
+    rings=
+      rings.filter(
+        r=>r.x>-160
       );
 
-    }catch(_){}
+
+    /*
+     * 持續補火圈。
+     */
+
+    maintainRings();
+
+
+    /* =======================================================
+       PARTICLES
+       ======================================================= */
+
+    for(
+      const p of particles
+    ){
+
+      p.x+=
+        p.vx*dt;
+
+      p.y+=
+        p.vy*dt;
+
+      p.vy+=
+        p.g*dt;
+
+      p.life-=dt;
+
+      p.rot+=
+        p.vr*dt;
+
+    }
+
+
+    particles=
+      particles.filter(
+        p=>p.life>0
+      );
+
+
+    /* =======================================================
+       FLOATING TEXT
+       ======================================================= */
+
+    for(
+      const f of floatingTexts
+    ){
+
+      f.y+=
+        f.vy*dt;
+
+      f.life-=dt;
+
+    }
+
+
+    floatingTexts=
+      floatingTexts.filter(
+        f=>f.life>0
+      );
+
+
+    /* =======================================================
+       END
+       ======================================================= */
+
+    if(
+      elapsed>=
+      CONFIG.ROUND_TIME
+    ){
+
+      finishGame(
+        "🏁 完美演出！"
+      );
+
+    }
 
   }
 
 
-  if(
-    lives<=0
-  ){
+  /* =========================================================
+     HIT RING
+     ========================================================= */
 
-    finishGame(
-      "🎪 演出失誤"
-    );
+  function hitRing(r){
 
-  }
+    player.hitCooldown=.85;
 
-}
+    lives-=
+      CONFIG.MISS_LIFE_LOSS;
 
+    combo=0;
 
-/* =========================================================
-   FINISH
-   ========================================================= */
+    r.passed=true;
 
-function finishGame(title){
-
-  if(
-    state==="RESULT"
-  )return;
+    r.x=-200;
 
 
-  state="RESULT";
-
-
-  cancelAnimationFrame(
-    raf
-  );
-
-
-  pushFeed(
-    `${title} 最終得分 ${score}`
-  );
-
-
-  if(
-    !gameOverCalled
-  ){
-
-    gameOverCalled=true;
-
-
-    try{
-
-      if(
-        window.BoomRoomSDK&&
-        typeof
-        window.BoomRoomSDK
-          .gameOver
-        ==="function"
-      ){
-
-        window.BoomRoomSDK.gameOver(
-          score
-        );
-
-      }
-
-    }catch(_){}
-
-  }
-
-
-  render();
-
-}
-
-
-/* =========================================================
-   PARTICLES
-   ========================================================= */
-
-function spawnBurst(
-  x,
-  y,
-  n,
-  type
-){
-
-  for(
-    let i=0;
-    i<n;
-    i++
-  ){
-
-    let c=
-      type==="hit"
-        ?"red"
-        :
-      type==="dust"
-        ?"dust"
-        :
-      type==="fire"
-        ?"fire"
-        :
-      "spark";
-
-
-    particles.push({
-
-      x,
-
-      y,
-
-      vx:
-        rand(
-          -120,
-          120
-        ),
-
-      vy:
-        rand(
-          -170,
-          -30
-        ),
-
-      g:
-        type==="dust"
-          ?260
-          :360,
-
-      life:
-        rand(
-          .35,
-          .8
-        ),
-
-      max:.8,
-
-      size:
-        rand(
-          2,
-          6
-        ),
-
-      rot:
-        rand(
-          0,
-          6.28
-        ),
-
-      vr:
-        rand(
-          -5,
-          5
-        ),
-
-      type:c
-
-    });
-
-  }
-
-}
-
-
-/* =========================================================
-   DRAW
-   ========================================================= */
-
-function draw(){
-
-  if(!ctx)return;
-
-
-  ctx.clearRect(
-    0,
-    0,
-    W,
-    H
-  );
-
-
-  drawSky();
-
-  drawTent();
-
-  drawGround();
-
-
-  /*
-   * 輔助線
-   */
-
-  const next=
-    rings.find(
-      r=>
-        r.x>
-        player.x+20
+    pushFeed(
+      "💥 撞到火圈！生命 -1"
     );
 
 
-  if(next){
-
-    ctx.save();
-
-    ctx.globalAlpha=.14;
-
-    ctx.strokeStyle=
-      "#fff6ca";
-
-    ctx.lineWidth=2;
-
-    ctx.setLineDash(
-      [5,8]
+    showMessage(
+      "BOOM!",
+      "小心火焰！",
+      420
     );
 
 
-    ctx.beginPath();
-
-
-    ctx.moveTo(
+    spawnBurst(
       player.x+
       player.w*.5,
 
       player.y+
-      player.h*.47
+      player.h*.45,
+
+      28,
+
+      "hit"
     );
 
 
-    ctx.lineTo(
-      next.x,
-      next.y
+    beep(
+      95,
+      .22,
+      "sawtooth",
+      .05
     );
 
 
-    ctx.stroke();
+    if(
+      navigator.vibrate
+    ){
 
-    ctx.restore();
+      try{
+
+        navigator.vibrate(
+          [35,25,55]
+        );
+
+      }catch(_){}
+
+    }
+
+
+    if(
+      lives<=0
+    ){
+
+      finishGame(
+        "🎪 演出失誤"
+      );
+
+    }
 
   }
 
 
-  rings.forEach(
-    drawRing
-  );
+  /* =========================================================
+     FINISH
+     ========================================================= */
+
+  function finishGame(title){
+
+    if(
+      state==="RESULT"
+    )return;
 
 
-  drawPlayer();
+    state="RESULT";
 
 
-  particles.forEach(
-    drawParticle
-  );
+    cancelAnimationFrame(
+      raf
+    );
 
 
-  floatingTexts.forEach(
-    drawFloat
-  );
+    pushFeed(
+      `${title} 最終得分 ${score}`
+    );
 
 
-  drawVignette();
+    if(
+      !gameOverCalled
+    ){
+
+      gameOverCalled=true;
 
 
-  updateHUD();
+      try{
 
-}
+        if(
+          window.BoomRoomSDK&&
+          typeof
+          window.BoomRoomSDK
+            .gameOver
+          ==="function"
+        ){
+
+          window.BoomRoomSDK.gameOver(
+            score
+          );
+
+        }
+
+      }catch(_){}
+
+    }
 
 
-/* =========================================================
-   SKY
-   ========================================================= */
+    render();
 
-function drawSky(){
+  }
 
-  const g=
-    ctx.createLinearGradient(
+
+  /* =========================================================
+     PARTICLES
+     ========================================================= */
+
+  function spawnBurst(
+    x,
+    y,
+    n,
+    type
+  ){
+
+    for(
+      let i=0;
+      i<n;
+      i++
+    ){
+
+      let c=
+        type==="hit"
+          ?"red"
+          :
+        type==="dust"
+          ?"dust"
+          :
+        type==="fire"
+          ?"fire"
+          :
+        "spark";
+
+
+      particles.push({
+
+        x,
+
+        y,
+
+        vx:
+          rand(
+            -120,
+            120
+          ),
+
+        vy:
+          rand(
+            -170,
+            -30
+          ),
+
+        g:
+          type==="dust"
+            ?260
+            :360,
+
+        life:
+          rand(
+            .35,
+            .8
+          ),
+
+        max:.8,
+
+        size:
+          rand(
+            2,
+            6
+          ),
+
+        rot:
+          rand(
+            0,
+            6.28
+          ),
+
+        vr:
+          rand(
+            -5,
+            5
+          ),
+
+        type:c
+
+      });
+
+    }
+
+  }
+
+
+  /* =========================================================
+     DRAW
+     ========================================================= */
+
+  function draw(){
+
+    if(!ctx)return;
+
+
+    ctx.clearRect(
       0,
       0,
-      0,
+      W,
       H
     );
 
 
-  g.addColorStop(
-    0,
-    "#f8d9a8"
-  );
+    drawSky();
+
+    drawTent();
+
+    drawGround();
 
 
-  g.addColorStop(
-    .52,
-    "#f7c982"
-  );
+    /*
+     * 輔助線
+     */
 
-
-  g.addColorStop(
-    1,
-    "#ed9b66"
-  );
-
-
-  ctx.fillStyle=g;
-
-
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
-
-
-  const beams=[
-
-    {
-      x:W*.16,
-      a:.15,
-      r:70
-    },
-
-    {
-      x:W*.50,
-      a:.18,
-      r:90
-    },
-
-    {
-      x:W*.84,
-      a:.15,
-      r:70
-    }
-
-  ];
-
-
-  for(
-    const b of beams
-  ){
-
-    const rg=
-      ctx.createRadialGradient(
-        b.x,
-        H*.20,
-        4,
-
-        b.x,
-        H*.35,
-        b.r
+    const next=
+      rings.find(
+        r=>
+          r.x>
+          player.x+20
       );
 
 
-    rg.addColorStop(
+    if(next){
+
+      ctx.save();
+
+      ctx.globalAlpha=.14;
+
+      ctx.strokeStyle=
+        "#fff6ca";
+
+      ctx.lineWidth=2;
+
+      ctx.setLineDash(
+        [5,8]
+      );
+
+
+      ctx.beginPath();
+
+
+      ctx.moveTo(
+        player.x+
+        player.w*.5,
+
+        player.y+
+        player.h*.43
+      );
+
+
+      ctx.lineTo(
+        next.x,
+        next.y
+      );
+
+
+      ctx.stroke();
+
+      ctx.restore();
+
+    }
+
+
+    rings.forEach(
+      drawRing
+    );
+
+
+    drawPlayer();
+
+
+    particles.forEach(
+      drawParticle
+    );
+
+
+    floatingTexts.forEach(
+      drawFloat
+    );
+
+
+    drawVignette();
+
+
+    updateHUD();
+
+  }
+
+
+  /* =========================================================
+     SKY
+     ========================================================= */
+
+  function drawSky(){
+
+    const g=
+      ctx.createLinearGradient(
+        0,
+        0,
+        0,
+        H
+      );
+
+
+    g.addColorStop(
       0,
-      "rgba(255,248,201,.65)"
+      "#f8d9a8"
     );
 
 
-    rg.addColorStop(
+    g.addColorStop(
+      .52,
+      "#f7c982"
+    );
+
+
+    g.addColorStop(
       1,
-      "rgba(255,248,201,0)"
+      "#ed9b66"
     );
 
 
-    ctx.fillStyle=rg;
+    ctx.fillStyle=g;
 
 
     ctx.fillRect(
-      b.x-b.r,
-      H*.02,
-      b.r*2,
-      H*.55
-    );
-
-  }
-
-
-  for(
-    let x=18;
-    x<W;
-    x+=34
-  ){
-
-    ctx.fillStyle=
-      "#ffe9a7";
-
-
-    ctx.beginPath();
-
-
-    ctx.arc(
-      x,
-      H*.15,
-      2.2,
       0,
-      Math.PI*2
+      0,
+      W,
+      H
     );
 
 
-    ctx.fill();
+    const beams=[
+
+      {
+        x:W*.16,
+        a:.15,
+        r:70
+      },
+
+      {
+        x:W*.50,
+        a:.18,
+        r:90
+      },
+
+      {
+        x:W*.84,
+        a:.15,
+        r:70
+      }
+
+    ];
+
+
+    for(
+      const b of beams
+    ){
+
+      const rg=
+        ctx.createRadialGradient(
+          b.x,
+          H*.20,
+          4,
+
+          b.x,
+          H*.35,
+          b.r
+        );
+
+
+      rg.addColorStop(
+        0,
+        "rgba(255,248,201,.65)"
+      );
+
+
+      rg.addColorStop(
+        1,
+        "rgba(255,248,201,0)"
+      );
+
+
+      ctx.fillStyle=rg;
+
+
+      ctx.fillRect(
+        b.x-b.r,
+        H*.02,
+        b.r*2,
+        H*.55
+      );
+
+    }
+
+
+    for(
+      let x=18;
+      x<W;
+      x+=34
+    ){
+
+      ctx.fillStyle=
+        "#ffe9a7";
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+        x,
+        H*.15,
+        2.2,
+        0,
+        Math.PI*2
+      );
+
+
+      ctx.fill();
+
+    }
 
   }
 
-}
+
+  /* =========================================================
+     TENT
+     ========================================================= */
+
+  function drawTent(){
+
+    const top=
+      H*.055;
 
 
-/* =========================================================
-   TENT
-   ========================================================= */
+    ctx.save();
 
-function drawTent(){
-
-  const top=
-    H*.055;
-
-
-  ctx.save();
-
-
-  ctx.fillStyle=
-    "#f7e4bd";
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    0,
-    top+72
-  );
-
-
-  ctx.lineTo(
-    W*.5,
-    top
-  );
-
-
-  ctx.lineTo(
-    W,
-    top+72
-  );
-
-
-  ctx.closePath();
-
-
-  ctx.fill();
-
-
-  const stripeW=
-    W/7;
-
-
-  for(
-    let i=-1;
-    i<8;
-    i++
-  ){
 
     ctx.fillStyle=
-      i%2===0
-        ?"#d83c4d"
-        :"#fff0cf";
+      "#f7e4bd";
 
 
     ctx.beginPath();
 
 
     ctx.moveTo(
+      0,
+      top+72
+    );
+
+
+    ctx.lineTo(
       W*.5,
       top
     );
 
 
     ctx.lineTo(
-      W*.5+
-      (i-3)*stripeW,
-      top+72
-    );
-
-
-    ctx.lineTo(
-      W*.5+
-      (i-2)*stripeW,
+      W,
       top+72
     );
 
@@ -3247,159 +3325,65 @@ function drawTent(){
 
     ctx.fill();
 
-  }
+
+    const stripeW=
+      W/7;
 
 
-  ctx.fillStyle=
-    "#f2b53e";
+    for(
+      let i=-1;
+      i<8;
+      i++
+    ){
+
+      ctx.fillStyle=
+        i%2===0
+          ?"#d83c4d"
+          :"#fff0cf";
 
 
-  ctx.beginPath();
+      ctx.beginPath();
 
 
-  ctx.arc(
-    W*.5,
-    top,
-    7,
-    0,
-    Math.PI*2
-  );
+      ctx.moveTo(
+        W*.5,
+        top
+      );
 
 
-  ctx.fill();
+      ctx.lineTo(
+        W*.5+
+        (i-3)*stripeW,
+        top+72
+      );
 
 
-  ctx.strokeStyle=
-    "#a33b46";
-
-  ctx.lineWidth=2;
-
-
-  ctx.beginPath();
+      ctx.lineTo(
+        W*.5+
+        (i-2)*stripeW,
+        top+72
+      );
 
 
-  ctx.moveTo(
-    W*.5,
-    top-3
-  );
+      ctx.closePath();
 
 
-  ctx.lineTo(
-    W*.5,
-    top-24
-  );
+      ctx.fill();
 
-
-  ctx.stroke();
-
-
-  ctx.fillStyle=
-    "#d83c4d";
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    W*.5,
-    top-24
-  );
-
-
-  ctx.lineTo(
-    W*.5+22,
-    top-18
-  );
-
-
-  ctx.lineTo(
-    W*.5,
-    top-13
-  );
-
-
-  ctx.closePath();
-
-
-  ctx.fill();
-
-
-  /*
-   * 柱子
-   */
-
-  ctx.fillStyle=
-    "#b53a45";
-
-
-  ctx.fillRect(
-    7,
-    top+54,
-    10,
-    H*.28
-  );
-
-
-  ctx.fillRect(
-    W-17,
-    top+54,
-    10,
-    H*.28
-  );
-
-
-  ctx.fillStyle=
-    "#f2b53e";
-
-
-  ctx.fillRect(
-    7,
-    top+58,
-    10,
-    7
-  );
-
-
-  ctx.fillRect(
-    W-17,
-    top+58,
-    10,
-    7
-  );
-
-
-  /*
-   * 觀眾
-   */
-
-  const ay=
-    H*.71;
-
-
-  for(
-    let x=8;
-    x<W;
-    x+=23
-  ){
-
-    const bob=
-      Math.sin(
-        x*1.7+
-        performance.now()/350
-      )*1.5;
+    }
 
 
     ctx.fillStyle=
-      "#71394a";
+      "#f2b53e";
 
 
     ctx.beginPath();
 
 
     ctx.arc(
-      x,
-      ay+bob,
-      4,
+      W*.5,
+      top,
+      7,
       0,
       Math.PI*2
     );
@@ -3408,869 +3392,8 @@ function drawTent(){
     ctx.fill();
 
 
-    ctx.fillRect(
-      x-5,
-      ay+5+bob,
-      10,
-      8
-    );
-
-  }
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   GROUND
-   ========================================================= */
-
-function drawGround(){
-
-  const gy=
-    H*.83;
-
-
-  ctx.fillStyle=
-    "#8c4d3e";
-
-
-  ctx.fillRect(
-    0,
-    gy,
-    W,
-    H-gy
-  );
-
-
-  for(
-    let x=-(distance%72);
-    x<W;
-    x+=72
-  ){
-
-    ctx.fillStyle=
-      "#a95d48";
-
-
-    ctx.fillRect(
-      x,
-      gy+4,
-      62,
-      3
-    );
-
-
-    ctx.fillStyle=
-      "#6f3d38";
-
-
-    ctx.fillRect(
-      x,
-      gy+18,
-      52,
-      2
-    );
-
-  }
-
-
-  ctx.fillStyle=
-    "#f4bd45";
-
-
-  ctx.fillRect(
-    0,
-    gy-3,
-    W,
-    5
-  );
-
-
-  ctx.fillStyle=
-    "#fff0ad";
-
-
-  ctx.fillRect(
-    0,
-    gy-3,
-    W,
-    1
-  );
-
-
-  const g=
-    ctx.createRadialGradient(
-      W*.5,
-      gy,
-      10,
-
-      W*.5,
-      gy,
-      Math.min(
-        W*.7,
-        H*.55
-      )
-    );
-
-
-  g.addColorStop(
-    0,
-    "rgba(255,244,185,.34)"
-  );
-
-
-  g.addColorStop(
-    1,
-    "rgba(255,244,185,0)"
-  );
-
-
-  ctx.fillStyle=g;
-
-
-  ctx.fillRect(
-    0,
-    gy-5,
-    W,
-    H-gy+5
-  );
-
-}
-
-
-/* =========================================================
-   FIRE RING
-   ========================================================= */
-
-function drawRing(r){
-
-  const pulse=
-    Math.sin(
-      r.pulse
-    )*1.2;
-
-
-  const rr=
-    r.r+
-    pulse;
-
-
-  ctx.save();
-
-
-  ctx.translate(
-    r.x,
-    r.y
-  );
-
-
-  const depth=
-    CONFIG.RING_DEPTH;
-
-
-  /*
-   * 陰影
-   */
-
-  ctx.save();
-
-  ctx.globalAlpha=.20;
-
-  ctx.fillStyle=
-    "#6a2430";
-
-
-  ctx.beginPath();
-
-
-  ctx.ellipse(
-    7,
-    8,
-    rr+9,
-    rr*depth+8,
-    -.10,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-  ctx.restore();
-
-
-  /*
-   * 發光
-   */
-
-  ctx.shadowBlur=18;
-
-
-  ctx.shadowColor=
-    r.kind==="gold"
-      ?"rgba(255,210,75,.8)"
-      :"rgba(224,55,54,.65)";
-
-
-  /*
-   * 外圈
-   */
-
-  ctx.strokeStyle=
-    r.kind==="gold"
-      ?"#e6ad35"
-      :"#c92f3e";
-
-
-  ctx.lineWidth=14;
-
-
-  ctx.beginPath();
-
-
-  ctx.ellipse(
-    0,
-    0,
-    rr,
-    rr*depth,
-    -.10,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.stroke();
-
-
-  ctx.shadowBlur=0;
-
-
-  /*
-   * 內側亮邊
-   */
-
-  ctx.strokeStyle=
-    "#ffe7a0";
-
-  ctx.lineWidth=4;
-
-
-  ctx.beginPath();
-
-
-  ctx.ellipse(
-    0,
-    0,
-    rr-7,
-    (rr-7)*depth,
-    -.10,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.stroke();
-
-
-  /*
-   * 洞
-   */
-
-  ctx.fillStyle=
-    "rgba(72,25,28,.12)";
-
-
-  ctx.beginPath();
-
-
-  ctx.ellipse(
-    0,
-    0,
-    rr-18,
-    (rr-18)*depth,
-    -.10,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-
-  /*
-   * 3D 背面線
-   */
-
-  ctx.strokeStyle=
-    "rgba(116,30,40,.55)";
-
-  ctx.lineWidth=3;
-
-
-  ctx.beginPath();
-
-
-  ctx.ellipse(
-    0,
-    0,
-    rr+4,
-    (rr+4)*depth,
-    -.10,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.stroke();
-
-
-  /*
-   * 火焰
-   */
-
-  const flames=16;
-
-
-  for(
-    let i=0;
-    i<flames;
-    i++
-  ){
-
-    const a=
-      i/flames*
-      Math.PI*2+
-      r.flame*.025;
-
-
-    const x=
-      Math.cos(a)*
-      (rr+10);
-
-
-    const y=
-      Math.sin(a)*
-      (rr+10)*
-      depth;
-
-
-    ctx.save();
-
-
-    ctx.translate(
-      x,
-      y
-    );
-
-
-    ctx.rotate(
-      a+
-      Math.PI/2
-    );
-
-
-    const wob=
-      .7+
-      .3*
-      Math.sin(
-        r.flame+
-        i*1.7
-      );
-
-
-    ctx.fillStyle=
-      i%2
-        ?"#f26a27"
-        :"#ffd04b";
-
-
-    ctx.beginPath();
-
-
-    ctx.moveTo(
-      0,
-      -10*wob
-    );
-
-
-    ctx.quadraticCurveTo(
-      6,
-      -1,
-      0,
-      8
-    );
-
-
-    ctx.quadraticCurveTo(
-      -6,
-      -1,
-      0,
-      -10*wob
-    );
-
-
-    ctx.fill();
-
-
-    ctx.restore();
-
-  }
-
-
-  /*
-   * BONUS
-   */
-
-  if(
-    r.kind==="gold"
-  ){
-
-    ctx.fillStyle=
-      "#fff2a7";
-
-
-    ctx.font=
-      "900 10px system-ui";
-
-
-    ctx.textAlign=
-      "center";
-
-
-    ctx.textBaseline=
-      "middle";
-
-
-    ctx.fillText(
-      "BONUS",
-      0,
-      0
-    );
-
-  }
-
-
-  /*
-   * 中央定位點
-   */
-
-  ctx.globalAlpha=.32;
-
-
-  ctx.fillStyle=
-    "#fff5c7";
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    0,
-    0,
-    3,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-
-  ctx.globalAlpha=1;
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   PLAYER
-   ========================================================= */
-
-function drawPlayer(){
-
-  const p=player;
-
-
-  ctx.save();
-
-
-  ctx.translate(
-    p.x+
-    p.w*.5,
-
-    p.y+
-    p.h*.5
-  );
-
-
-  ctx.rotate(
-    p.rotation
-  );
-
-
-  /*
-   * 腿
-   */
-
-  ctx.strokeStyle=
-    "#f8c9a8";
-
-  ctx.lineWidth=5.5;
-
-  ctx.lineCap=
-    "round";
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    -6,
-    14
-  );
-
-
-  ctx.lineTo(
-    -9,
-    24
-  );
-
-
-  ctx.moveTo(
-    6,
-    14
-  );
-
-
-  ctx.lineTo(
-    9,
-    24
-  );
-
-
-  ctx.stroke();
-
-
-  /*
-   * 鞋
-   */
-
-  ctx.strokeStyle=
-    "#6b2639";
-
-  ctx.lineWidth=5;
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    -10,
-    24
-  );
-
-
-  ctx.lineTo(
-    -15,
-    24
-  );
-
-
-  ctx.moveTo(
-    10,
-    24
-  );
-
-
-  ctx.lineTo(
-    15,
-    24
-  );
-
-
-  ctx.stroke();
-
-
-  /*
-   * 身體
-   */
-
-  const body=
-    ctx.createLinearGradient(
-      -13,
-      -8,
-      13,
-      18
-    );
-
-
-  body.addColorStop(
-    0,
-    "#e94358"
-  );
-
-
-  body.addColorStop(
-    1,
-    "#a52348"
-  );
-
-
-  ctx.fillStyle=body;
-
-
-  ctx.beginPath();
-
-
-  /*
-   * roundRect 在舊瀏覽器可能不存在，
-   * 所以使用普通圓角替代。
-   */
-
-  ctx.roundRect(
-    -13,
-    -9,
-    26,
-    27,
-    8
-  );
-
-
-  ctx.fill();
-
-
-  /*
-   * 腰帶
-   */
-
-  ctx.fillStyle=
-    "#ffd55c";
-
-
-  ctx.fillRect(
-    -12,
-    1,
-    24,
-    4
-  );
-
-
-  /*
-   * 手
-   */
-
-  ctx.strokeStyle=
-    "#f8c9a8";
-
-  ctx.lineWidth=5;
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    -11,
-    -1
-  );
-
-
-  ctx.lineTo(
-    -19,
-    6
-  );
-
-
-  ctx.moveTo(
-    11,
-    -1
-  );
-
-
-  ctx.lineTo(
-    19,
-    6
-  );
-
-
-  ctx.stroke();
-
-
-  /*
-   * 頭
-   */
-
-  ctx.fillStyle=
-    "#f8c9a8";
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    0,
-    -18,
-    11.5,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-
-  /*
-   * 帽子
-   */
-
-  ctx.fillStyle=
-    "#d7354d";
-
-
-  ctx.beginPath();
-
-
-  ctx.moveTo(
-    -11,
-    -25
-  );
-
-
-  ctx.lineTo(
-    0,
-    -42
-  );
-
-
-  ctx.lineTo(
-    11,
-    -25
-  );
-
-
-  ctx.closePath();
-
-
-  ctx.fill();
-
-
-  /*
-   * 帽沿
-   */
-
-  ctx.fillStyle=
-    "#ffd35a";
-
-
-  ctx.fillRect(
-    -12,
-    -26,
-    24,
-    4
-  );
-
-
-  /*
-   * 帽球
-   */
-
-  ctx.fillStyle=
-    "#f6c54a";
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    0,
-    -43,
-    3,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-
-  /*
-   * 眼睛
-   */
-
-  ctx.fillStyle=
-    "#40202a";
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    -4,
-    -18,
-    1.5,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.arc(
-    4,
-    -18,
-    1.5,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fill();
-
-
-  /*
-   * 笑臉
-   */
-
-  ctx.strokeStyle=
-    "#8b3c4c";
-
-  ctx.lineWidth=1.3;
-
-
-  ctx.beginPath();
-
-
-  ctx.arc(
-    0,
-    -15,
-    4,
-    .15,
-    Math.PI-.15
-  );
-
-
-  ctx.stroke();
-
-
-  ctx.restore();
-
-
-  /*
-   * 跳躍光圈
-   */
-
-  if(
-    !p.onGround
-  ){
-
-    ctx.globalAlpha=.22;
-
-
     ctx.strokeStyle=
-      "#fff1a0";
-
+      "#a33b46";
 
     ctx.lineWidth=2;
 
@@ -4278,18 +3401,365 @@ function drawPlayer(){
     ctx.beginPath();
 
 
-    ctx.arc(
-      p.x+
-      p.w*.5,
+    ctx.moveTo(
+      W*.5,
+      top-3
+    );
 
-      p.y+
-      p.h*.5,
 
-      23+
+    ctx.lineTo(
+      W*.5,
+      top-24
+    );
+
+
+    ctx.stroke();
+
+
+    ctx.fillStyle=
+      "#d83c4d";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      W*.5,
+      top-24
+    );
+
+
+    ctx.lineTo(
+      W*.5+22,
+      top-18
+    );
+
+
+    ctx.lineTo(
+      W*.5,
+      top-13
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    /*
+     * 柱子
+     */
+
+    ctx.fillStyle=
+      "#b53a45";
+
+
+    ctx.fillRect(
+      7,
+      top+54,
+      10,
+      H*.28
+    );
+
+
+    ctx.fillRect(
+      W-17,
+      top+54,
+      10,
+      H*.28
+    );
+
+
+    ctx.fillStyle=
+      "#f2b53e";
+
+
+    ctx.fillRect(
+      7,
+      top+58,
+      10,
+      7
+    );
+
+
+    ctx.fillRect(
+      W-17,
+      top+58,
+      10,
+      7
+    );
+
+
+    /*
+     * 觀眾
+     */
+
+    const ay=
+      H*.71;
+
+
+    for(
+      let x=8;
+      x<W;
+      x+=23
+    ){
+
+      const bob=
+        Math.sin(
+          x*1.7+
+          performance.now()/350
+        )*1.5;
+
+
+      ctx.fillStyle=
+        "#71394a";
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+        x,
+        ay+bob,
+        4,
+        0,
+        Math.PI*2
+      );
+
+
+      ctx.fill();
+
+
+      ctx.fillRect(
+        x-5,
+        ay+5+bob,
+        10,
+        8
+      );
+
+    }
+
+
+    ctx.restore();
+
+  }
+
+
+  /* =========================================================
+     GROUND
+     ========================================================= */
+
+  function drawGround(){
+
+    const gy=
+      H*.83;
+
+
+    ctx.fillStyle=
+      "#8c4d3e";
+
+
+    ctx.fillRect(
+      0,
+      gy,
+      W,
+      H-gy
+    );
+
+
+    for(
+      let x=-(distance%72);
+      x<W;
+      x+=72
+    ){
+
+      ctx.fillStyle=
+        "#a95d48";
+
+
+      ctx.fillRect(
+        x,
+        gy+4,
+        62,
+        3
+      );
+
+
+      ctx.fillStyle=
+        "#6f3d38";
+
+
+      ctx.fillRect(
+        x,
+        gy+18,
+        52,
+        2
+      );
+
+    }
+
+
+    ctx.fillStyle=
+      "#f4bd45";
+
+
+    ctx.fillRect(
+      0,
+      gy-3,
+      W,
+      5
+    );
+
+
+    ctx.fillStyle=
+      "#fff0ad";
+
+
+    ctx.fillRect(
+      0,
+      gy-3,
+      W,
+      1
+    );
+
+
+    const g=
+      ctx.createRadialGradient(
+        W*.5,
+        gy,
+        10,
+
+        W*.5,
+        gy,
+        Math.min(
+          W*.7,
+          H*.55
+        )
+      );
+
+
+    g.addColorStop(
+      0,
+      "rgba(255,244,185,.34)"
+    );
+
+
+    g.addColorStop(
+      1,
+      "rgba(255,244,185,0)"
+    );
+
+
+    ctx.fillStyle=g;
+
+
+    ctx.fillRect(
+      0,
+      gy-5,
+      W,
+      H-gy+5
+    );
+
+  }
+
+
+  /* =========================================================
+     FIRE RING
+     ========================================================= */
+
+  function drawRing(r){
+
+    const pulse=
       Math.sin(
-        performance.now()/90
-      )*2,
+        r.pulse
+      )*1.2;
 
+
+    const rr=
+      r.r+
+      pulse;
+
+
+    ctx.save();
+
+
+    ctx.translate(
+      r.x,
+      r.y
+    );
+
+
+    const depth=
+      CONFIG.RING_DEPTH;
+
+
+    /*
+     * 陰影
+     */
+
+    ctx.save();
+
+    ctx.globalAlpha=.20;
+
+    ctx.fillStyle=
+      "#6a2430";
+
+
+    ctx.beginPath();
+
+
+    ctx.ellipse(
+      7,
+      8,
+      rr+9,
+      rr*depth+8,
+      -.10,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fill();
+
+    ctx.restore();
+
+
+    /*
+     * 發光
+     */
+
+    ctx.shadowBlur=18;
+
+
+    ctx.shadowColor=
+      r.kind==="gold"
+        ?"rgba(255,210,75,.8)"
+        :"rgba(224,55,54,.65)";
+
+
+    /*
+     * 外圈
+     */
+
+    ctx.strokeStyle=
+      r.kind==="gold"
+        ?"#e6ad35"
+        :"#c92f3e";
+
+
+    ctx.lineWidth=14;
+
+
+    ctx.beginPath();
+
+
+    ctx.ellipse(
+      0,
+      0,
+      rr,
+      rr*depth,
+      -.10,
       0,
       Math.PI*2
     );
@@ -4298,925 +3768,1547 @@ function drawPlayer(){
     ctx.stroke();
 
 
-    ctx.globalAlpha=1;
-
-  }
-
-}
+    ctx.shadowBlur=0;
 
 
-/* =========================================================
-   PARTICLE
-   ========================================================= */
+    /*
+     * 內側亮邊
+     */
 
-function drawParticle(p){
+    ctx.strokeStyle=
+      "#ffe7a0";
 
-  ctx.save();
+    ctx.lineWidth=4;
 
 
-  ctx.globalAlpha=
-    clamp(
-      p.life/
-      (p.max||.8),
+    ctx.beginPath();
+
+
+    ctx.ellipse(
       0,
-      1
-    );
-
-
-  ctx.translate(
-    p.x,
-    p.y
-  );
-
-
-  ctx.rotate(
-    p.rot
-  );
-
-
-  ctx.fillStyle=
-    p.type==="red"
-      ?"#ff3f32"
-      :
-    p.type==="dust"
-      ?"#d9a07b"
-      :
-    p.type==="fire"
-      ?"#ffb52e"
-      :
-      "#ffe36a";
-
-
-  ctx.fillRect(
-    -p.size*.5,
-    -p.size*.5,
-    p.size,
-    p.size
-  );
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   FLOATING TEXT
-   ========================================================= */
-
-function drawFloat(f){
-
-  ctx.save();
-
-
-  ctx.globalAlpha=
-    clamp(
-      f.life,
       0,
-      1
+      rr-7,
+      (rr-7)*depth,
+      -.10,
+      0,
+      Math.PI*2
     );
 
 
-  ctx.font=
-    `1000 ${
-      f.type==="perfect"
-        ?20
-        :15
-    }px system-ui`;
+    ctx.stroke();
 
 
-  ctx.textAlign=
-    "center";
+    /*
+     * 洞
+     */
+
+    ctx.fillStyle=
+      "rgba(72,25,28,.12)";
 
 
-  ctx.fillStyle=
-    f.type==="perfect"
-      ?"#fff19b"
-      :
-    f.type==="bad"
-      ?"#ff7a7a"
-      :
-      "#ffd05a";
+    ctx.beginPath();
 
 
-  ctx.shadowBlur=10;
-
-
-  ctx.shadowColor=
-    ctx.fillStyle;
-
-
-  ctx.fillText(
-    f.text,
-    f.x,
-    f.y
-  );
-
-
-  ctx.restore();
-
-}
-
-
-/* =========================================================
-   VIGNETTE
-   ========================================================= */
-
-function drawVignette(){
-
-  const g=
-    ctx.createRadialGradient(
-      W*.5,
-      H*.42,
-      Math.min(
-        W,
-        H
-      )*.30,
-
-      W*.5,
-      H*.42,
-      Math.max(
-        W,
-        H
-      )*.78
+    ctx.ellipse(
+      0,
+      0,
+      rr-18,
+      (rr-18)*depth,
+      -.10,
+      0,
+      Math.PI*2
     );
 
 
-  g.addColorStop(
-    0,
-    "rgba(255,255,255,0)"
-  );
+    ctx.fill();
 
 
-  g.addColorStop(
-    1,
-    "rgba(91,37,42,.14)"
-  );
+    /*
+     * 3D 背面線
+     */
 
+    ctx.strokeStyle=
+      "rgba(116,30,40,.55)";
 
-  ctx.fillStyle=g;
+    ctx.lineWidth=3;
 
 
-  ctx.fillRect(
-    0,
-    0,
-    W,
-    H
-  );
+    ctx.beginPath();
 
-}
 
+    ctx.ellipse(
+      0,
+      0,
+      rr+4,
+      (rr+4)*depth,
+      -.10,
+      0,
+      Math.PI*2
+    );
 
-/* =========================================================
-   PLAYERS
-   ========================================================= */
 
-function renderPlayers(){
+    ctx.stroke();
 
-  const arr=
-    [...players.values()];
 
+    /*
+     * 火焰
+     */
 
-  return arr
-    .slice(0,6)
-    .map(
-      p=>`
+    const flames=16;
 
-        <div class="player">
 
-          <b>
-            ${esc(p.username)}
-          </b>
+    for(
+      let i=0;
+      i<flames;
+      i++
+    ){
 
-          <em>
-            ${
-              p.id===ME.id
-                ?"你"
-                :"房內玩家"
-            }
-            · ${p.score||0} 分
-          </em>
+      const a=
+        i/flames*
+        Math.PI*2+
+        r.flame*.025;
 
-        </div>
 
-      `
-    )
-    .join("");
+      const x=
+        Math.cos(a)*
+        (rr+10);
 
-}
 
+      const y=
+        Math.sin(a)*
+        (rr+10)*
+        depth;
 
-/* =========================================================
-   LOBBY
-   ========================================================= */
 
-function renderLobby(){
+      ctx.save();
 
-  document.getElementById(
-    "main"
-  ).innerHTML=`
 
-    <section class="panel">
+      ctx.translate(
+        x,
+        y
+      );
 
-      <div class="stats">
 
-        <div class="stat">
+      ctx.rotate(
+        a+
+        Math.PI/2
+      );
 
-          <b>
-            ${GAME_INFO.entryCost}
-          </b>
 
-          <span>
-            Entry 銀幣
-          </span>
+      const wob=
+        .7+
+        .3*
+        Math.sin(
+          r.flame+
+          i*1.7
+        );
 
-        </div>
 
+      ctx.fillStyle=
+        i%2
+          ?"#f26a27"
+          :"#ffd04b";
 
-        <div class="stat">
 
-          <b>
-            ${players.size}
-          </b>
+      ctx.beginPath();
 
-          <span>
-            房內玩家
-          </span>
 
-        </div>
+      ctx.moveTo(
+        0,
+        -10*wob
+      );
 
 
-        <div class="stat">
+      ctx.quadraticCurveTo(
+        6,
+        -1,
+        0,
+        8
+      );
 
-          <b>
-            3 ❤️
-          </b>
 
-          <span>
-            初始生命
-          </span>
+      ctx.quadraticCurveTo(
+        -6,
+        -1,
+        0,
+        -10*wob
+      );
 
-        </div>
 
+      ctx.fill();
 
-        <div class="stat">
 
-          <b>
-            72 秒
-          </b>
+      ctx.restore();
 
-          <span>
-            極限演出
-          </span>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <section class="panel">
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:7px
-        "
-      >
-
-        <b>
-          🎪 馬戲團大舞台
-        </b>
-
-
-        <span class="badge">
-          經典跳火圈
-        </span>
-
-      </div>
-
-
-      <div class="rule">
-
-        角色會自動向前奔跑。<br>
-
-        <b style="color:#c63b49">
-          看準火圈中間的洞
-        </b>
-
-        點擊「起跳」讓角色穿過去。<br>
-
-        火圈保持固定高度，
-        不會突然跑到跳不到的位置。<br>
-
-        火圈採斜角 3D 視覺，
-        中間空洞就是實際跳躍目標。<br>
-
-        越接近中心越容易拿到
-        <b style="color:#c63b49">
-          PERFECT
-        </b>。
-
-      </div>
-
-    </section>
-
-
-    <section class="panel">
-
-      <div
-        style="
-          font-weight:900;
-          margin-bottom:7px
-        "
-      >
-        房內玩家
-      </div>
-
-
-      <div class="players">
-
-        ${
-          renderPlayers()||
-          '<div class="muted">等待玩家加入…</div>'
-        }
-
-      </div>
-
-    </section>
-
-
-    ${
-      isHost()
-        ?
-        `
-          <button
-            id="startBtn"
-            class="cta"
-          >
-            🎪 開始馬戲團演出
-          </button>
-        `
-        :
-        `
-          <div class="notice">
-            等待室長開始遊戲…
-          </div>
-        `
     }
 
 
-    <button
-      id="devBtn"
-      class="cta secondary"
-    >
-      🧪 本地測試：立即體驗
-    </button>
+    /*
+     * BONUS
+     */
 
-  `;
+    if(
+      r.kind==="gold"
+    ){
 
-
-  document
-    .getElementById(
-      "startBtn"
-    )
-    ?.addEventListener(
-      "click",
-      ()=>{
-
-        if(isPurchasing)return;
+      ctx.fillStyle=
+        "#fff2a7";
 
 
-        sendEvent(
-          "CIRCUS_START",
-          {}
-        );
+      ctx.font=
+        "900 10px system-ui";
 
 
-        startWithPayment(
-          false
-        );
+      ctx.textAlign=
+        "center";
 
-      }
+
+      ctx.textBaseline=
+        "middle";
+
+
+      ctx.fillText(
+        "BONUS",
+        0,
+        0
+      );
+
+    }
+
+
+    /*
+     * 中央定位點
+     */
+
+    ctx.globalAlpha=.45;
+
+
+    ctx.fillStyle=
+      "#fff5c7";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      0,
+      0,
+      3.5,
+      0,
+      Math.PI*2
     );
 
 
-  document
-    .getElementById(
-      "devBtn"
-    )
-    ?.addEventListener(
-      "click",
-      ()=>{
+    ctx.fill();
 
-        startWithPayment(
-          true
-        );
 
-      }
+    ctx.globalAlpha=1;
+
+
+    ctx.restore();
+
+  }
+
+
+  /* =========================================================
+     PLAYER
+     ========================================================= */
+
+  function drawPlayer(){
+
+    const p=player;
+
+
+    ctx.save();
+
+
+    ctx.translate(
+      p.x+
+      p.w*.5,
+
+      p.y+
+      p.h*.5
     );
 
-}
+
+    ctx.rotate(
+      p.rotation
+    );
 
 
-/* =========================================================
-   PLAYING
-   ========================================================= */
+    /*
+     * 腿
+     */
 
-function renderPlaying(){
+    ctx.strokeStyle=
+      "#f8c9a8";
 
-  document.getElementById(
-    "main"
-  ).innerHTML=`
+    ctx.lineWidth=5;
 
-    <div
-      class="stats"
-      style="flex:none"
-    >
-
-      <div class="stat">
-
-        <b id="lifeHUD">
-          ❤️❤️❤️
-        </b>
-
-        <span>
-          生命
-        </span>
-
-      </div>
+    ctx.lineCap=
+      "round";
 
 
-      <div class="stat">
-
-        <b id="scoreHUD">
-          0
-        </b>
-
-        <span>
-          分數
-        </span>
-
-      </div>
+    ctx.beginPath();
 
 
-      <div class="stat">
-
-        <b id="comboHUD">
-          x0
-        </b>
-
-        <span>
-          Combo
-        </span>
-
-      </div>
+    ctx.moveTo(
+      -5,
+      12
+    );
 
 
-      <div class="stat">
-
-        <b id="speedHUD">
-          1.0x
-        </b>
-
-        <span>
-          速度
-        </span>
-
-      </div>
-
-    </div>
+    ctx.lineTo(
+      -7,
+      20
+    );
 
 
-    <div id="gameWrap">
-
-      <canvas
-        id="gameCanvas"
-      ></canvas>
-
-
-      <div id="centerMsg">
-
-        <div></div>
-
-      </div>
-
-    </div>
+    ctx.moveTo(
+      5,
+      12
+    );
 
 
-    <div
-      style="
-        text-align:center;
-        font-size:10px;
-        color:#8a6665;
-        margin:-1px 0 1px
-      "
-    >
-      🔥 對準火圈中央的小光點跳過去
-    </div>
+    ctx.lineTo(
+      7,
+      20
+    );
 
 
-    <button
-      id="jumpBtn"
-      class="jump"
-    >
-      🔥 點擊起跳
-    </button>
-
-  `;
+    ctx.stroke();
 
 
-  initCanvas();
+    /*
+     * 鞋
+     */
 
-  buildBackground();
+    ctx.strokeStyle=
+      "#6b2639";
+
+    ctx.lineWidth=4.5;
 
 
-  const jumpBtn=
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      -8,
+      20
+    );
+
+
+    ctx.lineTo(
+      -13,
+      20
+    );
+
+
+    ctx.moveTo(
+      8,
+      20
+    );
+
+
+    ctx.lineTo(
+      13,
+      20
+    );
+
+
+    ctx.stroke();
+
+
+    /*
+     * 身體
+     */
+
+    const body=
+      ctx.createLinearGradient(
+        -11,
+        -8,
+        11,
+        16
+      );
+
+
+    body.addColorStop(
+      0,
+      "#e94358"
+    );
+
+
+    body.addColorStop(
+      1,
+      "#a52348"
+    );
+
+
+    ctx.fillStyle=body;
+
+
+    ctx.beginPath();
+
+
+    ctx.roundRect(
+      -11,
+      -8,
+      22,
+      23,
+      7
+    );
+
+
+    ctx.fill();
+
+
+    /*
+     * 腰帶
+     */
+
+    ctx.fillStyle=
+      "#ffd55c";
+
+
+    ctx.fillRect(
+      -10,
+      0,
+      20,
+      3.5
+    );
+
+
+    /*
+     * 手
+     */
+
+    ctx.strokeStyle=
+      "#f8c9a8";
+
+    ctx.lineWidth=4.5;
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      -9,
+      -1
+    );
+
+
+    ctx.lineTo(
+      -15,
+      5
+    );
+
+
+    ctx.moveTo(
+      9,
+      -1
+    );
+
+
+    ctx.lineTo(
+      15,
+      5
+    );
+
+
+    ctx.stroke();
+
+
+    /*
+     * 頭
+     */
+
+    ctx.fillStyle=
+      "#f8c9a8";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      0,
+      -16,
+      9.5,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fill();
+
+
+    /*
+     * 帽子
+     */
+
+    ctx.fillStyle=
+      "#d7354d";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+      -9,
+      -22
+    );
+
+
+    ctx.lineTo(
+      0,
+      -36
+    );
+
+
+    ctx.lineTo(
+      9,
+      -22
+    );
+
+
+    ctx.closePath();
+
+
+    ctx.fill();
+
+
+    /*
+     * 帽沿
+     */
+
+    ctx.fillStyle=
+      "#ffd35a";
+
+
+    ctx.fillRect(
+      -10,
+      -23,
+      20,
+      3.5
+    );
+
+
+    /*
+     * 帽球
+     */
+
+    ctx.fillStyle=
+      "#f6c54a";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      0,
+      -37,
+      2.5,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fill();
+
+
+    /*
+     * 眼睛
+     */
+
+    ctx.fillStyle=
+      "#40202a";
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      -3.5,
+      -16,
+      1.25,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.arc(
+      3.5,
+      -16,
+      1.25,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fill();
+
+
+    /*
+     * 笑臉
+     */
+
+    ctx.strokeStyle=
+      "#8b3c4c";
+
+    ctx.lineWidth=1.2;
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      0,
+      -13,
+      3.3,
+      .15,
+      Math.PI-.15
+    );
+
+
+    ctx.stroke();
+
+
+    ctx.restore();
+
+
+    /*
+     * 跳躍光圈
+     */
+
+    if(
+      !p.onGround
+    ){
+
+      ctx.globalAlpha=.22;
+
+
+      ctx.strokeStyle=
+        "#fff1a0";
+
+
+      ctx.lineWidth=2;
+
+
+      ctx.beginPath();
+
+
+      ctx.arc(
+        p.x+
+        p.w*.5,
+
+        p.y+
+        p.h*.5,
+
+        20+
+        Math.sin(
+          performance.now()/90
+        )*2,
+
+        0,
+        Math.PI*2
+      );
+
+
+      ctx.stroke();
+
+
+      ctx.globalAlpha=1;
+
+    }
+
+  }
+
+
+  /* =========================================================
+     PARTICLE
+     ========================================================= */
+
+  function drawParticle(p){
+
+    ctx.save();
+
+
+    ctx.globalAlpha=
+      clamp(
+        p.life/
+        (p.max||.8),
+        0,
+        1
+      );
+
+
+    ctx.translate(
+      p.x,
+      p.y
+    );
+
+
+    ctx.rotate(
+      p.rot
+    );
+
+
+    ctx.fillStyle=
+      p.type==="red"
+        ?"#ff3f32"
+        :
+      p.type==="dust"
+        ?"#d9a07b"
+        :
+      p.type==="fire"
+        ?"#ffb52e"
+        :
+        "#ffe36a";
+
+
+    ctx.fillRect(
+      -p.size*.5,
+      -p.size*.5,
+      p.size,
+      p.size
+    );
+
+
+    ctx.restore();
+
+  }
+
+
+  /* =========================================================
+     FLOATING TEXT
+     ========================================================= */
+
+  function drawFloat(f){
+
+    ctx.save();
+
+
+    ctx.globalAlpha=
+      clamp(
+        f.life,
+        0,
+        1
+      );
+
+
+    ctx.font=
+      `1000 ${
+        f.type==="perfect"
+          ?20
+          :15
+      }px system-ui`;
+
+
+    ctx.textAlign=
+      "center";
+
+
+    ctx.fillStyle=
+      f.type==="perfect"
+        ?"#fff19b"
+        :
+      f.type==="bad"
+        ?"#ff7a7a"
+        :
+        "#ffd05a";
+
+
+    ctx.shadowBlur=10;
+
+
+    ctx.shadowColor=
+      ctx.fillStyle;
+
+
+    ctx.fillText(
+      f.text,
+      f.x,
+      f.y
+    );
+
+
+    ctx.restore();
+
+  }
+
+
+  /* =========================================================
+     VIGNETTE
+     ========================================================= */
+
+  function drawVignette(){
+
+    const g=
+      ctx.createRadialGradient(
+        W*.5,
+        H*.42,
+        Math.min(
+          W,
+          H
+        )*.30,
+
+        W*.5,
+        H*.42,
+        Math.max(
+          W,
+          H
+        )*.78
+      );
+
+
+    g.addColorStop(
+      0,
+      "rgba(255,255,255,0)"
+    );
+
+
+    g.addColorStop(
+      1,
+      "rgba(91,37,42,.14)"
+    );
+
+
+    ctx.fillStyle=g;
+
+
+    ctx.fillRect(
+      0,
+      0,
+      W,
+      H
+    );
+
+  }
+
+
+  /* =========================================================
+     PLAYERS
+     ========================================================= */
+
+  function renderPlayers(){
+
+    const arr=
+      [...players.values()];
+
+
+    return arr
+      .slice(0,6)
+      .map(
+        p=>`
+
+          <div class="player">
+
+            <b>
+              ${esc(p.username)}
+            </b>
+
+            <em>
+              ${
+                p.id===ME.id
+                  ?"你"
+                  :"房內玩家"
+              }
+              · ${p.score||0} 分
+            </em>
+
+          </div>
+
+        `
+      )
+      .join("");
+
+  }
+
+
+  /* =========================================================
+     LOBBY
+     ========================================================= */
+
+  function renderLobby(){
+
     document.getElementById(
-      "jumpBtn"
-    );
+      "main"
+    ).innerHTML=`
+
+      <section class="panel">
+
+        <div class="stats">
+
+          <div class="stat">
+
+            <b>
+              ${GAME_INFO.entryCost}
+            </b>
+
+            <span>
+              Entry 銀幣
+            </span>
+
+          </div>
 
 
-  if(jumpBtn){
+          <div class="stat">
 
-    jumpBtn.addEventListener(
-      "pointerdown",
-      onGamePointer,
-      {
-        passive:false
-      }
-    );
+            <b>
+              ${players.size}
+            </b>
 
-  }
+            <span>
+              房內玩家
+            </span>
 
-
-  if(canvas){
-
-    canvas.addEventListener(
-      "pointerdown",
-      onGamePointer,
-      {
-        passive:false
-      }
-    );
-
-  }
+          </div>
 
 
-  /*
-   * 只有真正 PLAYING
-   * 才開始遊戲 Loop。
-   */
+          <div class="stat">
 
-  if(
-    state==="PLAYING"
-  ){
+            <b>
+              3 ❤️
+            </b>
 
-    startLoop();
+            <span>
+              初始生命
+            </span>
 
-  }
-
-}
+          </div>
 
 
-/* =========================================================
-   RESULT
-   ========================================================= */
+          <div class="stat">
 
-function renderResult(){
+            <b>
+              72 秒
+            </b>
 
-  document.getElementById(
-    "main"
-  ).innerHTML=`
+            <span>
+              極限演出
+            </span>
 
-    <section
-      class="panel"
-      style="
-        flex:1;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        text-align:center
-      "
-    >
+          </div>
 
-      <div style="width:100%">
+        </div>
+
+      </section>
+
+
+      <section class="panel">
 
         <div
-          style="font-size:48px"
-        >
-          🎪
-        </div>
-
-
-        <h2
-          style="margin:6px 0"
-        >
-          馬戲團演出結束
-        </h2>
-
-
-        <div class="resultScore">
-          ${score}
-        </div>
-
-
-        <div class="muted">
-          最終分數
-        </div>
-
-
-        <div
-          class="stats"
-          style="margin:18px 0"
-        >
-
-          <div class="stat">
-
-            <b>
-              ${bestCombo}
-            </b>
-
-            <span>
-              最高 Combo
-            </span>
-
-          </div>
-
-
-          <div class="stat">
-
-            <b>
-              ${Math.round(elapsed)}s
-            </b>
-
-            <span>
-              演出時間
-            </span>
-
-          </div>
-
-
-          <div class="stat">
-
-            <b>
-              ${lives}
-            </b>
-
-            <span>
-              剩餘生命
-            </span>
-
-          </div>
-
-
-          <div class="stat">
-
-            <b>
-              ${Math.round(distance/100)}m
-            </b>
-
-            <span>
-              奔跑距離
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <div
-          class="rule"
           style="
-            background:#0d0910;
-            border:1px solid #2c202f;
-            border-radius:12px;
-            padding:10px
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:7px
           "
         >
 
+          <b>
+            🎪 馬戲團大舞台
+          </b>
+
+
+          <span class="badge">
+            經典跳火圈
+          </span>
+
+        </div>
+
+
+        <div class="rule">
+
+          角色會自動向前奔跑。<br>
+
+          <b style="color:#c63b49">
+            看準火圈中間的洞
+          </b>
+
+          點擊「起跳」讓角色穿過去。<br>
+
+          火圈高度固定，
+          不會突然跑到跳不到的位置。<br>
+
+          火圈洞口已加大，
+          判定也有額外容錯。<br>
+
+          越接近中心越容易拿到
+          <b style="color:#c63b49">
+            PERFECT
+          </b>。
+
+        </div>
+
+      </section>
+
+
+      <section class="panel">
+
+        <div
+          style="
+            font-weight:900;
+            margin-bottom:7px
+          "
+        >
+          房內玩家
+        </div>
+
+
+        <div class="players">
+
           ${
-            eventFeed
-              .slice(0,5)
-              .map(esc)
-              .join("<br>")
+            renderPlayers()||
+            '<div class="muted">等待玩家加入…</div>'
           }
 
         </div>
 
-
-        <button
-          id="restartBtn"
-          class="cta"
-          style="margin-top:14px"
-        >
-          🎪 再來一場
-        </button>
-
-      </div>
-
-    </section>
-
-  `;
+      </section>
 
 
-  document
-    .getElementById(
-      "restartBtn"
-    )
-    .addEventListener(
-      "click",
-      ()=>{
-
-        state="LOBBY";
-
-        render();
-
+      ${
+        isHost()
+          ?
+          `
+            <button
+              id="startBtn"
+              class="cta"
+            >
+              🎪 開始馬戲團演出
+            </button>
+          `
+          :
+          `
+            <div class="notice">
+              等待室長開始遊戲…
+            </div>
+          `
       }
-    );
-
-}
 
 
-/* =========================================================
-   HUD
-   ========================================================= */
+      <button
+        id="devBtn"
+        class="cta secondary"
+      >
+        🧪 本地測試：立即體驗
+      </button>
 
-function updateHUD(){
-
-  const a=
-    document.getElementById(
-      "lifeHUD"
-    );
+    `;
 
 
-  const b=
-    document.getElementById(
-      "scoreHUD"
-    );
+    document
+      .getElementById(
+        "startBtn"
+      )
+      ?.addEventListener(
+        "click",
+        ()=>{
+
+          if(isPurchasing)return;
 
 
-  const c=
-    document.getElementById(
-      "comboHUD"
-    );
+          sendEvent(
+            "CIRCUS_START",
+            {}
+          );
 
 
-  const d=
-    document.getElementById(
-      "speedHUD"
-    );
+          startWithPayment(
+            false
+          );
+
+        }
+      );
 
 
-  if(a){
+    document
+      .getElementById(
+        "devBtn"
+      )
+      ?.addEventListener(
+        "click",
+        ()=>{
 
-    a.textContent=
-      "❤️".repeat(
-        Math.max(
-          0,
-          lives
-        )
-      )+
-      "🖤".repeat(
-        Math.max(
-          0,
-          CONFIG.START_LIVES-
-          lives
-        )
+          startWithPayment(
+            true
+          );
+
+        }
+
       );
 
   }
 
 
-  if(b){
+  /* =========================================================
+     PLAYING
+     ========================================================= */
 
-    b.textContent=
-      score;
+  function renderPlaying(){
 
-  }
-
-
-  if(c){
-
-    c.textContent=
-      `x${combo}`;
-
-  }
-
-
-  if(d){
-
-    d.textContent=
-      (
-        speed/
-        CONFIG.BASE_SPEED
-      ).toFixed(1)+
-      "x";
-
-  }
-
-}
-
-
-/* =========================================================
-   RENDER
-   ========================================================= */
-
-function render(){
-
-  const main=
     document.getElementById(
       "main"
-    );
+    ).innerHTML=`
+
+      <div
+        class="stats"
+        style="flex:none"
+      >
+
+        <div class="stat">
+
+          <b id="lifeHUD">
+            ❤️❤️❤️
+          </b>
+
+          <span>
+            生命
+          </span>
+
+        </div>
 
 
-  if(!main)return;
+        <div class="stat">
+
+          <b id="scoreHUD">
+            0
+          </b>
+
+          <span>
+            分數
+          </span>
+
+        </div>
 
 
-  /*
-   * 大廳
-   */
+        <div class="stat">
 
-  if(
-    state==="LOBBY"
-  ){
+          <b id="comboHUD">
+            x0
+          </b>
 
-    renderLobby();
+          <span>
+            Combo
+          </span>
 
-    return;
+        </div>
+
+
+        <div class="stat">
+
+          <b id="speedHUD">
+            1.0x
+          </b>
+
+          <span>
+            速度
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div id="gameWrap">
+
+        <canvas
+          id="gameCanvas"
+        ></canvas>
+
+
+        <div id="centerMsg">
+
+          <div></div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          text-align:center;
+          font-size:10px;
+          color:#8a6665;
+          margin:-1px 0 1px
+        "
+      >
+        🔥 對準火圈中央的小光點跳過去
+      </div>
+
+
+      <button
+        id="jumpBtn"
+        class="jump"
+      >
+        🔥 點擊起跳
+      </button>
+
+    `;
+
+
+    initCanvas();
+
+    buildBackground();
+
+
+    const jumpBtn=
+      document.getElementById(
+        "jumpBtn"
+      );
+
+
+    if(jumpBtn){
+
+      jumpBtn.addEventListener(
+        "pointerdown",
+        onGamePointer,
+        {
+          passive:false
+        }
+      );
+
+    }
+
+
+    if(canvas){
+
+      canvas.addEventListener(
+        "pointerdown",
+        onGamePointer,
+        {
+          passive:false
+        }
+
+      );
+
+    }
+
+
+    if(
+      state==="PLAYING"
+    ){
+
+      startLoop();
+
+    }
 
   }
 
 
-  /*
-   * 倒數
-   *
-   * 必須顯示 Canvas，
-   * 但不能開始遊戲物理。
-   */
+  /* =========================================================
+     RESULT
+     ========================================================= */
 
-  if(
-    state==="COUNTDOWN"
-  ){
+  function renderResult(){
 
-    renderPlaying();
+    document.getElementById(
+      "main"
+    ).innerHTML=`
 
-    return;
+      <section
+        class="panel"
+        style="
+          flex:1;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          text-align:center
+        "
+      >
+
+        <div style="width:100%">
+
+          <div
+            style="font-size:48px"
+          >
+            🎪
+          </div>
+
+
+          <h2
+            style="margin:6px 0"
+          >
+            馬戲團演出結束
+          </h2>
+
+
+          <div class="resultScore">
+            ${score}
+          </div>
+
+
+          <div class="muted">
+            最終分數
+          </div>
+
+
+          <div
+            class="stats"
+            style="margin:18px 0"
+          >
+
+            <div class="stat">
+
+              <b>
+                ${bestCombo}
+              </b>
+
+              <span>
+                最高 Combo
+              </span>
+
+            </div>
+
+
+            <div class="stat">
+
+              <b>
+                ${Math.round(elapsed)}s
+              </b>
+
+              <span>
+                演出時間
+              </span>
+
+            </div>
+
+
+            <div class="stat">
+
+              <b>
+                ${lives}
+              </b>
+
+              <span>
+                剩餘生命
+              </span>
+
+            </div>
+
+
+            <div class="stat">
+
+              <b>
+                ${Math.round(distance/100)}m
+              </b>
+
+              <span>
+                奔跑距離
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="rule"
+            style="
+              background:#0d0910;
+              border:1px solid #2c202f;
+              border-radius:12px;
+              padding:10px
+            "
+          >
+
+            ${
+              eventFeed
+                .slice(0,5)
+                .map(esc)
+                .join("<br>")
+            }
+
+          </div>
+
+
+          <button
+            id="restartBtn"
+            class="cta"
+            style="margin-top:14px"
+          >
+            🎪 再來一場
+          </button>
+
+        </div>
+
+      </section>
+
+    `;
+
+
+    document
+      .getElementById(
+        "restartBtn"
+      )
+      .addEventListener(
+        "click",
+        ()=>{
+
+          state="LOBBY";
+
+          render();
+
+        }
+      );
 
   }
 
 
-  /*
-   * 遊戲中
-   */
+  /* =========================================================
+     HUD
+     ========================================================= */
 
-  if(
-    state==="PLAYING"
-  ){
+  function updateHUD(){
 
-    renderPlaying();
+    const a=
+      document.getElementById(
+        "lifeHUD"
+      );
 
-    return;
+
+    const b=
+      document.getElementById(
+        "scoreHUD"
+      );
+
+
+    const c=
+      document.getElementById(
+        "comboHUD"
+      );
+
+
+    const d=
+      document.getElementById(
+        "speedHUD"
+      );
+
+
+    if(a){
+
+      a.textContent=
+        "❤️".repeat(
+          Math.max(
+            0,
+            lives
+          )
+        )+
+        "🖤".repeat(
+          Math.max(
+            0,
+            CONFIG.START_LIVES-
+            lives
+          )
+        );
+
+    }
+
+
+    if(b){
+
+      b.textContent=
+        score;
+
+    }
+
+
+    if(c){
+
+      c.textContent=
+        `x${combo}`;
+
+    }
+
+
+    if(d){
+
+      d.textContent=
+        (
+          speed/
+          CONFIG.BASE_SPEED
+        ).toFixed(1)+
+        "x";
+
+    }
 
   }
 
 
-  /*
-   * 結果
-   */
+  /* =========================================================
+     RENDER
+     ========================================================= */
 
-  if(
-    state==="RESULT"
-  ){
+  function render(){
 
-    renderResult();
+    const main=
+      document.getElementById(
+        "main"
+      );
 
-    return;
+
+    if(!main)return;
+
+
+    if(
+      state==="LOBBY"
+    ){
+
+      renderLobby();
+
+      return;
+
+    }
+
+
+    if(
+      state==="COUNTDOWN"
+    ){
+
+      renderPlaying();
+
+      return;
+
+    }
+
+
+    if(
+      state==="PLAYING"
+    ){
+
+      renderPlaying();
+
+      return;
+
+    }
+
+
+    if(
+      state==="RESULT"
+    ){
+
+      renderResult();
+
+      return;
+
+    }
 
   }
 
-}
+
+  /* =========================================================
+     INITIALIZE
+     ========================================================= */
+
+  addPlayer(
+    ME.id,
+    ME.username,
+    ME.avatar
+  );
 
 
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
-
-addPlayer(
-  ME.id,
-  ME.username,
-  ME.avatar
-);
-
-
-/*
- * 啟動大廳
- */
-
-render();
+  render();
 
 </script>
 
