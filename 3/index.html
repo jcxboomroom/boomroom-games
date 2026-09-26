@@ -36,7 +36,6 @@ button{font:inherit;color:inherit;border:0;outline:0}
 <body>
 <canvas id="gameCanvas"></canvas>
 <div class="scanlines"></div><div class="vignette"></div>
-<div class="top-tools"><button class="tool-btn" id="soundBtn">🔊</button><button class="tool-btn" id="helpBtn">?</button></div>
 <div id="devBanner">開發測試模式</div>
 <div class="flash" id="hitFlash"></div><div class="flash" id="dangerFlash"></div>
 
@@ -157,6 +156,9 @@ function updateCursor(dt){if(state.phase!==S.PLAYING||Date.now()<freezeUntil)ret
 function addRemote(p){const q=addPlayer(p);if(!q)return;q.team=p.team||q.team;q.score=clamp(p.score,0,999999999);q.actions=clamp(p.actions,0,999999);q.ult=clamp(p.ult,0,CFG.ULT_MAX);q.combo=clamp(p.combo||0,0,30);q.online=!!p.online;q.lastSeen=Date.now()}
 
 function setupSDK(data){
+  if(data){
+    DEVELOPMENT_MODE = false;
+  }
   if(data && data.user){
     const u = data.user;
     ME.id = String(u.id);
@@ -166,6 +168,8 @@ function setupSDK(data){
   }
   if(data && data.isHost){
     state.hostId = ME.id;
+  } else if(data && data.isHost === false) {
+    state.hostId = null;
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {

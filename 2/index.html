@@ -1022,9 +1022,30 @@ function actionSetup(){
   updateAudioButton();
 }
 
+let sdkIsHost = false;
+let roomPlayersList = [];
+
+function isHost() {
+  return sdkIsHost;
+}
+
 function setupSDK(data){
   if(data && data.user){
     state.sdkUser = data.user;
+  }
+  sdkIsHost = !!(data && data.isHost);
+  if(data && Array.isArray(data.roomPlayers)){
+    roomPlayersList = data.roomPlayers;
+  }
+  const startBtn = $('startBtn');
+  if(startBtn) {
+    if(!isHost()) {
+      startBtn.disabled = true;
+      startBtn.textContent = '等待室長開始遊戲...';
+    } else {
+      startBtn.disabled = false;
+      startBtn.textContent = '👑 室長：開始極限疊塔';
+    }
   }
 }
 
@@ -1037,7 +1058,12 @@ window.addEventListener('message', e => {
 
 window.onBoomRoomSDKReady = function(){
   if(window.BoomRoomSDK){
-    setupSDK({ user: window.BoomRoomSDK.getUser() });
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
   }
 };
 
