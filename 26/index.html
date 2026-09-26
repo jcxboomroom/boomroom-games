@@ -2,383 +2,336 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#070912">
-<title>爆爆血腥大老二</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1">
+<meta name="theme-color" content="#05060a">
+<title>爆爆血腥大老二 V6 · ORIGINAL</title>
 <style>
-:root{
-  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
-  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
-  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
-button{font:inherit;border:0;color:var(--text);cursor:pointer}
-button:disabled{opacity:.4;cursor:default}
-#app{width:100%;height:100dvh;display:flex;justify-content:center}
-.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
-.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
-.center{display:flex;align-items:center;justify-content:center;text-align:center}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
-.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
-.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
-.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff;font-weight:1000;font-size:15px}
-.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
-.cta.danger{background:linear-gradient(135deg,#d90429,#ef233c);color:#fff}
-.cta:active{transform:scale(.97)}
-.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
-.players{display:flex;gap:6px;overflow-x:auto}
-.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
-.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player em{display:block;font-style:normal;color:var(--muted)}
-.player.me{border-color:#ff4d6d}.player.turn{border-color:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.2)}
+:root{--bg:#05060a;--panel:#10131c;--panel2:#171b27;--line:#30374a;--text:#f7f7fa;--muted:#9ca5b8;--red:#ff3d5f;--red2:#b90f2d;--gold:#ffd166;--cyan:#66e6ff;--green:#55e28c;--t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-gradient(circle at 50% 25%,#210914 0,#090a10 40%,#05060a 100%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}button{font:inherit;border:0;color:var(--text);cursor:pointer}button:disabled{opacity:.38;cursor:default}#app{height:100dvh;width:100%;display:flex;justify-content:center}.shell{width:min(100%,820px);height:100%;display:flex;flex-direction:column;padding:calc(7px + var(--t)) 9px calc(7px + var(--b));gap:7px}.screen{min-height:0;flex:1;display:flex;flex-direction:column;gap:7px;overflow:auto}.panel{background:linear-gradient(180deg,#181c29,#0e1119);border:1px solid var(--line);border-radius:16px;padding:10px}.top{display:flex;align-items:center;justify-content:space-between;gap:8px}.brand{font-weight:1000;letter-spacing:.5px}.badge{font-size:10px;border:1px solid #673040;background:#2a0d16;border-radius:999px;padding:4px 8px;color:#ff8296}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.stat{text-align:center;background:#090c13;border:1px solid var(--line);border-radius:11px;padding:6px 3px}.stat b{display:block;font-size:14px}.stat span{font-size:9px;color:var(--muted)}.players{display:flex;gap:5px;overflow:auto}.player{min-width:108px;flex:1;padding:6px 7px;border-radius:10px;background:#090c13;border:1px solid var(--line);font-size:10px}.player.turn{border-color:var(--gold);box-shadow:0 0 12px #ffd16622}.player.me{border-color:var(--red)}.player b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{font-style:normal;color:var(--muted)}.title{font-size:13px;font-weight:1000;margin-bottom:6px}.notice{text-align:center;color:var(--muted);font-size:11px;line-height:1.5}.cta{width:100%;min-height:46px;border-radius:13px;background:linear-gradient(135deg,#ff4968,#c50d31);font-weight:1000}.secondary{background:#1a2030;border:1px solid var(--line)}.gold{background:linear-gradient(135deg,#ffd166,#d99b18);color:#1a1305}.danger{background:linear-gradient(135deg,#ff1744,#8f001d)}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.feed{max-height:95px;overflow:auto;background:#080b11;border:1px solid var(--line);border-radius:10px;padding:6px;font-size:10px;line-height:1.55}.table{min-height:150px;border:1px solid #57202c;background:radial-gradient(circle,#2a0c13,#0b0b10 68%);border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}.table:after{content:"";position:absolute;width:210px;height:80px;border-radius:50%;background:#ff204022;filter:blur(18px);bottom:-35px}.blood{position:absolute;inset:0;pointer-events:none;opacity:.18;background-image:radial-gradient(circle at 17% 20%,#e4002b 0 2px,transparent 3px),radial-gradient(circle at 83% 34%,#e4002b 0 3px,transparent 4px),radial-gradient(circle at 30% 75%,#e4002b 0 2px,transparent 3px),radial-gradient(circle at 72% 82%,#e4002b 0 2px,transparent 3px)}.tableText{position:relative;z-index:2;text-align:center}.last{display:flex;gap:3px;justify-content:center;margin-top:7px;min-height:64px}.card{width:45px;height:68px;background:#fff;color:#111;border-radius:7px;display:flex;flex-direction:column;justify-content:space-between;padding:3px;font-size:11px;font-weight:900;box-shadow:0 3px 9px #0009;flex:none;position:relative}.card.red{color:#d91f43}.card.sel{transform:translateY(-12px);outline:2px solid var(--red);box-shadow:0 0 14px #ff3d5f88}.hand{display:flex;overflow-x:auto;align-items:flex-end;padding:13px 4px 7px;min-height:93px;gap:3px}.hand .card{margin-right:-3px}.action{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.smallbtn{min-height:42px;border-radius:12px;background:#1b2130;border:1px solid var(--line);font-weight:900}.smallbtn.play{background:linear-gradient(135deg,#ff4968,#bc1232)}.smallbtn.pass{background:#242a3b}.role{font-size:10px;color:var(--gold)}.resultRow{display:grid;grid-template-columns:35px 1fr auto;gap:7px;align-items:center;padding:8px;border-radius:10px;background:#090c13;border:1px solid var(--line);font-size:11px}.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px;z-index:99}.modal>div{width:min(100%,500px);max-height:85dvh;overflow:auto;background:#151a26;border:1px solid var(--line);border-radius:18px;padding:15px}.rules{font-size:11px;line-height:1.7;color:#d8dcea}.rules b{color:#fff}.hidden{display:none!important}@media(min-width:650px){.card{width:51px;height:76px}.hand{justify-content:center}.table{min-height:175px}}
+/* V5 JUICE/PERFORMANCE */
+:root{--shadow:0 14px 40px #0009}
+html,body{overscroll-behavior:none;touch-action:manipulation}
+button,.card,.player{will-change:transform}
+.panel,.table{box-shadow:var(--shadow);contain:content}
+.table{transition:box-shadow .25s ease,transform .25s ease}
+.table.turnPulse{animation:tablePulse .7s ease}
+@keyframes tablePulse{0%{transform:scale(.99);box-shadow:0 0 0 #ff3d5f00}50%{transform:scale(1);box-shadow:0 0 32px #ff3d5f55}100%{transform:scale(1);box-shadow:var(--shadow)}}
+.card{transition:transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .12s,opacity .12s;backface-visibility:hidden}
+.card.sel{transform:translateY(-15px) scale(1.035);z-index:4}.card:active{transform:translateY(-8px) scale(.98)}
+.hand{scrollbar-width:none;contain:layout paint}.hand::-webkit-scrollbar,.players::-webkit-scrollbar,.screen::-webkit-scrollbar{display:none}
+.action .smallbtn,.cta{transition:transform .1s ease,filter .1s ease,box-shadow .15s ease}
+.action .smallbtn:not(:disabled):active,.cta:not(:disabled):active{transform:translateY(1px) scale(.985);filter:brightness(1.12)}
+.action .play:not(:disabled){box-shadow:0 0 18px #ff3d5f33}
+.player.turn{animation:turnGlow 1.25s ease-in-out infinite alternate}
+@keyframes turnGlow{from{box-shadow:0 0 6px #ffd16618}to{box-shadow:0 0 18px #ffd16655}}
+.feed{scroll-behavior:smooth}
+.toast{position:fixed;left:50%;bottom:calc(18px + var(--b));transform:translate(-50%,20px);opacity:0;z-index:200;background:#111827ee;border:1px solid #ffffff1c;border-radius:999px;padding:9px 14px;font-size:11px;font-weight:900;box-shadow:0 10px 30px #000a;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.flash{position:fixed;inset:0;z-index:150;background:#ff123820;pointer-events:none;opacity:0}.flash.on{animation:flash .24s ease}
+@keyframes flash{0%{opacity:0}35%{opacity:1}100%{opacity:0}}
+@media(max-width:420px){.shell{padding-left:6px;padding-right:6px}.card{width:43px;height:65px}.hand{gap:2px}.hand .card{margin-right:-4px}.panel{padding:9px}.table{min-height:140px}.stats .stat b{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
-/* 🃏 Card styling */
-.handArea{display:flex;gap:4px;overflow-x:auto;padding:12px 4px 6px;min-height:100px;align-items:center}
-.card{width:50px;height:76px;background:#fff;color:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between;padding:4px;font-weight:bold;font-size:12px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:transform .15s;flex:none;cursor:pointer;position:relative}
-.card.red{color:#e63946}
-.card.selected{transform:translateY(-14px);border:2px solid var(--red);box-shadow:0 0 12px var(--red)}
-
-/* Table Center */
-.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;background:#1a080c;border:1px dashed #ff4d6d66;border-radius:16px;padding:12px;position:relative}
-.lastPlayBox{display:flex;gap:6px;margin-top:8px;justify-content:center}
-
-.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.feedBox{max-height:85px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
-.rankList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-top:8px}
-.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#0b101b;border:1px solid var(--line);border-radius:11px;font-size:12px}
+/* V6 GAME FEEL */
+.roleChip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;background:#211a08;border:1px solid #6b5420;color:#ffd166;font-size:10px;font-weight:1000}
+.phaseBar{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:7px}.phaseStep{padding:5px 3px;text-align:center;border-radius:8px;background:#0a0d14;border:1px solid var(--line);font-size:9px;color:var(--muted)}.phaseStep.on{color:#fff;border-color:#ff3d5f;background:#2a0d15;box-shadow:0 0 14px #ff3d5f22}.phaseStep.done{color:#55e28c;border-color:#275f42}
+.table .turnBadge{padding:4px 9px;border-radius:999px;background:#ffd1661a;border:1px solid #ffd16655;color:#ffd166;font-size:10px;font-weight:1000}
+.card.bombCard{box-shadow:0 0 18px #ff3d5f66,0 4px 9px #0009}.card.lastCard{animation:cardDrop .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes cardDrop{0%{transform:translateY(-18px) scale(1.08);opacity:.35}100%{transform:none;opacity:1}}
+.shake{animation:shake .24s ease}.success{animation:success .38s ease}@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}@keyframes success{0%{transform:scale(.96)}55%{transform:scale(1.025)}100%{transform:scale(1)}}
+.selectRow{display:flex;gap:5px;overflow:auto;padding:5px 0}.miniCard{min-width:38px;height:55px;background:#fff;color:#111;border-radius:6px;padding:3px;font-weight:1000;font-size:10px;display:flex;flex-direction:column;justify-content:space-between}.miniCard.red{color:#d91f43}.miniCard.sel{outline:2px solid #ff3d5f;transform:translateY(-5px)}
+@media(max-width:420px){.phaseStep{font-size:8px}.turnBadge{font-size:9px}}
 </style>
 </head>
-<body>
-<div id="app"><div class="shell">
-  <main id="main" class="screen"></main>
-</div></div>
-
+<body><div id="flash" class="flash"></div><div id="app"><div class="shell"><main id="main" class="screen"></main></div></div>
 <script>
 "use strict";
 
-const SUITS = ["♣", "♦", "♥", "♠"];
-const RANKS = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+/* ================================================================
+   BOOMROOM · 血腥大老二 ORIGINAL MODE
+   Based on the commonly documented Taiwanese "血腥大老二" rules:
+   - Round 1 is normal Big Two and establishes King/Noble/Commoner/Poor.
+   - From round 2 onward: King exchanges with Noble/Commoner/Poor;
+     Noble exchanges with Commoner/Poor; Commoner exchanges with Poor.
+   - 3♣ starts each round.
+   - This implementation deliberately keeps the exchange hidden from
+     other players and makes the room host authoritative.
+   ================================================================ */
 
-let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
-let sdkIsHost = false;
-let gameRoomId = "";
+const SUITS=["♣","♦","♥","♠"];
+const RANKS=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+const ROLE={1:"👑 國王",2:"💎 貴族",3:"🧑‍🌾 平民",4:"🥀 貧民"};
+const ENTRY=100;
+const MAX_PLAYERS=4; // Original four-rank format.
 
-let players = new Map();
-let hand = [];
-let selectedIndices = new Set();
+let ME={id:"local_"+Math.random().toString(36).slice(2,9),username:"本地玩家",avatar:""};
+let sdkIsHost=false, roomId="";
+let players=new Map();
+let state="LOBBY";       // LOBBY / PLAYING / EXCHANGE / RESULT
+let phase="WAITING";     // WAITING / PLAY / EXCHANGE
+let roundNo=0;
+let turn="";
+let lastPlay=null;
+let passCount=0;
+let hand=[];
+let selected=new Set();
+let feed=[];
+let ranking=[];
+let roles={};
+let pot=0;
+let matchLocked=false;
+let exchangePlan=[];
+let exchangeIndex=0;
+let exchangeDraft={};
+let soundMuted=false;
+let audioCtx=null;
+function ensureAudio(){if(soundMuted)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){}}
+function tone(freq=440,duration=.07,type="sine",gain=.025){if(soundMuted)return;try{ensureAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(gain,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration+.01)}catch(_){}}
+function fx(k){if(k==="select")tone(520,.035,"triangle",.018);if(k==="play"){tone(220,.055,"square",.028);setTimeout(()=>tone(330,.06,"triangle",.018),35)}if(k==="pass")tone(180,.09,"sine",.018);if(k==="win"){tone(523,.08,"triangle",.03);setTimeout(()=>tone(659,.1,"triangle",.03),75);setTimeout(()=>tone(784,.14,"triangle",.03),160)}if(k==="blood"){tone(90,.12,"sawtooth",.025);setTimeout(()=>tone(150,.09,"square",.02),80)}}
+function buzz(pattern=10){try{navigator.vibrate?.(pattern)}catch(_){}}
+function feedback(k){fx(k);if(k==="select")buzz(6);if(k==="play"){buzz(12);flash()}if(k==="pass")buzz(5);if(k==="win")buzz([20,30,40]);if(k==="blood"){buzz([25,20,35]);flash()}}
+function flash(){const f=document.getElementById("flash");if(!f)return;f.classList.remove("on");void f.offsetWidth;f.classList.add("on")}
+let toastTimer=0;function toast(msg){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";t.className="toast";document.body.appendChild(t)}t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),1500)}
+window.addEventListener("pointerdown",ensureAudio,{once:true,passive:true});
+let lastStateSeq=0;
+let completedRound=0;
+let sessionId="";
+let actionNonce=0;
+let lastAcceptedNonce=new Map();
+let hostLastActionAt=0;
+let tablePulseTimer=0;
 
-let state = "LOBBY"; // LOBBY, PLAYING, RESULT
-let currentTurnUserId = "";
-let lastPlay = null; // { userId, username, cardList: [] }
-let passCount = 0;
-let bloodyMultiplier = 1;
-let feed = [];
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function safe(v,f="玩家",n=16){v=String(v??"").trim();return v?v.slice(0,n):f}
+function isHost(){return sdkIsHost===true}
+function cardKey(c){return `${c.rank}${c.suit}`}
+function value(c){return RANKS.indexOf(c.rank)*4+SUITS.indexOf(c.suit)}
+function sortCards(a){return [...a].sort((x,y)=>value(x)-value(y))}
+function makeDeck(){const d=[];for(const r of RANKS)for(const s of SUITS)d.push({rank:r,suit:s});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
+function addPlayer(id,name,avatar=""){if(id==null)return;id=String(id);let p=players.get(id);if(!p){p={id,username:safe(name),avatar,hand:[],cardCount:0,finished:false,rank:null};players.set(id,p)}else{p.username=safe(name,p.username);p.avatar=avatar||p.avatar}return p}
+function send(eventName,payload={},localHost=false){try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")window.BoomRoomSDK.sendGameEvent(eventName,payload);else if(window.parent!==window)window.parent.postMessage(JSON.stringify({action:"sendGameEvent",eventName,payload}),"*")}catch(_){} if(localHost&&isHost())handleEvent(eventName,payload,ME.id)}
+function setupSDK(d){if(d&&d.user){ME.id=String(d.user.id??ME.id);ME.username=safe(d.user.username,"玩家");ME.avatar=d.user.avatar||"";addPlayer(ME.id,ME.username,ME.avatar)}sdkIsHost=!!(d&&d.isHost);roomId=(d&&d.roomId)||"";if(Array.isArray(d&&d.roomPlayers))d.roomPlayers.forEach(x=>addPlayer(x.id,x.username,x.avatar));render()}
+window.addEventListener("message",e=>{try{const d=typeof e.data==="string"?JSON.parse(e.data):e.data;if(d&&d.action==="initSDK")setupSDK(d);else if(d&&d.action==="gameEventReceived")handleEvent(d.eventName,d.payload,d.userId,false)}catch(_){} });
+window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:window.BoomRoomSDK.getUser?.(),isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
+function log(s){feed.unshift(s);feed=feed.slice(0,36)}
 
-function isHost() { return sdkIsHost || players.size <= 1; }
-
-function safeString(v, fallback, maxLen) {
-  if (v === null || v === undefined) return fallback;
-  const s = String(v).trim();
-  return s ? s.slice(0, maxLen) : fallback;
+/* -------------------- Big Two rules -------------------- */
+function combo(cards){
+  cards=sortCards(cards); if(!cards.length)return null;
+  const n=cards.length;
+  const ranks=cards.map(c=>RANKS.indexOf(c.rank));
+  const counts={}; cards.forEach(c=>counts[c.rank]=(counts[c.rank]||0)+1);
+  const vals=Object.values(counts).sort((a,b)=>b-a);
+  const uniq=[...new Set(ranks)].sort((a,b)=>a-b);
+  const flush=n===5&&cards.every(c=>c.suit===cards[0].suit);
+  // Taiwanese Big Two here uses 3..A..2 and 2 is NOT a normal straight card.
+  const straight=n===5&&uniq.length===5&&!uniq.includes(12)&&uniq[4]-uniq[0]===4;
+  if(n===1)return {type:"single",n,key:value(cards[0]),label:"單張"};
+  if(n===2&&vals[0]===2)return {type:"pair",n,key:value(cards[1]),label:"對子"};
+  if(n===3&&vals[0]===3)return {type:"triple",n,key:value(cards[2]),label:"三條"};
+  if(n===4&&vals[0]===4)return {type:"bomb",n,key:value(cards[3]),label:"鐵支"};
+  if(n===5){
+    if(straight&&flush)return {type:"sf",n,key:value(cards[4]),label:"同花順",level:3};
+    if(vals[0]===4)return {type:"bomb5",n,key:value(cards.find(c=>counts[c.rank]===4)),label:"四條炸彈",level:2};
+    if(vals[0]===3&&vals[1]===2)return {type:"full",n,key:value(cards.find(c=>counts[c.rank]===3)),label:"葫蘆"};
+    if(straight)return {type:"straight",n,key:value(cards[4]),label:"順子"};
+    if(flush)return {type:"flush",n,key:value(cards[4]),label:"同花"};
+  }
+  return null;
+}
+function isBomb(c){return c&&["bomb","bomb5","sf"].includes(c.type)}
+function beats(a,b){
+  if(!b)return true;
+  if(a.type===b.type)return a.key>b.key;
+  if(isBomb(a)&&!isBomb(b))return true;
+  if(a.type==="bomb5"&&b.type==="bomb")return true;
+  if(a.type==="sf")return true;
+  return false;
+}
+function contains3C(cards){return cards.some(c=>c.rank==="3"&&c.suit==="♣")}
+function legal(cards){
+  const c=combo(cards); if(!c)return false;
+  if(!lastPlay)return roundNo===1 ? contains3C(cards) : true;
+  return beats(c,combo(lastPlay.cards));
+}
+function nextActive(id){const a=[...players.values()];let i=a.findIndex(p=>p.id===id);for(let n=1;n<=a.length;n++){const p=a[(i+n)%a.length];if(p&&!p.finished)return p.id}return id}
+function activePlayers(){return [...players.values()].filter(p=>!p.finished)}
+function resetRoundHands(){for(const p of players.values()){p.hand=[];p.cardCount=0;p.finished=false;p.rank=null}}
+function deal(){
+  resetRoundHands();
+  const ps=[...players.values()]; const d=makeDeck();
+  for(let i=0;i<d.length;i++)ps[i%ps.length].hand.push(d[i]);
+  for(const p of ps){p.hand=sortCards(p.hand);p.cardCount=p.hand.length}
+  hand=sortCards(players.get(ME.id)?.hand||[]);
+  lastPlay=null;passCount=0;
+  const starter=ps.find(p=>p.hand.some(c=>c.rank==="3"&&c.suit==="♣"));
+  turn=starter?.id||ps[0]?.id||ME.id;
 }
 
-function addPlayer(id, username, avatar) {
-  if (!id) return;
-  id = String(id);
-  let p = players.get(id);
-  if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 13, score: 0 };
-    players.set(id, p);
-  } else {
-    p.username = safeString(username, p.username, 12);
-  }
-  return p;
+/* -------------------- Match / host authority -------------------- */
+function startMatch(){
+  if(!isHost()||matchLocked)return;
+  if(players.size!==MAX_PLAYERS){toast(`需要 4 名玩家，目前 ${players.size} 名`);return}
+  sessionId=`${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  actionNonce=0;lastAcceptedNonce.clear();roundNo=1;ranking=[];roles={};pot=players.size*ENTRY;state="PLAYING";phase="PLAY";matchLocked=false;feed=[];selected.clear();
+  log(`🩸 血腥大老二開戰！第 1 局決定四大階級。`);
+  deal();
+  send("BIG2_SESSION",{sessionId,roundNo,entry:ENTRY,pot,hostId:ME.id},false);
+  broadcast();render();
+}
+function hostPlay(sender,payload){
+  if(!isHost()||sender!==turn||phase!=="PLAY"||state!=="PLAYING")return;
+  const p=players.get(sender);if(!p||p.finished)return;
+  const nonce=Number(payload?.nonce||0);if(!nonce||nonce<=Number(lastAcceptedNonce.get(sender)||0))return;
+  if(Date.now()-hostLastActionAt<90)return;
+  const cards=(payload.cards||[]).map(c=>({rank:String(c.rank),suit:String(c.suit)}));
+  const have=new Set(p.hand.map(cardKey));
+  if(!cards.length||cards.some(c=>!have.has(cardKey(c)))||new Set(cards.map(cardKey)).size!==cards.length||!legal(cards)){toast("這手牌不符合規則");return}
+  lastAcceptedNonce.set(sender,nonce);hostLastActionAt=Date.now();
+  const remove=new Set(cards.map(cardKey));p.hand=p.hand.filter(c=>!remove.has(cardKey(c)));p.cardCount=p.hand.length;
+  if(sender===ME.id)hand=sortCards(p.hand);
+  const cc=combo(cards);lastPlay={userId:sender,username:p.username,cards:sortCards(cards),combo:cc};passCount=0;
+  log(`${cc.type.includes("bomb")||cc.type==="sf"?"💥":"🃏"} ${p.username}：${cc.label} · ${cards.map(c=>c.suit+c.rank).join(" ")}`);
+  if(isBomb(cc))feedback("blood");else feedback("play");
+  if(p.hand.length===0){finish(p);return}
+  turn=nextActive(sender);broadcast();render();
+}
+function hostPass(sender,payload={}){
+  if(!isHost()||sender!==turn||phase!=="PLAY"||state!=="PLAYING"||!lastPlay)return;
+  const p=players.get(sender);if(!p||p.finished)return;
+  const nonce=Number(payload?.nonce||0);if(!nonce||nonce<=Number(lastAcceptedNonce.get(sender)||0))return;
+  if(Date.now()-hostLastActionAt<90)return;
+  lastAcceptedNonce.set(sender,nonce);hostLastActionAt=Date.now();
+  passCount++;log(`🤐 ${p.username} PASS`);feedback("pass");
+  if(passCount>=activePlayers().length-1){turn=lastPlay.userId;lastPlay=null;passCount=0;log(`🔥 其他玩家全部 PASS，${players.get(turn)?.username||"上一位"} 重新取得自由牌權。`)}else turn=nextActive(sender);
+  broadcast();render();
+}
+function finish(p){
+  p.finished=true;p.rank=ranking.length+1;p.cardCount=0;ranking.push(p.id);log(`🏆 ${p.username} 完成，第 ${p.rank} 名 ${ROLE[p.rank]}`);
+  if(activePlayers().length<=1){const last=activePlayers()[0];if(last){last.finished=true;last.rank=ranking.length+1;last.cardCount=last.hand.length;ranking.push(last.id);log(`🥀 ${last.username} 成為第 ${last.rank} 名 ${ROLE[last.rank]||"貧民"}`)}finishRound();return}
+  turn=nextActive(p.id);broadcast();render();
+}
+function finishRound(){
+  feedback("win");completedRound=roundNo;phase="WAITING";
+  const ordered=ranking.map(id=>players.get(id)).filter(Boolean);roles={};ordered.forEach((p,i)=>roles[p.id]=ROLE[i+1]);
+  log(`🏁 第 ${roundNo} 局結束：${ordered.map((p,i)=>`${ROLE[i+1]} ${p.username}`).join(" / ")}`);
+  if(roundNo===1){roundNo=2;setTimeout(()=>startExchange(),260);return}
+  state="RESULT";matchLocked=true;
+  const result=ordered.map((p,i)=>({id:p.id,username:p.username,rank:i+1,role:ROLE[i+1],left:p.hand.length}));
+  send("BIG2_RESULT",{sessionId,roundNo:completedRound,ranking:result,pot,entry:ENTRY});
+  // UI result only; real silver settlement must remain server-side.
+  try{window.BoomRoomSDK?.gameOver?.(0)}catch(_){}
+  broadcast();render();
 }
 
-function setupSDK(data) {
-  if (data && data.user) {
-    players.delete(ME.id);
-    ME.id = String(data.user.id);
-    ME.username = safeString(data.user.username, "玩家", 12);
-    ME.avatar = safeString(data.user.avatar, "", 300);
-    addPlayer(ME.id, ME.username, ME.avatar);
+/* -------------------- Original blood exchange --------------------
+   King -> Noble, Commoner, Poor: 1 card each
+   Noble -> Commoner, Poor: 1 each
+   Commoner -> Poor: 1
+   Poor: receives, does not initiate
+   The superior player asks for a desired card. If target owns it,
+   target returns that exact card. If not, target returns their highest card.
+   The exchanged card is hidden from everyone else.
+------------------------------------------------------------------- */
+function startExchange(){
+  state="EXCHANGE";phase="EXCHANGE";exchangeIndex=0;exchangeDraft={};selected.clear();
+  const ids=ranking.slice(0,4);exchangePlan=[];
+  for(let r=0;r<4;r++)for(let t=r+1;t<4;t++)exchangePlan.push({from:ids[r],to:ids[t],done:false});
+  log(`🩸 血腥換牌開始：${players.get(ids[0])?.username||"國王"} 先徵牌。`);
+  broadcast();render();
+}
+function currentExchange(){return exchangePlan[exchangeIndex]||null}
+function targetHasRequested(target,request){const p=players.get(target);if(!p)return null;return p.hand.find(c=>(!request.rank||c.rank===request.rank)&&(!request.suit||c.suit===request.suit))||null}
+function hostExchange(sender,payload){
+  if(!isHost()||state!=="EXCHANGE"||phase!=="EXCHANGE")return;
+  const pair=currentExchange();if(!pair||sender!==pair.from)return;
+  const from=players.get(pair.from),to=players.get(pair.to);if(!from||!to||pair.done)return;
+  const nonce=Number(payload?.nonce||0);if(!nonce||nonce<=Number(lastAcceptedNonce.get(sender)||0))return;
+  const offerKey=String(payload.offerKey||"");const offered=from.hand.find(c=>cardKey(c)===offerKey);if(!offered||from.hand.length<=1)return;
+  const request={rank:payload.rank||null,suit:payload.suit||null};
+  let give=targetHasRequested(pair.to,request);if(!give)give=sortCards(to.hand).at(-1);if(!give)return;
+  lastAcceptedNonce.set(sender,nonce);
+  from.hand=sortCards(from.hand.filter(c=>cardKey(c)!==cardKey(offered)).concat([give]));
+  to.hand=sortCards(to.hand.filter(c=>cardKey(c)!==cardKey(give)).concat([offered]));
+  from.cardCount=from.hand.length;to.cardCount=to.hand.length;pair.done=true;
+  if(from.id===ME.id)hand=sortCards(from.hand);if(to.id===ME.id)hand=sortCards(to.hand);
+  log(`🤝 ${from.username} 向 ${to.username} 完成隱密換牌。`);feedback("blood");exchangeIndex++;
+  if(exchangeIndex>=exchangePlan.length){
+    state="PLAYING";phase="PLAY";ranking=[];selected.clear();
+    for(const p of players.values()){p.finished=false;p.rank=null}
+    hand=sortCards(players.get(ME.id)?.hand||[]);lastPlay=null;passCount=0;
+    const owner=[...players.values()].find(p=>p.hand.some(c=>c.rank==="3"&&c.suit==="♣"));turn=owner?.id||ME.id;
+    log(`🃏 第 ${roundNo} 局開始：3♣ 持有者 ${players.get(turn)?.username||"玩家"} 先出。`);
   }
-  sdkIsHost = !!(data && data.isHost);
-  gameRoomId = (data && data.roomId) || "";
+  broadcast();render();
+}
 
-  if (Array.isArray(data.roomPlayers)) {
-    data.roomPlayers.forEach(rp => {
-      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
-    });
-  }
+function broadcast(){
+  if(!isHost())return;
+  const seq=Date.now();lastStateSeq=seq;
+  const publicPlayers=[...players.values()].map(p=>({id:p.id,username:p.username,cardCount:p.hand.length,finished:p.finished,rank:p.rank}));
+  send("BIG2_STATE",{seq,sessionId,state,phase,roundNo,turn,lastPlay,passCount,roles,pot,matchLocked,players:publicPlayers,ranking,completedRound});
+  // SDK game events are room-broadcast, so private hands are tagged and each
+  // client only applies its own packet. For true anti-cheat security, the
+  // server/socket layer should replace this with a targeted private channel.
+  for(const p of players.values()) send("BIG2_PRIVATE_HAND",{targetId:p.id,hand:p.hand});
+}
+function applyState(d){
+  if(!d)return;
+  if(d.sessionId&&sessionId&&d.sessionId!==sessionId)return;
+  if(d.sessionId&&!sessionId)sessionId=d.sessionId;
+  if(d.seq&&d.seq<lastStateSeq)return; if(d.seq)lastStateSeq=d.seq;
+  state=d.state||state;phase=d.phase||phase; if(state!=="PLAYING"&&state!=="EXCHANGE")selected.clear();roundNo=d.roundNo||roundNo;turn=d.turn||turn;lastPlay=d.lastPlay||null;passCount=d.passCount||0;roles=d.roles||roles;pot=d.pot||pot;matchLocked=!!d.matchLocked;ranking=d.ranking||ranking;
+  (d.players||[]).forEach(x=>{const p=addPlayer(x.id,x.username);p.cardCount=x.cardCount;p.finished=!!x.finished;p.rank=x.rank});
+  if(Array.isArray(d.hand)&&ME.id)hand=sortCards(d.hand);
+  if(d.completedRound)completedRound=d.completedRound;
   render();
 }
-
-window.addEventListener("message", e => {
-  try {
-    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    if (d && d.action === "initSDK") setupSDK(d);
-    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
-  } catch (_) {}
-});
-
-window.onBoomRoomSDKReady = function() {
-  if (window.BoomRoomSDK) {
-    setupSDK({
-      user: window.BoomRoomSDK.getUser(),
-      isHost: window.BoomRoomSDK.isHost,
-      roomId: window.BoomRoomSDK.roomId,
-      roomPlayers: window.BoomRoomSDK.roomPlayers || []
-    });
-  }
-};
-
-function sendEvent(eventName, payload) {
-  try {
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
-      window.BoomRoomSDK.sendGameEvent(eventName, payload);
-    } else if (window.parent !== window) {
-      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
-    }
-  } catch (_) {}
+function handleEvent(n,p,sender){
+  if(n==="TOGGLE_SOUND"){soundMuted=!!p?.muted;return}
+  if(n==="BIG2_START_REQUEST"){if(isHost()&&state==="LOBBY"&&!matchLocked)startMatch();return}
+  if(n==="BIG2_ACTION_REQUEST"){if(isHost()){if(p?.action==="PLAY")hostPlay(sender,p);else if(p?.action==="PASS")hostPass(sender,p)}return}
+  if(n==="BIG2_EXCHANGE_REQUEST"){if(isHost())hostExchange(sender,p);return}
+  if(n==="BIG2_STATE"){applyState(p);return}
+  if(n==="BIG2_PRIVATE_HAND"){if(p?.targetId===ME.id&&Array.isArray(p.hand))hand=sortCards(p.hand);render();return}
+  if(n==="BIG2_RESULT"){state="RESULT";phase="WAITING";matchLocked=true;render();return}
+  if(n==="BIG2_CLOSE"){state="LOBBY";phase="WAITING";matchLocked=true;render();return}
 }
 
-function getCardValue(c) {
-  return RANKS.indexOf(c.rank) * 4 + SUITS.indexOf(c.suit);
+/* -------------------- UI -------------------- */
+function cardHtml(c,idx=-1){const red=c.suit==="♥"||c.suit==="♦";const sel=idx>=0&&selected.has(idx)?" sel":"";return `<div class="card ${red?"red":""}${sel}" ${idx>=0?`data-i="${idx}"`:""}><div>${c.rank}</div><div style="font-size:18px;text-align:center">${c.suit}</div><div style="text-align:right">${c.rank}</div></div>`}
+function playerHtml(){return [...players.values()].map(p=>`<div class="player ${p.id===ME.id?"me":""} ${p.id===turn?"turn":""}"><b>${esc(p.username)}${p.id===ME.id?"（你）":""}</b><em>${p.finished?`第 ${p.rank} 名 · ${ROLE[p.rank]||""}`:`剩 ${p.cardCount} 張`}</em></div>`).join("")}
+function rules(){return `<div class="rules"><b>🩸 原作血腥大老二</b><br>① 先玩一局普通大老二，依出完牌順序決定：國王、貴族、平民、貧民。<br>② 第二局起，國王分別與貴族、平民、貧民各換 1 張；貴族與平民、貧民各換 1 張；平民與貧民換 1 張。<br>③ 換牌採隱密處理：上位者指定想要的牌；若對方沒有該牌，本版本依常見原作變體由對方交出最大牌。上位者同時交出 1 張自己的牌。<br>④ 每局 3♣ 持有者先出，第一手必須包含 3♣。<br>⑤ 本作牌型：單張、對子、三條、順子、同花、葫蘆、鐵支、同花順；同牌型比較大小，炸彈可壓非炸彈。<br>⑥ 全部其他仍在場玩家 PASS 後，上一位出牌者重新取得自由牌權。<br>⑦ 每局結束重新依出完牌順序排列階級；第一局只用來建立階級，第二局開始進行血腥換牌。<br>⑧ 原作為四人階級玩法，本版本固定 4 人，避免把 4 個階級硬套到 5～10 人而改變原作。</div>`}
+function showRules(){const d=document.createElement("div");d.className="modal";d.innerHTML=`<div><div class="top"><b>📖 規則</b><button id="rx" class="smallbtn" style="width:44px">✕</button></div><hr style="border-color:#30374a">${rules()}</div>`;document.body.appendChild(d);d.querySelector("#rx").onclick=()=>d.remove()}
+function lobby(){return `<section class="panel"><div class="top"><div class="brand">🩸 爆爆血腥大老二 <span class="badge">ORIGINAL · SDK</span></div><button id="rules" class="smallbtn" style="width:44px">?</button></div><div class="stats" style="margin-top:8px"><div class="stat"><b>${ENTRY}</b><span>入場銀幣</span></div><div class="stat"><b>${players.size}/4</b><span>玩家</span></div><div class="stat"><b>${ENTRY*players.size}</b><span>本局獎池</span></div><div class="stat"><b>${isHost()?"室長":"等待"}</b><span>SDK</span></div></div></section><section class="panel"><div class="title">房內玩家</div><div class="players">${playerHtml()}</div></section>${matchLocked?`<div class="notice">🔒 本場已結束。請回到房間後由室長重新開啟遊戲；玩家不能自行重開。</div>`:isHost()?`<button id="start" class="cta">👑 室長開始第一局</button>`:`<div class="notice">等待室長開始第一局…</div>`}<section class="panel">${rules()}</section>`}
+function playView(){
+  const myTurn=turn===ME.id;
+  const pc=lastPlay?.combo;
+  const lastLabel=lastPlay?`上一手：${esc(lastPlay.username)} · ${lastPlay.cards.map(c=>c.suit+c.rank).join(" ")}`:"第一手必須包含 3♣";
+  const lastCards=lastPlay?lastPlay.cards.map(c=>cardHtml(c)).join(""):"<span class=\"muted tiny\">等待第一手牌</span>";
+  const playDisabled=(myTurn&&selected.size)?"":"disabled";
+  const passDisabled=(myTurn&&lastPlay)?"":"disabled";
+  return `<section class="table ${myTurn?"turnPulse":""}"><div class="blood"></div><div class="tableText"><div class="turnBadge">${myTurn?"⚡ 輪到你出牌":"⏳ 等待其他玩家"}</div><div style="font-weight:1000;color:var(--red);margin-top:7px">🩸 第 ${roundNo} 局 ${pc?pc.label:"· 自由牌權"}</div><div class="tiny muted">${lastLabel}</div><div class="last">${lastCards}</div></div></section><div class="phaseBar"><div class="phaseStep done">① 發牌</div><div class="phaseStep on">② 出牌</div><div class="phaseStep">③ 結算</div></div><section class="panel"><div class="title">玩家戰況</div><div class="players">${playerHtml()}</div></section><div class="feed">${feed.map(esc).join("<br>")}</div><section class="panel"><div class="top"><div class="title">你的手牌 · ${hand.length} 張</div><div class="role">${roles[ME.id]||"本局"}</div></div><div class="hand">${hand.map((c,i)=>cardHtml(c,i)).join("")}</div><div class="action"><button id="play" class="smallbtn play" ${playDisabled}>出牌 ${selected.size?`(${selected.size})`:""}</button><button id="pass" class="smallbtn" ${passDisabled}>PASS</button><button id="r2" class="smallbtn">規則</button></div></section>`;
 }
-
-function sortHand(cards) {
-  return cards.sort((a, b) => getCardValue(a) - getCardValue(b));
+function exchangeView(){
+  const pair=currentExchange();
+  const meIsFrom=pair&&pair.from===ME.id;
+  if(!pair)return `<div class="notice">換牌完成，準備下一局…</div>`;
+  const from=players.get(pair.from),to=players.get(pair.to);
+  if(!meIsFrom)return `<section class="panel center"><div><div style="font-size:22px">🩸 血腥徵牌</div><div class="notice" style="margin-top:8px">${esc(from?.username||"上位者")} 正在向 ${esc(to?.username||"玩家")} 徵牌。<br>換牌內容對其他玩家隱藏。</div><div class="role" style="margin-top:14px">你的階級：${roles[ME.id]||""}</div></div></section><section class="panel"><div class="title">階級</div><div class="players">${playerHtml()}</div></section>`;
+  const ranks=RANKS.map(r=>`<option value="${r}">${r}</option>`).join("");
+  const suits=SUITS.map(s=>`<option value="${s}">${s}</option>`).join("");
+  return `<section class="panel"><div class="title">👑 你正在向 ${esc(to?.username||"玩家")} 徵牌</div><div class="notice">指定想要的牌；若對方沒有，依本版本原作變體改由對方交出最大牌。</div><div class="row" style="margin-top:10px"><label class="tiny">點數<select id="wantRank" style="width:100%;min-height:42px;border-radius:10px;margin-top:3px"><option value="">任意同花色</option>${ranks}</select></label><label class="tiny">花色<select id="wantSuit" style="width:100%;min-height:42px;border-radius:10px;margin-top:3px"><option value="">任意花色</option>${suits}</select></label></div><div class="title" style="margin-top:12px">同時交出你的 1 張牌</div><div class="hand" id="offerHand">${hand.map((c,i)=>cardHtml(c,i)).join("")}</div><button id="exchange" class="cta">🤝 完成隱密換牌</button></section>`;
 }
-
-function generateFullDeck() {
-  const deck = [];
-  for (const r of RANKS) {
-    for (const s of SUITS) {
-      deck.push({ rank: r, suit: s });
-    }
-  }
-  return deck.sort(() => Math.random() - 0.5);
+function resultView(){const ordered=ranking.map(id=>players.get(id)).filter(Boolean);return `<section class="panel center"><div style="width:100%"><div style="font-size:22px;font-weight:1000">🩸 本局結算</div><div class="notice" style="margin:7px 0">第 ${completedRound||roundNo} 局 · ${ENTRY} 銀幣入場 · 獎池 ${pot}</div><div style="display:flex;flex-direction:column;gap:6px">${ordered.map((p,i)=>`<div class="resultRow"><b>第 ${i+1}</b><div><b>${esc(p.username)}</b><br><span class="role">${ROLE[i+1]}</span></div><span>${p.hand.length} 張</span></div>`).join("")}</div><div class="feed" style="margin-top:9px">${feed.map(esc).join("<br>")}</div><div class="notice" style="margin-top:10px">🔒 遊戲已鎖定。下一場必須由房間重新啟動遊戲。</div></div></section>`}
+function render(){const main=document.getElementById("main");if(state==="LOBBY")main.innerHTML=lobby();else if(state==="PLAYING")main.innerHTML=playView();else if(state==="EXCHANGE")main.innerHTML=exchangeView();else main.innerHTML=resultView();
+  document.getElementById("rules")?.addEventListener("click",showRules);
+  document.getElementById("r2")?.addEventListener("click",showRules);
+  document.getElementById("start")?.addEventListener("click",()=>{if(isHost())send("BIG2_START_REQUEST",{},true)});
+  document.querySelectorAll(".hand .card[data-i]").forEach(el=>el.addEventListener("click",()=>{if((state==="PLAYING"&&turn!==ME.id)||(state==="EXCHANGE"&&currentExchange()?.from!==ME.id))return;const i=+el.dataset.i;if(selected.has(i))selected.delete(i);else selected.add(i);feedback("select");render()}));
+  document.getElementById("play")?.addEventListener("click",()=>{if(turn!==ME.id)return;const cards=[...selected].map(i=>hand[i]);feedback("play");send("BIG2_ACTION_REQUEST",{action:"PLAY",cards,nonce:++actionNonce,sessionId},true);selected.clear()});
+  document.getElementById("pass")?.addEventListener("click",()=>{if(turn!==ME.id)return;feedback("pass");send("BIG2_ACTION_REQUEST",{action:"PASS",nonce:++actionNonce,sessionId},true);selected.clear()});
+  document.getElementById("exchange")?.addEventListener("click",()=>{const idx=[...selected][0];if(idx==null){alert("請選擇要交出的 1 張牌。");return}const c=hand[idx];feedback("blood");send("BIG2_EXCHANGE_REQUEST",{action:"REQUEST",rank:document.getElementById("wantRank")?.value||null,suit:document.getElementById("wantSuit")?.value||null,offerKey:cardKey(c),nonce:++actionNonce,sessionId},true);selected.clear()});
 }
-
-function handleGameEvent(eventName, payload, senderId) {
-  if (eventName === "TOGGLE_SOUND") return;
-
-  if (eventName === "BLOODY_START") {
-    state = "PLAYING";
-    lastPlay = null;
-    passCount = 0;
-    bloodyMultiplier = 1;
-    feed = ["🩸 血腥大老二開戰！殘牌重罰與鐵支爆擊啟動。"];
-    generateHand();
-    currentTurnUserId = payload.startUserId || ME.id;
-    render();
-  } else if (eventName === "PLAY_COMBO") {
-    lastPlay = { userId: payload.userId, username: payload.username, cardList: payload.cardList };
-    passCount = 0;
-    const p = players.get(payload.userId);
-    if (p) p.cardCount = Math.max(0, p.cardCount - payload.cardList.length);
-
-    // Check for 4-of-a-kind (Bomb / 鐵支)
-    if (payload.cardList.length === 4 && payload.cardList.every(c => c.rank === payload.cardList[0].rank)) {
-      bloodyMultiplier *= 2;
-      feed.push(`💥 【血腥爆擊】${esc(payload.username)} 打出鐵支！本局罰分加倍至 ${bloodyMultiplier}x！`);
-    }
-
-    feed.push(`🃏 ${esc(payload.username)} 出牌 [ ${payload.cardList.map(c=>c.suit+c.rank).join(" ")} ]`);
-
-    if (p && p.cardCount === 0) {
-      feed.push(`🏆 恭喜 ${esc(payload.username)} 率先清空手牌，奪得血腥大老二冠軍！`);
-      if (payload.userId === ME.id) {
-        try {
-          if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-            window.BoomRoomSDK.gameOver(150);
-          }
-        } catch(_) {}
-      }
-      state = "RESULT";
-    } else {
-      currentTurnUserId = payload.nextUserId;
-    }
-    render();
-  } else if (eventName === "PASS_TURN") {
-    passCount++;
-    feed.push(`🤐 ${esc(payload.username)} 選擇 PASS (過)`);
-    if (passCount >= players.size - 1) {
-      lastPlay = null;
-      feed.push(`🌟 全員 PASS！由 ${esc(payload.nextUsername)} 獲得自由發牌權！`);
-    }
-    currentTurnUserId = payload.nextUserId;
-    render();
-  }
-}
-
-function generateHand() {
-  const deck = generateFullDeck();
-  hand = sortHand(deck.slice(0, 13));
-  selectedIndices.clear();
-}
-
-function renderPlayers() {
-  return [...players.values()].map(p => {
-    const isMe = p.id === ME.id;
-    const isTurn = p.id === currentTurnUserId;
-    const penaltyScore = (p.cardCount || 13) * 10 * bloodyMultiplier;
-    return `<div class="player ${isMe?'me':''} ${isTurn?'turn':''}">
-      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
-      <em>剩餘: ${p.cardCount || 13} 張 (罰分:${penaltyScore})</em>
-    </div>`;
-  }).join("");
-}
-
-function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-
-function runLocalDevTest() {
-  players.clear();
-  addPlayer(ME.id, ME.username, ME.avatar);
-  addPlayer("dev_2", "小米", "");
-  addPlayer("dev_3", "阿樂", "");
-  addPlayer("dev_4", "可可", "");
-  sendEvent("BLOODY_START", { startUserId: ME.id });
-  handleGameEvent("BLOODY_START", { startUserId: ME.id }, ME.id);
-}
-
-function render() {
-  const main = document.getElementById("main");
-  if (!main) return;
-
-  if (state === "LOBBY") {
-    main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>${bloodyMultiplier}x</b><span>血腥倍率</span></div><div class="stat"><b>鐵支爆擊</b><span>刺激加倍</span></div></div></section>
-      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《血腥大老二》</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
-      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
-    `;
-    document.getElementById("startBtn")?.addEventListener("click", () => {
-      sendEvent("BLOODY_START", { startUserId: ME.id });
-      handleGameEvent("BLOODY_START", { startUserId: ME.id }, ME.id);
-    });
-    document.getElementById("devBtn")?.addEventListener("click", () => {
-      runLocalDevTest();
-    });
-    return;
-  }
-
-  if (state === "PLAYING") {
-    const isMyTurn = currentTurnUserId === ME.id;
-    main.innerHTML = `
-      <section class="tableCenter">
-        <div style="color:var(--red);font-weight:bold;font-size:12px;">🩸 血腥倍率：${bloodyMultiplier}x</div>
-        ${lastPlay ? `<div class="tiny muted" style="margin-top:4px;">上一手出牌 (${esc(lastPlay.username)})：</div><div class="lastPlayBox">${lastPlay.cardList.map(c => {
-          const isRed = c.suit === "♥" || c.suit === "♦";
-          return `<div class="card ${isRed?'red':''}"><div>${c.rank}</div><div style="font-size:16px;text-align:center;">${c.suit}</div><div style="text-align:right;">${c.rank}</div></div>`;
-        }).join("")}</div>` : '<div class="notice">🌟 自由牌權：出任意合法牌型！</div>'}
-      </section>
-
-      <section class="panel">
-        <div class="sectionTitle">房內玩家狀態</div>
-        <div class="players">${renderPlayers()}</div>
-      </section>
-
-      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
-
-      <section class="panel">
-        <div class="sectionTitle">你的手牌 (${hand.length} 張，點擊選牌)：</div>
-        <div class="handArea">
-          ${hand.map((c, idx) => {
-            const isRed = c.suit === "♥" || c.suit === "♦";
-            const sel = selectedIndices.has(idx) ? "selected" : "";
-            return `<div class="card ${isRed?'red':''} ${sel}" data-idx="${idx}">
-              <div>${c.rank}</div>
-              <div style="font-size:16px;text-align:center;">${c.suit}</div>
-              <div style="text-align:right;">${c.rank}</div>
-            </div>`;
-          }).join("")}
-        </div>
-
-        <div class="actionRow">
-          <button id="playBtn" class="cta danger" ${isMyTurn && selectedIndices.size > 0 ? '' : 'disabled'}>
-            ${isMyTurn ? `出牌 (${selectedIndices.size} 張)` : '等待輪到你...'}
-          </button>
-          <button id="passBtn" class="cta secondary" ${isMyTurn && lastPlay ? '' : 'disabled'}>
-            PASS (過)
-          </button>
-        </div>
-      </section>
-    `;
-
-    document.querySelectorAll(".card").forEach(el => {
-      el.addEventListener("click", () => {
-        const idx = Number(el.dataset.idx);
-        if (selectedIndices.has(idx)) selectedIndices.delete(idx);
-        else selectedIndices.add(idx);
-        render();
-      });
-    });
-
-    document.getElementById("playBtn")?.addEventListener("click", () => {
-      if (!isMyTurn || selectedIndices.size === 0) return;
-      const playedCards = [...selectedIndices].map(i => hand[i]);
-      hand = hand.filter((_, i) => !selectedIndices.has(i));
-      selectedIndices.clear();
-
-      const nextUserIds = [...players.keys()];
-      const currentIdx = nextUserIds.indexOf(ME.id);
-      const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
-
-      const payload = { userId: ME.id, username: ME.username, cardList: playedCards, nextUserId };
-      sendEvent("PLAY_COMBO", payload);
-      handleGameEvent("PLAY_COMBO", payload, ME.id);
-    });
-
-    document.getElementById("passBtn")?.addEventListener("click", () => {
-      if (!isMyTurn || !lastPlay) return;
-      const nextUserIds = [...players.keys()];
-      const currentIdx = nextUserIds.indexOf(ME.id);
-      const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
-      const nextUsername = players.get(nextUserId)?.username || "玩家";
-
-      const payload = { userId: ME.id, username: ME.username, nextUserId, nextUsername };
-      sendEvent("PASS_TURN", payload);
-      handleGameEvent("PASS_TURN", payload, ME.id);
-    });
-
-    return;
-  }
-
-  if (state === "RESULT") {
-    const sorted = [...players.values()].sort((a,b) => a.cardCount - b.cardCount);
-    main.innerHTML = `
-      <section class="panel center" style="flex:1;">
-        <div style="width:100%;">
-          <h2>🩸 血腥大老二對決結算</h2>
-          <div class="rankList">
-            ${sorted.map((p, i) => `
-              <div class="rankRow">
-                <div class="rankNo">第 ${i+1} 名</div>
-                <div class="rankName"><b>${esc(p.username)}</b> ${p.id===ME.id?'(0張勝出)':''}</div>
-                <div class="rankScore">剩餘 ${p.cardCount} 張 (罰分 ${p.cardCount * 10 * bloodyMultiplier})</div>
-              </div>
-            `).join("")}
-          </div>
-          <div class="feedBox" style="max-height:110px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
-          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
-        </div>
-      </section>
-    `;
-    document.getElementById("restartBtn")?.addEventListener("click", () => {
-      state = "LOBBY";
-      render();
-    });
-  }
-}
-
-// 預設初次渲染
-addPlayer(ME.id, ME.username, ME.avatar);
-render();
-</script>
-</body>
-</html>
+addPlayer(ME.id,ME.username,ME.avatar);render();
+</script></body></html>
