@@ -5253,86 +5253,8 @@ function handleEvent(
 ========================================================= */
 
 function requestEntry(){
-
-  if(
-    currentPaid ||
-    purchasing
-  )return;
-
-  /*
-   * DEV
-   */
-  if(DEV){
-
-    currentPaid =
-      true;
-
-    startRoundAfterEntry();
-
-    return;
-
-  }
-
-  purchasing =
-    true;
-
-  pendingPurchase =
-    'bbg_entry_' +
-    selectedEntry;
-
-  phase =
-    STATES.PURCHASING;
-
-  syncUI();
-
-  const reqData = {
-
-    action:
-      'requestPurchase',
-
-    itemId:
-      pendingPurchase,
-
-    cost:
-      selectedEntry
-
-  };
-
-  if(
-    window.BoomRoomSDK &&
-    typeof
-      window.BoomRoomSDK
-        .requestPurchase ===
-      'function'
-  ){
-
-    window.BoomRoomSDK
-      .requestPurchase(
-        pendingPurchase,
-        selectedEntry
-      );
-
-  }else
-  if(
-    window.parent !==
-    window
-  ){
-
-    window.parent.postMessage(
-      JSON.stringify(
-        reqData
-      ),
-      '*'
-    );
-
-  }else{
-
-    window.onPurchaseFailed(
-      pendingPurchase
-    );
-
-  }
-
+  currentPaid = true;
+  startRoundAfterEntry();
 }
 
 window.onPurchaseSuccess =
