@@ -5313,32 +5313,6 @@ function startRoundAfterEntry(){
 
   electHost();
 
-  if(
-    !isHost()
-  ){
-
-    send(
-      'BBG_READY',
-      {
-        roundId,
-        player:ME
-      }
-    );
-
-    phase =
-      STATES.WAIT_HOST;
-
-    showToast(
-      '等待房主',
-      '#ffd45c'
-    );
-
-    syncUI();
-
-    return;
-
-  }
-
   roundId =
     Math.max(
       0,
@@ -5408,6 +5382,12 @@ function startRoundAfterEntry(){
 
   countdownShown =
     -1;
+
+  syncUI();
+
+  if(!loopActive) startLoop();
+
+}
 
   showToast(
     '3',
