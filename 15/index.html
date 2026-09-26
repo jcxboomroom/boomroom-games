@@ -1,73 +1,19 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#070912">
-<title>爆爆你畫我猜</title>
-<style>
-:root{
-  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
-  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;--yellow:#ffc857;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;user-select:none}
-body{min-height:100dvh}
-button,input{font:inherit}
-button{border:0;color:var(--text);cursor:pointer;touch-action:manipulation}
-button:disabled{opacity:.45;cursor:default}
-#app{width:100%;height:100dvh;display:flex;justify-content:center}
-.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(4px + env(safe-area-inset-top)) 10px calc(4px + env(safe-area-inset-bottom));gap:8px}
-.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
-.center{display:flex;align-items:center;justify-content:center;text-align:center}
-.hero{padding:16px 14px}.hero h1{font-size:clamp(27px,7vw,46px);line-height:1.04;margin:0}.hero p{margin-top:7px;color:var(--muted);font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center;min-width:0}.stat b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat span{font-size:9px;color:var(--muted)}
-.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
-.cta{width:100%;min-height:54px;border-radius:16px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:17px;box-shadow:0 8px 24px #0005;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation}.cta:active,.secondary:active,.iconBtn:active,.tool:active,.chip:active{transform:scale(.96)}
-.cta:disabled{background:#333;color:#888;box-shadow:none;}
-.secondary{background:#192032;color:#fff;border:1px solid var(--line);box-shadow:none}.danger{background:#2a1520;border-color:#663246}.good{background:#153225;border-color:#2f7950}
-.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
-.notice{min-height:23px;color:#d1d6e4;font-size:11px;text-align:center;display:flex;align-items:center;justify-content:center}
-
-/* voting */
-.voteGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.chip{min-height:52px;border-radius:14px;background:#0d1220;border:1px solid var(--line);padding:8px 12px;text-align:left;font-weight:900;font-size:14px;cursor:pointer;touch-action:manipulation;pointer-events:auto;user-select:none}.chip small{display:block;color:var(--muted);font-size:10px;font-weight:700;margin-top:3px}.chip.active{border-color:var(--cyan);box-shadow:0 0 0 2px #62e7ff66;background:#112333;color:var(--cyan)}
-.voteBar{height:6px;border-radius:999px;background:#0c101a;overflow:hidden}.voteBar span{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));width:0%}
-
-/* players */
-.players{display:flex;gap:6px;overflow:hidden;overflow-x:auto;padding-bottom:4px;}.player{min-width:102px;max-width:136px;padding:7px 9px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:0 0 auto}.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player em{display:block;font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player.me{border-color:#42537b}.player.drawer{box-shadow:inset 0 0 0 1px #b76cff33}
-
-/* game */
-.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}.pill{background:#0d1220;border:1px solid var(--line);border-radius:12px;padding:7px 9px;font-size:10px;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;}.pill b{font-size:14px}.pill.centerText{text-align:center}.timerWarn{color:#ffcf70;border-color:#735b28}
-#canvasWrap{position:relative;width:100%;height:280px;flex:0 0 280px;border-radius:18px;overflow:hidden;border:1px solid #30394f;background:#f7f8fb;touch-action:none;box-shadow:0 0 0 1px #ffffff07}
-#drawCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;outline:none;}
-
-.roleBadge,#turnBadge{position:absolute;top:9px;padding:6px 8px;border-radius:9px;background:#111625e8;border:1px solid #ffffff20;font-size:10px;font-weight:900;z-index:3;pointer-events:none}
-.roleBadge{left:9px}.turnBadge{right:9px}
-.wordBadge{position:absolute;top:9px;left:50%;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:#111625e8;border:1px solid #ffffff20;font-weight:1000;font-size:13px;z-index:3;pointer-events:none;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cursorHint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);padding:6px 9px;border-radius:9px;background:#111625d9;color:#dce2f2;font-size:9px;pointer-events:none;white-space:nowrap}
-.tools{display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto}.tool{height:42px;min-width:42px;border-radius:12px;background:#101626;border:1px solid var(--line);font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer}.tool.active{outline:2px solid var(--cyan);outline-offset:-2px}.color{width:42px;padding:0;border-radius:50%;border:3px solid #fff}.sizeBtn{font-size:11px}
-.guessArea{display:flex;gap:7px;flex:0 0 auto}.guessArea input{flex:1;min-width:0;height:48px;border-radius:14px;border:1px solid var(--line);background:#0d111c;color:#fff;padding:0 13px;outline:none;user-select:text}.guessArea input:focus{border-color:var(--cyan)}.guessArea button{width:92px;border-radius:14px;background:var(--cyan);color:#061018;font-weight:1000;cursor:pointer}
-.skipBtn{height:42px;border-radius:12px;background:#2a1820;border:1px solid #5f3344;font-weight:900;padding:0 12px;cursor:pointer}
-.turnFeed{display:flex;justify-content:space-between;gap:6px;align-items:center;min-height:25px;padding:0 2px}.feedText{font-size:11px;color:#d1d6e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.turnScore{font-size:10px;color:#b9c4d7;white-space:nowrap}
-
-/* result */
-.result{display:flex;flex-direction:column;gap:11px}.resultTitle{font-size:34px;font-weight:1000}.reward{font-size:29px;color:var(--gold);font-weight:1000}.rankList{display:flex;flex-direction:column;gap:6px;max-height:250px;overflow:auto}.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:7px;align-items:center;padding:8px 9px;background:#0b101b;border:1px solid var(--line);border-radius:11px}.rankNo{font-weight:1000;text-align:center}.rankName{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rankScore{font-size:11px;font-weight:1000}.rankReward{font-size:9px;color:var(--gold);grid-column:2/4}
-
-.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#101727f2;border:1px solid var(--line);padding:9px 13px;border-radius:12px;font-size:11px;z-index:80;transition:.18s}.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.guessChatBox{background:#0b0f18;border:1px solid var(--line);border-radius:12px;padding:8px;height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;font-size:11px}
-@media(min-width:600px){.shell{padding-left:18px;padding-right:18px}.panel{padding:15px}}
-</style>
-</head>
-<body>
-<div id="app"><div class="shell">
-  <main id="main" class="screen"></main>
-</div></div>
-
-<div id="toast" class="toast"></div>
-
 <script>
 "use strict";
+
+/* =========================================================
+   爆爆你畫我猜 v1.2.0
+   修正：
+   1. 直接開始無反應
+   2. 倒數結束無法開始
+   3. makeRoundId / makeSeed 缺失
+   4. 1 / 3 / 5 輪沒有真正生效
+   5. 每輪玩家順序與回合索引
+   6. 時間到後自動換下一回合
+   7. TURN_END 後不重複結算
+   8. 非房主收到 ROUND_START 後正常同步
+   9. 房主 / DEV 模式皆可正常啟動
+   ========================================================= */
 
 const GAME_INFO = {
   id: "boom_draw_guess",
@@ -76,7 +22,7 @@ const GAME_INFO = {
   description: "選擇題型、輪數與秒數，輪流作畫，搶猜得分！",
   entryCost: 100,
   maxPlayers: 10,
-  version: "1.1.0"
+  version: "1.2.0"
 };
 
 const CONFIG = Object.freeze({
@@ -84,14 +30,18 @@ const CONFIG = Object.freeze({
   PLATFORM_FEE_RATE: 0.10,
   MIN_PLAYERS: 1,
   MAX_PLAYERS: 10,
+
   LOBBY_COUNTDOWN_SECONDS: 10,
   TURN_SECONDS: 30,
   COUNTDOWN_SECONDS: 3,
+
   HEARTBEAT_MS: 4000,
   PLAYER_TIMEOUT_MS: 12000,
+
   MAX_NAME_LENGTH: 24,
   MAX_AVATAR_LENGTH: 300,
   MAX_GUESS_LENGTH: 32,
+
   MAX_STROKES: 140,
   MAX_POINTS_PER_STROKE: 80
 });
@@ -113,22 +63,81 @@ const CATEGORIES = Object.freeze([
 ]);
 
 const WORD_BANK = {
-  food: [["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["珍珠奶茶",["珍奶"]],["西瓜"]],
-  animals: [["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["企鵝"]],
-  daily: [["雨傘"],["眼鏡"],["電視"],["手機"],["腳踏車",["自行車","單車"]],["手錶"],["牙刷"]],
-  places: [["摩天輪"],["遊樂園"],["動物園"],["醫院"],["超市"],["飛機"],["火車"]],
-  people: [["醫生"],["警察"],["消防員"],["司機"],["歌手"],["國王"],["忍者"]],
-  fantasy: [["火箭"],["太空人"],["外星人"],["吸血鬼"],["時光機"],["寶劍"]]
+  food: [
+    ["披薩"],
+    ["漢堡"],
+    ["薯條"],
+    ["炸雞"],
+    ["火鍋"],
+    ["拉麵"],
+    ["珍珠奶茶",["珍奶"]],
+    ["西瓜"]
+  ],
+  animals: [
+    ["貓咪",["貓"]],
+    ["狗狗",["狗"]],
+    ["兔子"],
+    ["老虎"],
+    ["獅子"],
+    ["大象"],
+    ["企鵝"]
+  ],
+  daily: [
+    ["雨傘"],
+    ["眼鏡"],
+    ["電視"],
+    ["手機"],
+    ["腳踏車",["自行車","單車"]],
+    ["手錶"],
+    ["牙刷"]
+  ],
+  places: [
+    ["摩天輪"],
+    ["遊樂園"],
+    ["動物園"],
+    ["醫院"],
+    ["超市"],
+    ["飛機"],
+    ["火車"]
+  ],
+  people: [
+    ["醫生"],
+    ["警察"],
+    ["消防員"],
+    ["司機"],
+    ["歌手"],
+    ["國王"],
+    ["忍者"]
+  ],
+  fantasy: [
+    ["火箭"],
+    ["太空人"],
+    ["外星人"],
+    ["吸血鬼"],
+    ["時光機"],
+    ["寶劍"]
+  ]
 };
 
 function buildWordBank(){
-  const out={};
+  const out = {};
+
   for(const c of CATEGORIES){
-    out[c.id]=(WORD_BANK[c.id]||[]).map((row,i)=>({id:c.id+"_"+i,answer:String(row[0]),aliases:Array.isArray(row[1])?row[1]:[]}));
+    out[c.id] = (WORD_BANK[c.id] || []).map((row,i)=>({
+      id: c.id + "_" + i,
+      answer: String(row[0]),
+      aliases: Array.isArray(row[1]) ? row[1] : []
+    }));
   }
+
   return out;
 }
-const WORDS=buildWordBank();
+
+const WORDS = buildWordBank();
+
+/* =========================================================
+   全域狀態
+   ========================================================= */
 
 let DEV = true;
 let sdkIsHost = false;
@@ -138,597 +147,4676 @@ let selectedCategory = "food";
 let selectedRounds = 1;
 let selectedTurnSeconds = 30;
 let activeTurnSeconds = 30;
+
 let lobbyTimer = null;
 let lobbySecondsLeft = CONFIG.LOBBY_COUNTDOWN_SECONDS;
+
+let state = STATES.LOBBY;
+
+let matchStarted = false;
+let matchEnded = false;
+let gameOverCalled = false;
+
+let roundId = "";
+let roundSeed = 0;
+
+let currentHostId = "";
+let currentTurnIndex = -1;
+let currentDrawerId = "";
+let currentTurnStartedAt = 0;
+let currentTurnResolved = false;
+let currentWord = null;
+
+let roundStartAt = 0;
+
+/*
+ * turnOrder：
+ * 例如 3 個玩家、選 3 輪：
+ *
+ * A B C A B C A B C
+ *
+ * 共 9 個回合。
+ */
+let turnOrder = [];
+
+let knownStrokes = [];
+let localStrokeIds = [];
+let currentStroke = null;
+
+let tool = "pen";
+let brushColor = "#151923";
+let brushSize = 7;
+
+let muted = false;
+let audioCtx = null;
+let soundCooldown = 0;
+
+let totalPool = 0;
+let platformFee = 0;
+let prizePool = 0;
+
+let finalReward = 0;
+let finalRank = 1;
+let finalReason = "";
+
+let feedText = "";
+let lastGuessAt = 0;
+
+let countdownValue = CONFIG.COUNTDOWN_SECONDS;
+
+let turnStateTimer = null;
+let heartbeatTimer = null;
+
+let loopHandle = 0;
+let lastFrame = 0;
+let rafRunning = true;
+let fps = 60;
+let hiddenAt = 0;
+
+let canvas = null;
+let ctx = null;
+let resizeBound = false;
+
+const participants = new Set();
+const players = new Map();
+const seenEvents = new Set();
 let guessHistory = [];
 
-let state=STATES.LOBBY;
-let gameOverCalled=false;
-let purchaseConfirmed=true;
-let matchStarted=false;
-let matchEnded=false;
-let roundId="";
-let roundSeed=0;
-let currentHostId="";
-let currentTurnIndex=-1;
-let currentDrawerId="";
-let currentTurnStartedAt=0;
-let currentTurnResolved=false;
-let currentWord=null;
-let knownStrokes=[];
-let localStrokeIds=[];
-let currentStroke=null;
-let tool="pen";
-let brushColor="#151923";
-let brushSize=7;
-let muted=false;
-let audioCtx=null;
-let soundCooldown=0;
-let rewardLocked=false;
-let totalPool=0;
-let platformFee=0;
-let prizePool=0;
-let finalReward=0;
-let finalRank=1;
-let finalReason="";
-let feedText="";
-let lastGuessAt=0;
-let countdownValue=CONFIG.COUNTDOWN_SECONDS;
-let loopHandle=0;
-let lastFrame=0;
-let turnStateTimer=null;
-let heartbeatTimer=null;
+/* =========================================================
+   工具
+   ========================================================= */
 
-const participants=new Set();
-const players=new Map();
-const seenEvents=new Set();
+function safeString(v, fallback, maxLen){
+  if(v === null || v === undefined) return fallback;
 
-function safeString(v,fallback,maxLen){
-  if (v === null || v === undefined) return fallback;
   const s = String(v).trim();
+
   return s ? s.slice(0, maxLen) : fallback;
 }
-function finite(v,fallback=0){return Number.isFinite(v)?v:fallback}
-function clamp(v,min,max){return Math.min(max,Math.max(min,finite(v,min)))}
-function intClamp(v,min,max){return Math.floor(clamp(v,min,max))}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
-function stableHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-function normalizeText(s){return String(s||"").normalize("NFKC").toLowerCase().replace(/[\s\u3000，。！？、,.!?;；:：'"“”‘’()（）\[\]{}<>《》【】]/g,"")}
+
+function finite(v, fallback=0){
+  return Number.isFinite(v) ? v : fallback;
+}
+
+function clamp(v,min,max){
+  return Math.min(max, Math.max(min, finite(v,min)));
+}
+
+function intClamp(v,min,max){
+  return Math.floor(clamp(v,min,max));
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    "\"":"&quot;",
+    "'":"&#39;"
+  }[c]));
+}
+
+function stableHash(s){
+  let h = 2166136261 >>> 0;
+
+  for(let i=0;i<s.length;i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h,16777619);
+  }
+
+  return h >>> 0;
+}
+
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* =========================================================
+   ★ 原本缺失的函式
+   ========================================================= */
+
+function makeRoundId(){
+  return (
+    "round_" +
+    Date.now().toString(36) +
+    "_" +
+    Math.random().toString(36).slice(2,8)
+  );
+}
+
+function makeSeed(){
+  const a = Date.now() >>> 0;
+  const b = Math.floor(Math.random() * 0xffffffff) >>> 0;
+
+  return (a ^ b) >>> 0;
+}
+
+/* =========================================================
+   題目 / 玩家
+   ========================================================= */
+
+function normalizeText(s){
+  return String(s || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s\u3000，。！？、,.!?;；:：'"“”‘’()（）\[\]{}<>《》【】]/g,"");
+}
+
 function answerMatches(guess,word){
-  const g=normalizeText(guess); if(!g||!word)return false;
-  if(g===normalizeText(word.answer))return true;
-  return word.aliases.some(a=>g===normalizeText(a));
+  const g = normalizeText(guess);
+
+  if(!g || !word) return false;
+
+  if(g === normalizeText(word.answer)){
+    return true;
+  }
+
+  return word.aliases.some(a => g === normalizeText(a));
 }
+
 function getCategory(id){
-  return (CATEGORIES.find(c => c && c.id === id) || CATEGORIES[0] || {id:"food", name:"美食", icon:"🍔", hint:"吃的"});
+  return (
+    CATEGORIES.find(c => c && c.id === id) ||
+    CATEGORIES[0]
+  );
 }
-function addPlayer(id,username,avatar,status="WAITING",paid=true){
-  if(id===null||id===undefined)return null;
-  id=String(id);
-  if(!id||id.length>64)return null;
-  let p=players.get(id);
+
+function addPlayer(id,username,avatar,status="READY"){
+  if(id === null || id === undefined) return null;
+
+  id = String(id);
+
+  if(!id || id.length > 64) return null;
+
+  let p = players.get(id);
+
   if(!p){
-    p={id,username:safeString(username,"玩家",CONFIG.MAX_NAME_LENGTH),avatar:safeString(avatar,"",CONFIG.MAX_AVATAR_LENGTH),status,paid:true,score:0,reward:0,lastSeen:Date.now(),joinedAt:Date.now(),correct:0,drawTurns:0,skips:0};
+    p = {
+      id,
+      username: safeString(username,"玩家",CONFIG.MAX_NAME_LENGTH),
+      avatar: safeString(avatar,"",CONFIG.MAX_AVATAR_LENGTH),
+      status,
+      paid: true,
+      score: 0,
+      reward: 0,
+      lastSeen: Date.now(),
+      joinedAt: Date.now(),
+      correct: 0,
+      drawTurns: 0,
+      skips: 0
+    };
+
     players.set(id,p);
   }else{
-    p.username=safeString(username,p.username,CONFIG.MAX_NAME_LENGTH);p.avatar=safeString(avatar,p.avatar,CONFIG.MAX_AVATAR_LENGTH);p.status=status||p.status;p.lastSeen=Date.now();p.paid=true;
+    p.username = safeString(username,p.username,CONFIG.MAX_NAME_LENGTH);
+    p.avatar = safeString(avatar,p.avatar,CONFIG.MAX_AVATAR_LENGTH);
+    p.status = status || p.status;
+    p.lastSeen = Date.now();
+    p.paid = true;
   }
+
   return p;
 }
 
-let ME={ id:"local_"+Math.random().toString(36).slice(2,10), username:"本地玩家", avatar:"", joinedAt:Date.now() };
-currentHostId = ME.id;
-addPlayer(ME.id, ME.username, ME.avatar, "WAITING", true);
+/* =========================================================
+   本機玩家
+   ========================================================= */
 
-function setupSDK(data) {
+let ME = {
+  id: "local_" + Math.random().toString(36).slice(2,10),
+  username: "本地玩家",
+  avatar: "",
+  joinedAt: Date.now()
+};
+
+currentHostId = ME.id;
+
+addPlayer(
+  ME.id,
+  ME.username,
+  ME.avatar,
+  "READY"
+);
+
+/* =========================================================
+   SDK
+   ========================================================= */
+
+function setupSDK(data){
   DEV = false;
-  if (data.user) {
+
+  if(data.user){
     players.delete(ME.id);
+
     ME.id = String(data.user.id);
-    ME.username = safeString(data.user.username, "玩家", CONFIG.MAX_NAME_LENGTH);
-    ME.avatar = safeString(data.user.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
+    ME.username = safeString(
+      data.user.username,
+      "玩家",
+      CONFIG.MAX_NAME_LENGTH
+    );
+
+    ME.avatar = safeString(
+      data.user.avatar,
+      "",
+      CONFIG.MAX_AVATAR_LENGTH
+    );
   }
-  
+
   sdkIsHost = !!data.isHost;
   gameRoomId = data.roomId || "";
-  
-  if (Array.isArray(data.roomPlayers)) {
-    data.roomPlayers.forEach(rp => {
-      addPlayer(String(rp.id), rp.username, rp.avatar, "WAITING", true);
+
+  if(Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp=>{
+      addPlayer(
+        String(rp.id),
+        rp.username,
+        rp.avatar,
+        "READY"
+      );
     });
   }
-  
-  if (sdkIsHost) currentHostId = ME.id;
-  addPlayer(ME.id, ME.username, ME.avatar, "WAITING", true);
+
+  if(sdkIsHost){
+    currentHostId = ME.id;
+  }
+
+  addPlayer(
+    ME.id,
+    ME.username,
+    ME.avatar,
+    "READY"
+  );
+
   render();
   startLobbyAutoCountdown();
+
+  /*
+   * 通知房間內其他玩家本玩家已加入。
+   */
+  sendEvent("PLAYER_HELLO",{
+    username: ME.username,
+    avatar: ME.avatar
+  });
 }
 
-window.addEventListener("message", e => {
-  try {
-    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    if (data.action === "initSDK") { setupSDK(data); return; }
-    if (!data || data.action !== "gameEventReceived") return;
-    const userId = safeString(data.userId, "", 64);
-    const eventName = safeString(data.eventName, "", 40);
+window.addEventListener("message",e=>{
+  try{
+    const data =
+      typeof e.data === "string"
+        ? JSON.parse(e.data)
+        : e.data;
+
+    if(data.action === "initSDK"){
+      setupSDK(data);
+      return;
+    }
+
+    if(!data || data.action !== "gameEventReceived"){
+      return;
+    }
+
+    const userId = safeString(
+      data.userId,
+      "",
+      64
+    );
+
+    const eventName = safeString(
+      data.eventName,
+      "",
+      40
+    );
+
     const payload = data.payload;
 
-    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
-    handleEvent(userId, eventName, payload);
-  } catch (_) {}
+    if(
+      !userId ||
+      !/^[A-Z0-9_]{1,40}$/.test(eventName) ||
+      !payload ||
+      typeof payload !== "object"
+    ){
+      return;
+    }
+
+    handleEvent(
+      userId,
+      eventName,
+      payload
+    );
+
+  }catch(_){}
 });
 
-window.onBoomRoomSDKReady = function() {
-  if (window.BoomRoomSDK) {
+window.onBoomRoomSDKReady = function(){
+
+  if(window.BoomRoomSDK){
+
     setupSDK({
       user: window.BoomRoomSDK.getUser(),
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
+
   }
 };
 
-setTimeout(() => {
-  if (DEV) {
-    addPlayer(ME.id, ME.username, ME.avatar, "WAITING", true);
+/*
+ * DEV 模式啟動
+ */
+setTimeout(()=>{
+  if(DEV){
+
+    addPlayer(
+      ME.id,
+      ME.username,
+      ME.avatar,
+      "READY"
+    );
+
     render();
     startLobbyAutoCountdown();
-  }
-}, 200);
 
-function sendEvent(eventName, payload) {
-  if (DEV) return false;
-  if (!/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object" || Array.isArray(payload)) return false;
-  const copy = { ...payload, eventId: safeString(payload.eventId, ME.id + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7), 80) };
-  const eventData = { action: 'sendGameEvent', eventName: eventName, payload: copy };
-  try {
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
-      window.BoomRoomSDK.sendGameEvent(eventName, copy);
-      return true;
-    } else if (window.parent !== window) {
-      window.parent.postMessage(JSON.stringify(eventData), '*');
+  }
+},200);
+
+/* =========================================================
+   發送事件
+   ========================================================= */
+
+function sendEvent(eventName,payload){
+
+  if(DEV){
+    return false;
+  }
+
+  if(
+    !/^[A-Z0-9_]{1,40}$/.test(eventName) ||
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ){
+    return false;
+  }
+
+  const copy = {
+    ...payload,
+    eventId: safeString(
+      payload.eventId,
+      ME.id +
+      "_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).slice(2,7),
+      80
+    )
+  };
+
+  const eventData = {
+    action: "sendGameEvent",
+    eventName,
+    payload: copy
+  };
+
+  try{
+
+    if(
+      window.BoomRoomSDK &&
+      typeof window.BoomRoomSDK.sendGameEvent === "function"
+    ){
+
+      window.BoomRoomSDK.sendGameEvent(
+        eventName,
+        copy
+      );
+
       return true;
     }
-  } catch (_) {}
+
+    if(window.parent !== window){
+
+      window.parent.postMessage(
+        JSON.stringify(eventData),
+        "*"
+      );
+
+      return true;
+    }
+
+  }catch(_){}
+
   return false;
 }
 
-function isHost() { return sdkIsHost || (currentHostId != null && ME.id != null && String(currentHostId) === String(ME.id)); }
+/* =========================================================
+   大廳
+   ========================================================= */
 
-function startLobbyAutoCountdown() {
+function startLobbyAutoCountdown(){
+
   clearInterval(lobbyTimer);
-  lobbySecondsLeft = CONFIG.LOBBY_COUNTDOWN_SECONDS;
-  lobbyTimer = setInterval(() => {
-    lobbySecondsLeft--;
-    const el = document.getElementById("lobbySecText");
-    if(el) el.textContent = lobbySecondsLeft;
-    if(lobbySecondsLeft <= 0) {
+
+  lobbySecondsLeft =
+    CONFIG.LOBBY_COUNTDOWN_SECONDS;
+
+  render();
+
+  lobbyTimer = setInterval(()=>{
+
+    /*
+     * 遊戲已開始就不要再觸發大廳倒數。
+     */
+    if(matchStarted){
       clearInterval(lobbyTimer);
-      startDirectGameAsHost();
+      return;
     }
-  }, 1000);
+
+    lobbySecondsLeft--;
+
+    const el =
+      document.getElementById("lobbySecText");
+
+    if(el){
+      el.textContent =
+        Math.max(0,lobbySecondsLeft);
+    }
+
+    if(lobbySecondsLeft <= 0){
+
+      clearInterval(lobbyTimer);
+
+      /*
+       * ★ 只有房主負責真正開始。
+       * DEV 模式直接開始。
+       */
+      if(DEV || sdkIsHost){
+        startDirectGameAsHost();
+      }else{
+        /*
+         * 非房主不要自己開局。
+         */
+        showToast("等待房主開始遊戲");
+      }
+    }
+
+  },1000);
 }
+
+/* =========================================================
+   ★ 修正：真正開始遊戲
+   ========================================================= */
 
 function startDirectGameAsHost(){
-  if(matchStarted)return;
-  clearInterval(lobbyTimer);
-  roundId=makeRoundId();
-  roundSeed=makeSeed();
-  currentHostId=ME.id;
-  activeTurnSeconds=selectedTurnSeconds;
 
-  sendEvent("GAME_SETUP_START",{
-    roundId,
-    categoryId: selectedCategory,
-    rounds: selectedRounds,
-    turnSeconds: selectedTurnSeconds
+  /*
+   * 如果已經開始，不重複開始。
+   */
+  if(matchStarted || matchEnded){
+    return;
+  }
+
+  /*
+   * 清除大廳倒數。
+   */
+  clearInterval(lobbyTimer);
+
+  /*
+   * 確保自己存在。
+   */
+  addPlayer(
+    ME.id,
+    ME.username,
+    ME.avatar,
+    "READY"
+  );
+
+  /*
+   * 產生新局 ID / Seed。
+   */
+  roundId = makeRoundId();
+  roundSeed = makeSeed();
+
+  /*
+   * 房主。
+   */
+  currentHostId = ME.id;
+
+  /*
+   * 使用玩家選好的秒數。
+   */
+  activeTurnSeconds =
+    intClamp(
+      selectedTurnSeconds,
+      15,
+      60
+    );
+
+  /*
+   * ★ 注意：
+   * 這裡「不要」先設定 matchStarted = true。
+   *
+   * startRoundAsHost() 會負責設定。
+   */
+  startRoundAsHost(
+    selectedCategory
+  );
+}
+
+/* =========================================================
+   ★ 建立回合順序
+   ========================================================= */
+
+function buildTurnOrder(){
+
+  const ids = [...participants];
+
+  /*
+   * 排序讓所有客戶端順序穩定。
+   */
+  ids.sort((a,b)=>{
+
+    const pa = players.get(a);
+    const pb = players.get(b);
+
+    const ja = finite(
+      pa?.joinedAt,
+      0
+    );
+
+    const jb = finite(
+      pb?.joinedAt,
+      0
+    );
+
+    return (
+      ja - jb ||
+      String(a).localeCompare(String(b))
+    );
   });
 
-  startRoundAsHost(selectedCategory);
+  /*
+   * 例如：
+   * 玩家 A B C
+   * 3 輪
+   *
+   * A B C A B C A B C
+   */
+  const order = [];
+
+  for(
+    let round = 0;
+    round < selectedRounds;
+    round++
+  ){
+    ids.forEach(id=>{
+      order.push(id);
+    });
+  }
+
+  return order;
 }
+
+/* =========================================================
+   開始新局
+   ========================================================= */
 
 function startRoundAsHost(category){
-  if(matchStarted||matchEnded)return;
-  for(const p of players.values()) {
-    p.paid = true;
-  }
-  const paid=[...players.values()].filter(p=>p.status!=="LEFT").sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,CONFIG.MAX_PLAYERS);
-  participants.clear();
-  for(const p of paid){
-    participants.add(p.id);p.status="READY";p.score=0;p.reward=0;p.correct=0;p.drawTurns=0;p.skips=0;
-  }
-  totalPool = paid.length * CONFIG.ENTRY_FEE;
-  prizePool = totalPool;
 
-  matchStarted=true;matchEnded=false;rewardLocked=false;gameOverCalled=false;
-  roundStartAt=Date.now()+1000;
-  const order=paid.map(p=>p.id);
-  const payload={roundId,seed:roundSeed,startTime:roundStartAt,category:selectedCategory,entryCost:CONFIG.ENTRY_FEE,totalPool,prizePool,participantIds:order,turnDuration:selectedTurnSeconds,turnSeconds:selectedTurnSeconds,rounds:selectedRounds};
-  sendEvent("ROUND_START",payload);
+  /*
+   * 防止重複開局。
+   */
+  if(matchStarted || matchEnded){
+    return;
+  }
+
+  const allList = [...players.values()]
+    .filter(p =>
+      p &&
+      p.status !== "LEFT" &&
+      p.status !== "TIMEOUT"
+    )
+    .slice(0,CONFIG.MAX_PLAYERS);
+
+  if(allList.length === 0){
+
+    allList.push(
+      players.get(ME.id) ||
+      addPlayer(
+        ME.id,
+        ME.username,
+        ME.avatar,
+        "READY"
+      )
+    );
+  }
+
+  participants.clear();
+
+  allList.forEach(p=>{
+
+    if(!p) return;
+
+    p.paid = true;
+    p.status = "READY";
+    p.score = 0;
+    p.reward = 0;
+    p.correct = 0;
+    p.drawTurns = 0;
+    p.skips = 0;
+
+    participants.add(p.id);
+  });
+
+  /*
+   * 獎池。
+   */
+  totalPool =
+    participants.size *
+    CONFIG.ENTRY_FEE;
+
+  platformFee =
+    Math.floor(
+      totalPool *
+      CONFIG.PLATFORM_FEE_RATE
+    );
+
+  prizePool =
+    totalPool -
+    platformFee;
+
+  /*
+   * ★ 真正開始的地方
+   */
+  matchStarted = true;
+  matchEnded = false;
+  gameOverCalled = false;
+
+  /*
+   * 第一個倒數。
+   */
+  roundStartAt =
+    Date.now() + 1000;
+
+  /*
+   * ★ 根據選擇的輪數建立完整回合順序。
+   */
+  turnOrder = buildTurnOrder();
+
+  const payload = {
+
+    roundId,
+
+    seed: roundSeed,
+
+    startTime: roundStartAt,
+
+    category: selectedCategory,
+
+    participantIds: [
+      ...participants
+    ],
+
+    turnOrder,
+
+    turnSeconds:
+      activeTurnSeconds,
+
+    rounds:
+      selectedRounds,
+
+    prizePool
+  };
+
+  /*
+   * 同步給其他玩家。
+   */
+  sendEvent(
+    "ROUND_START",
+    payload
+  );
+
+  /*
+   * 自己立即套用。
+   */
   applyRoundStart(payload);
 }
-let roundStartAt=0;
-let turnOrder=[];
+
+/* =========================================================
+   套用 ROUND_START
+   ========================================================= */
 
 function applyRoundStart(payload){
-  if(!payload||typeof payload!=="object")return;
-  if(payload.roundId) roundId = safeString(payload.roundId, roundId, 100);
-  roundSeed=(finite(payload.seed,0)>>>0);roundStartAt=finite(payload.startTime,Date.now());selectedCategory=safeString(payload.category,CATEGORIES[0].id,30);
-  if(payload.turnSeconds) activeTurnSeconds = intClamp(payload.turnSeconds, 10, 60);
-  const ids=Array.isArray(payload.participantIds)?payload.participantIds.filter(x=>typeof x==="string"&&x.length<=64).slice(0,CONFIG.MAX_PLAYERS):[];
-  turnOrder=ids;participants.clear();ids.forEach(id=>{participants.add(id);const p=players.get(id)||addPlayer(id,"玩家","","READY",true);if(p)p.status="READY"});
-  currentTurnIndex=-1;currentDrawerId="";currentTurnResolved=false;currentWord=null;knownStrokes=[];localStrokeIds=[];matchStarted=true;matchEnded=false;state=STATES.COUNTDOWN;countdownValue=CONFIG.COUNTDOWN_SECONDS;
-  render();startCountdown();
+
+  if(
+    !payload ||
+    typeof payload !== "object"
+  ){
+    return;
+  }
+
+  roundId =
+    safeString(
+      payload.roundId,
+      roundId,
+      100
+    );
+
+  roundSeed =
+    finite(
+      payload.seed,
+      0
+    ) >>> 0;
+
+  roundStartAt =
+    finite(
+      payload.startTime,
+      Date.now()
+    );
+
+  selectedCategory =
+    safeString(
+      payload.category,
+      selectedCategory,
+      30
+    );
+
+  /*
+   * ★ 同步輪數。
+   */
+  if(
+    Number.isFinite(
+      Number(payload.rounds)
+    )
+  ){
+    selectedRounds =
+      intClamp(
+        Number(payload.rounds),
+        1,
+        5
+      );
+  }
+
+  /*
+   * ★ 同步秒數。
+   */
+  if(
+    Number.isFinite(
+      Number(payload.turnSeconds)
+    )
+  ){
+
+    activeTurnSeconds =
+      intClamp(
+        Number(payload.turnSeconds),
+        15,
+        60
+      );
+
+    selectedTurnSeconds =
+      activeTurnSeconds;
+  }
+
+  /*
+   * 取得參賽者。
+   */
+  const ids =
+    Array.isArray(payload.participantIds)
+      ? payload.participantIds
+          .filter(x =>
+            typeof x === "string"
+          )
+      : [ME.id];
+
+  turnOrder =
+    Array.isArray(payload.turnOrder) &&
+    payload.turnOrder.length
+      ? payload.turnOrder.filter(
+          x => typeof x === "string"
+        )
+      : ids;
+
+  participants.clear();
+
+  ids.forEach(id=>{
+
+    participants.add(id);
+
+    const p =
+      players.get(id) ||
+      addPlayer(
+        id,
+        "玩家",
+        "",
+        "READY"
+      );
+
+    if(p){
+      p.status = "READY";
+    }
+  });
+
+  /*
+   * 獎池同步。
+   */
+  if(
+    Number.isFinite(
+      Number(payload.prizePool)
+    )
+  ){
+    prizePool =
+      intClamp(
+        Number(payload.prizePool),
+        0,
+        1000000
+      );
+  }else{
+    totalPool =
+      participants.size *
+      CONFIG.ENTRY_FEE;
+
+    platformFee =
+      Math.floor(
+        totalPool *
+        CONFIG.PLATFORM_FEE_RATE
+      );
+
+    prizePool =
+      totalPool -
+      platformFee;
+  }
+
+  currentTurnIndex = -1;
+  currentDrawerId = "";
+  currentTurnStartedAt = 0;
+  currentTurnResolved = false;
+
+  currentWord = null;
+
+  knownStrokes = [];
+  localStrokeIds = [];
+  currentStroke = null;
+
+  matchStarted = true;
+  matchEnded = false;
+
+  state = STATES.COUNTDOWN;
+
+  countdownValue =
+    CONFIG.COUNTDOWN_SECONDS;
+
+  render();
+
+  /*
+   * ★ 第一個倒數。
+   */
+  startCountdown();
 }
 
+/* =========================================================
+   倒數
+   ========================================================= */
+
 function startCountdown(){
-  clearTimeout(turnStateTimer);countdownValue=CONFIG.COUNTDOWN_SECONDS;state=STATES.COUNTDOWN;render();
-  const tick=()=>{
-    if(matchEnded)return;
-    if(countdownValue<=0){startNextTurnAsHost();return}
-    playTone(520+countdownValue*80,.06);render();countdownValue--;turnStateTimer=setTimeout(tick,850);
+
+  clearTimeout(turnStateTimer);
+
+  countdownValue =
+    CONFIG.COUNTDOWN_SECONDS;
+
+  state = STATES.COUNTDOWN;
+
+  render();
+
+  const tick = ()=>{
+
+    if(matchEnded){
+      return;
+    }
+
+    if(countdownValue <= 0){
+
+      /*
+       * ★ 倒數結束真正進入第一回合。
+       */
+      startNextTurnAsHost();
+
+      return;
+    }
+
+    playTone(
+      520 + countdownValue * 80,
+      0.06
+    );
+
+    render();
+
+    countdownValue--;
+
+    turnStateTimer =
+      setTimeout(
+        tick,
+        850
+      );
   };
+
   tick();
 }
 
-function isDrawer(){return !!currentDrawerId&&currentDrawerId===ME.id}
-function isParticipant(id){return participants.has(id)}
-function startNextTurnAsHost(){
-  if(matchEnded)return;
-  currentTurnIndex++;
-  if(currentTurnIndex>=turnOrder.length){finishMatchAsHost("所有玩家都完成畫畫");return}
-  currentDrawerId=turnOrder[currentTurnIndex];currentTurnStartedAt=Date.now()+250;currentTurnResolved=false;knownStrokes=[];localStrokeIds=[];currentWord=wordForTurn(selectedCategory,currentTurnIndex,roundSeed);feedText="準備畫！";
-  sendEvent("TURN_START",{roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:activeTurnSeconds,turnSeconds:activeTurnSeconds});
-  applyTurnStart({roundId,turnIndex:currentTurnIndex,drawerId:currentDrawerId,category:selectedCategory,wordId:currentWord.id,wordIndex:findWordIndex(selectedCategory,currentWord.id),startTime:currentTurnStartedAt,duration:activeTurnSeconds,turnSeconds:activeTurnSeconds});
-}
-function findWordIndex(categoryId,wordId){const bank=WORDS[categoryId]||[];const idx=bank.findIndex(w=>w.id===wordId);return idx<0?0:idx}
-function applyTurnStart(payload){
-  if(!payload||payload.roundId!==roundId)return;
-  if(payload.turnSeconds) activeTurnSeconds = intClamp(payload.turnSeconds, 10, 60);
-  currentTurnIndex=intClamp(payload.turnIndex,-1,CONFIG.MAX_PLAYERS);
-  currentDrawerId=safeString(payload.drawerId,"",64);currentTurnStartedAt=finite(payload.startTime,Date.now());currentTurnResolved=false;
-  selectedCategory=safeString(payload.category,selectedCategory,30);
-  const idx=intClamp(payload.wordIndex,0,Math.max(0,(WORDS[selectedCategory]||[]).length-1));
-  currentWord=(WORDS[selectedCategory]||[])[idx]||null;
-  knownStrokes=[];localStrokeIds=[];currentStroke=null;
-  state=STATES.PLAYING;feedText=isDrawer()?"輪到你！畫出題目，別寫字。":"快猜！先答對先得分。";
-  guessHistory.push({username: "系統", text: "🎨 新回合開始！畫家正在作畫中...", isCorrect: false, isSystem: true});
-  if(guessHistory.length>50) guessHistory.shift();
-  addPlayer(ME.id,ME.username,ME.avatar,"PLAYING",true);
-  sendEvent("PLAYER_STATE",{roundId,userId:ME.id,status:"PLAYING",score:intClamp(players.get(ME.id)?.score||0,0,100000)});
-  render();playTone(740,.08);
-  setTimeout(ensureCanvas, 50);
-}
-function resolveTurnAsHost(kind,winnerId=""){
-  if(matchEnded||currentTurnResolved)return;
-  currentTurnResolved=true;
-  const drawer=players.get(currentDrawerId);
-  const turnStarted=finite(currentTurnStartedAt,Date.now());
-  const elapsed=Math.max(0,Math.min(activeTurnSeconds,(Date.now()-turnStarted)/1000));
-  const remain=Math.max(0,activeTurnSeconds-elapsed);
-  let drawerGain=0,guesserGain=0;
-  if(kind==="CORRECT"&&drawer&&winnerId&&participants.has(winnerId)){
-    drawerGain=intClamp(80+remain*3,80,125);
-    guesserGain=intClamp(100+remain*3,100,145);
-    drawer.score=intClamp(drawer.score+drawerGain,0,100000);drawer.correct=(drawer.correct||0)+1;drawer.drawTurns=(drawer.drawTurns||0)+1;
-    const gp=players.get(winnerId);if(gp){gp.score=intClamp(gp.score+guesserGain,0,100000);gp.correct=(gp.correct||0)+1}
-  }else if(kind==="SKIP"||kind==="TIMEOUT"){
-    if(drawer)drawer.drawTurns=(drawer.drawTurns||0)+1;
-  }
-  const payload={roundId,turnIndex:currentTurnIndex,kind,winnerId:winnerId||null,drawerId:currentDrawerId,answer:currentWord?currentWord.answer:"",drawerGain,guesserGain,drawerScore:drawer?drawer.score:0,winnerScore:winnerId&&players.get(winnerId)?players.get(winnerId).score:null,at:Date.now()};
-  sendEvent("TURN_END",payload);applyTurnEnd(payload);
-}
-function applyTurnEnd(payload){
-  if(!payload||payload.roundId!==roundId)return;
-  if(currentTurnIndex!==payload.turnIndex&&!matchEnded)return;
-  if(payload.drawerId&&players.has(payload.drawerId))players.get(payload.drawerId).score=intClamp(payload.drawerScore,0,100000);
-  if(payload.winnerId&&players.has(payload.winnerId)&&payload.winnerScore!=null)players.get(payload.winnerId).score=intClamp(payload.winnerScore,0,100000);
-  if(payload.winnerId===ME.id&&payload.winnerScore!=null)playTone(980,.12);
-  feedText=payload.kind==="CORRECT"?"✅ "+(players.get(payload.winnerId)?.username||"玩家")+" 猜中了！":payload.kind==="SKIP"?"⏭️ 畫家跳過，本回合 0 分":"⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
-  const msgText = payload.kind==="CORRECT" ? "✅ "+(players.get(payload.winnerId)?.username||"玩家")+" 猜中了答案「"+currentWord.answer+"」！" : payload.kind==="SKIP" ? "⏭️ 畫家跳過本回合。" : "⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
-  guessHistory.push({username: "系統", text: msgText, isCorrect: true, isSystem: true});
-  if(guessHistory.length>50) guessHistory.shift();
+/* =========================================================
+   回合
+   ========================================================= */
 
-  state=STATES.PLAYING;
-  render();
-  setTimeout(ensureCanvas, 50);
-  const chatBox=document.getElementById("guessChatBox");if(chatBox)chatBox.scrollTop=chatBox.scrollHeight;
-  clearTimeout(turnStateTimer);
-  turnStateTimer=setTimeout(()=>{
-    if(matchEnded)return;
-    startNextTurnAsHost();
-  },1050);
+function isDrawer(){
+  return (
+    !!currentDrawerId &&
+    currentDrawerId === ME.id
+  );
 }
+
+function isParticipant(id){
+  return participants.has(id);
+}
+
+function findWordIndex(categoryId,wordId){
+
+  const bank =
+    WORDS[categoryId] || [];
+
+  const idx =
+    bank.findIndex(
+      w => w.id === wordId
+    );
+
+  return idx < 0 ? 0 : idx;
+}
+
+/* =========================================================
+   題目選擇
+   ========================================================= */
+
+function wordForTurn(
+  categoryId,
+  turnIndex,
+  seed
+){
+
+  const bank =
+    WORDS[categoryId] || [];
+
+  if(!bank.length){
+    return null;
+  }
+
+  /*
+   * 每個回合穩定產生題目。
+   */
+  const key =
+    String(seed) +
+    "|" +
+    String(categoryId) +
+    "|" +
+    String(turnIndex);
+
+  const hash =
+    stableHash(key);
+
+  const random =
+    mulberry32(hash);
+
+  const index =
+    Math.floor(
+      random() * bank.length
+    );
+
+  return bank[index];
+}
+
+/* =========================================================
+   ★ 開始下一回合
+   ========================================================= */
+
+function startNextTurnAsHost(){
+
+  if(matchEnded){
+    return;
+  }
+
+  /*
+   * ★ 最重要：
+   * turnOrder 已經包含所有輪數。
+   */
+  currentTurnIndex++;
+
+  /*
+   * 全部回合完成。
+   */
+  if(
+    currentTurnIndex >=
+    turnOrder.length
+  ){
+
+    finishMatchAsHost(
+      "所有玩家都完成輪流作畫"
+    );
+
+    return;
+  }
+
+  /*
+   * 指定畫家。
+   */
+  currentDrawerId =
+    turnOrder[currentTurnIndex];
+
+  /*
+   * 回合開始時間。
+   */
+  currentTurnStartedAt =
+    Date.now() + 250;
+
+  currentTurnResolved = false;
+
+  knownStrokes = [];
+  localStrokeIds = [];
+  currentStroke = null;
+
+  /*
+   * 題目。
+   */
+  currentWord =
+    wordForTurn(
+      selectedCategory,
+      currentTurnIndex,
+      roundSeed
+    );
+
+  feedText =
+    isDrawer()
+      ? "輪到你！畫出題目，別寫字。"
+      : "快猜！先答對先得分。";
+
+  const payload = {
+
+    roundId,
+
+    turnIndex:
+      currentTurnIndex,
+
+    drawerId:
+      currentDrawerId,
+
+    category:
+      selectedCategory,
+
+    wordId:
+      currentWord
+        ? currentWord.id
+        : "",
+
+    wordIndex:
+      currentWord
+        ? findWordIndex(
+            selectedCategory,
+            currentWord.id
+          )
+        : 0,
+
+    startTime:
+      currentTurnStartedAt,
+
+    duration:
+      activeTurnSeconds,
+
+    turnSeconds:
+      activeTurnSeconds
+  };
+
+  sendEvent(
+    "TURN_START",
+    payload
+  );
+
+  applyTurnStart(payload);
+}
+
+/* =========================================================
+   套用 TURN_START
+   ========================================================= */
+
+function applyTurnStart(payload){
+
+  if(
+    !payload ||
+    payload.roundId !== roundId
+  ){
+    return;
+  }
+
+  if(
+    Number.isFinite(
+      Number(payload.turnSeconds)
+    )
+  ){
+
+    activeTurnSeconds =
+      intClamp(
+        Number(payload.turnSeconds),
+        15,
+        60
+      );
+  }
+
+  currentTurnIndex =
+    intClamp(
+      Number(payload.turnIndex),
+      -1,
+      Math.max(
+        0,
+        turnOrder.length - 1
+      )
+    );
+
+  currentDrawerId =
+    safeString(
+      payload.drawerId,
+      "",
+      64
+    );
+
+  currentTurnStartedAt =
+    finite(
+      payload.startTime,
+      Date.now()
+    );
+
+  currentTurnResolved = false;
+
+  selectedCategory =
+    safeString(
+      payload.category,
+      selectedCategory,
+      30
+    );
+
+  const bank =
+    WORDS[selectedCategory] || [];
+
+  const idx =
+    intClamp(
+      Number(payload.wordIndex),
+      0,
+      Math.max(
+        0,
+        bank.length - 1
+      )
+    );
+
+  currentWord =
+    bank[idx] || null;
+
+  knownStrokes = [];
+  localStrokeIds = [];
+  currentStroke = null;
+
+  state =
+    STATES.PLAYING;
+
+  feedText =
+    isDrawer()
+      ? "輪到你！畫出題目，別寫字。"
+      : "快猜！先答對先得分。";
+
+  guessHistory.push({
+    username: "系統",
+    text:
+      "🎨 第 " +
+      (currentTurnIndex + 1) +
+      " 回合開始！",
+    isCorrect: false,
+    isSystem: true
+  });
+
+  if(
+    guessHistory.length > 50
+  ){
+    guessHistory.shift();
+  }
+
+  const me =
+    players.get(ME.id);
+
+  if(me){
+    me.status = "PLAYING";
+  }
+
+  sendEvent(
+    "PLAYER_STATE",
+    {
+      roundId,
+      userId: ME.id,
+      status: "PLAYING",
+      score: intClamp(
+        me?.score || 0,
+        0,
+        100000
+      )
+    }
+  );
+
+  render();
+
+  playTone(
+    740,
+    0.08
+  );
+
+  setTimeout(
+    ensureCanvas,
+    50
+  );
+}
+
+/* =========================================================
+   結算回合
+   ========================================================= */
+
+function resolveTurnAsHost(
+  kind,
+  winnerId=""
+){
+
+  if(
+    matchEnded ||
+    currentTurnResolved
+  ){
+    return;
+  }
+
+  currentTurnResolved = true;
+
+  const drawer =
+    players.get(
+      currentDrawerId
+    );
+
+  const turnStarted =
+    finite(
+      currentTurnStartedAt,
+      Date.now()
+    );
+
+  const elapsed =
+    Math.max(
+      0,
+      Math.min(
+        activeTurnSeconds,
+        (Date.now() - turnStarted) / 1000
+      )
+    );
+
+  const remain =
+    Math.max(
+      0,
+      activeTurnSeconds - elapsed
+    );
+
+  let drawerGain = 0;
+  let guesserGain = 0;
+
+  if(
+    kind === "CORRECT" &&
+    drawer &&
+    winnerId &&
+    participants.has(winnerId)
+  ){
+
+    drawerGain =
+      intClamp(
+        80 + remain * 3,
+        80,
+        125
+      );
+
+    guesserGain =
+      intClamp(
+        100 + remain * 3,
+        100,
+        145
+      );
+
+    drawer.score =
+      intClamp(
+        drawer.score + drawerGain,
+        0,
+        100000
+      );
+
+    drawer.drawTurns++;
+
+    const gp =
+      players.get(winnerId);
+
+    if(gp){
+
+      gp.score =
+        intClamp(
+          gp.score + guesserGain,
+          0,
+          100000
+        );
+
+      gp.correct++;
+    }
+
+  }else if(kind === "SKIP"){
+
+    if(drawer){
+      drawer.skips++;
+    }
+  }
+
+  const payload = {
+
+    roundId,
+
+    turnIndex:
+      currentTurnIndex,
+
+    kind,
+
+    winnerId:
+      winnerId || null,
+
+    drawerId:
+      currentDrawerId,
+
+    answer:
+      currentWord
+        ? currentWord.answer
+        : "",
+
+    drawerGain,
+
+    guesserGain,
+
+    drawerScore:
+      drawer
+        ? drawer.score
+        : 0,
+
+    winnerScore:
+      winnerId &&
+      players.get(winnerId)
+        ? players.get(winnerId).score
+        : null,
+
+    at: Date.now()
+  };
+
+  sendEvent(
+    "TURN_END",
+    payload
+  );
+
+  applyTurnEnd(payload);
+}
+
+/* =========================================================
+   套用回合結束
+   ========================================================= */
+
+function applyTurnEnd(payload){
+
+  if(
+    !payload ||
+    payload.roundId !== roundId
+  ){
+    return;
+  }
+
+  /*
+   * 防止舊回合事件干擾。
+   */
+  if(
+    currentTurnIndex !==
+    Number(payload.turnIndex)
+  ){
+    return;
+  }
+
+  if(
+    payload.drawerId &&
+    players.has(payload.drawerId)
+  ){
+
+    players.get(
+      payload.drawerId
+    ).score =
+      intClamp(
+        payload.drawerScore,
+        0,
+        100000
+      );
+  }
+
+  if(
+    payload.winnerId &&
+    players.has(payload.winnerId) &&
+    payload.winnerScore != null
+  ){
+
+    players.get(
+      payload.winnerId
+    ).score =
+      intClamp(
+        payload.winnerScore,
+        0,
+        100000
+      );
+  }
+
+  let msgText = "";
+
+  if(payload.kind === "CORRECT"){
+
+    const winner =
+      players.get(
+        payload.winnerId
+      );
+
+    feedText =
+      "✅ " +
+      (winner?.username || "玩家") +
+      " 猜中了！";
+
+    msgText =
+      "✅ " +
+      (winner?.username || "玩家") +
+      " 猜中了答案！";
+
+    playTone(
+      980,
+      0.12
+    );
+
+    vibrate(70);
+
+  }else if(payload.kind === "SKIP"){
+
+    feedText =
+      "⏭️ 畫家跳過";
+
+    msgText =
+      "⏭️ 畫家跳過這題";
+
+  }else{
+
+    feedText =
+      "⏰ 時間到！";
+
+    msgText =
+      "⏰ 時間到，答案是「" +
+      safeString(
+        payload.answer,
+        "題目",
+        30
+      ) +
+      "」";
+
+    playTone(
+      280,
+      0.12
+    );
+  }
+
+  guessHistory.push({
+    username: "系統",
+    text: msgText,
+    isCorrect: true,
+    isSystem: true
+  });
+
+  if(
+    guessHistory.length > 50
+  ){
+    guessHistory.shift();
+  }
+
+  /*
+   * 保持畫布可見，短暫顯示答案。
+   */
+  state = STATES.PLAYING;
+
+  render();
+
+  setTimeout(
+    ensureCanvas,
+    50
+  );
+
+  const chatBox =
+    document.getElementById(
+      "guessChatBox"
+    );
+
+  if(chatBox){
+    chatBox.scrollTop =
+      chatBox.scrollHeight;
+  }
+
+  clearTimeout(
+    turnStateTimer
+  );
+
+  /*
+   * ★ 回合結束後進下一回合。
+   */
+  turnStateTimer =
+    setTimeout(()=>{
+
+      if(matchEnded){
+        return;
+      }
+
+      startNextTurnAsHost();
+
+    },1050);
+}
+
+/* =========================================================
+   猜答案
+   ========================================================= */
 
 function submitGuess(){
-  if(state!==STATES.PLAYING||isDrawer()||matchEnded||!isParticipant(ME.id)||Date.now()-lastGuessAt<140)return;
-  const input=document.getElementById("guessInput");if(!input)return;
-  const guess=safeString(input.value,"",CONFIG.MAX_GUESS_LENGTH);input.value="";if(!guess)return;
-  lastGuessAt=Date.now();ensureAudio();
-  guessHistory.push({username: ME.username, text: guess, isCorrect: false});
-  if(guessHistory.length>50) guessHistory.shift();
-  sendEvent("GAME_EVENT",{roundId,type:"GUESS",userId:ME.id,username:ME.username,turnIndex:currentTurnIndex,guess});
-  render();
-  setTimeout(ensureCanvas, 50);
-  const chatBox=document.getElementById("guessChatBox");if(chatBox)chatBox.scrollTop=chatBox.scrollHeight;
-}
-function processGuessAsHost(payload){
-  if(matchEnded||currentTurnResolved||state!==STATES.PLAYING||payload.turnIndex!==currentTurnIndex)return;
-  const uid=safeString(payload.userId,"",64);if(!participants.has(uid)||uid===currentDrawerId)return;
-  const guess=safeString(payload.guess,"",CONFIG.MAX_GUESS_LENGTH);if(!guess)return;
-  const p=players.get(uid);if(!p)return;
-  if(answerMatches(guess,currentWord))resolveTurnAsHost("CORRECT",uid);
-}
 
-function render(){
-  try {
-    const main=document.getElementById("main");
-    if(!main) return;
-    if(state===STATES.LOBBY){renderLobby(main);return}
-    if(state===STATES.COUNTDOWN||state===STATES.PLAYING){renderGame(main);return}
-    renderResult(main);
-  } catch (err) {
-    console.error("Render error:", err);
+  if(
+    state !== STATES.PLAYING ||
+    isDrawer() ||
+    matchEnded ||
+    !isParticipant(ME.id) ||
+    Date.now() - lastGuessAt < 140
+  ){
+    return;
+  }
+
+  const input =
+    document.getElementById(
+      "guessInput"
+    );
+
+  if(!input){
+    return;
+  }
+
+  const guess =
+    safeString(
+      input.value,
+      "",
+      CONFIG.MAX_GUESS_LENGTH
+    );
+
+  input.value = "";
+
+  if(!guess){
+    return;
+  }
+
+  lastGuessAt =
+    Date.now();
+
+  ensureAudio();
+
+  guessHistory.push({
+    username: ME.username,
+    text: guess,
+    isCorrect: false
+  });
+
+  if(
+    guessHistory.length > 50
+  ){
+    guessHistory.shift();
+  }
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId,
+      type: "GUESS",
+      userId: ME.id,
+      username: ME.username,
+      turnIndex: currentTurnIndex,
+      guess
+    }
+  );
+
+  /*
+   * DEV 模式沒有事件廣播，
+   * 所以本機自己就是房主時，
+   * 必須直接處理猜答案。
+   */
+  if(DEV || sdkIsHost){
+
+    processGuessAsHost({
+      roundId,
+      type: "GUESS",
+      userId: ME.id,
+      username: ME.username,
+      turnIndex: currentTurnIndex,
+      guess
+    });
+
+  }
+
+  render();
+
+  setTimeout(
+    ensureCanvas,
+    50
+  );
+
+  const chatBox =
+    document.getElementById(
+      "guessChatBox"
+    );
+
+  if(chatBox){
+    chatBox.scrollTop =
+      chatBox.scrollHeight;
   }
 }
+
+function processGuessAsHost(payload){
+
+  if(
+    matchEnded ||
+    currentTurnResolved ||
+    state !== STATES.PLAYING ||
+    payload.roundId !== roundId ||
+    Number(payload.turnIndex) !== currentTurnIndex
+  ){
+    return;
+  }
+
+  const uid =
+    safeString(
+      payload.userId,
+      "",
+      64
+    );
+
+  if(
+    !participants.has(uid) ||
+    uid === currentDrawerId
+  ){
+    return;
+  }
+
+  const guess =
+    safeString(
+      payload.guess,
+      "",
+      CONFIG.MAX_GUESS_LENGTH
+    );
+
+  if(!guess){
+    return;
+  }
+
+  if(
+    answerMatches(
+      guess,
+      currentWord
+    )
+  ){
+
+    resolveTurnAsHost(
+      "CORRECT",
+      uid
+    );
+  }
+}
+
+/* =========================================================
+   跳過
+   ========================================================= */
+
+function skipTurn(){
+
+  if(
+    !isDrawer() ||
+    state !== STATES.PLAYING ||
+    matchEnded ||
+    currentTurnResolved
+  ){
+    return;
+  }
+
+  ensureAudio();
+
+  const payload = {
+    roundId,
+    type: "SKIP_TURN",
+    userId: ME.id,
+    turnIndex: currentTurnIndex
+  };
+
+  sendEvent(
+    "GAME_EVENT",
+    payload
+  );
+
+  /*
+   * DEV / 房主直接處理。
+   */
+  if(DEV || sdkIsHost){
+    resolveTurnAsHost(
+      "SKIP",
+      ME.id
+    );
+  }
+}
+
+/* =========================================================
+   結束遊戲
+   ========================================================= */
+
+function participantPlayers(){
+
+  return [...players.values()]
+    .filter(p =>
+      participants.has(p.id)
+    );
+}
+
+function buildRewards(){
+
+  const all =
+    participantPlayers()
+      .sort((a,b)=>
+        finite(b.score,0) -
+        finite(a.score,0)
+      );
+
+  /*
+   * 分數總和。
+   */
+  const scoreTotal =
+    all.reduce(
+      (sum,p)=>
+        sum +
+        Math.max(
+          0,
+          finite(p.score,0)
+        ),
+      0
+    );
+
+  /*
+   * 如果大家都 0 分，
+   * 平分獎池。
+   */
+  if(
+    scoreTotal <= 0
+  ){
+
+    const base =
+      all.length
+        ? Math.floor(
+            prizePool / all.length
+          )
+        : 0;
+
+    const rewards = {};
+
+    let used = 0;
+
+    all.forEach((p,i)=>{
+
+      let amount = base;
+
+      if(i === all.length - 1){
+        amount =
+          prizePool - used;
+      }
+
+      amount =
+        intClamp(
+          amount,
+          0,
+          prizePool
+        );
+
+      p.reward = amount;
+
+      rewards[p.id] = amount;
+
+      used += amount;
+    });
+
+    return {
+      all,
+      rewards
+    };
+  }
+
+  const rewards = {};
+
+  let used = 0;
+
+  all.forEach((p,i)=>{
+
+    let amount =
+      Math.floor(
+        prizePool *
+        Math.max(
+          0,
+          finite(p.score,0)
+        ) /
+        scoreTotal
+      );
+
+    if(i === all.length - 1){
+      amount =
+        prizePool - used;
+    }
+
+    amount =
+      intClamp(
+        amount,
+        0,
+        prizePool
+      );
+
+    p.reward = amount;
+
+    rewards[p.id] = amount;
+
+    used += amount;
+  });
+
+  return {
+    all,
+    rewards
+  };
+}
+
+function finishMatchAsHost(reason){
+
+  if(matchEnded){
+    return;
+  }
+
+  matchEnded = true;
+  state = STATES.RESULT;
+
+  finalReason = reason;
+
+  const result =
+    buildRewards();
+
+  const snapshot =
+    result.all.map(p=>({
+
+      id: p.id,
+
+      username: p.username,
+
+      score:
+        intClamp(
+          p.score,
+          0,
+          100000
+        ),
+
+      reward:
+        intClamp(
+          p.reward,
+          0,
+          prizePool
+        )
+    }));
+
+  const payload = {
+
+    roundId,
+
+    reason,
+
+    prizePool,
+
+    rewards:
+      result.rewards,
+
+    scores:
+      snapshot,
+
+    at: Date.now()
+  };
+
+  sendEvent(
+    "ROUND_END",
+    payload
+  );
+
+  applyRoundEnd(payload);
+}
+
+function applyRoundEnd(payload){
+
+  if(
+    !payload ||
+    payload.roundId !== roundId
+  ){
+    return;
+  }
+
+  matchEnded = true;
+  matchStarted = false;
+
+  state = STATES.RESULT;
+
+  finalReason =
+    safeString(
+      payload.reason,
+      "本局已結束",
+      60
+    );
+
+  if(
+    Number.isFinite(
+      Number(payload.prizePool)
+    )
+  ){
+    prizePool =
+      intClamp(
+        Number(payload.prizePool),
+        0,
+        1000000
+      );
+  }
+
+  const snapshot =
+    Array.isArray(payload.scores)
+      ? payload.scores
+      : [];
+
+  for(const row of snapshot){
+
+    if(row.id == null){
+      continue;
+    }
+
+    const rowId =
+      String(row.id);
+
+    let p =
+      players.get(rowId);
+
+    if(!p){
+
+      p =
+        addPlayer(
+          rowId,
+          row.username || "玩家",
+          ""
+        );
+    }
+
+    if(p){
+
+      p.score =
+        intClamp(
+          row.score,
+          0,
+          100000
+        );
+
+      p.reward =
+        intClamp(
+          row.reward,
+          0,
+          prizePool
+        );
+    }
+  }
+
+  const meRow =
+    snapshot.find(
+      x =>
+        String(x.id) ===
+        String(ME.id)
+    );
+
+  finalReward =
+    intClamp(
+      meRow
+        ? meRow.reward
+        : 0,
+      0,
+      prizePool
+    );
+
+  const ranking =
+    snapshot
+      .slice()
+      .sort((a,b)=>
+        finite(b.score,0) -
+        finite(a.score,0)
+      );
+
+  const rankIndex =
+    ranking.findIndex(
+      x =>
+        String(x.id) ===
+        String(ME.id)
+    );
+
+  finalRank =
+    rankIndex >= 0
+      ? rankIndex + 1
+      : 1;
+
+  callGameOver(
+    finalReward
+  );
+
+  render();
+}
+
+/* =========================================================
+   GAME OVER
+   ========================================================= */
+
+function callGameOver(reward){
+
+  if(gameOverCalled){
+    return;
+  }
+
+  gameOverCalled = true;
+
+  /*
+   * 這裡保留給你的平台 SDK。
+   *
+   * 如果 BoomRoom SDK 有 gameOver，
+   * 就呼叫它。
+   */
+  try{
+
+    if(
+      window.BoomRoomSDK &&
+      typeof window.BoomRoomSDK.gameOver ===
+        "function"
+    ){
+
+      window.BoomRoomSDK.gameOver({
+        reward: intClamp(
+          reward,
+          0,
+          prizePool
+        )
+      });
+    }
+
+  }catch(_){}
+}
+
+/* =========================================================
+   房間事件
+   ========================================================= */
+
+function handleEvent(
+  userId,
+  eventName,
+  payload
+){
+
+  const knownUser =
+    players.get(userId);
+
+  if(knownUser){
+    knownUser.lastSeen =
+      Date.now();
+  }
+
+  if(eventName === "PLAYER_HELLO"){
+
+    addPlayer(
+      userId,
+      payload.username,
+      payload.avatar,
+      "READY"
+    );
+
+    render();
+
+    return;
+  }
+
+  if(eventName === "PLAYER_HEARTBEAT"){
+
+    const p =
+      players.get(userId);
+
+    if(p){
+      p.lastSeen =
+        Date.now();
+
+      if(payload.status){
+        p.status =
+          safeString(
+            payload.status,
+            p.status,
+            30
+          );
+      }
+    }
+
+    return;
+  }
+
+  if(eventName === "ROUND_START"){
+
+    /*
+     * 避免重複處理同一局。
+     */
+    if(
+      payload.roundId &&
+      payload.roundId === roundId &&
+      matchStarted
+    ){
+      return;
+    }
+
+    applyRoundStart(payload);
+
+    return;
+  }
+
+  if(eventName === "TURN_START"){
+
+    applyTurnStart(payload);
+
+    return;
+  }
+
+  if(eventName === "TURN_END"){
+
+    applyTurnEnd(payload);
+
+    return;
+  }
+
+  if(eventName === "ROUND_END"){
+
+    applyRoundEnd(payload);
+
+    return;
+  }
+
+  if(eventName === "GAME_EVENT"){
+
+    if(
+      !payload ||
+      typeof payload !== "object"
+    ){
+      return;
+    }
+
+    /* =========================
+       題型
+       ========================= */
+
+    if(payload.type === "SELECT_CAT"){
+
+      selectedCategory =
+        safeString(
+          payload.categoryId,
+          selectedCategory,
+          30
+        );
+
+      showToast(
+        (players.get(userId)?.username ||
+          "玩家") +
+        " 選了 " +
+        getCategory(
+          selectedCategory
+        ).name
+      );
+
+      render();
+
+      return;
+    }
+
+    /* =========================
+       輪數
+       ========================= */
+
+    if(payload.type === "SELECT_RND"){
+
+      selectedRounds =
+        intClamp(
+          Number(payload.rounds),
+          1,
+          5
+        );
+
+      showToast(
+        (players.get(userId)?.username ||
+          "玩家") +
+        " 選了 " +
+        selectedRounds +
+        " 輪"
+      );
+
+      render();
+
+      return;
+    }
+
+    /* =========================
+       秒數
+       ========================= */
+
+    if(payload.type === "SELECT_SEC"){
+
+      selectedTurnSeconds =
+        intClamp(
+          Number(payload.turnSeconds),
+          15,
+          60
+        );
+
+      activeTurnSeconds =
+        selectedTurnSeconds;
+
+      showToast(
+        (players.get(userId)?.username ||
+          "玩家") +
+        " 選了 " +
+        selectedTurnSeconds +
+        " 秒"
+      );
+
+      render();
+
+      return;
+    }
+
+    /* =========================
+       猜答案
+       ========================= */
+
+    if(payload.type === "GUESS"){
+
+      if(DEV || sdkIsHost){
+
+        processGuessAsHost(
+          payload
+        );
+      }
+
+      return;
+    }
+
+    /* =========================
+       跳過
+       ========================= */
+
+    if(
+      payload.type === "SKIP_TURN" &&
+      Number(payload.turnIndex) ===
+        currentTurnIndex
+    ){
+
+      if(DEV || sdkIsHost){
+
+        resolveTurnAsHost(
+          "SKIP",
+          payload.userId
+        );
+      }
+
+      return;
+    }
+
+    /* =========================
+       畫線
+       ========================= */
+
+    if(payload.type === "STROKE"){
+
+      if(!isDrawer()){
+
+        receiveStroke(
+          payload.stroke
+        );
+      }
+
+      return;
+    }
+
+    /* =========================
+       清除
+       ========================= */
+
+    if(
+      payload.type === "CLEAR_CANVAS" &&
+      !isDrawer()
+    ){
+
+      knownStrokes = [];
+
+      redrawCanvas();
+
+      return;
+    }
+
+    /* =========================
+       復原
+       ========================= */
+
+    if(
+      payload.type === "UNDO_STROKE" &&
+      !isDrawer()
+    ){
+
+      removeKnownStroke(
+        payload.strokeId
+      );
+
+      redrawCanvas();
+
+      return;
+    }
+  }
+}
+
+/* =========================================================
+   大廳選項
+   ========================================================= */
+
+function bindCategoryClick(id){
+
+  selectedCategory = id;
+
+  playTone(
+    660,
+    0.06
+  );
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId:
+        roundId || "LOBBY",
+
+      type:
+        "SELECT_CAT",
+
+      categoryId:
+        id
+    }
+  );
+
+  render();
+}
+
+function bindRoundsClick(r){
+
+  selectedRounds =
+    intClamp(
+      Number(r),
+      1,
+      5
+    );
+
+  playTone(
+    660,
+    0.06
+  );
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId:
+        roundId || "LOBBY",
+
+      type:
+        "SELECT_RND",
+
+      rounds:
+        selectedRounds
+    }
+  );
+
+  render();
+}
+
+function bindSecondsClick(s){
+
+  selectedTurnSeconds =
+    intClamp(
+      Number(s),
+      15,
+      60
+    );
+
+  activeTurnSeconds =
+    selectedTurnSeconds;
+
+  playTone(
+    660,
+    0.06
+  );
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId:
+        roundId || "LOBBY",
+
+      type:
+        "SELECT_SEC",
+
+      turnSeconds:
+        selectedTurnSeconds
+    }
+  );
+
+  render();
+}
+
+/* =========================================================
+   玩家 UI
+   ========================================================= */
 
 function renderPlayers(){
-  const arr=[...players.values()].sort((a,b)=>(finite(a.joinedAt,0)-finite(b.joinedAt,0))||a.id.localeCompare(b.id)).slice(0,10);
-  if(!arr.length)return '<div class="player"><b>尚無玩家</b><em>等待房間玩家</em></div>';
+
+  const arr =
+    [...players.values()]
+      .sort((a,b)=>
+        (
+          finite(a.joinedAt,0) -
+          finite(b.joinedAt,0)
+        ) ||
+        a.id.localeCompare(b.id)
+      )
+      .slice(0,10);
+
+  if(!arr.length){
+
+    return `
+      <div class="player">
+        <b>尚無玩家</b>
+        <em>等待房間玩家</em>
+      </div>
+    `;
+  }
+
   return arr.map(p=>{
-    const you=p.id===ME.id;const turn=p.id===currentDrawerId;const role=turn?" 🎨":"";
-    return '<div class="player '+(you?'me ':'')+(turn?'drawer':'')+'"><b>'+esc(p.username)+role+(you?' · 你':'')+'</b><em>' + (matchStarted&&participants.has(p.id)?intClamp(p.score,0,100000)+' 分':'參賽中') + '</em></div>'
-  }).join("") + (players.size>10?'<div class="player"><b>+'+(players.size-10)+'</b><em>更多玩家</em></div>':"");
+
+    const you =
+      p.id === ME.id;
+
+    const turn =
+      p.id === currentDrawerId;
+
+    const role =
+      turn ? " 🎨" : "";
+
+    return `
+      <div class="player
+        ${you ? "me " : ""}
+        ${turn ? "drawer" : ""}">
+
+        <b>
+          ${esc(p.username)}
+          ${role}
+          ${you ? " · 你" : ""}
+        </b>
+
+        <em>
+          ${
+            matchStarted &&
+            participants.has(p.id)
+              ? intClamp(
+                  p.score,
+                  0,
+                  100000
+                ) + " 分"
+              : "參賽中"
+          }
+        </em>
+      </div>
+    `;
+
+  }).join("") +
+  (
+    players.size > 10
+      ? `
+        <div class="player">
+          <b>+${players.size - 10}</b>
+          <em>更多玩家</em>
+        </div>
+      `
+      : ""
+  );
 }
 
-/* 🌟 核心修復：分類、輪數與秒數點擊切換，絕不調用唯讀 CONFIG */
-function bindCategoryClick(id) {
-  selectedCategory = id;
-  playTone(660, 0.06);
-  sendEvent("GAME_EVENT", { roundId, type: "SELECT_CAT", categoryId: id });
-  render();
+/* =========================================================
+   Render
+   ========================================================= */
+
+function render(){
+
+  try{
+
+    const main =
+      document.getElementById(
+        "main"
+      );
+
+    if(!main){
+      return;
+    }
+
+    if(
+      state === STATES.LOBBY
+    ){
+
+      renderLobby(main);
+
+      return;
+    }
+
+    if(
+      state === STATES.COUNTDOWN ||
+      state === STATES.PLAYING
+    ){
+
+      renderGame(main);
+
+      return;
+    }
+
+    renderResult(main);
+
+  }catch(err){
+
+    console.error(
+      "Render error:",
+      err
+    );
+
+    const main =
+      document.getElementById(
+        "main"
+      );
+
+    if(main){
+
+      main.innerHTML = `
+        <div
+          class="panel"
+          style="
+            color:#ff637a;
+            padding:20px;
+          "
+        >
+          <h3>
+            渲染發生錯誤
+          </h3>
+
+          <pre>
+${esc(
+  err.stack ||
+  String(err)
+)}
+          </pre>
+        </div>
+      `;
+    }
+  }
 }
 
-function bindRoundsClick(r) {
-  selectedRounds = Number(r);
-  playTone(660, 0.06);
-  sendEvent("GAME_EVENT", { roundId, type: "SELECT_RND", rounds: Number(r) });
-  render();
-}
-
-function bindSecondsClick(s) {
-  selectedTurnSeconds = Number(s);
-  activeTurnSeconds = Number(s);
-  playTone(660, 0.06);
-  sendEvent("GAME_EVENT", { roundId, type: "SELECT_SEC", turnSeconds: Number(s) });
-  render();
-}
+/* =========================================================
+   大廳 Render
+   ========================================================= */
 
 function renderLobby(main){
-  const cat=getCategory(selectedCategory);
 
-  main.innerHTML=`
-    <div class="notice" style="background:#112333;border:1px solid var(--cyan);border-radius:12px;padding:8px;font-size:13px;font-weight:bold;color:var(--cyan);">
-      ⏱️ 選項與題型投票中，倒數 <b id="lobbySecText" style="font-size:18px;color:var(--gold);margin:0 4px;">${lobbySecondsLeft}</b> 秒將自動開始！
+  main.innerHTML = `
+
+    <div
+      class="notice"
+      style="
+        background:#112333;
+        border:1px solid var(--cyan);
+        border-radius:12px;
+        padding:8px;
+        font-size:13px;
+        font-weight:bold;
+        color:var(--cyan);
+      "
+    >
+      ⏱️ 選項與題型投票中，
+      倒數
+      <b
+        id="lobbySecText"
+        style="
+          font-size:18px;
+          color:var(--gold);
+          margin:0 4px;
+        "
+      >
+        ${lobbySecondsLeft}
+      </b>
+      秒將自動開始！
     </div>
 
     <section class="panel">
-      <div class="sectionTitle">🎨 點選題目類別：</div>
-      <div class="voteGrid">${CATEGORIES.map(c=>`<div class="chip ${selectedCategory===c.id?'active':''}" id="cat_${c.id}">${c.icon} ${c.name}<small>${c.hint}</small></div>`).join("")}</div>
+
+      <div class="sectionTitle">
+        🎨 點選題目類別：
+      </div>
+
+      <div class="voteGrid">
+
+        ${
+          CATEGORIES.map(c=>`
+
+            <div
+              class="chip ${
+                selectedCategory === c.id
+                  ? "active"
+                  : ""
+              }"
+              id="cat_${c.id}"
+            >
+
+              ${c.icon}
+              ${c.name}
+
+              <small>
+                ${c.hint}
+              </small>
+
+            </div>
+
+          `).join("")
+        }
+
+      </div>
+
     </section>
 
     <section class="panel">
-      <div class="sectionTitle">⚙️ 選擇輪數：</div>
-      <div class="voteGrid" style="grid-template-columns: repeat(3, 1fr);">${[1,3,5].map(r=>`<div class="chip ${selectedRounds===r?'active':''}" id="rnd_${r}">${r} 輪<small>${r===1?'快速局':r===3?'標準局':'馬拉松'}</small></div>`).join('')}</div>
+
+      <div class="sectionTitle">
+        ⚙️ 選擇輪數：
+      </div>
+
+      <div
+        class="voteGrid"
+        style="
+          grid-template-columns:
+          repeat(3,1fr);
+        "
+      >
+
+        ${
+          [1,3,5].map(r=>`
+
+            <div
+              class="chip ${
+                selectedRounds === r
+                  ? "active"
+                  : ""
+              }"
+              id="rnd_${r}"
+            >
+
+              ${r} 輪
+
+              <small>
+                ${
+                  r === 1
+                    ? "快速局"
+                    : r === 3
+                      ? "標準局"
+                      : "馬拉松"
+                }
+              </small>
+
+            </div>
+
+          `).join("")
+        }
+
+      </div>
+
     </section>
 
     <section class="panel">
-      <div class="sectionTitle">⏱️ 選擇每回合秒數：</div>
-      <div class="voteGrid" style="grid-template-columns: repeat(4, 1fr);">${[15,30,45,60].map(s=>`<div class="chip ${selectedTurnSeconds===s?'active':''}" id="sec_${s}">${s} 秒<small>${s===15?'極速':s===30?'標準':s===45?'充裕':'細繪'}</small></div>`).join('')}</div>
+
+      <div class="sectionTitle">
+        ⏱️ 選擇每回合秒數：
+      </div>
+
+      <div
+        class="voteGrid"
+        style="
+          grid-template-columns:
+          repeat(4,1fr);
+        "
+      >
+
+        ${
+          [15,30,45,60].map(s=>`
+
+            <div
+              class="chip ${
+                selectedTurnSeconds === s
+                  ? "active"
+                  : ""
+              }"
+              id="sec_${s}"
+            >
+
+              ${s} 秒
+
+              <small>
+                ${
+                  s === 15
+                    ? "極速"
+                    : s === 30
+                      ? "標準"
+                      : s === 45
+                        ? "充裕"
+                        : "細繪"
+                }
+              </small>
+
+            </div>
+
+          `).join("")
+        }
+
+      </div>
+
     </section>
 
     <section class="panel">
-      <div class="sectionTitle">房內玩家</div>
-      <div class="players">${renderPlayers()}</div>
+
+      <div class="sectionTitle">
+        房內玩家
+      </div>
+
+      <div class="players">
+        ${renderPlayers()}
+      </div>
+
     </section>
 
-    <button id="hostStartBtn" class="cta" style="margin-top:10px;">🚀 直接開始你畫我猜</button>`;
+    <button
+      id="hostStartBtn"
+      class="cta"
+      style="margin-top:10px;"
+    >
+      🚀 直接開始你畫我猜
+    </button>
+  `;
 
-  CATEGORIES.forEach(c => {
-    const el = document.getElementById("cat_" + c.id);
-    if(el) {
-      el.onclick = (e) => { e.preventDefault(); bindCategoryClick(c.id); };
-      el.onpointerdown = (e) => { e.preventDefault(); bindCategoryClick(c.id); };
+  CATEGORIES.forEach(c=>{
+
+    const el =
+      document.getElementById(
+        "cat_" + c.id
+      );
+
+    if(el){
+
+      el.onclick = e=>{
+        e.preventDefault();
+
+        bindCategoryClick(
+          c.id
+        );
+      };
     }
   });
 
-  [1,3,5].forEach(r => {
-    const el = document.getElementById("rnd_" + r);
-    if(el) {
-      el.onclick = (e) => { e.preventDefault(); bindRoundsClick(r); };
-      el.onpointerdown = (e) => { e.preventDefault(); bindRoundsClick(r); };
+  [1,3,5].forEach(r=>{
+
+    const el =
+      document.getElementById(
+        "rnd_" + r
+      );
+
+    if(el){
+
+      el.onclick = e=>{
+        e.preventDefault();
+
+        bindRoundsClick(r);
+      };
     }
   });
 
-  [15,30,45,60].forEach(s => {
-    const el = document.getElementById("sec_" + s);
-    if(el) {
-      el.onclick = (e) => { e.preventDefault(); bindSecondsClick(s); };
-      el.onpointerdown = (e) => { e.preventDefault(); bindSecondsClick(s); };
+  [15,30,45,60].forEach(s=>{
+
+    const el =
+      document.getElementById(
+        "sec_" + s
+      );
+
+    if(el){
+
+      el.onclick = e=>{
+        e.preventDefault();
+
+        bindSecondsClick(s);
+      };
     }
   });
 
-  const hostBtn = document.getElementById("hostStartBtn");
-  if(hostBtn) {
-    hostBtn.onclick = (e) => {
+  const hostBtn =
+    document.getElementById(
+      "hostStartBtn"
+    );
+
+  if(hostBtn){
+
+    hostBtn.onclick = e=>{
+
       e.preventDefault();
+
       ensureAudio();
-      startDirectGameAsHost();
-    };
-    hostBtn.onpointerdown = (e) => {
-      e.preventDefault();
-      ensureAudio();
-      startDirectGameAsHost();
+
+      /*
+       * ★ DEV / 房主可以開始。
+       */
+      if(DEV || sdkIsHost){
+
+        startDirectGameAsHost();
+
+      }else{
+
+        showToast(
+          "只有房主可以開始遊戲"
+        );
+      }
     };
   }
 }
+
+/* =========================================================
+   遊戲 Render
+   ========================================================= */
 
 function renderGame(main){
-  const drawer=isDrawer();const remain=Math.max(0,Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-Date.now())/1000));const my=players.get(ME.id);const turnPlayer=players.get(currentDrawerId);
-  main.innerHTML=`
-    <div class="hud"><div class="pill ${remain<=4?'timerWarn':''}">⏱ <b id="gameTimer">${remain}</b> 秒</div><div class="pill centerText">${getCategory(selectedCategory).icon} <b>${esc(getCategory(selectedCategory).name)}</b></div><div class="pill" style="text-align:right">🏆 <b>${intClamp(prizePool,0,1000000)}</b></div></div>
-    <section id="canvasWrap"><canvas id="drawCanvas"></canvas><div class="roleBadge">${drawer?'🎨 你是畫家':'🔎 搶答中'}</div><div class="turnBadge">${currentTurnIndex+1}/${turnOrder.length} · ${esc(turnPlayer?turnPlayer.username:'畫家')}</div><div class="wordBadge">${drawer?(currentWord?'題目：'+esc(currentWord.answer):'題目準備中'):'❓ 看圖猜答案'}</div><div class="cursorHint">${drawer?'手指拖曳作畫，不要直接寫答案':'知道答案就輸入文字送出'}</div></section>
-    <div class="guessChatBox" id="guessChatBox" style="max-height:80px;overflow-y:auto;margin:6px 0;font-size:12px;background:#0b0f18;border:1px solid #222c3d;border-radius:8px;padding:6px;">
-      ${guessHistory.map(h=>`<div style="color:${h.isCorrect?'#37a66a':(h.isSystem?'#f39a28':'#e2e8f0')}"><b>${esc(h.username)}：</b>${esc(h.text)}</div>`).join('')}
+
+  const drawer =
+    isDrawer();
+
+  const remain =
+    Math.max(
+      0,
+      Math.ceil(
+        (
+          currentTurnStartedAt +
+          activeTurnSeconds * 1000 -
+          Date.now()
+        ) / 1000
+      )
+    );
+
+  const my =
+    players.get(ME.id);
+
+  const turnPlayer =
+    players.get(
+      currentDrawerId
+    );
+
+  main.innerHTML = `
+
+    <div class="hud">
+
+      <div
+        class="pill ${
+          remain <= 4
+            ? "timerWarn"
+            : ""
+        }"
+      >
+
+        ⏱
+
+        <b id="gameTimer">
+          ${remain}
+        </b>
+
+        秒
+
+      </div>
+
+      <div class="pill centerText">
+
+        ${getCategory(
+          selectedCategory
+        ).icon}
+
+        <b>
+          ${esc(
+            getCategory(
+              selectedCategory
+            ).name
+          )}
+        </b>
+
+      </div>
+
+      <div
+        class="pill"
+        style="text-align:right"
+      >
+
+        🏆
+
+        <b>
+          ${intClamp(
+            prizePool,
+            0,
+            1000000
+          )}
+        </b>
+
+      </div>
+
     </div>
-    ${drawer?`<div class="tools"><button class="tool ${tool==='pen'?'active':''}" data-tool="pen">✏️</button><button class="tool ${tool==='eraser'?'active':''}" data-tool="eraser">🧽</button><button class="tool color" data-color="#151923" style="background:#151923"></button><button class="tool color" data-color="#e34d5d" style="background:#e34d5d"></button><button class="tool color" data-color="#3275e8" style="background:#3275e8"></button><button class="tool color" data-color="#37a66a" style="background:#37a66a"></button><button class="tool color" data-color="#a353d5" style="background:#a353d5"></button><button class="tool color" data-color="#f39a28" style="background:#f39a28"></button><button class="tool sizeBtn ${brushSize===4?'active':''}" data-size="4">細</button><button class="tool sizeBtn ${brushSize===8?'active':''}" data-size="8">中</button><button class="tool sizeBtn ${brushSize===15?'active':''}" data-size="15">粗</button><button class="tool" id="undoBtn">↶</button><button class="tool" id="clearBtn">清除</button><button class="skipBtn" id="skipBtn">跳過（0 分）</button></div>`:`<div class="guessArea"><input id="guessInput" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…"><button id="guessBtn">猜！</button></div>`}
-    <div class="turnFeed"><div class="feedText">${esc(feedText||(drawer?'畫得像一點！':'搶在別人前猜中！'))}</div><div class="turnScore">你的總分 <b>${intClamp(my?my.score:0,0,100000)}</b></div></div>
-    <div class="players">${renderPlayers()}</div>`;
-  if(ensureCanvas())redrawCanvas();
+
+    <section id="canvasWrap">
+
+      <canvas
+        id="drawCanvas"
+      ></canvas>
+
+      <div class="roleBadge">
+        ${
+          drawer
+            ? "🎨 你是畫家"
+            : "🔎 搶答中"
+        }
+      </div>
+
+      <div class="turnBadge">
+
+        ${currentTurnIndex + 1}
+        /
+        ${turnOrder.length}
+
+        ·
+
+        ${esc(
+          turnPlayer
+            ? turnPlayer.username
+            : "畫家"
+        )}
+
+      </div>
+
+      <div class="wordBadge">
+
+        ${
+          drawer
+            ? (
+                currentWord
+                  ? "題目：" +
+                    esc(
+                      currentWord.answer
+                    )
+                  : "題目準備中"
+              )
+            : "❓ 看圖猜答案"
+        }
+
+      </div>
+
+      <div class="cursorHint">
+
+        ${
+          drawer
+            ? "手指拖曳作畫，不要直接寫答案"
+            : "知道答案就輸入文字送出"
+        }
+
+      </div>
+
+    </section>
+
+    <div
+      class="guessChatBox"
+      id="guessChatBox"
+      style="
+        max-height:80px;
+        overflow-y:auto;
+        margin:6px 0;
+        font-size:12px;
+        background:#0b0f18;
+        border:1px solid #222c3d;
+        border-radius:8px;
+        padding:6px;
+      "
+    >
+
+      ${
+        guessHistory.map(h=>`
+
+          <div
+            style="
+              color:${
+                h.isCorrect
+                  ? "#37a66a"
+                  : (
+                    h.isSystem
+                      ? "#f39a28"
+                      : "#e2e8f0"
+                  )
+              };
+            "
+          >
+
+            <b>
+              ${esc(h.username)}：
+            </b>
+
+            ${esc(h.text)}
+
+          </div>
+
+        `).join("")
+      }
+
+    </div>
+
+    ${
+      drawer
+
+        ? `
+
+          <div class="tools">
+
+            <button
+              class="tool ${
+                tool === "pen"
+                  ? "active"
+                  : ""
+              }"
+              data-tool="pen"
+            >
+              ✏️
+            </button>
+
+            <button
+              class="tool ${
+                tool === "eraser"
+                  ? "active"
+                  : ""
+              }"
+              data-tool="eraser"
+            >
+              🧽
+            </button>
+
+            <button
+              class="tool color"
+              data-color="#151923"
+              style="
+                background:#151923
+              "
+            ></button>
+
+            <button
+              class="tool color"
+              data-color="#e34d5d"
+              style="
+                background:#e34d5d
+              "
+            ></button>
+
+            <button
+              class="tool color"
+              data-color="#3275e8"
+              style="
+                background:#3275e8
+              "
+            ></button>
+
+            <button
+              class="tool color"
+              data-color="#37a66a"
+              style="
+                background:#37a66a
+              "
+            ></button>
+
+            <button
+              class="tool color"
+              data-color="#a353d5"
+              style="
+                background:#a353d5
+              "
+            ></button>
+
+            <button
+              class="tool color"
+              data-color="#f39a28"
+              style="
+                background:#f39a28
+              "
+            ></button>
+
+            <button
+              class="tool sizeBtn ${
+                brushSize === 4
+                  ? "active"
+                  : ""
+              }"
+              data-size="4"
+            >
+              細
+            </button>
+
+            <button
+              class="tool sizeBtn ${
+                brushSize === 8
+                  ? "active"
+                  : ""
+              }"
+              data-size="8"
+            >
+              中
+            </button>
+
+            <button
+              class="tool sizeBtn ${
+                brushSize === 15
+                  ? "active"
+                  : ""
+              }"
+              data-size="15"
+            >
+              粗
+            </button>
+
+            <button
+              class="tool"
+              id="undoBtn"
+            >
+              ↶
+            </button>
+
+            <button
+              class="tool"
+              id="clearBtn"
+            >
+              清除
+            </button>
+
+            <button
+              class="skipBtn"
+              id="skipBtn"
+            >
+              跳過（0 分）
+            </button>
+
+          </div>
+
+        `
+
+        : `
+
+          <div class="guessArea">
+
+            <input
+              id="guessInput"
+              inputmode="text"
+              autocomplete="off"
+              maxlength="${CONFIG.MAX_GUESS_LENGTH}"
+              placeholder="輸入答案…"
+            >
+
+            <button
+              id="guessBtn"
+            >
+              猜！
+            </button>
+
+          </div>
+
+        `
+    }
+
+    <div class="turnFeed">
+
+      <div class="feedText">
+
+        ${esc(
+          feedText ||
+          (
+            drawer
+              ? "畫得像一點！"
+              : "搶在別人前猜中！"
+          )
+        )}
+
+      </div>
+
+      <div class="turnScore">
+
+        你的總分
+
+        <b>
+          ${intClamp(
+            my
+              ? my.score
+              : 0,
+            0,
+            100000
+          )}
+        </b>
+
+      </div>
+
+    </div>
+
+    <div class="players">
+      ${renderPlayers()}
+    </div>
+  `;
+
+  if(ensureCanvas()){
+    redrawCanvas();
+  }
+
   if(drawer){
-    document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{tool='pen';brushColor=b.dataset.color;syncTools();playTone(620,.04)}));
-    document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{tool=b.dataset.tool;syncTools();playTone(tool==='eraser'?360:620,.04)}));
-    document.querySelectorAll('[data-size]').forEach(b=>b.addEventListener('click',()=>{brushSize=intClamp(Number(b.dataset.size),4,15);syncTools();playTone(560,.04)}));
-    document.getElementById('undoBtn')?.addEventListener('click',undoLastStroke);document.getElementById('clearBtn')?.addEventListener('click',clearAllCanvas);document.getElementById('skipBtn')?.addEventListener('click',skipTurn);
+
+    document
+      .querySelectorAll(
+        "[data-color]"
+      )
+      .forEach(b=>{
+
+        b.addEventListener(
+          "click",
+          ()=>{
+
+            tool = "pen";
+
+            brushColor =
+              b.dataset.color;
+
+            syncTools();
+
+            playTone(
+              620,
+              .04
+            );
+          }
+        );
+      });
+
+    document
+      .querySelectorAll(
+        "[data-tool]"
+      )
+      .forEach(b=>{
+
+        b.addEventListener(
+          "click",
+          ()=>{
+
+            tool =
+              b.dataset.tool;
+
+            syncTools();
+
+            playTone(
+              tool === "eraser"
+                ? 360
+                : 620,
+              .04
+            );
+          }
+        );
+      });
+
+    document
+      .querySelectorAll(
+        "[data-size]"
+      )
+      .forEach(b=>{
+
+        b.addEventListener(
+          "click",
+          ()=>{
+
+            brushSize =
+              intClamp(
+                Number(
+                  b.dataset.size
+                ),
+                4,
+                15
+              );
+
+            syncTools();
+
+            playTone(
+              560,
+              .04
+            );
+          }
+        );
+      });
+
+    document
+      .getElementById(
+        "undoBtn"
+      )
+      ?.addEventListener(
+        "click",
+        undoLastStroke
+      );
+
+    document
+      .getElementById(
+        "clearBtn"
+      )
+      ?.addEventListener(
+        "click",
+        clearAllCanvas
+      );
+
+    document
+      .getElementById(
+        "skipBtn"
+      )
+      ?.addEventListener(
+        "click",
+        skipTurn
+      );
+
   }else{
-    document.getElementById('guessBtn')?.addEventListener('click',submitGuess);document.getElementById('guessInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});document.getElementById('guessInput')?.focus({preventScroll:true});
+
+    document
+      .getElementById(
+        "guessBtn"
+      )
+      ?.addEventListener(
+        "click",
+        submitGuess
+      );
+
+    document
+      .getElementById(
+        "guessInput"
+      )
+      ?.addEventListener(
+        "keydown",
+        e=>{
+          if(e.key === "Enter"){
+            submitGuess();
+          }
+        }
+      );
+
+    document
+      .getElementById(
+        "guessInput"
+      )
+      ?.focus({
+        preventScroll:true
+      });
   }
 }
+
+/* =========================================================
+   結果頁
+   ========================================================= */
 
 function renderResult(main){
-  const mine=finalReward>0;const all=participantPlayers().sort((a,b)=>(finite(b.score,0)-finite(a.score,0))||a.id.localeCompare(b.id));
-  main.innerHTML=`<section class="panel hero center result"><div class="resultTitle">${mine?'🏆 你贏了！':'本局已結束'}</div><p>${esc(finalReason||'所有玩家完成輪流作畫')}</p><div class="reward">+${intClamp(finalReward,0,prizePool)} 銀幣</div><div class="stats"><div class="stat"><b>第 ${finalRank}</b><span>最終排名</span></div><div class="stat"><b>${intClamp(players.get(ME.id)?.score||0,0,100000)}</b><span>總分</span></div><div class="stat"><b>${intClamp(prizePool,0,1000000)}</b><span>獎池</span></div></div></section>
-  <section class="panel"><div class="sectionTitle">最終排名</div><div class="rankList">${all.slice(0,10).map((p,i)=>{
-    const name=(p.username&&p.username!=="玩家")?p.username:(p.id===ME.id?ME.username:("玩家_"+String(p.id).slice(-4)));
-    return '<div class="rankRow"><div class="rankNo">'+(i+1)+'</div><div class="rankName">'+esc(name)+(p.id===ME.id?' · 你':'')+'</div><div class="rankScore">'+intClamp(p.score,0,100000)+' 分</div><div class="rankReward">猜中 '+intClamp(p.correct||0,0,1000)+' 次 · 跳過 '+intClamp(p.skips||0,0,1000)+' 次</div></div>';
-  }).join('')}</div></section>`;
+
+  const mine =
+    finalReward > 0;
+
+  const all =
+    participantPlayers()
+      .sort((a,b)=>
+        finite(b.score,0) -
+        finite(a.score,0)
+      );
+
+  main.innerHTML = `
+
+    <section
+      class="panel hero center result"
+    >
+
+      <div class="resultTitle">
+
+        ${
+          mine
+            ? "🏆 你贏了！"
+            : "本局已結束"
+        }
+
+      </div>
+
+      <p>
+        ${esc(
+          finalReason ||
+          "所有玩家完成輪流作畫"
+        )}
+      </p>
+
+      <div class="reward">
+
+        +${intClamp(
+          finalReward,
+          0,
+          prizePool
+        )}
+
+        銀幣
+
+      </div>
+
+      <div class="stats">
+
+        <div class="stat">
+
+          <b>
+            第 ${finalRank}
+          </b>
+
+          <span>
+            最終排名
+          </span>
+
+        </div>
+
+        <div class="stat">
+
+          <b>
+            ${intClamp(
+              players.get(ME.id)?.score || 0,
+              0,
+              100000
+            )}
+          </b>
+
+          <span>
+            總分
+          </span>
+
+        </div>
+
+        <div class="stat">
+
+          <b>
+            ${intClamp(
+              prizePool,
+              0,
+              1000000
+            )}
+          </b>
+
+          <span>
+            獎池
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="panel">
+
+      <div class="sectionTitle">
+        最終排名
+      </div>
+
+      <div class="rankList">
+
+        ${
+          all.slice(0,10).map((p,i)=>{
+
+            const name =
+              (
+                p.username &&
+                p.username !== "玩家"
+              )
+                ? p.username
+                : (
+                    p.id === ME.id
+                      ? ME.username
+                      : "玩家_" +
+                        String(
+                          p.id
+                        ).slice(-4)
+                  );
+
+            return `
+
+              <div class="rankRow">
+
+                <div class="rankNo">
+                  ${i + 1}
+                </div>
+
+                <div class="rankName">
+
+                  ${esc(name)}
+
+                  ${
+                    p.id === ME.id
+                      ? " · 你"
+                      : ""
+                  }
+
+                </div>
+
+                <div class="rankScore">
+
+                  ${intClamp(
+                    p.score,
+                    0,
+                    100000
+                  )}
+
+                  分
+
+                </div>
+
+                <div class="rankReward">
+
+                  猜中
+                  ${intClamp(
+                    p.correct || 0,
+                    0,
+                    1000
+                  )}
+                  次 ·
+                  跳過
+                  ${intClamp(
+                    p.skips || 0,
+                    0,
+                    1000
+                  )}
+                  次
+
+                </div>
+
+              </div>
+
+            `;
+
+          }).join("")
+        }
+
+      </div>
+
+    </section>
+  `;
 }
 
-function gameLoop(ts){
-  if(!rafRunning)return;
-  const dt=Math.min(Math.max((ts-lastFrame)/1000,0),0.033);lastFrame=ts;fps=0.9*fps+0.1*(1/Math.max(dt,0.001));
-  if(state===STATES.PLAYING&&!matchEnded){
-    const now=Date.now();
-    if(now>=currentTurnStartedAt+activeTurnSeconds*1000)resolveTurnAsHost("TIMEOUT","");
-    const timer=document.getElementById("gameTimer");if(timer)timer.textContent=String(Math.max(0,Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-now)/1000)));
-  }
-  loopHandle=requestAnimationFrame(gameLoop);
-}
-
-function heartbeat(){
-  if(!ME.id)return;
-  sendEvent("PLAYER_HEARTBEAT",{roundId:roundId||"LOBBY",userId:ME.id,status:state,timestamp:Date.now()});
-  const now=Date.now();for(const [id,p] of players){if(id!==ME.id&&now-p.lastSeen>CONFIG.PLAYER_TIMEOUT_MS)p.status="TIMEOUT"}
-}
-document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now()}else{if(state===STATES.PLAYING&&hiddenAt&&Date.now()-hiddenAt>2500){hiddenAt=0}}});
-window.addEventListener("pagehide",()=>{clearTimeout(turnStateTimer);clearInterval(lobbyTimer);clearInterval(heartbeatTimer);cancelAnimationFrame(loopHandle);rafRunning=false});
+/* =========================================================
+   Canvas
+   ========================================================= */
 
 function ensureCanvas(){
-  canvas=document.getElementById("drawCanvas");
-  if(!canvas)return false;
-  ctx=canvas.getContext("2d",{alpha:false,desynchronized:true});
-  if(!resizeBound){window.addEventListener("resize",resizeCanvas,{passive:true});resizeBound=true}
+
+  canvas =
+    document.getElementById(
+      "drawCanvas"
+    );
+
+  if(!canvas){
+    return false;
+  }
+
+  ctx =
+    canvas.getContext(
+      "2d",
+      {
+        alpha:false,
+        desynchronized:true
+      }
+    );
+
+  if(!resizeBound){
+
+    window.addEventListener(
+      "resize",
+      resizeCanvas,
+      {
+        passive:true
+      }
+    );
+
+    resizeBound = true;
+  }
+
   resizeCanvas();
+
   attachCanvasEvents();
+
   return true;
 }
+
 function resizeCanvas(){
-  if(!canvas||!ctx)return;
-  const r=canvas.getBoundingClientRect();
-  const w = r.width > 10 ? r.width : 340;
-  const h = r.height > 10 ? r.height : 260;
-  const dpr=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=Math.max(1,Math.floor(w*dpr));
-  canvas.height=Math.max(1,Math.floor(h*dpr));
-  ctx.setTransform(dpr,0,0,dpr,1,1);
-  ctx.fillStyle="#f7f8fb";
-  ctx.fillRect(0,0,w,h);
+
+  if(!canvas || !ctx){
+    return;
+  }
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  const w =
+    r.width > 10
+      ? r.width
+      : 340;
+
+  const h =
+    r.height > 10
+      ? r.height
+      : 260;
+
+  const dpr =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+  canvas.width =
+    Math.max(
+      1,
+      Math.floor(w * dpr)
+    );
+
+  canvas.height =
+    Math.max(
+      1,
+      Math.floor(h * dpr)
+    );
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    1,
+    1
+  );
+
+  ctx.fillStyle =
+    "#f7f8fb";
+
+  ctx.fillRect(
+    0,
+    0,
+    w,
+    h
+  );
+
   redrawCanvas();
 }
-function redrawCanvas(){if(!canvas||!ctx)return;const r=canvas.getBoundingClientRect();ctx.fillStyle="#f7f8fb";ctx.fillRect(0,0,r.width,r.height);for(const s of knownStrokes)drawStroke(s)}
-function pointFromEvent(e){const r=canvas.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/Math.max(1,r.width),0,1),y:clamp((e.clientY-r.top)/Math.max(1,r.height),0,1)}}
-function drawStroke(stroke){if(!stroke||!Array.isArray(stroke.points)||stroke.points.length<1||!ctx||!canvas)return;const r=canvas.getBoundingClientRect();const color=safeString(stroke.color,"#151923",20);const size=clamp(stroke.size,2,30);ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap="round";ctx.lineJoin="round";for(let i=1;i<stroke.points.length;i++){const a=stroke.points[i-1],b=stroke.points[i];ctx.beginPath();ctx.moveTo(a.x*r.width+1,a.y*r.height+1);ctx.lineTo(b.x*r.width+1,b.y*r.height+1);ctx.stroke()}if(stroke.points.length===1){const a=stroke.points[0];ctx.beginPath();ctx.arc(a.x*r.width+1,a.y*r.height+1,size/2,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}}
-function beginStroke(e){
-  if(!isDrawer()||state!==STATES.PLAYING||matchEnded||currentTurnResolved)return;e.preventDefault();ensureAudio();
-  const p=pointFromEvent(e);const color=tool==="eraser"?"#f7f8fb":brushColor;
-  currentStroke={id:ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6),color,size:brushSize,points:[p]};
-  try{canvas.setPointerCapture(e.pointerId)}catch(_){ }
-}
-function moveStroke(e){
-  if(!currentStroke||!canvas)return;e.preventDefault();const p=pointFromEvent(e);const last=currentStroke.points[currentStroke.points.length-1];const r=canvas.getBoundingClientRect();
-  const dx=(p.x-last.x)*r.width,dy=(p.y-last.y)*r.height;if(Math.hypot(dx,dy)<1.4)return;
-  if(currentStroke.points.length<CONFIG.MAX_POINTS_PER_STROKE){currentStroke.points.push(p);drawStroke({color:currentStroke.color,size:currentStroke.size,points:[last,p]})}
-}
-function endStroke(e){
-  if(!currentStroke)return;if(e&&e.preventDefault)e.preventDefault();const stroke={id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,points:currentStroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE)};
-  knownStrokes.push(stroke);localStrokeIds.push(stroke.id);if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();sendEvent("GAME_EVENT",{roundId,type:"STROKE",stroke,turnIndex:currentTurnIndex});currentStroke=null;
-}
-function attachCanvasEvents(){
-  if(!canvas||canvas.dataset.bound==="1")return;
-  canvas.dataset.bound="1";
-  canvas.addEventListener("pointerdown",beginStroke,{passive:false});
-  canvas.addEventListener("pointermove",moveStroke,{passive:false});
-  canvas.addEventListener("pointerup",endStroke,{passive:false});
-  canvas.addEventListener("pointercancel",endStroke,{passive:false});
-  canvas.addEventListener("dragstart", e => e.preventDefault());
-  document.body.addEventListener("dragstart", e => e.preventDefault());
-}
-function receiveStroke(stroke){if(!stroke||!Array.isArray(stroke.points)||stroke.points.length>CONFIG.MAX_POINTS_PER_STROKE)return;if(stroke.id&&knownStrokes.some(s=>s.id===stroke.id))return;knownStrokes.push({id:safeString(stroke.id,"remote",100),color:safeString(stroke.color,"#151923",20),size:clamp(stroke.size,2,30),points:stroke.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE).map(p=>({x:clamp(p.x,0,1),y:clamp(p.y,0,1)}))});if(knownStrokes.length>CONFIG.MAX_STROKES)knownStrokes.shift();drawStroke(knownStrokes[knownStrokes.length-1])}
-function removeKnownStroke(id){if(typeof id!=="string")return;knownStrokes=knownStrokes.filter(s=>s.id!==id)}
-function undoLastStroke(){if(!isDrawer()||!localStrokeIds.length||matchEnded)return;const id=localStrokeIds.pop();removeKnownStroke(id);redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"UNDO_STROKE",strokeId:id,turnIndex:currentTurnIndex});playTone(400,.05);}
-function clearAllCanvas(){if(!isDrawer()||matchEnded)return;knownStrokes=[];localStrokeIds=[];redrawCanvas();sendEvent("GAME_EVENT",{roundId,type:"CLEAR_CANVAS",turnIndex:currentTurnIndex});playTone(350,.05)}
-function syncTools(){document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));document.querySelectorAll("[data-size]").forEach(b=>b.classList.toggle("active",Number(b.dataset.size)===brushSize))}
 
-function ensureAudio(){if(muted)return;try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){}}
-function playTone(freq,duration=.08){if(muted)return;const now=performance.now();if(now-soundCooldown<35)return;soundCooldown=now;ensureAudio();if(!audioCtx)return;try{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="sine";o.frequency.value=clamp(freq,120,1700);g.gain.value=.28;o.connect(g);g.connect(audioCtx.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.stop(audioCtx.currentTime+duration)}catch(_){}}
-function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(_){}}
+function redrawCanvas(){
 
-function handleEvent(userId,eventName,payload){
-  const knownUser=players.get(userId); if(knownUser)knownUser.lastSeen=Date.now();
-  if(eventName==="PLAYER_HELLO"){
-    const p=addPlayer(userId,payload.username,payload.avatar,payload.paid?"READY":"WAITING",true);if(p){p.lastSeen=Date.now();p.joinedAt=finite(payload.joinedAt,p.joinedAt)}
-    if(matchStarted&&!participants.has(userId))p.status="SPECTATOR";
-    render();return;
-  }
-  if(eventName==="ROUND_START"){applyRoundStart(payload);return;}
-  if(eventName==="TURN_START"){if(!validRoundPayload(payload)||!matchStarted||matchEnded)return;applyTurnStart(payload);return;}
-  if(eventName==="TURN_END"){if(!validRoundPayload(payload)||matchEnded)return;applyTurnEnd(payload);return;}
-  if(eventName==="GAME_EVENT"){
-    if(!validRoundPayload(payload)||matchEnded)return;
-    if(payload.type === "SELECT_CAT") { selectedCategory = payload.categoryId; render(); }
-    else if(payload.type === "SELECT_RND") { selectedRounds = Number(payload.rounds); render(); }
-    else if(payload.type === "SELECT_SEC") { selectedTurnSeconds = Number(payload.turnSeconds); activeTurnSeconds = Number(payload.turnSeconds); render(); }
-    processGuessAsHost(payload);
-    if(payload.type==="STROKE"&&!isDrawer())receiveStroke(payload.stroke);
-    else if(payload.type==="CLEAR_CANVAS"&&!isDrawer()){knownStrokes=[];redrawCanvas()}
-    else if(payload.type==="UNDO_STROKE"&&!isDrawer()){removeKnownStroke(payload.strokeId);redrawCanvas()}
+  if(!canvas || !ctx){
     return;
   }
-  if(eventName==="PLAYER_STATE"){
-    if(!validRoundPayload(payload))return;const p=addPlayer(userId,payload.username||"玩家",payload.avatar||"",payload.status||"PLAYING",true);if(p)p.score=intClamp(payload.score,0,100000);render();return;
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  ctx.fillStyle =
+    "#f7f8fb";
+
+  ctx.fillRect(
+    0,
+    0,
+    r.width,
+    r.height
+  );
+
+  for(
+    const s of knownStrokes
+  ){
+    drawStroke(s);
   }
-  if(eventName==="PLAYER_HEARTBEAT"){if(validRoundPayload(payload)){const p=players.get(userId)||addPlayer(userId,"玩家","");if(p){p.lastSeen=Date.now();p.status=safeString(payload.status,p.status,30)}}return;}
-  if(eventName==="PLAYER_END"){
-    if(!validRoundPayload(payload))return;const p=players.get(userId)||addPlayer(userId,"玩家","");if(p){p.status=safeString(payload.status,"END",20);p.score=intClamp(payload.score,0,100000);p.reward=intClamp(payload.reward,0,prizePool)}render();return;
-  }
-  if(eventName==="ROUND_END"){if(!validRoundPayload(payload)||matchEnded&&state!==STATES.PLAYING&&state!==STATES.RESULT)return;applyRoundEnd(payload);return}
 }
+
+function pointFromEvent(e){
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  return {
+
+    x: clamp(
+      (e.clientX - r.left) /
+      Math.max(1,r.width),
+      0,
+      1
+    ),
+
+    y: clamp(
+      (e.clientY - r.top) /
+      Math.max(1,r.height),
+      0,
+      1
+    )
+  };
+}
+
+function drawStroke(stroke){
+
+  if(
+    !stroke ||
+    !Array.isArray(
+      stroke.points
+    ) ||
+    stroke.points.length < 1 ||
+    !ctx ||
+    !canvas
+  ){
+    return;
+  }
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  const color =
+    safeString(
+      stroke.color,
+      "#151923",
+      20
+    );
+
+  const size =
+    clamp(
+      stroke.size,
+      2,
+      30
+    );
+
+  ctx.strokeStyle =
+    color;
+
+  ctx.lineWidth =
+    size;
+
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
+  for(
+    let i=1;
+    i<stroke.points.length;
+    i++
+  ){
+
+    const a =
+      stroke.points[i-1];
+
+    const b =
+      stroke.points[i];
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      a.x * r.width + 1,
+      a.y * r.height + 1
+    );
+
+    ctx.lineTo(
+      b.x * r.width + 1,
+      b.y * r.height + 1
+    );
+
+    ctx.stroke();
+  }
+
+  if(
+    stroke.points.length === 1
+  ){
+
+    const a =
+      stroke.points[0];
+
+    ctx.beginPath();
+
+    ctx.arc(
+      a.x * r.width + 1,
+      a.y * r.height + 1,
+      size / 2,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle =
+      color;
+
+    ctx.fill();
+  }
+}
+
+/* =========================================================
+   Canvas 畫畫
+   ========================================================= */
+
+function beginStroke(e){
+
+  if(
+    !isDrawer() ||
+    state !== STATES.PLAYING ||
+    matchEnded ||
+    currentTurnResolved
+  ){
+    return;
+  }
+
+  e.preventDefault();
+
+  ensureAudio();
+
+  const p =
+    pointFromEvent(e);
+
+  const color =
+    tool === "eraser"
+      ? "#f7f8fb"
+      : brushColor;
+
+  currentStroke = {
+
+    id:
+      ME.id +
+      "_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random()
+        .toString(36)
+        .slice(2,6),
+
+    color,
+
+    size:
+      brushSize,
+
+    points:[
+      p
+    ]
+  };
+
+  try{
+
+    canvas.setPointerCapture(
+      e.pointerId
+    );
+
+  }catch(_){}
+}
+
+function moveStroke(e){
+
+  if(
+    !currentStroke ||
+    !canvas
+  ){
+    return;
+  }
+
+  e.preventDefault();
+
+  const p =
+    pointFromEvent(e);
+
+  const last =
+    currentStroke.points[
+      currentStroke.points.length - 1
+    ];
+
+  const r =
+    canvas.getBoundingClientRect();
+
+  const dx =
+    (p.x - last.x) *
+    r.width;
+
+  const dy =
+    (p.y - last.y) *
+    r.height;
+
+  if(
+    Math.hypot(dx,dy) < 1.4
+  ){
+    return;
+  }
+
+  if(
+    currentStroke.points.length <
+    CONFIG.MAX_POINTS_PER_STROKE
+  ){
+
+    currentStroke.points.push(p);
+
+    drawStroke({
+
+      color:
+        currentStroke.color,
+
+      size:
+        currentStroke.size,
+
+      points:[
+        last,
+        p
+      ]
+    });
+  }
+}
+
+function endStroke(e){
+
+  if(!currentStroke){
+    return;
+  }
+
+  if(e?.preventDefault){
+    e.preventDefault();
+  }
+
+  const stroke = {
+
+    id:
+      currentStroke.id,
+
+    color:
+      currentStroke.color,
+
+    size:
+      currentStroke.size,
+
+    points:
+      currentStroke.points.slice(
+        0,
+        CONFIG.MAX_POINTS_PER_STROKE
+      )
+  };
+
+  knownStrokes.push(
+    stroke
+  );
+
+  localStrokeIds.push(
+    stroke.id
+  );
+
+  if(
+    knownStrokes.length >
+    CONFIG.MAX_STROKES
+  ){
+    knownStrokes.shift();
+  }
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId,
+      type: "STROKE",
+      stroke,
+      turnIndex:
+        currentTurnIndex
+    }
+  );
+
+  currentStroke = null;
+}
+
+function attachCanvasEvents(){
+
+  if(
+    !canvas ||
+    canvas.dataset.bound === "1"
+  ){
+    return;
+  }
+
+  canvas.dataset.bound = "1";
+
+  canvas.addEventListener(
+    "pointerdown",
+    beginStroke,
+    {passive:false}
+  );
+
+  canvas.addEventListener(
+    "pointermove",
+    moveStroke,
+    {passive:false}
+  );
+
+  canvas.addEventListener(
+    "pointerup",
+    endStroke,
+    {passive:false}
+  );
+
+  canvas.addEventListener(
+    "pointercancel",
+    endStroke,
+    {passive:false}
+  );
+
+  canvas.addEventListener(
+    "dragstart",
+    e=>e.preventDefault()
+  );
+
+  document.body.addEventListener(
+    "dragstart",
+    e=>e.preventDefault()
+  );
+}
+
+function receiveStroke(stroke){
+
+  if(
+    !stroke ||
+    !Array.isArray(
+      stroke.points
+    ) ||
+    stroke.points.length >
+      CONFIG.MAX_POINTS_PER_STROKE
+  ){
+    return;
+  }
+
+  if(
+    stroke.id &&
+    knownStrokes.some(
+      s => s.id === stroke.id
+    )
+  ){
+    return;
+  }
+
+  const clean = {
+
+    id:
+      safeString(
+        stroke.id,
+        "remote",
+        100
+      ),
+
+    color:
+      safeString(
+        stroke.color,
+        "#151923",
+        20
+      ),
+
+    size:
+      clamp(
+        stroke.size,
+        2,
+        30
+      ),
+
+    points:
+      stroke.points
+        .slice(
+          0,
+          CONFIG.MAX_POINTS_PER_STROKE
+        )
+        .map(p=>({
+          x: clamp(
+            p.x,
+            0,
+            1
+          ),
+
+          y: clamp(
+            p.y,
+            0,
+            1
+          )
+        }))
+  };
+
+  knownStrokes.push(
+    clean
+  );
+
+  if(
+    knownStrokes.length >
+    CONFIG.MAX_STROKES
+  ){
+    knownStrokes.shift();
+  }
+
+  drawStroke(clean);
+}
+
+function removeKnownStroke(id){
+
+  if(typeof id !== "string"){
+    return;
+  }
+
+  knownStrokes =
+    knownStrokes.filter(
+      s => s.id !== id
+    );
+}
+
+function undoLastStroke(){
+
+  if(
+    !isDrawer() ||
+    !localStrokeIds.length ||
+    matchEnded
+  ){
+    return;
+  }
+
+  const id =
+    localStrokeIds.pop();
+
+  removeKnownStroke(id);
+
+  redrawCanvas();
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId,
+      type: "UNDO_STROKE",
+      strokeId: id,
+      turnIndex:
+        currentTurnIndex
+    }
+  );
+
+  playTone(
+    400,
+    .05
+  );
+}
+
+function clearAllCanvas(){
+
+  if(
+    !isDrawer() ||
+    matchEnded
+  ){
+    return;
+  }
+
+  knownStrokes = [];
+  localStrokeIds = [];
+
+  redrawCanvas();
+
+  sendEvent(
+    "GAME_EVENT",
+    {
+      roundId,
+      type: "CLEAR_CANVAS",
+      turnIndex:
+        currentTurnIndex
+    }
+  );
+
+  playTone(
+    350,
+    .05
+  );
+}
+
+function syncTools(){
+
+  document
+    .querySelectorAll(
+      "[data-tool]"
+    )
+    .forEach(b=>{
+
+      b.classList.toggle(
+        "active",
+        b.dataset.tool === tool
+      );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-size]"
+    )
+    .forEach(b=>{
+
+      b.classList.toggle(
+        "active",
+        Number(
+          b.dataset.size
+        ) === brushSize
+      );
+    });
+}
+
+/* =========================================================
+   音效
+   ========================================================= */
+
+function ensureAudio(){
+
+  if(muted){
+    return;
+  }
+
+  try{
+
+    if(!audioCtx){
+
+      audioCtx =
+        new(
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+    }
+
+    if(
+      audioCtx.state ===
+      "suspended"
+    ){
+
+      audioCtx.resume();
+    }
+
+  }catch(_){}
+}
+
+function playTone(
+  freq,
+  duration=.08
+){
+
+  if(muted){
+    return;
+  }
+
+  const now =
+    performance.now();
+
+  if(
+    now - soundCooldown < 35
+  ){
+    return;
+  }
+
+  soundCooldown = now;
+
+  ensureAudio();
+
+  if(!audioCtx){
+    return;
+  }
+
+  try{
+
+    const o =
+      audioCtx.createOscillator();
+
+    const g =
+      audioCtx.createGain();
+
+    o.type =
+      "sine";
+
+    o.frequency.value =
+      clamp(
+        freq,
+        120,
+        1700
+      );
+
+    g.gain.value =
+      .28;
+
+    o.connect(g);
+
+    g.connect(
+      audioCtx.destination
+    );
+
+    o.start();
+
+    g.gain.exponentialRampToValueAtTime(
+      .0001,
+      audioCtx.currentTime +
+      duration
+    );
+
+    o.stop(
+      audioCtx.currentTime +
+      duration
+    );
+
+  }catch(_){}
+}
+
+function vibrate(ms){
+
+  try{
+
+    if(
+      navigator.vibrate
+    ){
+      navigator.vibrate(ms);
+    }
+
+  }catch(_){}
+}
+
+/* =========================================================
+   Toast
+   ========================================================= */
+
+function showToast(t){
+
+  const el =
+    document.getElementById(
+      "toast"
+    );
+
+  if(!el){
+    return;
+  }
+
+  el.textContent =
+    safeString(
+      t,
+      "",
+      100
+    );
+
+  el.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    showToast.t
+  );
+
+  showToast.t =
+    setTimeout(
+      ()=>{
+        el.classList.remove(
+          "show"
+        );
+      },
+      1200
+    );
+}
+
+/* =========================================================
+   遊戲 Loop
+   ========================================================= */
+
+function gameLoop(ts){
+
+  if(!rafRunning){
+    return;
+  }
+
+  const dt =
+    Math.min(
+      Math.max(
+        (ts - lastFrame) / 1000,
+        0
+      ),
+      .033
+    );
+
+  lastFrame = ts;
+
+  fps =
+    .9 * fps +
+    .1 *
+    (
+      1 /
+      Math.max(
+        dt,
+        .001
+      )
+    );
+
+  if(
+    state === STATES.PLAYING &&
+    !matchEnded
+  ){
+
+    const now =
+      Date.now();
+
+    /*
+     * ★ 時間到。
+     *
+     * 只有房主負責結算，
+     * 避免多人同時送 TURN_END。
+     */
+    if(
+      now >=
+        currentTurnStartedAt +
+        activeTurnSeconds * 1000
+    ){
+
+      if(
+        (DEV || sdkIsHost) &&
+        !currentTurnResolved
+      ){
+
+        resolveTurnAsHost(
+          "TIMEOUT",
+          ""
+        );
+      }
+    }
+
+    const timer =
+      document.getElementById(
+        "gameTimer"
+      );
+
+    if(timer){
+
+      timer.textContent =
+        String(
+          Math.max(
+            0,
+            Math.ceil(
+              (
+                currentTurnStartedAt +
+                activeTurnSeconds * 1000 -
+                now
+              ) / 1000
+            )
+          )
+        );
+    }
+  }
+
+  loopHandle =
+    requestAnimationFrame(
+      gameLoop
+    );
+}
+
+/* =========================================================
+   心跳
+   ========================================================= */
+
+function heartbeat(){
+
+  if(!ME.id){
+    return;
+  }
+
+  sendEvent(
+    "PLAYER_HEARTBEAT",
+    {
+      roundId:
+        roundId || "LOBBY",
+
+      userId:
+        ME.id,
+
+      status:
+        state,
+
+      timestamp:
+        Date.now()
+    }
+  );
+
+  const now =
+    Date.now();
+
+  for(
+    const [id,p] of players
+  ){
+
+    if(
+      id !== ME.id &&
+      now - p.lastSeen >
+        CONFIG.PLAYER_TIMEOUT_MS
+    ){
+
+      p.status =
+        "TIMEOUT";
+    }
+  }
+}
+
+/* =========================================================
+   Page
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  ()=>{
+    if(document.hidden){
+
+      hiddenAt =
+        Date.now();
+
+    }else{
+
+      if(
+        state === STATES.PLAYING &&
+        hiddenAt &&
+        Date.now() -
+          hiddenAt >
+          2500
+      ){
+
+        hiddenAt = 0;
+      }
+    }
+  }
+);
+
+window.addEventListener(
+  "pagehide",
+  ()=>{
+
+    clearTimeout(
+      turnStateTimer
+    );
+
+    clearInterval(
+      lobbyTimer
+    );
+
+    clearInterval(
+      heartbeatTimer
+    );
+
+    cancelAnimationFrame(
+      loopHandle
+    );
+
+    rafRunning = false;
+  }
+);
+
+/* =========================================================
+   Boot
+   ========================================================= */
 
 function boot(){
-  const main = document.getElementById("main");
-  if (!main) {
-    setTimeout(boot, 50);
+
+  const main =
+    document.getElementById(
+      "main"
+    );
+
+  if(!main){
+
+    setTimeout(
+      boot,
+      50
+    );
+
     return;
   }
+
   render();
-  lastFrame=performance.now();
-  loopHandle=requestAnimationFrame(gameLoop);
-  heartbeatTimer=setInterval(heartbeat,CONFIG.HEARTBEAT_MS);
+
+  lastFrame =
+    performance.now();
+
+  loopHandle =
+    requestAnimationFrame(
+      gameLoop
+    );
+
+  heartbeatTimer =
+    setInterval(
+      heartbeat,
+      CONFIG.HEARTBEAT_MS
+    );
 }
 
 boot();
+
 </script>
-</body>
-</html>

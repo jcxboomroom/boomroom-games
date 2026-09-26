@@ -41,7 +41,6 @@ body{
   overflow:hidden;
   background:var(--bg);
   color:var(--text);
-
   font-family:
     system-ui,
     -apple-system,
@@ -54,11 +53,16 @@ body{
   -webkit-user-select:none;
 }
 
+body{
+  overscroll-behavior:none;
+}
+
 button{
   font:inherit;
   border:0;
   color:var(--text);
   cursor:pointer;
+  touch-action:none;
 }
 
 button:disabled{
@@ -72,6 +76,7 @@ button:disabled{
 
   display:flex;
   justify-content:center;
+  align-items:stretch;
 }
 
 .shell{
@@ -95,7 +100,6 @@ button:disabled{
 
   display:flex;
   flex-direction:column;
-
   gap:8px;
 }
 
@@ -174,8 +178,11 @@ button:disabled{
     );
 
   color:#070912;
+
   font-weight:1000;
   font-size:15px;
+
+  touch-action:manipulation;
 }
 
 .cta.secondary{
@@ -184,25 +191,16 @@ button:disabled{
   border:1px solid var(--line);
 }
 
-.cta.danger{
-  background:
-    linear-gradient(
-      135deg,
-      #ff4d6d,
-      #e63946
-    );
-
-  color:#fff;
-}
-
 .cta:active{
   transform:scale(.97);
 }
 
 .notice{
   min-height:22px;
+
   color:#d1d6e4;
   font-size:11px;
+
   text-align:center;
 }
 
@@ -241,20 +239,19 @@ button:disabled{
   color:var(--muted);
 }
 
-
 /* =========================
-   GAME AREA
+   GAME
 ========================= */
+
+.gameTop{
+  flex:none;
+}
 
 #canvasWrap{
   position:relative;
 
   flex:1;
-  min-height:0;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  min-height:260px;
 
   border-radius:16px;
   overflow:hidden;
@@ -264,57 +261,67 @@ button:disabled{
   background:
     linear-gradient(
       180deg,
-      #1a2035,
+      #182039,
       #070912
     );
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 #gameCanvas{
-  display:block;
+  position:absolute;
 
   width:100%;
-  height:auto;
+  height:100%;
 
-  max-height:100%;
+  left:0;
+  top:0;
 
-  aspect-ratio:720 / 500;
+  display:block;
 
   touch-action:none;
-
-  image-rendering:auto;
 }
 
-
 /* =========================
-   CONTROLS
+   MOBILE CONTROLS
 ========================= */
 
 .ctrlGrid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+
+  grid-template-columns:
+    1.2fr
+    1.2fr
+    1fr
+    1fr;
 
   gap:6px;
 
-  margin-top:6px;
+  flex:none;
 }
 
 .ctrlBtn{
-  height:52px;
+  height:54px;
 
   border-radius:14px;
 
   background:#161f33;
   border:1px solid var(--line);
 
-  font-size:18px;
+  font-size:19px;
   font-weight:bold;
 
   color:var(--cyan);
 
   touch-action:none;
+
+  transition:
+    transform .06s,
+    background .06s;
 }
 
-.ctrlBtn:active,
 .ctrlBtn.active{
   background:var(--cyan);
   color:#070912;
@@ -330,13 +337,17 @@ button:disabled{
   color:var(--red);
 }
 
+.smashBtn.active{
+  background:var(--red);
+  color:#fff;
+}
 
 /* =========================
    FEED
 ========================= */
 
 .feedBox{
-  max-height:70px;
+  max-height:72px;
 
   overflow-y:auto;
 
@@ -345,18 +356,22 @@ button:disabled{
   background:#0b0f18;
 
   border:1px solid var(--line);
-
   border-radius:10px;
 
   padding:6px;
+
+  flex:none;
 }
 
+.feedBox div{
+  margin:2px 0;
+}
 
 /* =========================
    COUNTDOWN
 ========================= */
 
-.countdownOverlay{
+#countdownOverlay{
   position:absolute;
   inset:0;
 
@@ -366,52 +381,36 @@ button:disabled{
 
   pointer-events:none;
 
-  z-index:10;
-}
-
-.countdownText{
-  width:130px;
-  height:130px;
-
-  border-radius:50%;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
   background:
     radial-gradient(
       circle,
-      rgba(98,231,255,.22),
-      rgba(183,108,255,.08),
-      rgba(0,0,0,.7)
+      rgba(98,231,255,.12),
+      rgba(0,0,0,.35)
     );
+}
 
-  border:3px solid rgba(98,231,255,.7);
-
-  box-shadow:
-    0 0 35px rgba(98,231,255,.35);
-
-  font-size:58px;
+.countNumber{
+  font-size:76px;
   font-weight:1000;
 
   color:#fff;
 
   text-shadow:
-    0 0 20px var(--cyan);
+    0 0 10px var(--cyan),
+    0 0 30px var(--purple),
+    0 8px 30px #000;
 
-  animation:
-    countPop .7s ease;
+  animation:countPop .55s ease-out;
 }
 
 @keyframes countPop{
   0%{
-    transform:scale(.55);
+    transform:scale(.35);
     opacity:0;
   }
 
-  60%{
-    transform:scale(1.12);
+  65%{
+    transform:scale(1.15);
     opacity:1;
   }
 
@@ -421,42 +420,51 @@ button:disabled{
   }
 }
 
-
 /* =========================
-   MOBILE
+   HIT EFFECT
 ========================= */
 
-@media(max-width:430px){
+.hitFlash{
+  position:absolute;
+  pointer-events:none;
 
-  .shell{
-    padding-left:7px;
-    padding-right:7px;
-  }
+  width:80px;
+  height:80px;
 
-  .stat{
-    padding:6px 3px;
-  }
+  border-radius:50%;
 
-  .stat b{
-    font-size:12px;
-  }
+  background:
+    radial-gradient(
+      circle,
+      rgba(255,255,255,.9),
+      rgba(98,231,255,.5),
+      transparent 70%
+    );
 
-  .stat span{
-    font-size:8px;
-  }
+  transform:translate(-50%,-50%) scale(.3);
 
-  .ctrlBtn{
-    height:54px;
-    font-size:17px;
-  }
+  animation:hitFlash .35s ease-out forwards;
+}
 
-  .feedBox{
-    max-height:52px;
+@keyframes hitFlash{
+  to{
+    transform:translate(-50%,-50%) scale(1.5);
+    opacity:0;
   }
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.resultScore{
+  font-size:22px;
+  font-weight:1000;
+  color:var(--gold);
+  margin:10px 0;
 }
 </style>
 </head>
-
 
 <body>
 
@@ -470,11 +478,8 @@ button:disabled{
 
 </div>
 
-
 <script>
-
 "use strict";
-
 
 /* =========================================================
    CONFIG
@@ -490,55 +495,57 @@ const CONFIG = Object.freeze({
 
   WIN_SCORE:5,
 
-  COUNTDOWN:3,
+  /* 遊戲世界固定尺寸
+     不跟手機畫面比例改變 */
+  WORLD_W:360,
 
-  /*
-    整個遊戲使用固定 720 x 500 世界座標。
+  WORLD_H:250,
 
-    Canvas 可以縮放到手機，
-    但物理全部使用世界座標。
+  FLOOR_Y:224,
 
-    所以不會因為手機畫面變高，
-    球突然飛更快。
-  */
+  NET_X:180,
 
-  WORLD_W:720,
+  NET_TOP:142,
 
-  WORLD_H:500,
+  NET_BOTTOM:224,
 
-  GROUND_Y:440,
+  PLAYER_W:32,
 
-  NET_X:360,
+  PLAYER_H:40,
 
-  NET_TOP:270,
+  BALL_R:10,
+
+  GRAVITY:0.20,
+
+  PLAYER_GRAVITY:0.55,
 
   PLAYER_SPEED:2.8,
 
-  PLAYER_ACCEL:.32,
+  PLAYER_ACCEL:0.42,
 
-  PLAYER_FRICTION:.78,
+  PLAYER_FRICTION:0.78,
 
-  PLAYER_MAX_SPEED:3.2,
+  JUMP_POWER:8.7,
 
-  JUMP_POWER:8.6,
+  NORMAL_HIT_SPEED:5.4,
 
-  GRAVITY:.32,
+  SMASH_SPEED:7.0,
 
-  BALL_GRAVITY:.115,
+  MAX_BALL_SPEED:7.8,
 
-  BALL_MAX_SPEED:6.2,
+  COUNTDOWN_MS:3000,
 
-  BALL_MIN_SPEED:2.0,
+  POINT_DELAY_MS:1300,
 
-  BALL_BOUNCE:.78,
+  AI_SPEED:1.85,
 
-  SERVE_SPEED:2.7
+  AI_REACTION:0.12
 
 });
 
 
 /* =========================================================
-   USER / SDK
+   SDK / ROOM
 ========================================================= */
 
 let ME = {
@@ -557,7 +564,6 @@ let ME = {
 
 };
 
-
 let sdkIsHost=false;
 
 let gameRoomId="";
@@ -571,30 +577,25 @@ let players=new Map();
 
 let state="LOBBY";
 
+/*
+  LOBBY
+  COUNTDOWN
+  PLAYING
+  POINT
+  RESULT
+*/
+
 let scoreP1=0;
 
 let scoreP2=0;
 
 let feed=[];
 
-let gameLoopId=null;
-
-
-/*
-  serveState:
-
-  IDLE
-  COUNTDOWN
-  PLAYING
-*/
-
-let serveState="IDLE";
-
-let countdownValue=0;
-
 let countdownTimer=null;
 
-let serveSide="P1";
+let pointTimer=null;
+
+let countdownValue=0;
 
 
 /* =========================================================
@@ -605,9 +606,100 @@ let canvas=null;
 
 let ctx=null;
 
+let gameLoopId=null;
+
+let lastTime=0;
+
 
 /* =========================================================
-   INPUT
+   PLAYER
+========================================================= */
+
+let p1={
+
+  x:70,
+
+  y:184,
+
+  w:CONFIG.PLAYER_W,
+
+  h:CONFIG.PLAYER_H,
+
+  vx:0,
+
+  vy:0,
+
+  color:"#ffd166",
+
+  facing:1,
+
+  onGround:false,
+
+  hitCooldown:0,
+
+  smashCooldown:0
+
+};
+
+
+let p2={
+
+  x:258,
+
+  y:184,
+
+  w:CONFIG.PLAYER_W,
+
+  h:CONFIG.PLAYER_H,
+
+  vx:0,
+
+  vy:0,
+
+  color:"#ff637a",
+
+  facing:-1,
+
+  onGround:false,
+
+  hitCooldown:0,
+
+  smashCooldown:0
+
+};
+
+
+/* =========================================================
+   BALL
+========================================================= */
+
+let ball={
+
+  x:180,
+
+  y:90,
+
+  vx:0,
+
+  vy:0,
+
+  r:CONFIG.BALL_R,
+
+  active:false,
+
+  side:"P1",
+
+  lastHit:"",
+
+  smash:false,
+
+  trail:[]
+
+};
+
+
+/* =========================================================
+   CONTROLS
 ========================================================= */
 
 let keys={
@@ -624,206 +716,23 @@ let keys={
 
 
 /* =========================================================
-   WORLD OBJECTS
+   EFFECTS
 ========================================================= */
 
-const p1={
+let particles=[];
 
-  x:120,
+let screenShake=0;
 
-  y:395,
-
-  w:52,
-
-  h:55,
-
-  vx:0,
-
-  vy:0,
-
-  color:"#ffd166",
-
-  grounded:true,
-
-  smashCooldown:0,
-
-  hitCooldown:0
-
-};
-
-
-const p2={
-
-  x:548,
-
-  y:395,
-
-  w:52,
-
-  h:55,
-
-  vx:0,
-
-  vy:0,
-
-  color:"#ff637a",
-
-  grounded:true,
-
-  smashCooldown:0,
-
-  hitCooldown:0
-
-};
-
-
-const ball={
-
-  x:360,
-
-  y:230,
-
-  vx:0,
-
-  vy:0,
-
-  r:15,
-
-  active:false,
-
-  lastHitBy:"",
-
-  trail:[]
-
-};
-
-
-/* =========================================================
-   AUDIO
-========================================================= */
+let hitEffects=[];
 
 let audioCtx=null;
 
 
-function initAudio(){
-
-  try{
-
-    if(!audioCtx){
-
-      audioCtx=
-        new (
-          window.AudioContext ||
-          window.webkitAudioContext
-        )();
-
-    }
-
-    if(audioCtx.state==="suspended"){
-
-      audioCtx.resume().catch(()=>{});
-
-    }
-
-  }catch(_){}
-
-}
-
-
-function beep(
-
-  frequency=440,
-
-  duration=.08,
-
-  type="sine",
-
-  volume=.045
-
-){
-
-  try{
-
-    initAudio();
-
-    if(!audioCtx) return;
-
-    const osc=
-      audioCtx.createOscillator();
-
-    const gain=
-      audioCtx.createGain();
-
-    osc.type=type;
-
-    osc.frequency.value=frequency;
-
-    gain.gain.setValueAtTime(
-      volume,
-      audioCtx.currentTime
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-
-      .001,
-
-      audioCtx.currentTime+duration
-
-    );
-
-    osc.connect(gain);
-
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-
-    osc.stop(
-      audioCtx.currentTime+duration
-    );
-
-  }catch(_){}
-
-}
-
-
-function vibration(ms=20){
-
-  try{
-
-    if(
-      navigator.vibrate &&
-      typeof navigator.vibrate==="function"
-    ){
-
-      navigator.vibrate(ms);
-
-    }
-
-  }catch(_){}
-
-}
-
-
 /* =========================================================
-   SDK
+   BASIC UTIL
 ========================================================= */
 
-function isHost(){
-
-  return sdkIsHost || players.size<=1;
-
-}
-
-
-function safeString(
-
-  v,
-
-  fallback,
-
-  maxLen
-
-){
+function safeString(v,fallback,maxLen){
 
   if(v===null || v===undefined){
 
@@ -833,22 +742,35 @@ function safeString(
 
   const s=String(v).trim();
 
-  return s
-    ? s.slice(0,maxLen)
-    : fallback;
+  return s ? s.slice(0,maxLen) : fallback;
 
 }
 
 
-function addPlayer(
+function esc(s){
 
-  id,
+  return String(s || "")
+    .replace(
+      /[&<>"']/g,
+      c=>({
 
-  username,
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
 
-  avatar
+      }[c])
+    );
 
-){
+}
+
+
+/* =========================================================
+   ROOM
+========================================================= */
+
+function addPlayer(id,username,avatar){
 
   if(!id) return;
 
@@ -862,19 +784,17 @@ function addPlayer(
 
       id,
 
-      username:
-        safeString(
-          username,
-          "玩家",
-          12
-        ),
+      username:safeString(
+        username,
+        "玩家",
+        12
+      ),
 
-      avatar:
-        safeString(
-          avatar,
-          "",
-          300
-        ),
+      avatar:safeString(
+        avatar,
+        "",
+        300
+      ),
 
       score:0
 
@@ -884,12 +804,11 @@ function addPlayer(
 
   }else{
 
-    p.username=
-      safeString(
-        username,
-        p.username,
-        12
-      );
+    p.username=safeString(
+      username,
+      p.username,
+      12
+    );
 
   }
 
@@ -898,56 +817,63 @@ function addPlayer(
 }
 
 
+function isHost(){
+
+  return sdkIsHost || players.size<=1;
+
+}
+
+
+/* =========================================================
+   SDK
+========================================================= */
+
 function setupSDK(data){
 
-  if(data && data.user){
+  try{
 
-    players.delete(ME.id);
+    if(data && data.user){
 
-    ME.id=
-      String(data.user.id);
+      players.delete(ME.id);
 
-    ME.username=
-      safeString(
+      ME.id=String(data.user.id);
+
+      ME.username=safeString(
         data.user.username,
         "玩家",
         12
       );
 
-    ME.avatar=
-      safeString(
+      ME.avatar=safeString(
         data.user.avatar,
         "",
         300
       );
 
-    addPlayer(
-      ME.id,
-      ME.username,
-      ME.avatar
+      addPlayer(
+        ME.id,
+        ME.username,
+        ME.avatar
+      );
+
+    }
+
+    sdkIsHost=!!(
+      data &&
+      data.isHost
     );
 
-  }
+    gameRoomId=
+      (data && data.roomId) || "";
 
-  sdkIsHost=
-    !!(data && data.isHost);
+    if(
+      data &&
+      Array.isArray(data.roomPlayers)
+    ){
 
-  gameRoomId=
-    (data && data.roomId) || "";
+      data.roomPlayers.forEach(rp=>{
 
-  if(
-    Array.isArray(
-      data.roomPlayers
-    )
-  ){
-
-    data.roomPlayers.forEach(
-      rp=>{
-
-        if(
-          rp &&
-          rp.id!=null
-        ){
+        if(rp && rp.id!=null){
 
           addPlayer(
             rp.id,
@@ -957,28 +883,27 @@ function setupSDK(data){
 
         }
 
-      }
-    );
+      });
 
-  }
+    }
 
-  render();
+    render();
+
+  }catch(_){}
 
 }
 
 
 window.addEventListener(
-
   "message",
-
   e=>{
 
     try{
 
       const d=
         typeof e.data==="string"
-          ? JSON.parse(e.data)
-          : e.data;
+          ?JSON.parse(e.data)
+          :e.data;
 
       if(
         d &&
@@ -988,11 +913,8 @@ window.addEventListener(
         setupSDK(d);
 
       }else if(
-
         d &&
-        d.action===
-          "gameEventReceived"
-
+        d.action==="gameEventReceived"
       ){
 
         handleGameEvent(
@@ -1006,7 +928,6 @@ window.addEventListener(
     }catch(_){}
 
   }
-
 );
 
 
@@ -1039,54 +960,36 @@ window.onBoomRoomSDKReady=function(){
 };
 
 
-function sendEvent(
-
-  eventName,
-
-  payload
-
-){
+function sendEvent(eventName,payload){
 
   try{
 
     if(
-
       window.BoomRoomSDK &&
-
-      typeof
-        window.BoomRoomSDK
-          .sendGameEvent ===
-          "function"
-
+      typeof window.BoomRoomSDK.sendGameEvent===
+        "function"
     ){
 
-      window.BoomRoomSDK
-        .sendGameEvent(
-          eventName,
-          payload
-        );
+      window.BoomRoomSDK.sendGameEvent(
+        eventName,
+        payload
+      );
 
-    }
-
-    else if(
-      window.parent !== window
+    }else if(
+      window.parent!==window
     ){
 
       window.parent.postMessage(
-
         JSON.stringify({
 
-          action:
-            "sendGameEvent",
+          action:"sendGameEvent",
 
           eventName,
 
           payload
 
         }),
-
         "*"
-
       );
 
     }
@@ -1101,21 +1004,16 @@ function sendEvent(
 ========================================================= */
 
 function handleGameEvent(
-
   eventName,
-
   payload,
-
   senderId
-
 ){
 
   if(
-    eventName===
-    "PIKA_VOLLEY_START"
+    eventName==="PIKA_VOLLEY_START"
   ){
 
-    startNewGame();
+    beginMatch();
 
   }
 
@@ -1123,14 +1021,177 @@ function handleGameEvent(
 
 
 /* =========================================================
-   START GAME
+   AUDIO
 ========================================================= */
 
-function startNewGame(){
+function initAudio(){
 
-  initAudio();
+  try{
 
-  state="PLAYING";
+    if(!audioCtx){
+
+      audioCtx=
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+    }
+
+    if(audioCtx.state==="suspended"){
+
+      audioCtx.resume();
+
+    }
+
+  }catch(_){}
+
+}
+
+
+function beep(
+  frequency=440,
+  duration=.08,
+  type="square",
+  volume=.035
+){
+
+  try{
+
+    initAudio();
+
+    if(!audioCtx) return;
+
+    const osc=
+      audioCtx.createOscillator();
+
+    const gain=
+      audioCtx.createGain();
+
+    osc.type=type;
+
+    osc.frequency.value=frequency;
+
+    gain.gain.value=volume;
+
+    osc.connect(gain);
+
+    gain.connect(audioCtx.destination);
+
+    const now=audioCtx.currentTime;
+
+    gain.gain.setValueAtTime(
+      volume,
+      now
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.001,
+      now+duration
+    );
+
+    osc.start(now);
+
+    osc.stop(
+      now+duration+.02
+    );
+
+  }catch(_){}
+
+}
+
+
+function playHitSound(){
+
+  beep(
+    520,
+    .055,
+    "square",
+    .045
+  );
+
+}
+
+
+function playSmashSound(){
+
+  beep(
+    130,
+    .11,
+    "sawtooth",
+    .055
+  );
+
+  setTimeout(
+    ()=>{
+      beep(
+        720,
+        .08,
+        "square",
+        .035
+      );
+    },
+    35
+  );
+
+}
+
+
+function playPointSound(){
+
+  beep(
+    330,
+    .08,
+    "square",
+    .04
+  );
+
+  setTimeout(
+    ()=>{
+      beep(
+        660,
+        .14,
+        "square",
+        .04
+      );
+    },
+    90
+  );
+
+}
+
+
+/* =========================================================
+   VIBRATION
+========================================================= */
+
+function vibrate(pattern){
+
+  try{
+
+    if(
+      navigator.vibrate &&
+      typeof navigator.vibrate==="function"
+    ){
+
+      navigator.vibrate(pattern);
+
+    }
+
+  }catch(_){}
+
+}
+
+
+/* =========================================================
+   MATCH START
+========================================================= */
+
+function beginMatch(){
+
+  clearTimeout(pointTimer);
+
+  clearInterval(countdownTimer);
 
   scoreP1=0;
 
@@ -1138,994 +1199,134 @@ function startNewGame(){
 
   feed=[
     "⚡ 皮卡丘排球開戰！",
-
-    "🎯 先得到 5 分獲勝。",
-
-    "🏐 球會從中間球網發球。"
-
+    "🎯 先得到 "+CONFIG.WIN_SCORE+" 分獲勝"
   ];
 
   resetPlayers();
 
-  startCanvasLoop();
+  state="COUNTDOWN";
+
+  countdownValue=3;
 
   render();
 
-  setTimeout(()=>{
-
-    beginServe("P1");
-
-  },300);
-
-}
-
-
-function resetPlayers(){
-
-  p1.x=120;
-
-  p1.y=395;
-
-  p1.vx=0;
-
-  p1.vy=0;
-
-  p1.grounded=true;
-
-  p1.smashCooldown=0;
-
-  p1.hitCooldown=0;
-
-
-  p2.x=548;
-
-  p2.y=395;
-
-  p2.vx=0;
-
-  p2.vy=0;
-
-  p2.grounded=true;
-
-  p2.smashCooldown=0;
-
-  p2.hitCooldown=0;
+  playCountdown();
 
 }
 
 
 /* =========================================================
-   SERVE / COUNTDOWN
+   COUNTDOWN
 ========================================================= */
 
-function beginServe(side){
+function playCountdown(){
 
-  if(state!=="PLAYING") return;
+  clearInterval(countdownTimer);
 
-  clearTimeout(countdownTimer);
+  countdownValue=3;
 
-  serveState="COUNTDOWN";
-
-  serveSide=side;
-
-  countdownValue=
-    CONFIG.COUNTDOWN;
-
-  ball.active=false;
-
-  ball.vx=0;
-
-  ball.vy=0;
-
-  ball.x=CONFIG.NET_X;
-
-  ball.y=220;
-
-  ball.trail=[];
-
-  showCountdown();
+  updateCountdownUI();
 
   beep(
-    420,
-    .1,
-    "sine",
+    440,
+    .09,
+    "square",
     .04
   );
 
-  countdownTimer=
-    setInterval(()=>{
+  countdownTimer=setInterval(()=>{
 
-      countdownValue--;
+    countdownValue--;
 
-      if(countdownValue>0){
+    if(countdownValue>0){
 
-        showCountdown();
+      updateCountdownUI();
 
-        beep(
-          520,
-          .1,
-          "sine",
-          .045
-        );
-
-        vibration(15);
-
-      }
-
-      else{
-
-        clearInterval(
-          countdownTimer
-        );
-
-        countdownTimer=null;
-
-        hideCountdown();
-
-        launchServe();
-
-      }
-
-    },1000);
-
-}
-
-
-function launchServe(){
-
-  if(state!=="PLAYING")
-    return;
-
-  serveState="PLAYING";
-
-  ball.active=true;
-
-  /*
-    永遠由中間球網附近發球。
-
-    P1 發往右邊。
-    P2 發往左邊。
-  */
-
-  ball.x=
-    serveSide==="P1"
-      ? CONFIG.NET_X-35
-      : CONFIG.NET_X+35;
-
-  ball.y=235;
-
-  const direction=
-    serveSide==="P1"
-      ? 1
-      : -1;
-
-  ball.vx=
-    direction*
-    CONFIG.SERVE_SPEED;
-
-  ball.vy=-2.2;
-
-  ball.lastHitBy=
-    serveSide;
-
-  ball.trail=[];
-
-  beep(
-    700,
-    .12,
-    "triangle",
-    .06
-  );
-
-  vibration(25);
-
-}
-
-
-function showCountdown(){
-
-  const wrap=
-    document.getElementById(
-      "canvasWrap"
-    );
-
-  if(!wrap) return;
-
-  let old=
-    document.getElementById(
-      "countdownOverlay"
-    );
-
-  if(!old){
-
-    old=
-      document.createElement(
-        "div"
+      beep(
+        440,
+        .09,
+        "square",
+        .04
       );
 
-    old.id=
-      "countdownOverlay";
+    }else{
 
-    old.className=
-      "countdownOverlay";
+      clearInterval(countdownTimer);
 
-    wrap.appendChild(old);
+      countdownTimer=null;
 
-  }
+      countdownValue=0;
 
-  old.innerHTML=`
+      updateCountdownUI();
 
-    <div class="countdownText">
+      beep(
+        880,
+        .16,
+        "square",
+        .05
+      );
 
-      ${countdownValue}
+      setTimeout(
+        ()=>{
+          startServe("P1");
+        },
+        250
+      );
 
-    </div>
+    }
 
-  `;
+  },1000);
 
 }
 
 
-function hideCountdown(){
+function updateCountdownUI(){
 
   const el=
     document.getElementById(
       "countdownOverlay"
     );
 
-  if(el){
-
-    el.remove();
-
-  }
-
-}
-
-
-/* =========================================================
-   GAME LOOP
-========================================================= */
-
-function startCanvasLoop(){
-
-  cancelAnimationFrame(
-    gameLoopId
-  );
-
-  const run=()=>{
-
-    if(state!=="PLAYING")
-      return;
-
-    updateGame();
-
-    drawGame();
-
-    gameLoopId=
-      requestAnimationFrame(
-        run
-      );
-
-  };
-
-  gameLoopId=
-    requestAnimationFrame(run);
-
-}
-
-
-/* =========================================================
-   PLAYER PHYSICS
-========================================================= */
-
-function updatePlayer(
-
-  p,
-
-  isP1
-
-){
-
-  const left=
-    isP1
-      ? keys.left1
-      : false;
-
-  const right=
-    isP1
-      ? keys.right1
-      : false;
-
-  if(left){
-
-    p.vx-=
-      CONFIG.PLAYER_ACCEL;
-
-  }
-
-  else if(right){
-
-    p.vx+=
-      CONFIG.PLAYER_ACCEL;
-
-  }
-
-  else{
-
-    p.vx*=
-      CONFIG.PLAYER_FRICTION;
-
-  }
-
-
-  p.vx=
-    Math.max(
-
-      -CONFIG.PLAYER_MAX_SPEED,
-
-      Math.min(
-        CONFIG.PLAYER_MAX_SPEED,
-        p.vx
-      )
-
-    );
-
-
-  p.x+=p.vx;
-
-
-  /*
-    玩家重力
-  */
-
-  p.vy+=
-    CONFIG.GRAVITY;
-
-  p.y+=p.vy;
-
-
-  /*
-    地面
-  */
-
-  const floor=
-    CONFIG.GROUND_Y-
-    p.h;
-
-  if(p.y>=floor){
-
-    p.y=floor;
-
-    p.vy=0;
-
-    p.grounded=true;
-
-  }
-
-  else{
-
-    p.grounded=false;
-
-  }
-
-
-  /*
-    跳躍
-
-    不要一直按著就無限跳。
-  */
+  if(!el) return;
 
   if(
-    isP1 &&
-    keys.jump1 &&
-    p.grounded
+    state!=="COUNTDOWN" &&
+    state!=="POINT"
   ){
 
-    p.vy=
-      -CONFIG.JUMP_POWER;
-
-    p.grounded=false;
-
-    keys.jump1=false;
-
-    beep(
-      350,
-      .07,
-      "sine",
-      .025
-    );
-
-    vibration(12);
-
-  }
-
-
-  /*
-    場地限制
-  */
-
-  if(isP1){
-
-    p.x=
-      Math.max(
-        30,
-        Math.min(
-          CONFIG.NET_X-
-          70-
-          p.w,
-          p.x
-        )
-      );
-
-  }else{
-
-    p.x=
-      Math.max(
-        CONFIG.NET_X+
-        70,
-
-        Math.min(
-          CONFIG.WORLD_W-
-          30-
-          p.w,
-
-          p.x
-        )
-
-      );
-
-  }
-
-
-  if(p.smashCooldown>0)
-    p.smashCooldown--;
-
-  if(p.hitCooldown>0)
-    p.hitCooldown--;
-
-}
-
-
-function updateAI(){
-
-  /*
-    AI 故意降低速度。
-
-    不追求完美，
-    而是讓玩家有反應時間。
-  */
-
-  if(!ball.active){
+    el.innerHTML="";
 
     return;
 
   }
 
+  if(countdownValue>0){
 
-  const targetX=
-    ball.x-
-    p2.w/2;
-
-
-  /*
-    只有球在右半場
-    AI 才積極追。
-
-    球在左邊時，
-    AI 回到比較舒服的位置。
-  */
-
-  let desiredX;
-
-  if(ball.x>CONFIG.NET_X){
-
-    desiredX=targetX;
+    el.innerHTML=
+      `<div class="countNumber">
+        ${countdownValue}
+       </div>`;
 
   }else{
 
-    desiredX=535;
-
-  }
-
-
-  const diff=
-    desiredX-p2.x;
-
-
-  /*
-    AI 最大速度只有
-    約 2.15。
-
-    玩家約 3.2。
-  */
-
-  if(Math.abs(diff)>8){
-
-    if(diff>0)
-      p2.vx+=.17;
-
-    else
-      p2.vx-=.17;
-
-  }else{
-
-    p2.vx*=.75;
-
-  }
-
-
-  p2.vx=
-    Math.max(
-      -2.15,
-      Math.min(
-        2.15,
-        p2.vx
-      )
-    );
-
-
-  p2.x+=p2.vx;
-
-
-  /*
-    AI 跳躍。
-
-    只在球接近且高度適合時跳。
-  */
-
-  const ballNear=
-    Math.abs(
-      ball.x-
-      (p2.x+p2.w/2)
-    )<70;
-
-
-  if(
-
-    ballNear &&
-
-    ball.y<320 &&
-
-    ball.y>230 &&
-
-    p2.grounded
-
-  ){
-
-    p2.vy=
-      -7.8;
-
-    p2.grounded=false;
-
-  }
-
-
-  p2.vy+=
-    CONFIG.GRAVITY;
-
-  p2.y+=p2.vy;
-
-
-  const floor=
-    CONFIG.GROUND_Y-
-    p2.h;
-
-
-  if(p2.y>=floor){
-
-    p2.y=floor;
-
-    p2.vy=0;
-
-    p2.grounded=true;
-
-  }
-
-
-  if(p2.x<CONFIG.NET_X+70)
-    p2.x=CONFIG.NET_X+70;
-
-  if(
-    p2.x>
-    CONFIG.WORLD_W-
-    30-
-    p2.w
-  ){
-
-    p2.x=
-      CONFIG.WORLD_W-
-      30-
-      p2.w;
-
-  }
-
-
-  if(p2.smashCooldown>0)
-    p2.smashCooldown--;
-
-  if(p2.hitCooldown>0)
-    p2.hitCooldown--;
-
-
-  /*
-    AI 扣球。
-
-    機率低，
-    不會一直殺。
-  */
-
-  if(
-
-    ballNear &&
-
-    ball.y<300 &&
-
-    p2.smashCooldown<=0 &&
-
-    p2.y<400
-
-  ){
-
-    if(Math.random()<.025){
-
-      aiSmash();
-
-    }
-
-  }
-
-}
-
-
-/* =========================================================
-   BALL
-========================================================= */
-
-function updateBall(){
-
-  if(!ball.active)
-    return;
-
-
-  /*
-    保存軌跡。
-
-    讓球看起來有速度感，
-    但不會造成真正速度變快。
-  */
-
-  ball.trail.unshift({
-
-    x:ball.x,
-
-    y:ball.y
-
-  });
-
-
-  if(ball.trail.length>8){
-
-    ball.trail.pop();
-
-  }
-
-
-  ball.x+=ball.vx;
-
-  ball.y+=ball.vy;
-
-
-  /*
-    真正的球體重力。
-  */
-
-  ball.vy+=
-    CONFIG.BALL_GRAVITY;
-
-
-  /*
-    限制最大速度。
-
-    這個很重要。
-
-    不管怎麼扣，
-    球都不會失控。
-  */
-
-  const speed=
-    Math.hypot(
-      ball.vx,
-      ball.vy
-    );
-
-
-  if(
-    speed>
-    CONFIG.BALL_MAX_SPEED
-  ){
-
-    const ratio=
-      CONFIG.BALL_MAX_SPEED/
-      speed;
-
-    ball.vx*=ratio;
-
-    ball.vy*=ratio;
-
-  }
-
-
-  /*
-    左右牆
-  */
-
-  if(
-    ball.x-ball.r<0
-  ){
-
-    ball.x=ball.r;
-
-    ball.vx=
-      Math.abs(ball.vx);
-
-    ballWallSound();
-
-  }
-
-
-  if(
-    ball.x+
-    ball.r>
-    CONFIG.WORLD_W
-  ){
-
-    ball.x=
-      CONFIG.WORLD_W-
-      ball.r;
-
-    ball.vx=
-      -Math.abs(ball.vx);
-
-    ballWallSound();
-
-  }
-
-
-  /*
-    天花板
-  */
-
-  if(
-    ball.y-ball.r<0
-  ){
-
-    ball.y=ball.r;
-
-    ball.vy=
-      Math.abs(ball.vy)*
-      .72;
-
-    beep(
-      260,
-      .04,
-      "sine",
-      .025
-    );
-
-  }
-
-
-  /*
-    球網碰撞。
-
-    球網頂端是 NET_TOP。
-  */
-
-  if(
-
-    ball.x+ball.r>
-      CONFIG.NET_X-4 &&
-
-    ball.x-ball.r<
-      CONFIG.NET_X+4 &&
-
-    ball.y+ball.r>
-      CONFIG.NET_TOP
-
-  ){
-
-    /*
-      判斷球從哪邊來。
-    */
-
-    if(ball.vx>0){
-
-      ball.x=
-        CONFIG.NET_X-
-        ball.r-
-        5;
-
-    }else{
-
-      ball.x=
-        CONFIG.NET_X+
-        ball.r+
-        5;
-
-    }
-
-
-    ball.vx*=-.72;
-
-    /*
-      球網不會把球彈飛。
-    */
-
-    ball.vy*=.9;
-
-    netSound();
-
-  }
-
-
-  /*
-    玩家碰球
-  */
-
-  checkPlayerHit(
-    p1,
-    "P1"
-  );
-
-
-  checkPlayerHit(
-    p2,
-    "P2"
-  );
-
-
-  /*
-    地面。
-
-    球落地才得分。
-  */
-
-  if(
-    ball.y+
-    ball.r>=
-    CONFIG.GROUND_Y
-  ){
-
-    ball.y=
-      CONFIG.GROUND_Y-
-      ball.r;
-
-    scorePoint(
-      ball.x<
-      CONFIG.NET_X
-        ? "P2"
-        : "P1"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   PLAYER HIT
-========================================================= */
-
-function checkPlayerHit(
-
-  p,
-
-  side
-
-){
-
-  if(
-    p.hitCooldown>0
-  ){
-
-    return;
-
-  }
-
-
-  /*
-    球與皮卡丘碰撞區。
-
-    玩家身體範圍略大，
-    操作比較容易。
-  */
-
-  const cx=
-    p.x+
-    p.w/2;
-
-  const cy=
-    p.y+
-    p.h/2;
-
-
-  const dx=
-    ball.x-cx;
-
-  const dy=
-    ball.y-cy;
-
-
-  const distance=
-    Math.hypot(
-      dx,
-      dy
-    );
-
-
-  if(
-    distance<
-    ball.r+
-    28
-  ){
-
-    /*
-      防止人在球後面
-      還能隔空打球。
-    */
-
-    if(
-      side==="P1" &&
-      ball.x>CONFIG.NET_X+15
-    ){
-
-      return;
-
-    }
-
-
-    if(
-      side==="P2" &&
-      ball.x<CONFIG.NET_X-15
-    ){
-
-      return;
-
-    }
-
-
-    let smash=false;
-
-
-    if(side==="P1"){
-
-      smash=
-        keys.smash1 &&
-        p.smashCooldown<=0;
-
-      if(smash){
-
-        keys.smash1=false;
-
-        playerSmash();
-
-      }else{
-
-        normalHit(
-          p,
-          side
-        );
+    el.innerHTML=
+      `<div class="countNumber"
+            style="font-size:48px;color:#4ee08a;">
+          GO!
+       </div>`;
+
+    setTimeout(()=>{
+
+      if(
+        state==="PLAYING" &&
+        el
+      ){
+
+        el.innerHTML="";
 
       }
 
-    }else{
-
-      normalHit(
-        p,
-        side
-      );
-
-    }
+    },450);
 
   }
 
@@ -2133,307 +1334,122 @@ function checkPlayerHit(
 
 
 /* =========================================================
-   NORMAL HIT
+   RESET PLAYERS
 ========================================================= */
 
-function normalHit(
+function resetPlayers(){
 
-  p,
+  p1.x=70;
+  p1.y=CONFIG.FLOOR_Y-p1.h;
+  p1.vx=0;
+  p1.vy=0;
+  p1.onGround=true;
 
-  side
+  p2.x=258;
+  p2.y=CONFIG.FLOOR_Y-p2.h;
+  p2.vx=0;
+  p2.vy=0;
+  p2.onGround=true;
 
-){
+  keys.left1=false;
+  keys.right1=false;
+  keys.jump1=false;
+  keys.smash1=false;
 
-  const centerX=
-    p.x+
-    p.w/2;
-
-  const centerY=
-    p.y+
-    p.h/2;
+}
 
 
-  let dx=
-    ball.x-centerX;
+/* =========================================================
+   SERVE
+========================================================= */
 
-  let dy=
-    ball.y-centerY;
+function startServe(side){
 
+  state="PLAYING";
+
+  resetPlayers();
 
   /*
-    如果 dx 太小，
-    自動往對方場地打。
+    球永遠從球網附近開始，
+    然後往指定的一側發球。
+  */
+
+  ball.x=CONFIG.NET_X;
+
+  ball.y=108;
+
+  ball.side=side;
+
+  ball.active=true;
+
+  ball.smash=false;
+
+  ball.lastHit="";
+
+  ball.trail=[];
+
+  /*
+    從中間發出去，
+    而不是直接出生在人物旁邊。
   */
 
   const direction=
     side==="P1"
-      ? 1
-      : -1;
-
-
-  if(
-    Math.abs(dx)<8
-  ){
-
-    dx=
-      direction*25;
-
-  }
-
-
-  /*
-    讓球向上。
-
-    不會直接水平飛出去。
-  */
-
-  let newVx=
-    dx*.065+
-    p.vx*.35;
-
-
-  let newVy=
-    -4.2+
-    dy*.025;
-
-
-  /*
-    保證往對面。
-  */
-
-  if(side==="P1"){
-
-    newVx=
-      Math.max(
-        1.5,
-        newVx
-      );
-
-  }else{
-
-    newVx=
-      Math.min(
-        -1.5,
-        newVx
-      );
-
-  }
-
-
-  /*
-    限速
-  */
-
-  const s=
-    Math.hypot(
-      newVx,
-      newVy
-    );
-
-
-  if(
-    s>
-    CONFIG.BALL_MAX_SPEED
-  ){
-
-    const ratio=
-      CONFIG.BALL_MAX_SPEED/s;
-
-    newVx*=ratio;
-
-    newVy*=ratio;
-
-  }
-
-
-  ball.vx=newVx;
-
-  ball.vy=newVy;
-
-  ball.lastHitBy=side;
-
-
-  /*
-    把球推出皮卡丘。
-  */
-
-  ball.x=
-    side==="P1"
-      ? centerX+35
-      : centerX-35;
-
-
-  ball.y=
-    centerY-5;
-
-
-  p.hitCooldown=12;
-
-
-  feed.push(
-    side==="P1"
-      ? "⚡ 皮卡丘接球！"
-      : "🔴 對手接球！"
-  );
-
-
-  trimFeed();
-
-  hitSound();
-
-}
-
-
-/* =========================================================
-   PLAYER SMASH
-========================================================= */
-
-function playerSmash(){
-
-  p1.smashCooldown=45;
-
-  /*
-    扣殺速度不是暴增，
-    而是變成較快的向下球。
-  */
-
-  const direction=1;
-
+      ? -1
+      : 1;
 
   ball.vx=
-    Math.min(
-      5.0,
-      Math.max(
-        2.3,
-        ball.vx+
-        .8
-      )
-    );
+    direction*3.0;
 
+  ball.vy=-1.8;
 
-  /*
-    強烈向下，
-    但仍有可反應時間。
-  */
+  particles=[];
 
-  ball.vy=
-    4.7;
+  screenShake=0;
 
+  startCanvasLoop();
 
-  ball.x=
-    p1.x+
-    p1.w+
-    20;
+  render();
 
+  setTimeout(
+    ()=>{
+      if(
+        state==="PLAYING"
+      ){
 
-  ball.y=
-    p1.y+
-    28;
+        feed.push(
+          side==="P1"
+            ? "🟡 P1 發球！"
+            : "🔴 P2 發球！"
+        );
 
+        trimFeed();
 
-  ball.lastHitBy="P1";
-
-
-  feed.push(
-    "⚡💥 P1 扣殺！"
+      }
+    },
+    100
   );
-
-  trimFeed();
-
-
-  smashSound();
-
-  vibration(
-    navigator.vibrate
-      ? [25,30,25]
-      : 20
-  );
-
-
-  /*
-    畫面震動
-  */
-
-  shakeFrames=12;
 
 }
 
 
 /* =========================================================
-   AI SMASH
+   POINT
 ========================================================= */
 
-function aiSmash(){
+function pointScored(side){
 
-  p2.smashCooldown=60;
-
-
-  ball.vx=
-    Math.max(
-      -5.0,
-      Math.min(
-        -2.4,
-        ball.vx-.7
-      )
-    );
-
-
-  ball.vy=4.2;
-
-
-  ball.x=
-    p2.x-20;
-
-  ball.y=
-    p2.y+25;
-
-
-  ball.lastHitBy="P2";
-
-
-  feed.push(
-    "🔴💥 AI 扣球！"
-  );
-
-  trimFeed();
-
-  smashSound();
-
-}
-
-
-/* =========================================================
-   SCORE
-========================================================= */
-
-function scorePoint(
-
-  winner
-
-){
-
-  if(!ball.active)
-    return;
-
+  if(state!=="PLAYING") return;
 
   ball.active=false;
 
-  ball.vx=0;
-
-  ball.vy=0;
-
-  ball.trail=[];
-
-
-  if(winner==="P1"){
+  if(side==="P1"){
 
     scoreP1++;
 
     feed.push(
       `🟡 P1 得分！ ${scoreP1} : ${scoreP2}`
     );
-
-    serveSide="P2";
 
   }else{
 
@@ -2443,111 +1459,86 @@ function scorePoint(
       `🔴 P2 得分！ ${scoreP1} : ${scoreP2}`
     );
 
-    serveSide="P1";
-
   }
-
 
   trimFeed();
 
-  scoreSound();
+  playPointSound();
 
-  vibration(35);
+  vibrate([35,25,55]);
 
+  screenShake=5;
+
+  state="POINT";
+
+  render();
 
   if(
     scoreP1>=CONFIG.WIN_SCORE ||
     scoreP2>=CONFIG.WIN_SCORE
   ){
 
-    endGame();
+    setTimeout(
+      finishMatch,
+      CONFIG.POINT_DELAY_MS
+    );
 
     return;
 
   }
 
-
   /*
-    得分後：
-
-    不立刻出球。
-
-    重新從球網倒數 3 秒。
+    等待後重新倒數，
+    不瞬間把球放回去。
   */
 
-  setTimeout(()=>{
+  pointTimer=setTimeout(
+    ()=>{
 
-    if(
-      state==="PLAYING"
-    ){
+      state="COUNTDOWN";
 
-      beginServe(
-        serveSide
-      );
+      countdownValue=3;
 
-    }
+      render();
 
-  },350);
+      playCountdown();
 
-
-  render();
+    },
+    CONFIG.POINT_DELAY_MS
+  );
 
 }
 
 
 /* =========================================================
-   GAME OVER
+   FINISH
 ========================================================= */
 
-function endGame(){
+function finishMatch(){
 
   state="RESULT";
 
-  serveState="IDLE";
+  cancelAnimationFrame(gameLoopId);
 
-  ball.active=false;
-
-  cancelAnimationFrame(
-    gameLoopId
-  );
-
-  clearTimeout(
-    countdownTimer
-  );
-
-  clearInterval(
-    countdownTimer
-  );
+  gameLoopId=null;
 
   const winner=
     scoreP1>=CONFIG.WIN_SCORE
       ? "P1（你）"
-      : "P2（AI 對手）";
-
+      : "P2（AI）";
 
   feed.push(
-    `🏆 遊戲結束！${winner} 獲勝！`
+    `🏆 比賽結束！${winner} 獲勝！`
   );
 
-
-  beep(
-    880,
-    .3,
-    "triangle",
-    .07
-  );
-
+  trimFeed();
 
   try{
 
     if(
-
       window.BoomRoomSDK &&
-
-      typeof
-        window.BoomRoomSDK
-          .gameOver==="function"
-
+      typeof window.BoomRoomSDK.gameOver===
+        "function"
     ){
 
       window.BoomRoomSDK.gameOver(
@@ -2557,7 +1548,6 @@ function endGame(){
     }
 
   }catch(_){}
-
 
   render();
 
@@ -2570,11 +1560,11 @@ function endGame(){
 
 function trimFeed(){
 
-  if(feed.length>12){
+  if(feed.length>10){
 
     feed=
       feed.slice(
-        feed.length-12
+        feed.length-10
       );
 
   }
@@ -2583,87 +1573,965 @@ function trimFeed(){
 
 
 /* =========================================================
-   SOUNDS
+   MAIN GAME LOOP
 ========================================================= */
 
-function hitSound(){
+function startCanvasLoop(){
 
-  beep(
-    580,
-    .055,
-    "square",
-    .035
-  );
+  cancelAnimationFrame(gameLoopId);
 
-}
+  lastTime=performance.now();
 
+  const run=(time)=>{
 
-function smashSound(){
+    if(
+      state!=="PLAYING"
+    ){
 
-  beep(
-    180,
-    .12,
-    "sawtooth",
-    .065
-  );
+      return;
 
-  setTimeout(()=>{
+    }
 
-    beep(
-      720,
-      .12,
-      "triangle",
-      .045
+    /*
+      固定時間步進，
+      避免手機 FPS 高低造成速度忽快忽慢。
+    */
+
+    let dt=
+      (time-lastTime)/16.6667;
+
+    lastTime=time;
+
+    dt=Math.max(
+      .55,
+      Math.min(
+        dt,
+        1.25
+      )
     );
 
-  },45);
+    updateGame(dt);
+
+    drawGame();
+
+    gameLoopId=
+      requestAnimationFrame(run);
+
+  };
+
+  gameLoopId=
+    requestAnimationFrame(run);
 
 }
 
 
-function scoreSound(){
+/* =========================================================
+   UPDATE GAME
+========================================================= */
 
-  beep(
-    620,
-    .12,
-    "triangle",
-    .05
-  );
+function updateGame(dt){
 
-  setTimeout(()=>{
+  updateP1(dt);
 
-    beep(
-      830,
-      .16,
-      "triangle",
-      .055
+  updateAI(dt);
+
+  updateBall(dt);
+
+  updateParticles(dt);
+
+  updateEffects(dt);
+
+  if(screenShake>0){
+
+    screenShake*=.82;
+
+    if(screenShake<.1){
+
+      screenShake=0;
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   P1
+========================================================= */
+
+function updateP1(dt){
+
+  /*
+    加速度移動，
+    不再一按就瞬間高速。
+  */
+
+  let target=0;
+
+  if(keys.left1){
+
+    target=-CONFIG.PLAYER_SPEED;
+
+  }
+
+  if(keys.right1){
+
+    target=CONFIG.PLAYER_SPEED;
+
+  }
+
+  p1.vx +=
+    (target-p1.vx)*
+    CONFIG.PLAYER_ACCEL*
+    dt;
+
+  if(
+    !keys.left1 &&
+    !keys.right1
+  ){
+
+    p1.vx*=
+      Math.pow(
+        CONFIG.PLAYER_FRICTION,
+        dt
+      );
+
+  }
+
+  p1.x+=p1.vx*dt;
+
+  /*
+    玩家只在左半場。
+  */
+
+  p1.x=
+    Math.max(
+      18,
+      Math.min(
+        148,
+        p1.x
+      )
     );
 
-  },100);
+  /*
+    Jump
+  */
+
+  if(
+    keys.jump1 &&
+    p1.onGround
+  ){
+
+    p1.vy=
+      -CONFIG.JUMP_POWER;
+
+    p1.onGround=false;
+
+    keys.jump1=false;
+
+    beep(
+      260,
+      .05,
+      "square",
+      .025
+    );
+
+  }
+
+  p1.vy+=
+    CONFIG.PLAYER_GRAVITY*dt;
+
+  p1.y+=
+    p1.vy*dt;
+
+  if(
+    p1.y>=
+    CONFIG.FLOOR_Y-p1.h
+  ){
+
+    p1.y=
+      CONFIG.FLOOR_Y-p1.h;
+
+    p1.vy=0;
+
+    p1.onGround=true;
+
+  }else{
+
+    p1.onGround=false;
+
+  }
+
+  p1.hitCooldown=
+    Math.max(
+      0,
+      p1.hitCooldown-dt
+    );
+
+  p1.smashCooldown=
+    Math.max(
+      0,
+      p1.smashCooldown-dt
+    );
+
+  /*
+    普通擊球
+  */
+
+  if(
+    ball.active &&
+    p1.hitCooldown<=0
+  ){
+
+    const distance=
+      distanceToPlayer(
+        ball,
+        p1
+      );
+
+    if(
+      distance<
+      29
+    ){
+
+      const smash=
+        keys.smash1;
+
+      hitBall(
+        p1,
+        "P1",
+        smash
+      );
+
+      keys.smash1=false;
+
+    }
+
+  }
 
 }
 
 
-function netSound(){
+/* =========================================================
+   AI
+========================================================= */
 
-  beep(
-    220,
-    .045,
-    "square",
-    .018
+function updateAI(dt){
+
+  /*
+    AI 不再只看 ball.x > 180。
+    只要球進入右半場，
+    就會持續追球。
+
+    球還在左邊時，
+    AI 會回到合理防守位置。
+  */
+
+  let targetX=270;
+
+  if(ball.active){
+
+    if(ball.x>=CONFIG.NET_X){
+
+      /*
+        預判球落點，
+        讓 AI 不會像瞬移。
+      */
+
+      targetX=
+        predictBallX();
+
+    }else{
+
+      /*
+        球在左邊，
+        AI 回到右側中央。
+      */
+
+      targetX=272;
+
+    }
+
+  }
+
+  targetX=
+    Math.max(
+      198,
+      Math.min(
+        328,
+        targetX
+      )
+    );
+
+  const diff=
+    targetX-p2.x;
+
+  /*
+    AI 最大速度有限制。
+  */
+
+  const aiStep=
+    CONFIG.AI_SPEED*dt;
+
+  if(Math.abs(diff)>4){
+
+    p2.x+=
+      Math.sign(diff)*
+      Math.min(
+        Math.abs(diff),
+        aiStep
+      );
+
+  }
+
+  /*
+    AI 跳球。
+
+    只在球靠近右側，
+    且球高度合適時跳。
+  */
+
+  const ballNear=
+    ball.x>195 &&
+    ball.x<330;
+
+  const ballLow=
+    ball.y>125;
+
+  const horizontalClose=
+    Math.abs(
+      ball.x-
+      (p2.x+p2.w/2)
+    )<38;
+
+  if(
+    ball.active &&
+    p2.onGround &&
+    ballNear &&
+    (
+      ballLow ||
+      horizontalClose
+    )
+  ){
+
+    /*
+      不要每一幀重複跳。
+    */
+
+    if(
+      ball.vy>0 &&
+      ball.y<200
+    ){
+
+      p2.vy=
+        -CONFIG.JUMP_POWER*0.92;
+
+      p2.onGround=false;
+
+    }
+
+  }
+
+  p2.vy+=
+    CONFIG.PLAYER_GRAVITY*dt;
+
+  p2.y+=
+    p2.vy*dt;
+
+  if(
+    p2.y>=
+    CONFIG.FLOOR_Y-p2.h
+  ){
+
+    p2.y=
+      CONFIG.FLOOR_Y-p2.h;
+
+    p2.vy=0;
+
+    p2.onGround=true;
+
+  }else{
+
+    p2.onGround=false;
+
+  }
+
+  p2.hitCooldown=
+    Math.max(
+      0,
+      p2.hitCooldown-dt
+    );
+
+  /*
+    AI 擊球
+  */
+
+  if(
+    ball.active &&
+    p2.hitCooldown<=0
+  ){
+
+    const distance=
+      distanceToPlayer(
+        ball,
+        p2
+      );
+
+    if(
+      distance<29
+    ){
+
+      /*
+        AI 偶爾殺球，
+        但不會每球都殺。
+      */
+
+      const smash=
+        ball.y<180 &&
+        Math.random()<0.24;
+
+      hitBall(
+        p2,
+        "P2",
+        smash
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   PREDICT BALL
+========================================================= */
+
+function predictBallX(){
+
+  let x=ball.x;
+
+  let y=ball.y;
+
+  let vx=ball.vx;
+
+  let vy=ball.vy;
+
+  for(
+    let i=0;
+    i<35;
+    i++
+  ){
+
+    x+=vx;
+
+    y+=vy;
+
+    vy+=CONFIG.GRAVITY;
+
+    if(
+      x<CONFIG.BALL_R ||
+      x>CONFIG.WORLD_W-CONFIG.BALL_R
+    ){
+
+      vx*=-1;
+
+    }
+
+    if(
+      y<CONFIG.BALL_R
+    ){
+
+      y=CONFIG.BALL_R;
+
+      vy*=-.9;
+
+    }
+
+    if(
+      y>CONFIG.FLOOR_Y
+    ){
+
+      break;
+
+    }
+
+  }
+
+  return x;
+
+}
+
+
+/* =========================================================
+   BALL
+========================================================= */
+
+function updateBall(dt){
+
+  if(!ball.active){
+
+    return;
+
+  }
+
+  /*
+    保存軌跡
+  */
+
+  ball.trail.push({
+
+    x:ball.x,
+
+    y:ball.y
+
+  });
+
+  if(ball.trail.length>10){
+
+    ball.trail.shift();
+
+  }
+
+  ball.x+=
+    ball.vx*dt;
+
+  ball.y+=
+    ball.vy*dt;
+
+  ball.vy+=
+    CONFIG.GRAVITY*dt;
+
+  /*
+    球速限制
+  */
+
+  const speed=
+    Math.hypot(
+      ball.vx,
+      ball.vy
+    );
+
+  if(
+    speed>
+    CONFIG.MAX_BALL_SPEED
+  ){
+
+    const scale=
+      CONFIG.MAX_BALL_SPEED/
+      speed;
+
+    ball.vx*=scale;
+
+    ball.vy*=scale;
+
+  }
+
+  /*
+    左右牆
+  */
+
+  if(
+    ball.x<
+    ball.r
+  ){
+
+    ball.x=ball.r;
+
+    ball.vx=
+      Math.abs(ball.vx);
+
+  }
+
+  if(
+    ball.x>
+    CONFIG.WORLD_W-ball.r
+  ){
+
+    ball.x=
+      CONFIG.WORLD_W-ball.r;
+
+    ball.vx=
+      -Math.abs(ball.vx);
+
+  }
+
+  /*
+    天花板
+  */
+
+  if(
+    ball.y<
+    ball.r
+  ){
+
+    ball.y=ball.r;
+
+    ball.vy=
+      Math.abs(ball.vy)*.88;
+
+  }
+
+  /*
+    球網碰撞
+  */
+
+  if(
+    ball.x+ball.r>=
+      CONFIG.NET_X-3 &&
+    ball.x-ball.r<=
+      CONFIG.NET_X+3 &&
+    ball.y>
+      CONFIG.NET_TOP
+  ){
+
+    if(ball.vx>0){
+
+      ball.x=
+        CONFIG.NET_X-
+        ball.r-
+        3;
+
+      ball.vx=
+        -Math.abs(ball.vx)*.92;
+
+    }else{
+
+      ball.x=
+        CONFIG.NET_X+
+        ball.r+
+        3;
+
+      ball.vx=
+        Math.abs(ball.vx)*.92;
+
+    }
+
+  }
+
+  /*
+    玩家擊球在 updateP1 / updateAI
+    裡面處理。
+  */
+
+  /*
+    落地
+  */
+
+  if(
+    ball.y-ball.r>
+    CONFIG.FLOOR_Y
+  ){
+
+    const scoringSide=
+      ball.x<
+      CONFIG.NET_X
+        ? "P2"
+        : "P1";
+
+    pointScored(
+      scoringSide
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PLAYER DISTANCE
+========================================================= */
+
+function distanceToPlayer(
+  b,
+  p
+){
+
+  const cx=
+    p.x+p.w/2;
+
+  const cy=
+    p.y+p.h/2;
+
+  return Math.hypot(
+    b.x-cx,
+    b.y-cy
   );
 
 }
 
 
-function ballWallSound(){
+/* =========================================================
+   HIT BALL
+========================================================= */
 
-  beep(
-    300,
-    .04,
-    "sine",
-    .015
-  );
+function hitBall(
+  player,
+  side,
+  smash=false
+){
+
+  if(
+    !ball.active
+  ){
+
+    return;
+
+  }
+
+  /*
+    防止同一幀重複碰撞。
+  */
+
+  player.hitCooldown=
+    smash
+      ? 12
+      : 8;
+
+  /*
+    球方向永遠往對方場地。
+  */
+
+  const direction=
+    side==="P1"
+      ? 1
+      : -1;
+
+  const centerX=
+    player.x+
+    player.w/2;
+
+  const centerY=
+    player.y+
+    player.h/2;
+
+  const dx=
+    ball.x-centerX;
+
+  const dy=
+    ball.y-centerY;
+
+  /*
+    一般擊球：
+    - 橫向速度適中
+    - 往上飛
+  */
+
+  if(!smash){
+
+    ball.vx=
+      direction*
+      (
+        CONFIG.NORMAL_HIT_SPEED+
+        Math.min(
+          1.1,
+          Math.abs(dx)*.035
+        )
+      );
+
+    /*
+      根據人物與球的位置，
+      產生自然不同高度。
+    */
+
+    ball.vy=
+      -5.2-
+      Math.max(
+        0,
+        -dy*.035
+      );
+
+    ball.smash=false;
+
+    playHitSound();
+
+    vibrate(12);
+
+    createHitEffect(
+      ball.x,
+      ball.y,
+      "#62e7ff"
+    );
+
+    feed.push(
+      side==="P1"
+        ? "⚡ 皮卡丘擊球！"
+        : "🔴 AI 擊球！"
+    );
+
+  }else{
+
+    /*
+      =========================
+      真正的殺球
+      =========================
+
+      殺球：
+      1. 橫向速度更快
+      2. 球不會一直往天上飛
+      3. 有明顯向下角度
+      4. 視覺閃電
+    */
+
+    ball.vx=
+      direction*
+      CONFIG.SMASH_SPEED;
+
+    /*
+      根據擊球高度調整向下力量。
+    */
+
+    const downward=
+      ball.y<145
+        ? 1.4
+        : 2.4;
+
+    ball.vy=
+      downward;
+
+    ball.smash=true;
+
+    playSmashSound();
+
+    vibrate(
+      [25,20,70]
+    );
+
+    screenShake=9;
+
+    createHitEffect(
+      ball.x,
+      ball.y,
+      "#ff637a"
+    );
+
+    createSmashParticles(
+      ball.x,
+      ball.y,
+      direction
+    );
+
+    feed.push(
+      side==="P1"
+        ? "💥⚡ P1 超級殺球！"
+        : "💥⚡ AI 殺球！"
+    );
+
+  }
+
+  ball.lastHit=side;
+
+  trimFeed();
+
+}
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+function createHitEffect(
+  x,
+  y,
+  color
+){
+
+  hitEffects.push({
+
+    x,
+
+    y,
+
+    color,
+
+    life:1,
+
+    size:1
+
+  });
+
+}
+
+
+function createSmashParticles(
+  x,
+  y,
+  direction
+){
+
+  for(
+    let i=0;
+    i<14;
+    i++
+  ){
+
+    particles.push({
+
+      x,
+
+      y,
+
+      vx:
+        -direction*
+        (1+Math.random()*3),
+
+      vy:
+        -2+
+        Math.random()*4,
+
+      life:
+        .4+
+        Math.random()*.4,
+
+      color:
+        i%2
+          ? "#fff"
+          : "#ffd166"
+
+    });
+
+  }
+
+}
+
+
+function updateParticles(dt){
+
+  particles.forEach(p=>{
+
+    p.x+=p.vx*dt;
+
+    p.y+=p.vy*dt;
+
+    p.vy+=.08*dt;
+
+    p.life-=.025*dt;
+
+  });
+
+  particles=
+    particles.filter(
+      p=>p.life>0
+    );
+
+}
+
+
+function updateEffects(dt){
+
+  hitEffects.forEach(e=>{
+
+    e.life-=.07*dt;
+
+    e.size+=.12*dt;
+
+  });
+
+  hitEffects=
+    hitEffects.filter(
+      e=>e.life>0
+    );
 
 }
 
@@ -2672,57 +2540,47 @@ function ballWallSound(){
    DRAW
 ========================================================= */
 
-let shakeFrames=0;
-
-
 function drawGame(){
 
-  if(!canvas || !ctx)
+  if(
+    !canvas ||
+    !ctx
+  ){
+
     return;
 
-
-  const W=
-    CONFIG.WORLD_W;
-
-  const H=
-    CONFIG.WORLD_H;
-
+  }
 
   /*
-    Canvas 本身固定世界大小。
-
-    CSS 再負責縮放。
-
-    所以物理不會跟螢幕高度一起變。
+    canvas 內部永遠 360x250。
+    CSS 再縮放到手機畫面。
+    因此物理不會跟著畫面比例亂掉。
   */
 
   ctx.clearRect(
     0,
     0,
-    W,
-    H
+    CONFIG.WORLD_W,
+    CONFIG.WORLD_H
   );
 
+  ctx.save();
 
-  if(shakeFrames>0){
+  /*
+    Screen shake
+  */
 
-    const sx=
-      (Math.random()-.5)*5;
-
-    const sy=
-      (Math.random()-.5)*3;
-
-    ctx.save();
+  if(screenShake>0){
 
     ctx.translate(
-      sx,
-      sy
+      (Math.random()-.5)*
+      screenShake,
+
+      (Math.random()-.5)*
+      screenShake
     );
 
-    shakeFrames--;
-
   }
-
 
   drawBackground();
 
@@ -2730,28 +2588,23 @@ function drawGame(){
 
   drawNet();
 
-  drawBallTrail();
-
-  drawPikachu(
+  drawPlayer(
     p1,
-    false
+    "yellow"
   );
 
-  drawPikachu(
+  drawPlayer(
     p2,
-    true
+    "red"
   );
 
   drawBall();
 
+  drawParticles();
 
-  if(shakeFrames>=0){
+  drawHitEffects();
 
-    try{
-      ctx.restore();
-    }catch(_){}
-
-  }
+  ctx.restore();
 
 }
 
@@ -2762,7 +2615,7 @@ function drawGame(){
 
 function drawBackground(){
 
-  const gradient=
+  const g=
     ctx.createLinearGradient(
       0,
       0,
@@ -2770,24 +2623,22 @@ function drawBackground(){
       CONFIG.WORLD_H
     );
 
-
-  gradient.addColorStop(
+  g.addColorStop(
     0,
-    "#1d2744"
+    "#202a49"
   );
 
-  gradient.addColorStop(
+  g.addColorStop(
     .55,
-    "#11182b"
+    "#101628"
   );
 
-  gradient.addColorStop(
+  g.addColorStop(
     1,
     "#070912"
   );
 
-
-  ctx.fillStyle=gradient;
+  ctx.fillStyle=g;
 
   ctx.fillRect(
     0,
@@ -2796,32 +2647,32 @@ function drawBackground(){
     CONFIG.WORLD_H
   );
 
-
   /*
-    星空
+    遠景光點
   */
 
   for(
     let i=0;
-    i<35;
+    i<20;
     i++
   ){
 
     const x=
-      (i*83)%720;
+      (i*67)%CONFIG.WORLD_W;
 
     const y=
-      (i*47)%220;
+      20+
+      ((i*31)%90);
 
     ctx.fillStyle=
-      "rgba(255,255,255,.35)";
+      "rgba(255,255,255,.12)";
 
     ctx.beginPath();
 
     ctx.arc(
       x,
       y,
-      1.2,
+      1,
       0,
       Math.PI*2
     );
@@ -2840,111 +2691,90 @@ function drawBackground(){
 function drawCourt(){
 
   /*
-    地板
+    地面
   */
 
-  const ground=
-    ctx.createLinearGradient(
-      0,
-      CONFIG.GROUND_Y,
-      0,
-      CONFIG.WORLD_H
-    );
-
-
-  ground.addColorStop(
-    0,
-    "#273653"
-  );
-
-  ground.addColorStop(
-    1,
-    "#10182a"
-  );
-
-
-  ctx.fillStyle=ground;
-
+  ctx.fillStyle=
+    "#121a2a";
 
   ctx.fillRect(
     0,
-    CONFIG.GROUND_Y,
+    CONFIG.FLOOR_Y,
     CONFIG.WORLD_W,
-    CONFIG.WORLD_H-
-    CONFIG.GROUND_Y
+    CONFIG.WORLD_H-CONFIG.FLOOR_Y
   );
-
 
   /*
     球場線
   */
 
   ctx.strokeStyle=
-    "rgba(255,255,255,.22)";
+    "rgba(98,231,255,.25)";
 
-  ctx.lineWidth=3;
-
+  ctx.lineWidth=1;
 
   ctx.beginPath();
 
   ctx.moveTo(
-    20,
-    CONFIG.GROUND_Y
+    0,
+    CONFIG.FLOOR_Y
   );
 
   ctx.lineTo(
-    CONFIG.WORLD_W-20,
-    CONFIG.GROUND_Y
+    CONFIG.WORLD_W,
+    CONFIG.FLOOR_Y
   );
 
   ctx.stroke();
 
-
   /*
-    左右半場
+    左半場
   */
 
   ctx.strokeStyle=
-    "rgba(98,231,255,.15)";
-
-  ctx.lineWidth=2;
-
+    "rgba(255,209,102,.15)";
 
   ctx.beginPath();
 
   ctx.moveTo(
-    20,
-    CONFIG.GROUND_Y
+    15,
+    CONFIG.FLOOR_Y
   );
 
   ctx.lineTo(
-    20,
-    CONFIG.GROUND_Y-130
+    15,
+    155
   );
 
   ctx.lineTo(
-    CONFIG.NET_X-10,
-    CONFIG.GROUND_Y-130
+    155,
+    155
   );
 
   ctx.stroke();
 
+  /*
+    右半場
+  */
+
+  ctx.strokeStyle=
+    "rgba(255,99,122,.15)";
 
   ctx.beginPath();
 
   ctx.moveTo(
-    CONFIG.NET_X+10,
-    CONFIG.GROUND_Y-130
+    205,
+    155
   );
 
   ctx.lineTo(
-    CONFIG.WORLD_W-20,
-    CONFIG.GROUND_Y-130
+    345,
+    155
   );
 
   ctx.lineTo(
-    CONFIG.WORLD_W-20,
-    CONFIG.GROUND_Y
+    345,
+    CONFIG.FLOOR_Y
   );
 
   ctx.stroke();
@@ -2959,103 +2789,421 @@ function drawCourt(){
 function drawNet(){
 
   /*
-    球網
+    網柱
   */
 
   ctx.fillStyle=
-    "#dce8ff";
+    "#dce7f5";
 
   ctx.fillRect(
-    CONFIG.NET_X-5,
+    CONFIG.NET_X-3,
     CONFIG.NET_TOP,
-    10,
-    CONFIG.GROUND_Y-
+    6,
+    CONFIG.NET_BOTTOM-
     CONFIG.NET_TOP
   );
 
-
   /*
-    球網陰影
+    網線
   */
 
-  ctx.fillStyle=
-    "rgba(0,0,0,.25)";
+  ctx.strokeStyle=
+    "rgba(255,255,255,.65)";
 
-  ctx.fillRect(
-    CONFIG.NET_X-9,
-    CONFIG.NET_TOP,
-    4,
-    CONFIG.GROUND_Y-
-    CONFIG.NET_TOP
-  );
+  ctx.lineWidth=.7;
 
+  for(
+    let y=CONFIG.NET_TOP;
+    y<CONFIG.NET_BOTTOM;
+    y+=8
+  ){
 
-  /*
-    頂端
-  */
+    ctx.beginPath();
 
-  ctx.fillStyle=
-    "#fff";
+    ctx.moveTo(
+      CONFIG.NET_X-4,
+      y
+    );
 
-  ctx.fillRect(
-    CONFIG.NET_X-8,
-    CONFIG.NET_TOP,
-    16,
-    6
-  );
+    ctx.lineTo(
+      CONFIG.NET_X+4,
+      y
+    );
+
+    ctx.stroke();
+
+  }
 
 }
 
 
 /* =========================================================
-   BALL TRAIL
+   PIKACHU
 ========================================================= */
 
-function drawBallTrail(){
+function drawPlayer(
+  p,
+  type
+){
 
-  for(
-    let i=
-      ball.trail.length-1;
+  ctx.save();
 
-    i>=0;
+  /*
+    身體
+  */
 
-    i--
+  ctx.fillStyle=
+    p.color;
 
+  ctx.beginPath();
+
+  ctx.roundRect(
+    p.x,
+    p.y+8,
+    p.w,
+    p.h-8,
+    10
+  );
+
+  ctx.fill();
+
+  /*
+    耳朵
+  */
+
+  ctx.fillStyle=
+    p.color;
+
+  /*
+    左耳
+  */
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+6,
+    p.y+10
+  );
+
+  ctx.lineTo(
+    p.x+1,
+    p.y-7
+  );
+
+  ctx.lineTo(
+    p.x+12,
+    p.y+4
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  /*
+    右耳
+  */
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+22,
+    p.y+7
+  );
+
+  ctx.lineTo(
+    p.x+29,
+    p.y-8
+  );
+
+  ctx.lineTo(
+    p.x+28,
+    p.y+13
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  /*
+    黑色耳尖
+  */
+
+  ctx.fillStyle="#252525";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+1,
+    p.y-7
+  );
+
+  ctx.lineTo(
+    p.x+5,
+    p.y+1
+  );
+
+  ctx.lineTo(
+    p.x+4,
+    p.y-1
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+29,
+    p.y-8
+  );
+
+  ctx.lineTo(
+    p.x+27,
+    p.y+1
+  );
+
+  ctx.lineTo(
+    p.x+25,
+    p.y-2
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  /*
+    臉
+  */
+
+  ctx.fillStyle="#fff";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+10,
+    p.y+19,
+    2.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+22,
+    p.y+19,
+    2.3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+    眼睛
+  */
+
+  ctx.fillStyle="#111";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+10,
+    p.y+19,
+    1,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+22,
+    p.y+19,
+    1,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+    臉頰
+  */
+
+  ctx.fillStyle=
+    type==="yellow"
+      ? "#ff3d3d"
+      : "#ff8a8a";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+5,
+    p.y+26,
+    3.2,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x+27,
+    p.y+26,
+    3.2,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  /*
+    嘴巴
+  */
+
+  ctx.strokeStyle="#5a241b";
+
+  ctx.lineWidth=1;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+15,
+    p.y+25
+  );
+
+  ctx.lineTo(
+    p.x+16,
+    p.y+28
+  );
+
+  ctx.lineTo(
+    p.x+18,
+    p.y+25
+  );
+
+  ctx.stroke();
+
+  /*
+    尾巴
+  */
+
+  ctx.fillStyle=
+    type==="yellow"
+      ? "#ffd166"
+      : "#ff637a";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    p.x+30,
+    p.y+30
+  );
+
+  ctx.lineTo(
+    p.x+39,
+    p.y+25
+  );
+
+  ctx.lineTo(
+    p.x+35,
+    p.y+33
+  );
+
+  ctx.lineTo(
+    p.x+42,
+    p.y+37
+  );
+
+  ctx.lineTo(
+    p.x+30,
+    p.y+37
+  );
+
+  ctx.closePath();
+
+  ctx.fill();
+
+  /*
+    腳
+  */
+
+  ctx.fillStyle=
+    type==="yellow"
+      ? "#e6a72e"
+      : "#d94359";
+
+  ctx.fillRect(
+    p.x+5,
+    p.y+36,
+    8,
+    4
+  );
+
+  ctx.fillRect(
+    p.x+20,
+    p.y+36,
+    8,
+    4
+  );
+
+  /*
+    殺球狀態
+  */
+
+  if(
+    p===p1 &&
+    keys.smash1
   ){
 
-    const t=
-      ball.trail[i];
-
-    const alpha=
-      (1-
-      i/
-      ball.trail.length)
-      *.18;
-
-
-    ctx.fillStyle=
-      `rgba(255,209,102,${alpha})`;
-
-
-    ctx.beginPath();
-
-    ctx.arc(
-      t.x,
-      t.y,
-      ball.r*
-        (.45+
-        (1-
-        i/
-        ball.trail.length)
-        *.4),
-
-      0,
-      Math.PI*2
+    drawElectricRing(
+      p.x+16,
+      p.y+19
     );
 
-    ctx.fill();
-
   }
+
+  ctx.restore();
+
+}
+
+
+/* =========================================================
+   ELECTRIC EFFECT
+========================================================= */
+
+function drawElectricRing(
+  x,
+  y
+){
+
+  ctx.strokeStyle=
+    "#62e7ff";
+
+  ctx.lineWidth=2;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    x,
+    y,
+    23+
+    Math.sin(
+      performance.now()/80
+    )*3,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
 
 }
 
@@ -3067,83 +3215,126 @@ function drawBallTrail(){
 function drawBall(){
 
   /*
-    發光
+    軌跡
   */
 
-  const glow=
-    ctx.createRadialGradient(
+  for(
+    let i=0;
+    i<ball.trail.length;
+    i++
+  ){
 
-      ball.x,
-      ball.y,
-      2,
+    const t=
+      i/
+      ball.trail.length;
 
-      ball.x,
-      ball.y,
-      ball.r*2.5
+    const point=
+      ball.trail[i];
 
+    ctx.fillStyle=
+      `rgba(255,209,102,${t*.22})`;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      point.x,
+      point.y,
+      2+
+      t*3,
+      0,
+      Math.PI*2
     );
 
+    ctx.fill();
 
-  glow.addColorStop(
-    0,
-    "rgba(255,240,160,.65)"
-  );
+  }
 
-  glow.addColorStop(
-    1,
-    "rgba(255,209,102,0)"
-  );
+  /*
+    殺球閃電
+  */
 
+  if(ball.smash){
 
-  ctx.fillStyle=glow;
+    ctx.strokeStyle=
+      "#ff637a";
 
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      ball.x-16,
+      ball.y+5
+    );
+
+    ctx.lineTo(
+      ball.x-8,
+      ball.y-4
+    );
+
+    ctx.lineTo(
+      ball.x-3,
+      ball.y+3
+    );
+
+    ctx.lineTo(
+      ball.x+5,
+      ball.y-8
+    );
+
+    ctx.stroke();
+
+  }
+
+  /*
+    球陰影
+  */
+
+  ctx.fillStyle=
+    "rgba(0,0,0,.22)";
 
   ctx.beginPath();
 
-  ctx.arc(
+  ctx.ellipse(
     ball.x,
-    ball.y,
-    ball.r*2.5,
+    CONFIG.FLOOR_Y+1,
+    10,
+    2.5,
+    0,
     0,
     Math.PI*2
   );
 
   ctx.fill();
 
-
   /*
-    球體
+    球
   */
 
   const g=
     ctx.createRadialGradient(
-
-      ball.x-5,
-      ball.y-6,
-      2,
-
+      ball.x-3,
+      ball.y-4,
+      1,
       ball.x,
       ball.y,
       ball.r
-
     );
-
 
   g.addColorStop(
     0,
-    "#fff8cf"
+    "#fff"
   );
 
   g.addColorStop(
     .45,
-    "#ffd166"
+    "#ffe69a"
   );
 
   g.addColorStop(
     1,
-    "#e7a934"
+    "#f4b942"
   );
-
 
   ctx.fillStyle=g;
 
@@ -3159,38 +3350,35 @@ function drawBall(){
 
   ctx.fill();
 
-
   /*
-    排球弧線
+    球紋
   */
 
   ctx.strokeStyle=
-    "rgba(100,65,20,.55)";
+    "rgba(80,60,20,.65)";
 
-  ctx.lineWidth=2;
-
+  ctx.lineWidth=1;
 
   ctx.beginPath();
 
   ctx.arc(
-    ball.x-2,
+    ball.x,
     ball.y,
-    ball.r*.72,
-    -.8,
-    .9
+    ball.r-2,
+    -.7,
+    1.2
   );
 
   ctx.stroke();
 
-
   ctx.beginPath();
 
   ctx.arc(
-    ball.x+3,
+    ball.x,
     ball.y,
-    ball.r*.65,
-    2.1,
-    4.1
+    ball.r-3,
+    2,
+    4.2
   );
 
   ctx.stroke();
@@ -3199,601 +3387,271 @@ function drawBall(){
 
 
 /* =========================================================
-   PIKACHU
+   PARTICLE DRAW
 ========================================================= */
 
-function drawPikachu(
+function drawParticles(){
 
-  p,
+  particles.forEach(p=>{
 
-  enemy
+    ctx.globalAlpha=
+      Math.max(
+        0,
+        p.life
+      );
 
-){
+    ctx.fillStyle=p.color;
 
-  const x=p.x;
-
-  const y=p.y;
-
-  const w=p.w;
-
-  const h=p.h;
-
-
-  ctx.save();
-
-
-  /*
-    陰影
-  */
-
-  ctx.fillStyle=
-    "rgba(0,0,0,.25)";
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    x+w/2,
-    CONFIG.GROUND_Y+4,
-    32,
-    7,
-    0,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /*
-    尾巴
-
-    P1 左側金色。
-
-    AI 右側。
-  */
-
-  ctx.fillStyle=
-    enemy
-      ? "#d99b25"
-      : "#d99b25";
-
-
-  ctx.beginPath();
-
-
-  if(!enemy){
-
-    ctx.moveTo(
-      x+3,
-      y+h*.58
+    ctx.fillRect(
+      p.x,
+      p.y,
+      3,
+      3
     );
 
-    ctx.lineTo(
-      x-16,
-      y+h*.40
-    );
+  });
 
-    ctx.lineTo(
-      x-5,
-      y+h*.25
-    );
-
-    ctx.lineTo(
-      x+10,
-      y+h*.42
-    );
-
-  }else{
-
-    ctx.moveTo(
-      x+w-3,
-      y+h*.58
-    );
-
-    ctx.lineTo(
-      x+w+16,
-      y+h*.40
-    );
-
-    ctx.lineTo(
-      x+w+5,
-      y+h*.25
-    );
-
-    ctx.lineTo(
-      x+w-10,
-      y+h*.42
-    );
-
-  }
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  /*
-    身體
-  */
-
-  ctx.fillStyle=
-    p.color;
-
-
-  ctx.beginPath();
-
-  ctx.roundRect(
-    x+5,
-    y+15,
-    w-10,
-    h-13,
-    15
-  );
-
-  ctx.fill();
-
-
-  /*
-    耳朵
-
-    這次明顯畫出來。
-  */
-
-  ctx.fillStyle=
-    "#ffd166";
-
-
-  if(!enemy){
-
-    drawEar(
-      x+9,
-      y+12,
-      -1
-    );
-
-    drawEar(
-      x+w-9,
-      y+12,
-      1
-    );
-
-  }else{
-
-    drawEar(
-      x+9,
-      y+12,
-      -1
-    );
-
-    drawEar(
-      x+w-9,
-      y+12,
-      1
-    );
-
-  }
-
-
-  /*
-    耳朵黑尖
-  */
-
-  ctx.fillStyle="#272019";
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    x+2,
-    y+5
-  );
-
-  ctx.lineTo(
-    x+12,
-    y+1
-  );
-
-  ctx.lineTo(
-    x+12,
-    y+12
-  );
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    x+w-2,
-    y+5
-  );
-
-  ctx.lineTo(
-    x+w-12,
-    y+1
-  );
-
-  ctx.lineTo(
-    x+w-12,
-    y+12
-  );
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  /*
-    臉
-  */
-
-  ctx.fillStyle=
-    "#ffe8a3";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+w/2,
-    y+31,
-    17,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /*
-    眼睛
-  */
-
-  ctx.fillStyle="#111";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+w/2-7,
-    y+28,
-    2.7,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+w/2+7,
-    y+28,
-    2.7,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /*
-    腮紅
-  */
-
-  ctx.fillStyle=
-    "#ff5266";
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+7,
-    y+37,
-    4.5,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+w-7,
-    y+37,
-    4.5,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /*
-    嘴巴
-  */
-
-  ctx.strokeStyle=
-    "#8b3a32";
-
-  ctx.lineWidth=1.5;
-
-  ctx.beginPath();
-
-  ctx.arc(
-    x+w/2,
-    y+34,
-    5,
-    .15,
-    Math.PI-.15
-  );
-
-  ctx.stroke();
-
-
-  /*
-    腳
-  */
-
-  ctx.fillStyle=
-    "#d99b25";
-
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    x+15,
-    y+h-3,
-    9,
-    5,
-    0,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.beginPath();
-
-  ctx.ellipse(
-    x+w-15,
-    y+h-3,
-    9,
-    5,
-    0,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  ctx.restore();
+  ctx.globalAlpha=1;
 
 }
 
 
 /* =========================================================
-   EAR
+   HIT EFFECT DRAW
 ========================================================= */
 
-function drawEar(
+function drawHitEffects(){
 
-  x,
+  hitEffects.forEach(e=>{
 
-  y,
+    ctx.globalAlpha=
+      Math.max(
+        0,
+        e.life
+      );
 
-  direction
+    ctx.strokeStyle=e.color;
 
-){
+    ctx.lineWidth=3;
 
-  ctx.save();
+    ctx.beginPath();
 
-  ctx.translate(
-    x,
-    y
-  );
+    ctx.arc(
+      e.x,
+      e.y,
+      10+
+      e.size*18,
+      0,
+      Math.PI*2
+    );
 
-  ctx.rotate(
-    direction*
-    -.15
-  );
+    ctx.stroke();
 
+  });
 
-  ctx.fillStyle=
-    "#ffd166";
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(0,15);
-
-  ctx.lineTo(
-    direction*5,
-    -13
-  );
-
-  ctx.quadraticCurveTo(
-    direction*18,
-    -18,
-    direction*17,
-    -4
-  );
-
-  ctx.lineTo(
-    direction*10,
-    15
-  );
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  ctx.fillStyle="#272019";
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    direction*5,
-    -13
-  );
-
-  ctx.quadraticCurveTo(
-    direction*15,
-    -16,
-    direction*17,
-    -4
-  );
-
-  ctx.lineTo(
-    direction*11,
-    0
-  );
-
-  ctx.closePath();
-
-  ctx.fill();
-
-
-  ctx.restore();
+  ctx.globalAlpha=1;
 
 }
 
 
 /* =========================================================
-   INPUT
+   CANVAS RESIZE
 ========================================================= */
 
-function setupKeyboard(){
+function resizeCanvas(){
 
-  window.addEventListener(
-    "keydown",
-    e=>{
+  if(!canvas) return;
 
-      const key=
-        e.key.toLowerCase();
+  /*
+    不修改遊戲內部解析度。
+    只讓 CSS 縮放。
 
+    這就是修正：
+    「人物跟地面位置亂掉」
+    的關鍵。
+  */
+
+  canvas.width=
+    CONFIG.WORLD_W;
+
+  canvas.height=
+    CONFIG.WORLD_H;
+
+}
+
+
+window.addEventListener(
+  "resize",
+  resizeCanvas
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+window.addEventListener(
+  "keydown",
+  e=>{
+
+    /*
+      避免方向鍵滾動頁面
+    */
+
+    if(
+      [
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        " ",
+        "w",
+        "W",
+        "a",
+        "A",
+        "d",
+        "D",
+        "j",
+        "J",
+        "k",
+        "K"
+      ].includes(e.key)
+    ){
+
+      e.preventDefault();
+
+    }
+
+    if(
+      e.key==="ArrowLeft" ||
+      e.key==="a" ||
+      e.key==="A"
+    ){
+
+      keys.left1=true;
+
+    }
+
+    if(
+      e.key==="ArrowRight" ||
+      e.key==="d" ||
+      e.key==="D"
+    ){
+
+      keys.right1=true;
+
+    }
+
+    if(
+      e.key==="ArrowUp" ||
+      e.key==="w" ||
+      e.key==="W" ||
+      e.key===" "
+    ){
 
       if(
-        [
-          "w",
-          "a",
-          "s",
-          "d",
-          " ",
-          "j",
-          "k",
-          "arrowleft",
-          "arrowright",
-          "arrowup"
-        ].includes(key)
+        !e.repeat
       ){
 
-        e.preventDefault();
+        keys.jump1=true;
 
       }
 
-
-      if(key==="a")
-        keys.left1=true;
-
-      if(key==="d")
-        keys.right1=true;
-
-      if(key==="w")
-        keys.jump1=true;
-
-      if(key===" ")
-        keys.jump1=true;
-
-      if(key==="j")
-        keys.smash1=true;
-
-      if(key==="k")
-        keys.smash1=true;
-
-
-      if(key==="arrowleft")
-        keys.left1=true;
-
-      if(key==="arrowright")
-        keys.right1=true;
-
-      if(key==="arrowup")
-        keys.jump1=true;
-
-    },
-    {
-      passive:false
     }
-  );
 
+    /*
+      J / K / E / Enter
+      都可以殺球
+    */
 
-  window.addEventListener(
-    "keyup",
-    e=>{
+    if(
+      e.key==="j" ||
+      e.key==="J" ||
+      e.key==="k" ||
+      e.key==="K" ||
+      e.key==="e" ||
+      e.key==="E" ||
+      e.key==="Enter"
+    ){
 
-      const key=
-        e.key.toLowerCase();
-
-
-      if(key==="a")
-        keys.left1=false;
-
-      if(key==="d")
-        keys.right1=false;
-
-      if(key==="w")
-        keys.jump1=false;
-
-      if(key===" ")
-        keys.jump1=false;
-
-      if(key==="j")
-        keys.smash1=false;
-
-      if(key==="k")
-        keys.smash1=false;
-
-      if(key==="arrowleft")
-        keys.left1=false;
-
-      if(key==="arrowright")
-        keys.right1=false;
-
-      if(key==="arrowup")
-        keys.jump1=false;
+      keys.smash1=true;
 
     }
-  );
 
-}
+  },
+  {
+    passive:false
+  }
+);
+
+
+window.addEventListener(
+  "keyup",
+  e=>{
+
+    if(
+      e.key==="ArrowLeft" ||
+      e.key==="a" ||
+      e.key==="A"
+    ){
+
+      keys.left1=false;
+
+    }
+
+    if(
+      e.key==="ArrowRight" ||
+      e.key==="d" ||
+      e.key==="D"
+    ){
+
+      keys.right1=false;
+
+    }
+
+    if(
+      e.key==="ArrowUp" ||
+      e.key==="w" ||
+      e.key==="W" ||
+      e.key===" "
+    ){
+
+      keys.jump1=false;
+
+    }
+
+    if(
+      e.key==="j" ||
+      e.key==="J" ||
+      e.key==="k" ||
+      e.key==="K" ||
+      e.key==="e" ||
+      e.key==="E" ||
+      e.key==="Enter"
+    ){
+
+      keys.smash1=false;
+
+    }
+
+  }
+);
 
 
 /* =========================================================
-   TOUCH BUTTONS
+   TOUCH CONTROLS
 ========================================================= */
 
 function bindTouch(
-
-  btnId,
-
+  buttonId,
   keyName
-
 ){
 
   const btn=
     document.getElementById(
-      btnId
+      buttonId
     );
 
   if(!btn) return;
-
 
   const down=e=>{
 
@@ -3807,8 +3665,15 @@ function bindTouch(
       "active"
     );
 
-  };
+    try{
 
+      btn.setPointerCapture(
+        e.pointerId
+      );
+
+    }catch(_){}
+
+  };
 
   const up=e=>{
 
@@ -3822,7 +3687,6 @@ function bindTouch(
 
   };
 
-
   btn.addEventListener(
     "pointerdown",
     down,
@@ -3830,7 +3694,6 @@ function bindTouch(
       passive:false
     }
   );
-
 
   btn.addEventListener(
     "pointerup",
@@ -3840,7 +3703,6 @@ function bindTouch(
     }
   );
 
-
   btn.addEventListener(
     "pointercancel",
     up,
@@ -3849,9 +3711,8 @@ function bindTouch(
     }
   );
 
-
   btn.addEventListener(
-    "pointerleave",
+    "lostpointercapture",
     up,
     {
       passive:false
@@ -3862,7 +3723,7 @@ function bindTouch(
 
 
 /* =========================================================
-   RENDER PLAYERS
+   PLAYERS HTML
 ========================================================= */
 
 function renderPlayers(){
@@ -3872,14 +3733,13 @@ function renderPlayers(){
     return `
       <div class="player me">
         <b>${esc(ME.username)}</b>
-        <em>準備中</em>
+        <em>本地玩家</em>
       </div>
     `;
 
   }
 
-
-  return [
+  return[
     ...players.values()
   ]
   .map(p=>{
@@ -3887,21 +3747,13 @@ function renderPlayers(){
     const isMe=
       p.id===ME.id;
 
-
     return `
-
       <div class="player ${isMe?"me":""}">
-
-        <b>
-          ${esc(p.username)}
-        </b>
-
+        <b>${esc(p.username)}</b>
         <em>
-          房內玩家
+          ${isMe?"你":"玩家"}
         </em>
-
       </div>
-
     `;
 
   })
@@ -3911,31 +3763,7 @@ function renderPlayers(){
 
 
 /* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function esc(s){
-
-  return String(s||"")
-    .replace(
-      /[&<>"']/g,
-      c=>({
-
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-
-      }[c])
-
-    );
-
-}
-
-
-/* =========================================================
-   LOCAL TEST
+   LOCAL DEV
 ========================================================= */
 
 function runLocalDevTest(){
@@ -3950,14 +3778,12 @@ function runLocalDevTest(){
     ME.avatar
   );
 
-
   /*
-    這裡不要只 sendEvent。
-
-    本地測試必須直接啟動。
+    本地測試直接呼叫 beginMatch，
+    不依賴 SDK。
   */
 
-  startNewGame();
+  beginMatch();
 
 }
 
@@ -3982,6 +3808,10 @@ function render(){
 
   if(state==="LOBBY"){
 
+    cancelAnimationFrame(
+      gameLoopId
+    );
+
     main.innerHTML=`
 
       <section class="panel">
@@ -3989,52 +3819,23 @@ function render(){
         <div class="stats">
 
           <div class="stat">
-
             <b>100</b>
-
-            <span>
-              Entry 銀幣
-            </span>
-
+            <span>Entry 銀幣</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              ${players.size}
-            </b>
-
-            <span>
-              房內玩家
-            </span>
-
+            <b>${players.size}</b>
+            <span>房內玩家</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              5 分
-            </b>
-
-            <span>
-              先到獲勝
-            </span>
-
+            <b>5 分</b>
+            <span>先到獲勝</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              慢速版
-            </b>
-
-            <span>
-              好操作
-            </span>
-
+            <b>⚡</b>
+            <span>皮卡丘排球</span>
           </div>
 
         </div>
@@ -4045,16 +3846,11 @@ function render(){
       <section class="panel">
 
         <div class="sectionTitle">
-
           房內玩家
-
         </div>
 
-
         <div class="players">
-
           ${renderPlayers()}
-
         </div>
 
       </section>
@@ -4062,26 +3858,20 @@ function render(){
 
       ${
         isHost()
-
         ?
-
         `
-          <button
-            id="startBtn"
-            class="cta"
-          >
-            👑 室長：開始《皮卡丘排球》
-          </button>
+        <button
+          id="startBtn"
+          class="cta"
+        >
+          👑 開始《皮卡丘排球》
+        </button>
         `
-
         :
-
         `
-          <div class="notice">
-
-            等待室長開始遊戲...
-
-          </div>
+        <div class="notice">
+          等待室長開始遊戲...
+        </div>
         `
       }
 
@@ -4091,58 +3881,22 @@ function render(){
         class="cta secondary"
         style="margin-top:8px;"
       >
-
-        🧪 本地測試：直接開局體驗
-
+        🧪 本地測試：直接開局
       </button>
 
 
-      <section
-        class="panel"
-        style="margin-top:0;"
-      >
+      <section class="panel tiny">
 
-        <div class="sectionTitle">
+        <b>🎮 操作方式</b>
 
-          🎮 操作方式
-
-        </div>
-
-
-        <div class="tiny muted">
-
-          電腦：
-
-          <b>W / Space</b>
-          跳躍、
-
-          <b>A / D</b>
-          移動、
-
-          <b>J / K</b>
-          扣殺。
-
-          <br><br>
-
-          手機：
-
-          <b>◀ ▶</b>
-          移動、
-
-          <b>▲ 跳</b>
-          跳躍、
-
-          <b>⚡ 扣</b>
-          扣殺。
-
-          <br><br>
-
-          🏐 每次得分後會從球網重新發球，
-
-          <b>3 秒倒數</b>
-
-          後才開始。
-
+        <div style="margin-top:5px;">
+          電腦：A / D 或 ← / → 移動
+          <br>
+          W / ↑ / 空白鍵：跳躍
+          <br>
+          J / K / E / Enter：殺球
+          <br>
+          手機：下方按鈕操作
         </div>
 
       </section>
@@ -4163,7 +3917,7 @@ function render(){
             {}
           );
 
-          startNewGame();
+          beginMatch();
 
         }
       );
@@ -4174,9 +3928,7 @@ function render(){
       ?.addEventListener(
         "click",
         ()=>{
-
           runLocalDevTest();
-
         }
       );
 
@@ -4187,73 +3939,48 @@ function render(){
 
 
   /* =========================
-     PLAYING
+     PLAYING / COUNTDOWN / POINT
   ========================= */
 
-  if(state==="PLAYING"){
+  if(
+    state==="PLAYING" ||
+    state==="COUNTDOWN" ||
+    state==="POINT"
+  ){
 
     main.innerHTML=`
 
       <div
-        class="stats"
-        style="flex:none;"
+        class="stats gameTop"
       >
 
         <div class="stat">
-
-          <b>
-            🟡 P1: ${scoreP1}
-          </b>
-
-          <span>
-            我方
-          </span>
-
+          <b>🟡 ${scoreP1}</b>
+          <span>我方</span>
         </div>
 
+        <div class="stat">
+          <b>VS</b>
+          <span>排球</span>
+        </div>
 
         <div class="stat">
+          <b>🔴 ${scoreP2}</b>
+          <span>AI</span>
+        </div>
 
-          <b>
-            ${serveState==="COUNTDOWN"
-              ? "🏐 準備"
-              : "VS"}
-          </b>
-
+        <div class="stat">
+          <b>⚡</b>
           <span>
             ${
-              serveState==="COUNTDOWN"
-                ? "即將發球"
-                : "排球對決"
+              state==="COUNTDOWN"
+                ? "準備"
+                :
+              state==="POINT"
+                ? "得分"
+                : "對戰"
             }
           </span>
-
-        </div>
-
-
-        <div class="stat">
-
-          <b>
-            🔴 P2: ${scoreP2}
-          </b>
-
-          <span>
-            AI
-          </span>
-
-        </div>
-
-
-        <div class="stat">
-
-          <b>
-            5
-          </b>
-
-          <span>
-            勝利分數
-          </span>
-
         </div>
 
       </div>
@@ -4263,9 +3990,13 @@ function render(){
 
         <canvas
           id="gameCanvas"
-          width="720"
-          height="500"
+          width="360"
+          height="250"
         ></canvas>
+
+        <div
+          id="countdownOverlay"
+        ></div>
 
       </div>
 
@@ -4279,7 +4010,6 @@ function render(){
           ◀
         </button>
 
-
         <button
           id="rightBtn"
           class="ctrlBtn"
@@ -4287,20 +4017,18 @@ function render(){
           ▶
         </button>
 
-
         <button
           id="jumpBtn"
           class="ctrlBtn jumpBtn"
         >
-          ▲ 跳
+          ▲
         </button>
-
 
         <button
           id="smashBtn"
           class="ctrlBtn smashBtn"
         >
-          ⚡ 扣
+          ⚡
         </button>
 
       </div>
@@ -4311,8 +4039,7 @@ function render(){
         ${
           feed
             .map(
-              f=>
-                `<div>${esc(f)}</div>`
+              f=>`<div>${esc(f)}</div>`
             )
             .join("")
         }
@@ -4327,7 +4054,6 @@ function render(){
         "gameCanvas"
       );
 
-
     if(canvas){
 
       ctx=
@@ -4335,16 +4061,9 @@ function render(){
           "2d"
         );
 
-      /*
-        確保畫面永遠以固定
-        720 x 500 世界座標繪製。
-      */
+      resizeCanvas();
 
-      canvas.width=
-        CONFIG.WORLD_W;
-
-      canvas.height=
-        CONFIG.WORLD_H;
+      drawGame();
 
     }
 
@@ -4370,7 +4089,15 @@ function render(){
     );
 
 
-    startCanvasLoop();
+    updateCountdownUI();
+
+
+    if(state==="PLAYING"){
+
+      startCanvasLoop();
+
+    }
+
 
     return;
 
@@ -4382,12 +4109,6 @@ function render(){
   ========================= */
 
   if(state==="RESULT"){
-
-    const winner=
-      scoreP1>=CONFIG.WIN_SCORE
-        ? "🟡 你獲勝！"
-        : "🔴 AI 獲勝！";
-
 
     main.innerHTML=`
 
@@ -4402,31 +4123,28 @@ function render(){
             🏆 皮卡丘排球結算
           </h2>
 
+          <div class="resultScore">
 
-          <p
-            style="
-              font-size:20px;
-              font-weight:bold;
-              color:var(--gold);
-              margin:10px 0;
-            "
-          >
-
-            ${winner}
-
-          </p>
-
-
-          <p
-            style="
-              font-size:18px;
-              font-weight:bold;
-            "
-          >
-
+            P1
             ${scoreP1}
             :
             ${scoreP2}
+            P2
+
+          </div>
+
+          <p
+            style="
+              color:var(--muted);
+              font-size:12px;
+            "
+          >
+
+            ${
+              scoreP1>=CONFIG.WIN_SCORE
+                ? "⚡ 你贏了！"
+                : "🤖 AI 獲勝！"
+            }
 
           </p>
 
@@ -4434,7 +4152,7 @@ function render(){
           <div
             class="feedBox"
             style="
-              max-height:140px;
+              max-height:130px;
               margin-top:12px;
             "
           >
@@ -4442,8 +4160,7 @@ function render(){
             ${
               feed
                 .map(
-                  f=>
-                    `<div>${esc(f)}</div>`
+                  f=>`<div>${esc(f)}</div>`
                 )
                 .join("")
             }
@@ -4456,9 +4173,7 @@ function render(){
             class="cta"
             style="margin-top:16px;"
           >
-
-            返回大廳
-
+            🔄 返回大廳
           </button>
 
         </div>
@@ -4469,26 +4184,20 @@ function render(){
 
 
     document
-      .getElementById(
-        "restartBtn"
-      )
+      .getElementById("restartBtn")
       ?.addEventListener(
         "click",
         ()=>{
 
-          clearTimeout(
-            countdownTimer
-          );
-
-          clearInterval(
-            countdownTimer
-          );
-
           state="LOBBY";
 
-          serveState="IDLE";
+          scoreP1=0;
 
-          ball.active=false;
+          scoreP2=0;
+
+          feed=[];
+
+          resetPlayers();
 
           render();
 
@@ -4501,11 +4210,8 @@ function render(){
 
 
 /* =========================================================
-   INITIALIZE
+   INITIAL
 ========================================================= */
-
-setupKeyboard();
-
 
 addPlayer(
   ME.id,
@@ -4513,25 +4219,7 @@ addPlayer(
   ME.avatar
 );
 
-
 render();
-
-
-/*
-  點擊任何地方第一次啟動 Audio。
-  瀏覽器手機通常要求使用者互動後才能播放聲音。
-*/
-
-document.addEventListener(
-  "pointerdown",
-  ()=>{
-    initAudio();
-  },
-  {
-    once:true,
-    passive:true
-  }
-);
 
 </script>
 
