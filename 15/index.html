@@ -507,24 +507,30 @@ function startCategoryVoteAsHost(){
   clearTimeout(voteTimer);voteTimer=setTimeout(()=>finishCategoryVoteAsHost(),CONFIG.CATEGORY_VOTE_SECONDS*1000+150);
 }
 
-function castCategoryVote(categoryId){
-  if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
-  if(votedCategory)return;
-  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});
+function checkAllVoted(){
   if(isHost() && categoryVotes.size >= players.size){
     clearTimeout(voteTimer);
     finishCategoryVoteAsHost();
   }
+}
+
+function castCategoryVote(categoryId){
+  if(state!==STATES.SELECT_CATEGORY||!getCategory(categoryId))return;
+  if(votedCategory)return;
+  votedCategory=categoryId;categoryVotes.set(ME.id,categoryId);playTone(660,.06);sendEvent("CATEGORY_VOTE",{roundId,userId:ME.id,categoryId});
+  checkAllVoted();
   render();
 }
 function castRoundsVote(r){
   if(state!==STATES.SELECT_CATEGORY||votedRounds)return;
   votedRounds=r;roundsVotes.set(ME.id,r);playTone(660,.06);sendEvent("ROUNDS_VOTE",{roundId,userId:ME.id,rounds:r});
+  checkAllVoted();
   render();
 }
 function castSecondsVote(s){
   if(state!==STATES.SELECT_CATEGORY||votedSeconds)return;
   votedSeconds=s;secondsVotes.set(ME.id,s);playTone(660,.06);sendEvent("SECONDS_VOTE",{roundId,userId:ME.id,seconds:s});
+  checkAllVoted();
   render();
 }
 
