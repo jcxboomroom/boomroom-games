@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#070912">
+<title>爆爆吹牛王</title>
+<style>
+:root{
+  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
+  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
+  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
+button{font:inherit;border:0;color:var(--text);cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#app{width:100%;height:100dvh;display:flex;justify-content:center}
+.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
+.center{display:flex;align-items:center;justify-content:center;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
+.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
+.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
+.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
+.cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff;font-size:18px}
+.cta:active{transform:scale(.97)}
+.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
+
+.players{display:flex;gap:6px;overflow-x:auto}
+.player{min-width:105px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
+.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player em{display:block;font-style:normal;color:var(--muted)}
+.player.me{border-color:#42537b}.player.turn{border-color:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.2)}.player.dead{opacity:.4;filter:grayscale(1)}
+
+/* 🎲 Dice Styling */
+.diceCup{display:flex;justify-content:center;gap:8px;margin:10px 0;padding:12px;background:#080d1a;border:1px dashed var(--line);border-radius:16px;min-height:70px;align-items:center}
+.dice{width:42px;height:42px;background:#fff;color:#111;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:1000;box-shadow:0 4px 10px rgba(0,0,0,.5);position:relative}
+.dice.wild{background:linear-gradient(135deg,#ffd166,#ff9e00);color:#000;border:2px solid #fff}
+.dice.wild::after{content:"★";position:absolute;top:2px;right:3px;font-size:9px}
+
+.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:120px;background:#080d1a;border:1px solid var(--line);border-radius:16px;padding:12px;position:relative}
+.claimBox{background:#111827;border:1px solid var(--cyan);border-radius:10px;padding:8px 16px;font-size:14px;color:var(--cyan);margin-bottom:8px;font-weight:bold;text-align:center}
+
+.bidControls{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.bidRow{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.bidBtn{flex:1;padding:10px 4px;background:#161f33;border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:bold;text-align:center;color:#fff}
+.bidBtn.active{background:var(--purple);color:#fff;border-color:var(--gold)}
+
+.miniTag{padding:6px 12px;border-radius:8px;background:#161f33;border:1px solid var(--line);color:#fff;font-size:12px;font-weight:bold}
+.miniTag.active{background:var(--purple);border-color:var(--gold)}
+
+.feedBox{max-height:85px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
+.rankList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-top:8px}
+.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#0b101b;border:1px solid var(--line);border-radius:11px;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app"><div class="shell">
+  <main id="main" class="screen"></main>
+</div></div>
+
+<script>
+"use strict";
+
+const CONFIG = Object.freeze({
+  ENTRY_FEE: 100,
+  MIN_PLAYERS: 1,
+  MAX_PLAYERS: 8,
+  DICE_FACES: [1, 2, 3, 4, 5, 6]
+});
+
+let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
+let sdkIsHost = false;
+let gameRoomId = "";
+
+let players = new Map();
+let myDice = [1, 2, 3, 4, 5]; // Local player's 5 dice
+
+let state = "LOBBY"; // LOBBY, PLAYING, REVEAL, RESULT
+let selectedMode = "CLASSIC"; // CLASSIC (經典), PARTY (派對), HELL (地獄)
+let currentTurnUserId = "";
+let lastBid = null; // { userId, username, quantity, face }
+let feed = [];
+let challengeLock = false;
+
+// Game Configs based on Mode
+let modeTimerSeconds = 15;
+let useWildcardOne = true;
+let initialLives = 3;
+
+function isHost() { return sdkIsHost || players.size <= 1; }
+
+function safeString(v, fallback, maxLen) {
+  if (v === null || v === undefined) return fallback;
+  const s = String(v).trim();
+  return s ? s.slice(0, maxLen) : fallback;
+}
+
+function addPlayer(id, username, avatar) {
+  if (!id) return;
+  id = String(id);
+  let p = players.get(id);
+  if (!p) {
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), lives: initialLives, dice: [1,2,3,4,5], score: 0, successfulBluffs: 0, successfulChallenges: 0 };
+    players.set(id, p);
+  } else {
+    p.username = safeString(username, p.username, 12);
+  }
+  return p;
+}
+
+function setupSDK(data) {
+  if (data && data.user) {
+    players.delete(ME.id);
+    ME.id = String(data.user.id);
+    ME.username = safeString(data.user.username, "玩家", 12);
+    ME.avatar = safeString(data.user.avatar, "", 300);
+    addPlayer(ME.id, ME.username, ME.avatar);
+  }
+  sdkIsHost = !!(data && data.isHost);
+  gameRoomId = (data && data.roomId) || "";
+
+  if (Array.isArray(data.roomPlayers)) {
+    data.roomPlayers.forEach(rp => {
+      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
+    });
+  }
+  render();
+}
+
+window.addEventListener("message", e => {
+  try {
+    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+    if (d && d.action === "initSDK") setupSDK(d);
+    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
+  } catch (_) {}
+});
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    setupSDK({
+      user: window.BoomRoomSDK.getUser(),
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+function sendEvent(eventName, payload) {
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+    }
+  } catch (_) {}
+}
+
+function rollDice() {
+  return Array.from({ length: 5 }, () => Math.floor(Math.random() * 6) + 1).sort((a,b) => a - b);
+}
+
+function handleGameEvent(eventName, payload, senderId) {
+  if (eventName === "TOGGLE_SOUND") return;
+
+  if (eventName === "DICE_MODE_SELECT") {
+    selectedMode = payload.mode || "CLASSIC";
+    render();
+  } else if (eventName === "DICE_GAME_START") {
+    state = "PLAYING";
+    selectedMode = payload.mode || "CLASSIC";
+    if (selectedMode === "HELL") {
+      initialLives = 1; useWildcardOne = false; modeTimerSeconds = 10;
+    } else if (selectedMode === "PARTY") {
+      initialLives = 3; useWildcardOne = true; modeTimerSeconds = 8;
+    } else {
+      initialLives = 3; useWildcardOne = true; modeTimerSeconds = 15;
+    }
+
+    players.forEach(p => { p.lives = initialLives; p.dice = rollDice(); p.successfulBluffs = 0; p.successfulChallenges = 0; });
+    myDice = rollDice();
+    lastBid = null;
+    challengeLock = false;
+    feed = [`🎲 《吹牛王》${selectedMode==='HELL'?'地獄':selectedMode==='PARTY'?'派對':'經典'}模式開局！全場重新擲骰，1 為萬能骰！`];
+    currentTurnUserId = payload.startUserId || ME.id;
+    render();
+  } else if (eventName === "MAKE_BID") {
+    lastBid = { userId: payload.userId, username: payload.username, quantity: payload.quantity, face: payload.face };
+    feed.push(`🗣️ ${esc(payload.username)} 叫牌：[ ${payload.quantity} 個 ${payload.face} ]`);
+    currentTurnUserId = payload.nextUserId;
+    challengeLock = false;
+    render();
+  } else if (eventName === "CALL_CHALLENGE_TRIGGER") {
+    if (challengeLock) return;
+    challengeLock = true;
+
+    const challenger = players.get(payload.challengerUserId);
+    const challengerName = challenger ? challenger.username : "對手";
+
+    if (!lastBid) return;
+
+    // Reveal and count all dice across all players!
+    let totalMatching = 0;
+    const allDiceSummary = [];
+
+    players.forEach(p => {
+      let count = 0;
+      p.dice.forEach(d => {
+        if (d === lastBid.face || (useWildcardOne && d === 1)) {
+          count++; totalMatching++;
+        }
+      });
+      allDiceSummary.push(`${esc(p.username)}: [${p.dice.join(",")}]`);
+    });
+
+    feed.push(`🚨 ${esc(challengerName)} 喊【開！】公開全場骰子！`);
+    feed.push(`🎲 實際開出：${allDiceSummary.join(" | ")}`);
+    feed.push(`📊 點數 ${lastBid.face} ${useWildcardOne?'(含萬用1)':''} 共有 ${totalMatching} 個！`);
+
+    const claimer = players.get(lastBid.userId);
+
+    if (totalMatching < lastBid.quantity) {
+      // Challenge Success! Claimer was bluffing!
+      feed.push(`🔥 【挑戰成功！】${esc(lastClaimName(lastBid))} 吹牛失敗！扣 1 ❤️！`);
+      if (claimer) {
+        claimer.lives = Math.max(0, claimer.lives - 1);
+      }
+      if (challenger) challenger.successfulChallenges++;
+      currentTurnUserId = payload.challengerUserId; // Winner gets next turn lead!
+    } else {
+      // Challenge Failed! Challenger made a mistake!
+      feed.push(`❌ 【挑戰失敗！】叫牌成立！${esc(challengerName)} 判斷錯誤！扣 1 ❤️！`);
+      if (challenger) {
+        challenger.lives = Math.max(0, challenger.lives - 1);
+      }
+      if (claimer) claimer.successfulBluffs++;
+      currentTurnUserId = lastBid.userId; // Winner gets next turn lead!
+    }
+
+    // Check if game over or next round
+    const alivePlayers = [...players.values()].filter(p => p.lives > 0);
+    if (alivePlayers.length <= 1) {
+      const winner = alivePlayers[0] || [...players.values()][0];
+      triggerWinner(winner.id, `🏆 恭喜 ${esc(winner.username)} 成為最後生還者，奪得吹牛王總冠軍！`);
+    } else {
+      // Next Round: Roll dice again!
+      players.forEach(p => { if (p.lives > 0) p.dice = rollDice(); });
+      myDice = rollDice();
+      lastBid = null;
+      setTimeout(() => render(), 1500);
+    }
+  }
+}
+
+function lastClaimName(bid) {
+  return bid ? bid.username : "對手";
+}
+
+function triggerWinner(winnerUserId, winnerMsg) {
+  state = "RESULT";
+  feed.push(winnerMsg);
+  if (winnerUserId === ME.id) {
+    try {
+      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+        window.BoomRoomSDK.gameOver(100);
+      }
+    } catch(_) {}
+  }
+  render();
+}
+
+function getNextTurnUserId(currentId) {
+  const aliveList = [...players.values()].filter(p => p.lives > 0).map(p => p.id);
+  if (aliveList.length === 0) return ME.id;
+  const idx = aliveList.indexOf(currentId);
+  return aliveList[(idx + 1) % aliveList.length];
+}
+
+function renderPlayers() {
+  return [...players.values()].map(p => {
+    const isMe = p.id === ME.id;
+    const isTurn = p.id === currentTurnUserId;
+    const hearts = "❤️".repeat(p.lives) || "💀 已淘汰";
+    return `<div class="player ${isMe?'me':''} ${isTurn?'turn':''} ${p.lives===0?'dead':''}">
+      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
+      <em>${hearts}</em>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+function runLocalDevTest() {
+  players.clear();
+  addPlayer(ME.id, ME.username, ME.avatar);
+  addPlayer("dev_2", "小米", "");
+  addPlayer("dev_3", "阿樂", "");
+  addPlayer("dev_4", "可可", "");
+  sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode });
+  handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode }, ME.id);
+}
+
+// Bidding Form state
+let bidQty = 2;
+let bidFace = 2;
+
+function render() {
+  const main = document.getElementById("main");
+  if (!main) return;
+
+  if (state === "LOBBY") {
+    main.innerHTML = `
+      <section class="panel">
+        <div class="sectionTitle">🎮 選擇遊戲模式：</div>
+        <div style="display:flex;gap:8px">
+          <button class="miniTag ${selectedMode==='CLASSIC'?'active':''}" data-mode="CLASSIC">🎲 經典模式 (3❤️/1萬能)</button>
+          <button class="miniTag ${selectedMode==='PARTY'?'active':''}" data-mode="PARTY">🔥 派對模式 (8s快計)</button>
+          <button class="miniTag ${selectedMode==='HELL'?'active':''}" data-mode="HELL">💀 地獄模式 (1❤️/無萬能)</button>
+        </div>
+      </section>
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>5 顆</b><span>骰子/人</span></div><div class="stat"><b>1 為萬能</b><span>經典規則</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《吹牛王》對決</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
+    `;
+
+    document.querySelectorAll("[data-mode]").forEach(b => {
+      b.addEventListener("click", () => {
+        selectedMode = b.dataset.mode;
+        sendEvent("DICE_MODE_SELECT", { mode: selectedMode });
+        render();
+      });
+    });
+
+    document.getElementById("startBtn")?.addEventListener("click", () => {
+      sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode });
+      handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode }, ME.id);
+    });
+
+    document.getElementById("devBtn")?.addEventListener("click", () => {
+      runLocalDevTest();
+    });
+    return;
+  }
+
+  if (state === "PLAYING") {
+    const isMyTurn = currentTurnUserId === ME.id;
+    const myMe = players.get(ME.id);
+    const isAlive = myMe && myMe.lives > 0;
+
+    main.innerHTML = `
+      <section class="tableCenter">
+        ${lastBid ? `<div class="claimBox">當前叫牌：${esc(lastBid.username)} 喊 [ ${lastBid.quantity} 個 ${lastBid.face} ]</div>` : '<div class="claimBox">等待首位玩家叫牌...</div>'}
+        <div class="tiny muted">全場總骰子數：約 ${[...players.values()].filter(p=>p.lives>0).length * 5} 顆</div>
+        ${lastBid && isAlive && !isMyTurn ? `<button id="callOpenBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 28px;">🚨 開！ (指認吹牛)</button>` : ''}
+      </section>
+
+      <section class="panel">
+        <div class="sectionTitle">房內玩家狀態</div>
+        <div class="players">${renderPlayers()}</div>
+      </section>
+
+      <section class="panel">
+        <div class="sectionTitle">你的骰子 (僅你自己可見) ${useWildcardOne?'<small class="muted">· 1 為萬能骰</small>':''}：</div>
+        <div class="diceCup">
+          ${myDice.map(d => `<div class="dice ${useWildcardOne&&d===1?'wild':''}">${d}</div>`).join("")}
+        </div>
+      </section>
+
+      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+
+      ${isAlive && isMyTurn ? `
+      <section class="panel" style="margin-top:auto;">
+        <div class="sectionTitle">你的叫牌 (必須高於當前叫牌)：</div>
+        <div class="bidControls">
+          <div class="bidRow">
+            <span style="font-size:12px;font-weight:bold;min-width:50px;">數量：</span>
+            <button id="qtyMinus" class="miniTag">-</button>
+            <b style="font-size:18px;color:var(--gold);min-width:30px;text-align:center;" id="qtyVal">${bidQty}</b>
+            <button id="qtyPlus" class="miniTag">+</button>
+          </div>
+          <div class="bidRow">
+            <span style="font-size:12px;font-weight:bold;min-width:50px;">點數：</span>
+            ${[1,2,3,4,5,6].map(f => `<button class="bidBtn ${bidFace===f?'active':''}" data-face="${f}">${f}${useWildcardOne&&f===1?'★':''}</button>`).join("")}
+          </div>
+          <button id="bidBtn" class="cta" style="margin-top:6px;">🗣️ 叫牌：[ ${bidQty} 個 ${bidFace} ]</button>
+        </div>
+      </section>
+      ` : `<div class="notice">${!isAlive?'💀 你已淘汰，正在觀戰中...':isMyTurn?'輪到你叫牌':'等待其他玩家叫牌...'}</div>`}
+    `;
+
+    document.getElementById("qtyMinus")?.addEventListener("click", () => {
+      if (bidQty > 1) { bidQty--; render(); }
+    });
+    document.getElementById("qtyPlus")?.addEventListener("click", () => {
+      bidQty++; render();
+    });
+
+    document.querySelectorAll("[data-face]").forEach(b => {
+      b.addEventListener("click", () => {
+        bidFace = Number(b.dataset.face);
+        render();
+      });
+    });
+
+    document.getElementById("bidBtn")?.addEventListener("click", () => {
+      if (!isMyTurn) return;
+      // Validate bid escalation
+      if (lastBid) {
+        if (bidQty < lastBid.quantity || (bidQty === lastBid.quantity && bidFace <= lastBid.face)) {
+          alert(`叫牌必須高於當前叫牌 [ ${lastBid.quantity} 個 ${lastBid.face} ]！`);
+          return;
+        }
+      }
+
+      const nextUserId = getNextTurnUserId(ME.id);
+      const payload = { userId: ME.id, username: ME.username, quantity: bidQty, face: bidFace, nextUserId };
+      sendEvent("MAKE_BID", payload);
+      handleGameEvent("MAKE_BID", payload, ME.id);
+    });
+
+    document.getElementById("callOpenBtn")?.addEventListener("click", () => {
+      if (!lastBid || challengeLock) return;
+      const payload = { challengerUserId: ME.id };
+      sendEvent("CALL_CHALLENGE_TRIGGER", payload);
+      handleGameEvent("CALL_CHALLENGE_TRIGGER", payload, ME.id);
+    });
+
+    return;
+  }
+
+  if (state === "RESULT") {
+    const sorted = [...players.values()].sort((a,b) => b.lives - a.lives);
+    const topChallenger = [...players.values()].sort((a,b) => (b.successfulChallenges||0) - (a.successfulChallenges||0))[0];
+    const topBluffer = [...players.values()].sort((a,b) => (b.successfulBluffs||0) - (a.successfulBluffs||0))[0];
+
+    main.innerHTML = `
+      <section class="panel center" style="flex:1;">
+        <div style="width:100%;">
+          <h2>🏆 《吹牛王》終局結算</h2>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+            ${topChallenger && topChallenger.successfulChallenges > 0 ? `<div style="background:#1e1a38;border:1px solid var(--purple);border-radius:10px;padding:6px;color:var(--cyan);font-weight:bold;font-size:11px;">🧠 心理大師 (抓包最多)：${esc(topChallenger.username)} (成功抓包 ${topChallenger.successfulChallenges} 次)</div>` : ''}
+            ${topBluffer && topBluffer.successfulBluffs > 0 ? `<div style="background:#381a24;border:1px solid var(--red);border-radius:10px;padding:6px;color:var(--gold);font-weight:bold;font-size:11px;">🎭 影帝 (吹牛最多)：${esc(topBluffer.username)} (成功欺騙 ${topBluffer.successfulBluffs} 次)</div>` : ''}
+          </div>
+          <div class="rankList">
+            ${sorted.map((p, i) => `
+              <div class="rankRow">
+                <div class="rankNo">第 ${i+1} 名</div>
+                <div class="rankName"><b>${esc(p.username)}</b> ${p.id===ME.id?'(你)':''}</div>
+                <div class="rankScore">${p.lives>0 ? '❤️ '.repeat(p.lives) : '💀 已淘汰'}</div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="feedBox" style="max-height:110px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
+        </div>
+      </section>
+    `;
+    document.getElementById("restartBtn")?.addEventListener("click", () => {
+      state = "LOBBY";
+      render();
+    });
+  }
+}
+
+// 預設初次渲染
+addPlayer(ME.id, ME.username, ME.avatar);
+render();
+</script>
+</body>
+</html>
