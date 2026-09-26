@@ -39,11 +39,11 @@ button:disabled{opacity:.4;cursor:default}
 .handArea{display:flex;gap:6px;overflow-x:auto;padding:8px 4px;min-height:96px;align-items:center}
 .card{width:54px;height:80px;background:#fff;color:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between;padding:5px;font-weight:bold;font-size:13px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:transform .15s;flex:none;cursor:pointer;position:relative}
 .card.red{color:#e63946}
-.card.selected{transform:translateY(-12px);border:2px solid var(--gold);box-shadow:0 0 12px var(--gold)}
-.card.back{background:linear-gradient(135deg,#1f293d,#0f172a);color:var(--cyan);justify-content:center;align-items:center;border:1px solid var(--line)}
+.card.joker{background:linear-gradient(135deg,#ffe5ec,#ffc6ff);color:#9d4edd}
+.card.selected{transform:translateY(-14px);border:2px solid var(--gold);box-shadow:0 0 12px var(--gold)}
 
 /* Table Center */
-.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;background:#080d1a;border:1px dashed var(--line);border-radius:16px;padding:12px;position:relative}
+.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;background:#080d1a;border:1px dashed var(--line);border-radius:16px;padding:12px;position:relative}
 .pileCount{font-size:22px;font-weight:1000;color:var(--gold);margin-top:4px}
 .claimBox{background:#111827;border:1px solid var(--cyan);border-radius:10px;padding:6px 12px;font-size:12px;color:var(--cyan);margin-bottom:6px;font-weight:bold}
 
@@ -51,7 +51,12 @@ button:disabled{opacity:.4;cursor:default}
 .rankBtn{padding:8px 2px;background:#161f33;border:1px solid var(--line);border-radius:8px;font-size:12px;font-weight:bold;text-align:center;color:#fff}
 .rankBtn.active{background:var(--purple);color:#fff;border-color:var(--gold)}
 
+.miniTag{padding:6px 12px;border-radius:8px;background:#161f33;border:1px solid var(--line);color:#fff;font-size:12px;font-weight:bold}
+.miniTag.active{background:var(--purple);border-color:var(--gold)}
+
 .feedBox{max-height:90px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
+.rankList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-top:8px}
+.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#0b101b;border:1px solid var(--line);border-radius:11px;font-size:12px}
 </style>
 </head>
 <body>
@@ -78,11 +83,20 @@ let hand = []; // Local user's cards
 let selectedIndices = new Set();
 let selectedClaimRank = "A";
 
-let state = "LOBBY"; // LOBBY, PLAYING, RESULT
+let state = "LOBBY"; // LOBBY, VOTING, PLAYING, RESULT
 let currentTurnUserId = "";
-let centerPileCount = 0;
+let centerPile = []; // All cards face-down in center
 let lastClaim = null; // { userId, username, rank, count, cards: [] }
 let feed = [];
+let challengeLock = false; // Prevents double challenge trigger
+
+// Voting States
+let votedDecks = 0;
+let votedJokers = null;
+let decksVotes = new Map();  // userId -> 1, 2, 3
+let jokersVotes = new Map(); // userId -> true, false
+let selectedDecks = 1;
+let selectedJokers = false;
 
 function isHost() { return sdkIsHost || players.size <= 1; }
 
@@ -97,7 +111,7 @@ function addPlayer(id, username, avatar) {
   id = String(id);
   let p = players.get(id);
   if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 5, score: 0 };
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 6, handCards: [], score: 0 };
     players.set(id, p);
   } else {
     p.username = safeString(username, p.username, 12);
@@ -153,46 +167,174 @@ function sendEvent(eventName, payload) {
   } catch (_) {}
 }
 
+function generateDeck(decksCount, useJokers) {
+  const suits = ["♠","♥","♦","♣"];
+  let deck = [];
+  for (let d = 0; d < decksCount; d++) {
+    for (const r of CONFIG.RANKS) {
+      for (const s of suits) {
+        deck.push({ rank: r, suit: s, isJoker: false });
+      }
+    }
+    if (useJokers) {
+      deck.push({ rank: "JOKER", suit: "🤡", isJoker: true });
+      deck.push({ rank: "JOKER", suit: "🃏", isJoker: true });
+    }
+  }
+  return deck.sort(() => Math.random() - 0.5);
+}
+
 function handleGameEvent(eventName, payload, senderId) {
-  if (eventName === "BLUFF_START") {
+  if (eventName === "TOGGLE_SOUND") {
+    return;
+  }
+  if (eventName === "BLUFF_VOTE_START") {
+    state = "VOTING";
+    votedDecks = 0;
+    votedJokers = null;
+    decksVotes.clear();
+    jokersVotes.clear();
+    render();
+  } else if (eventName === "VOTE_DECKS") {
+    decksVotes.set(payload.userId, payload.decks);
+    render();
+  } else if (eventName === "VOTE_JOKERS") {
+    jokersVotes.set(payload.userId, payload.useJokers);
+    render();
+  } else if (eventName === "BLUFF_START") {
     state = "PLAYING";
-    centerPileCount = 0;
+    selectedDecks = payload.decks || 1;
+    selectedJokers = !!payload.useJokers;
+    centerPile = [];
     lastClaim = null;
-    feed = ["🎲 吹牛對決開始！所有人各發 5 張撲克牌。"];
-    generateHand();
+    challengeLock = false;
+    feed = [`🎲 吹牛開局！使用 ${selectedDecks} 副牌（${selectedJokers?'含鬼牌':'無鬼牌'}）。`];
+
+    // Deal 6 cards to local player
+    const fullDeck = generateDeck(selectedDecks, selectedJokers);
+    hand = fullDeck.slice(0, 6);
+    selectedIndices.clear();
+
+    players.forEach(p => p.cardCount = 6);
     currentTurnUserId = payload.startUserId || ME.id;
     render();
   } else if (eventName === "PLAY_CLAIM") {
-    centerPileCount += payload.count;
-    lastClaim = { userId: payload.userId, username: payload.username, rank: payload.rank, count: payload.count, cards: payload.actualCards };
+    lastClaim = {
+      userId: payload.userId,
+      username: payload.username,
+      rank: payload.rank,
+      count: payload.count,
+      cards: payload.playedCards
+    };
+    centerPile.push(...payload.playedCards);
+    challengeLock = false; // Reset challenge lock for next claim!
+
     const p = players.get(payload.userId);
     if (p) p.cardCount = Math.max(0, p.cardCount - payload.count);
+
     feed.push(`🃏 ${esc(payload.username)} 出 ${payload.count} 張牌，宣稱是 [ ${payload.rank} ]`);
+
+    // Check if player won immediately by clearing cards!
+    if (p && p.cardCount === 0) {
+      triggerWinner(payload.userId, `${esc(payload.username)} 率先打完所有手牌，奪得冠軍！`);
+      return;
+    }
+
     currentTurnUserId = payload.nextUserId;
     render();
-  } else if (eventName === "CALL_BLUFF_RESULT") {
-    feed.push(payload.message);
-    if (payload.winnerUserId === ME.id) {
-      try {
-        if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-          window.BoomRoomSDK.gameOver(100);
-        }
-      } catch(_) {}
+  } else if (eventName === "CALL_BLUFF_TRIGGER") {
+    if (challengeLock) return; // Ignore if already challenged!
+    challengeLock = true;
+
+    const challenger = players.get(payload.challengerUserId);
+    const challengerName = challenger ? challenger.username : "對手";
+
+    if (!lastClaim) return;
+
+    // Check if bluff! (Jokers act as wildcard and count as true!)
+    const isBluff = lastClaim.cards.some(c => !c.isJoker && c.rank !== lastClaim.rank);
+
+    if (isBluff) {
+      feed.push(`🔥 【抓包成功！】${esc(challengerName)} 抓出 ${esc(lastClaim.username)} 在吹牛說謊！` +
+        `（真實牌：${lastClaim.cards.map(c=>c.rank).join(" ")}）`);
+      feed.push(`📦 中央 ${centerPile.length} 張牌全部罰給說謊者 [ ${esc(lastClaim.username)} ]！`);
+
+      if (challenger) challenger.bluffCaughtCount = (challenger.bluffCaughtCount || 0) + 1;
+
+      const bluffer = players.get(lastClaim.userId);
+      if (bluffer) bluffer.cardCount += centerPile.length;
+      if (lastClaim.userId === ME.id) {
+        hand.push(...centerPile);
+      }
+
+      // 🌟 抓包成功的人獲得優先出牌權！
+      currentTurnUserId = payload.challengerUserId;
+      feed.push(`👑 由抓包成功的 ${esc(challengerName)} 獲得優先出牌權！`);
+    } else {
+      feed.push(`❌ 【抓包失敗！】${esc(lastClaim.username)} 沒說謊！全都是 [ ${lastClaim.rank} ]！`);
+      feed.push(`📦 中央 ${centerPile.length} 張牌全部罰給抓錯人的 [ ${esc(challengerName)} ]！`);
+
+      const claimer = players.get(lastClaim.userId);
+      if (claimer) claimer.bluffSuccessCount = (claimer.bluffSuccessCount || 0) + 1;
+
+      if (challenger) challenger.cardCount += centerPile.length;
+      if (payload.challengerUserId === ME.id) {
+        hand.push(...centerPile);
+      }
+
+      // 🌟 證明清白的人獲得優先出牌權！
+      currentTurnUserId = lastClaim.userId;
+      feed.push(`👑 由證明清白的 ${esc(lastClaim.username)} 獲得優先出牌權！`);
     }
-    state = "RESULT";
-    render();
+
+    centerPile = [];
+    lastClaim = null;
+
+    // Check if anyone won after cards penalty
+    const winner = [...players.values()].find(p => p.cardCount === 0);
+    if (winner) {
+      triggerWinner(winner.id, `🏆 ${esc(winner.username)} 打完所有手牌，贏得比賽！`);
+    } else {
+      render();
+    }
   }
 }
 
-function generateHand() {
-  const suits = ["♠","♥","♦","♣"];
-  hand = [];
-  for (let i = 0; i < 5; i++) {
-    const rank = CONFIG.RANKS[Math.floor(Math.random() * CONFIG.RANKS.length)];
-    const suit = suits[Math.floor(Math.random() * suits.length)];
-    hand.push({ rank, suit });
+function triggerWinner(winnerUserId, winnerMsg) {
+  state = "RESULT";
+  feed.push(winnerMsg);
+  if (winnerUserId === ME.id) {
+    try {
+      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+        window.BoomRoomSDK.gameOver(100);
+      }
+    } catch(_) {}
   }
-  selectedIndices.clear();
+  render();
+}
+
+function finishVotingAndStart() {
+  if (!isHost()) return;
+  // Compute majority for Decks
+  const dCounts = { 1: 0, 2: 0, 3: 0 };
+  decksVotes.forEach(v => { if (dCounts[v] !== undefined) dCounts[v]++; });
+  let maxD = -1, bestD = 1;
+  [1, 2, 3].forEach(d => { if (dCounts[d] > maxD) { maxD = dCounts[d]; bestD = d; } });
+
+  // Compute majority for Jokers
+  let yesJ = 0, noJ = 0;
+  jokersVotes.forEach(v => { if (v) yesJ++; else noJ++; });
+  const bestJ = yesJ > noJ;
+
+  const payload = { startUserId: ME.id, decks: bestD, useJokers: bestJ };
+  sendEvent("BLUFF_START", payload);
+  handleGameEvent("BLUFF_START", payload, ME.id);
+}
+
+function checkAllVoted() {
+  if (isHost() && decksVotes.size >= players.size && jokersVotes.size >= players.size) {
+    finishVotingAndStart();
+  }
 }
 
 function renderPlayers() {
@@ -201,7 +343,7 @@ function renderPlayers() {
     const isTurn = p.id === currentTurnUserId;
     return `<div class="player ${isMe?'me':''} ${isTurn?'turn':''}">
       <b>${esc(p.username)} ${isMe?'(你)':''}</b>
-      <em>手牌: ${p.cardCount || 5} 張</em>
+      <em>剩餘: ${p.cardCount || 0} 張牌</em>
     </div>`;
   }).join("");
 }
@@ -214,8 +356,7 @@ function runLocalDevTest() {
   addPlayer("dev_2", "小米", "");
   addPlayer("dev_3", "阿樂", "");
   addPlayer("dev_4", "可可", "");
-  sendEvent("BLUFF_START", { startUserId: ME.id });
-  handleGameEvent("BLUFF_START", { startUserId: ME.id }, ME.id);
+  finishVotingAndStart();
 }
 
 function render() {
@@ -224,18 +365,69 @@ function render() {
 
   if (state === "LOBBY") {
     main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>5 張</b><span>初始手牌</span></div><div class="stat"><b>勝者通吃</b><span>獎池規則</span></div></div></section>
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>多副牌</b><span>可選鬼牌</span></div><div class="stat"><b>勝者通吃</b><span>獎池規則</span></div></div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始吹牛對決</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      ${isHost() ? `<button id="startVoteBtn" class="cta">👑 室長：發起投票選牌數與鬼牌</button>` : '<div class="notice">等待室長發起投票...</div>'}
       <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
     `;
-    document.getElementById("startBtn")?.addEventListener("click", () => {
-      sendEvent("BLUFF_START", { startUserId: ME.id });
-      handleGameEvent("BLUFF_START", { startUserId: ME.id }, ME.id);
+    document.getElementById("startVoteBtn")?.addEventListener("click", () => {
+      sendEvent("BLUFF_VOTE_START", {});
+      handleGameEvent("BLUFF_VOTE_START", {}, ME.id);
     });
     document.getElementById("devBtn")?.addEventListener("click", () => {
       runLocalDevTest();
     });
+    return;
+  }
+
+  if (state === "VOTING") {
+    const d1 = [...decksVotes.values()].filter(v=>v===1).length;
+    const d2 = [...decksVotes.values()].filter(v=>v===2).length;
+    const d3 = [...decksVotes.values()].filter(v=>v===3).length;
+    const jYes = [...jokersVotes.values()].filter(v=>v===true).length;
+    const jNo = [...jokersVotes.values()].filter(v=>v===false).length;
+
+    main.innerHTML = `
+      <section class="panel">
+        <div class="sectionTitle">🗳️ 投票 1：選擇撲克牌副數</div>
+        <div style="display:flex;gap:8px">
+          <button class="miniTag ${votedDecks===1?'active':''}" data-decks="1" ${votedDecks?'disabled':''}>1 副牌 (${d1}票)</button>
+          <button class="miniTag ${votedDecks===2?'active':''}" data-decks="2" ${votedDecks?'disabled':''}>2 副牌 (${d2}票)</button>
+          <button class="miniTag ${votedDecks===3?'active':''}" data-decks="3" ${votedDecks?'disabled':''}>3 副牌 (${d3}票)</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="sectionTitle">🗳️ 投票 2：是否包含鬼牌 (萬能牌)</div>
+        <div style="display:flex;gap:8px">
+          <button class="miniTag ${votedJokers===true?'active':''}" data-joker="true" ${votedJokers!==null?'disabled':''}>🃏 有鬼牌 (${jYes}票)</button>
+          <button class="miniTag ${votedJokers===false?'active':''}" data-joker="false" ${votedJokers!==null?'disabled':''}>🚫 無鬼牌 (${jNo}票)</button>
+        </div>
+      </section>
+
+      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">所有人投完票後將自動開始對局！</div></section>
+    `;
+
+    document.querySelectorAll("[data-decks]").forEach(b => {
+      b.addEventListener("click", () => {
+        const d = Number(b.dataset.decks);
+        votedDecks = d;
+        sendEvent("VOTE_DECKS", { userId: ME.id, decks: d });
+        handleGameEvent("VOTE_DECKS", { userId: ME.id, decks: d }, ME.id);
+        checkAllVoted();
+      });
+    });
+
+    document.querySelectorAll("[data-joker]").forEach(b => {
+      b.addEventListener("click", () => {
+        const useJ = b.dataset.joker === "true";
+        votedJokers = useJ;
+        sendEvent("VOTE_JOKERS", { userId: ME.id, useJokers: useJ });
+        handleGameEvent("VOTE_JOKERS", { userId: ME.id, useJokers: useJ }, ME.id);
+        checkAllVoted();
+      });
+    });
+
     return;
   }
 
@@ -244,8 +436,8 @@ function render() {
     main.innerHTML = `
       <section class="tableCenter">
         ${lastClaim ? `<div class="claimBox">上一手：${esc(lastClaim.username)} 宣稱 [ ${lastClaim.count} 張 ${lastClaim.rank} ]</div>` : '<div class="claimBox">等待首位玩家出牌...</div>'}
-        <div class="pileCount">🂠 中央牌堆：${centerPileCount} 張</div>
-        ${lastClaim && !isMyTurn ? `<button id="callBluffBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 24px;">🔥 抓吹牛！ (指認說謊)</button>` : ''}
+        <div class="pileCount">🂠 中央牌堆：${centerPile.length} 張</div>
+        ${lastClaim && !isMyTurn ? `<button id="callBluffBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 24px;">🔥 抓吹牛！ (搶先抓說謊)</button>` : ''}
       </section>
 
       <section class="panel">
@@ -256,12 +448,12 @@ function render() {
       <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
 
       <section class="panel">
-        <div class="sectionTitle">你的手牌 (點擊選牌)：</div>
+        <div class="sectionTitle">你的手牌 (${hand.length} 張，點擊選牌)：</div>
         <div class="handArea">
           ${hand.map((c, idx) => {
             const isRed = c.suit === "♥" || c.suit === "♦";
             const sel = selectedIndices.has(idx) ? "selected" : "";
-            return `<div class="card ${isRed?'red':''} ${sel}" data-idx="${idx}">
+            return `<div class="card ${c.isJoker?'joker':(isRed?'red':'')} ${sel}" data-idx="${idx}">
               <div>${c.rank}</div>
               <div style="font-size:20px;text-align:center;">${c.suit}</div>
               <div style="text-align:right;">${c.rank}</div>
@@ -306,39 +498,41 @@ function render() {
       const currentIdx = nextUserIds.indexOf(ME.id);
       const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
 
-      const payload = { userId: ME.id, username: ME.username, rank: selectedClaimRank, count: playedCards.length, actualCards: playedCards, nextUserId };
+      const payload = { userId: ME.id, username: ME.username, rank: selectedClaimRank, count: playedCards.length, playedCards, nextUserId };
       sendEvent("PLAY_CLAIM", payload);
       handleGameEvent("PLAY_CLAIM", payload, ME.id);
     });
 
     document.getElementById("callBluffBtn")?.addEventListener("click", () => {
-      if (!lastClaim) return;
-      const isBluff = lastClaim.cards.some(c => c.rank !== lastClaim.rank);
-      let msg = "";
-      let winner = "";
-
-      if (isBluff) {
-        msg = `🔥 抓包成功！${esc(lastClaim.username)} 在說謊！實際牌是 [ ${lastClaim.cards.map(c=>c.rank).join(",")} ]。${esc(ME.username)} 獲勝！`;
-        winner = ME.id;
-      } else {
-        msg = `❌ 抓包失敗！${esc(lastClaim.username)} 沒有說謊！實際真的全是 [ ${lastClaim.rank} ]。${esc(lastClaim.username)} 獲勝！`;
-        winner = lastClaim.userId;
-      }
-
-      const payload = { winnerUserId: winner, message: msg };
-      sendEvent("CALL_BLUFF_RESULT", payload);
-      handleGameEvent("CALL_BLUFF_RESULT", payload, ME.id);
+      if (!lastClaim || challengeLock) return;
+      const payload = { challengerUserId: ME.id };
+      sendEvent("CALL_BLUFF_TRIGGER", payload);
+      handleGameEvent("CALL_BLUFF_TRIGGER", payload, ME.id);
     });
 
     return;
   }
 
   if (state === "RESULT") {
+    const sorted = [...players.values()].sort((a,b) => a.cardCount - b.cardCount);
+    const topCatcher = [...players.values()].sort((a,b) => (b.bluffCaughtCount||0) - (a.bluffCaughtCount||0))[0];
+
     main.innerHTML = `
       <section class="panel center" style="flex:1;">
-        <div>
-          <h2>🏆 對局結束</h2>
-          <div class="feedBox" style="max-height:180px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
+        <div style="width:100%;">
+          <h2>🏆 吹牛對決結算</h2>
+          ${topCatcher && (topCatcher.bluffCaughtCount||0) > 0 ? `<div style="background:#221538;border:1px solid var(--purple);border-radius:12px;padding:8px;margin-bottom:12px;color:var(--gold);font-weight:bold;">👑 抓包之王 (抓包第一名)：${esc(topCatcher.username)} (成功抓包 ${topCatcher.bluffCaughtCount} 次)</div>` : ''}
+          <div class="rankList">
+            ${sorted.map((p, i) => `
+              <div class="rankRow">
+                <div class="rankNo">第 ${i+1} 名</div>
+                <div class="rankName"><b>${esc(p.username)}</b> ${p.id===ME.id?'(你)':''}</div>
+                <div class="rankScore">剩餘 ${p.cardCount} 張牌</div>
+                <div class="tiny muted" style="grid-column:2/4;">成功抓包 ${p.bluffCaughtCount||0} 次 · 成功吹牛 ${p.bluffSuccessCount||0} 次</div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="feedBox" style="max-height:110px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
           <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
         </div>
       </section>
