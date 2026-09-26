@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#08050b">
-
 <title>爆爆馬戲團：極限跳火圈</title>
 
 <style>
@@ -13,7 +12,6 @@
   --ink:#24151a;
   --muted:#80656a;
   --cream:#fff7e8;
-
   --red:#d93b4b;
   --red2:#a9233a;
   --gold:#f4b83f;
@@ -31,15 +29,13 @@
   -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
   margin:0;
   width:100%;
   height:100%;
   overflow:hidden;
   background:var(--bg);
   color:var(--ink);
-
   font-family:
     system-ui,
     -apple-system,
@@ -47,7 +43,6 @@ body{
     "Noto Sans TC",
     "Microsoft JhengHei",
     sans-serif;
-
   user-select:none;
   touch-action:none;
 }
@@ -61,41 +56,33 @@ button{
 #app{
   width:100%;
   height:100dvh;
-
   display:flex;
   justify-content:center;
-
-  background:
-    linear-gradient(
-      180deg,
-      #fff4df 0,
-      #f4d9bd 100%
-    );
+  background:linear-gradient(
+    180deg,
+    #fff4df 0%,
+    #f4d9bd 100%
+  );
 }
 
 .shell{
   width:min(100%,760px);
   height:100%;
-
   display:flex;
   flex-direction:column;
-
   padding:
     calc(5px + var(--safeT))
     8px
     calc(5px + var(--safeB));
-
   gap:6px;
 }
 
 .topbar{
   height:43px;
   flex:none;
-
   display:flex;
   align-items:center;
   justify-content:space-between;
-
   padding:0 5px;
 }
 
@@ -114,14 +101,10 @@ button{
 .iconBtn{
   width:36px;
   height:36px;
-
   border-radius:50%;
-
   background:#fff8ea;
   border:2px solid #dfb889;
-
   font-size:17px;
-
   box-shadow:0 2px 0 #c99a6d;
 }
 
@@ -132,115 +115,82 @@ button{
 #main{
   flex:1;
   min-height:0;
-
   display:flex;
   flex-direction:column;
-
   gap:6px;
 }
 
 .panel{
   background:rgba(255,250,240,.95);
-
   border:1.5px solid #e1bc94;
   border-radius:17px;
-
   padding:11px;
-
-  box-shadow:
-    0 4px 16px rgba(107,57,35,.10);
+  box-shadow:0 4px 16px rgba(107,57,35,.10);
 }
 
 .stats{
   display:grid;
-  grid-template-columns:
-    1.2fr 1fr 1fr 1fr;
-
+  grid-template-columns:1.2fr 1fr 1fr 1fr;
   gap:5px;
 }
 
 .stat{
   min-width:0;
-
   padding:6px 4px;
-
   background:#fff9ed;
   border:1px solid #ead1b2;
   border-radius:10px;
-
   text-align:center;
 }
 
 .stat b{
   display:block;
-
   font-size:14px;
   white-space:nowrap;
-
   color:#3b2027;
 }
 
 .stat span{
   display:block;
-
   font-size:8px;
   color:#967579;
-
   margin-top:1px;
 }
 
 #gameWrap{
   position:relative;
-
   flex:1;
   min-height:250px;
-
   border-radius:19px;
   overflow:hidden;
-
   border:2px solid #a9474f;
-
   background:#f7dcae;
-
-  box-shadow:
-    0 7px 22px rgba(104,49,40,.20);
-
+  box-shadow:0 7px 22px rgba(104,49,40,.20);
   touch-action:none;
 }
 
 #gameCanvas{
   position:absolute;
-
   inset:0;
-
   width:100%;
   height:100%;
-
   display:block;
-
   touch-action:none;
 }
 
 #centerMsg{
   position:absolute;
   inset:0;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   pointer-events:none;
-
   text-align:center;
 }
 
 #centerMsg>div{
   opacity:0;
-
-  transform:
-    translateY(8px)
-    scale(.92);
-
+  transform:translateY(8px) scale(.92);
   transition:.18s;
 }
 
@@ -252,45 +202,31 @@ button{
 .msgBig{
   font-size:34px;
   font-weight:1000;
-
   color:#fff8df;
-
-  text-shadow:
-    0 3px 8px #5a1f26;
+  text-shadow:0 3px 8px #5a1f26;
 }
 
 .msgSmall{
   font-size:13px;
   font-weight:900;
-
   color:#fff4c8;
-
   margin-top:2px;
-
-  text-shadow:
-    0 2px 5px #5a1f26;
+  text-shadow:0 2px 5px #5a1f26;
 }
 
 .jump{
   height:60px;
   flex:none;
-
   border-radius:17px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffd75c,
-      #f39a2f
-    );
-
+  background:linear-gradient(
+    180deg,
+    #ffd75c,
+    #f39a2f
+  );
   color:#3b170b;
-
   font-size:21px;
   font-weight:1000;
-
   border:2px solid #c86e25;
-
   box-shadow:
     0 5px 0 #a75320,
     0 8px 18px rgba(164,78,25,.18);
@@ -298,18 +234,13 @@ button{
 
 .jump:active{
   transform:translateY(3px);
-
-  box-shadow:
-    0 2px 0 #a75320;
+  box-shadow:0 2px 0 #a75320;
 }
 
 .notice{
   text-align:center;
-
   font-size:11px;
-
   color:#80656a;
-
   padding:4px;
 }
 
@@ -322,20 +253,15 @@ button{
 .player{
   min-width:92px;
   flex:1;
-
   padding:7px 8px;
-
   border-radius:11px;
-
   background:#fff9ed;
   border:1px solid #ead1b2;
-
   font-size:10px;
 }
 
 .player b{
   display:block;
-
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -343,44 +269,32 @@ button{
 
 .player em{
   font-style:normal;
-
   color:#967579;
-
   font-size:9px;
 }
 
 .cta{
   width:100%;
   min-height:49px;
-
   border-radius:14px;
-
   background:
     linear-gradient(
       135deg,
       #e84a55,
       #f39b36
     );
-
   color:#fff9eb;
-
   font-weight:1000;
   font-size:15px;
-
   border:2px solid #b73243;
-
-  box-shadow:
-    0 4px 0 #9c2a38;
+  box-shadow:0 4px 0 #9c2a38;
 }
 
 .cta.secondary{
   background:#fff8ea;
   color:#48232a;
-
   border:1.5px solid #d9b384;
-
-  box-shadow:
-    0 3px 0 #c39a70;
+  box-shadow:0 3px 0 #c39a70;
 }
 
 .cta:active{
@@ -390,35 +304,24 @@ button{
 .resultScore{
   font-size:40px;
   font-weight:1000;
-
   color:#d58b19;
-
-  text-shadow:
-    0 2px 0 #fff;
+  text-shadow:0 2px 0 #fff;
 }
 
 .rule{
   font-size:12px;
   line-height:1.65;
-
   color:#654a4e;
-
   text-align:left;
 }
 
 .badge{
   display:inline-block;
-
   padding:4px 8px;
-
   border-radius:999px;
-
   background:#fff0c8;
-
   border:1px solid #e2b44f;
-
   color:#9a6414;
-
   font-size:10px;
   font-weight:900;
 }
@@ -460,7 +363,6 @@ button{
 <body>
 
 <div id="app">
-
   <div class="shell">
 
     <div class="topbar">
@@ -492,31 +394,32 @@ button{
     <main id="main"></main>
 
   </div>
-
 </div>
 
 <script>
 "use strict";
 
 /* =========================================================
-   BOOMROOM — Circus Fire Hoop
-   完整修改版
+   BOOMROOM
+   爆爆馬戲團：極限跳火圈
+   完整改版
 
-   主要修改：
+   本版本重要修改：
 
-   1. 火圈放大
-   2. 人物縮小
-   3. 火圈高度改為固定 3 段
-   4. 火圈只生成於可跳躍區間
-   5. 相鄰火圈高度差限制
-   6. 跳躍物理重新調整
-   7. 火圈碰撞判定放寬
-   8. 不再讓螢幕比例直接決定火圈是否跳得到
+   1. 火圈高度使用固定 WORLD 座標
+   2. 不再使用 H * 某個比例來決定火圈高度
+   3. 火圈加大
+   4. 人物縮小
+   5. 人物跳躍時間增加
+   6. 火圈改成 3D 斜視效果
+   7. 火圈判定改成「真正的內洞」
+   8. 不再使用舊版的圓形距離撞擊判定
+   9. 畫面高低不會改變火圈遊戲高度
    ========================================================= */
 
 
 /* =========================================================
-   GAME INFO
+   遊戲資料
    ========================================================= */
 
 const GAME_INFO = Object.freeze({
@@ -542,137 +445,101 @@ const GAME_INFO = Object.freeze({
 
 
 /* =========================================================
-   GAME CONFIG
+   遊戲設定
    ========================================================= */
 
 const CONFIG = Object.freeze({
 
   ENTRY_FEE:100,
 
-  BASE_SPEED:235,
+  BASE_SPEED:210,
 
-  MAX_SPEED:370,
+  MAX_SPEED:340,
 
   /*
-   * 原本 GRAVITY 太大 + 火圈高度變動太大
-   * 容易造成某些圈完全跳不到。
+   * 比原版稍微降低重力，
+   * 讓人物在空中的時間更久。
+   */
+  GRAVITY:1320,
+
+  /*
+   * 跳躍初速度提高。
+   */
+  JUMP_VY:-625,
+
+  /*
+   * 玩家 X 固定在畫面約 23%。
+   */
+  PLAYER_X:.235,
+
+  /*
+   * 地面固定為 WORLD 座標。
+   */
+  WORLD_GROUND_Y:420,
+
+  /*
+   * 火圈中心固定高度。
    *
-   * 現在重新配合人物尺寸。
+   * 注意：
+   * 這裡是遊戲世界座標，
+   * 不是 Canvas 高度比例。
    */
-  GRAVITY:1420,
+  RING_Y:300,
 
   /*
-   * 跳躍速度。
+   * 火圈半徑。
+   * 比原本 34~41 大很多。
    */
-  JUMP_VY:-555,
+  RING_RADIUS:60,
 
   /*
-   * 玩家在畫面的固定 X。
+   * 火圈真正的洞半徑。
    */
-  PLAYER_X:0.235,
+  RING_HOLE_RADIUS:43,
 
   /*
-   * 地面高度。
+   * 火圈 3D 厚度。
    */
-  GROUND_RATIO:.83,
+  RING_DEPTH_X:18,
 
   /*
-   * 火圈變大後，
-   * PERFECT 判定稍微放寬。
+   * 玩家縮小。
    */
-  PERFECT_WINDOW:.23,
+  PLAYER_W:34,
 
-  GOOD_WINDOW:.44,
+  PLAYER_H:48,
+
+  /*
+   * PERFECT 判定。
+   */
+  PERFECT_WINDOW:.15,
+
+  GOOD_WINDOW:.32,
 
   MISS_LIFE_LOSS:1,
 
   START_LIVES:3,
 
-  /*
-   * 火圈之間距離。
-   */
-  MAX_RING_GAP:470,
+  MAX_RING_GAP:440,
 
-  MIN_RING_GAP:300,
+  MIN_RING_GAP:290,
 
   ROUND_TIME:72,
 
   SCORE_GOOD:100,
 
-  SCORE_PERFECT:180,
-
-  /*
-   * =====================================================
-   * 新增：火圈尺寸
-   * =====================================================
-   *
-   * 原本：
-   * rand(34,41)
-   *
-   * 現在：
-   * 54 ~ 62
-   *
-   * 火圈明顯放大。
-   */
-  RING_MIN_RADIUS:54,
-
-  RING_MAX_RADIUS:62,
-
-  /*
-   * =====================================================
-   * 新增：人物縮小
-   * =====================================================
-   */
-  PLAYER_WIDTH:32,
-
-  PLAYER_HEIGHT:46,
-
-  /*
-   * =====================================================
-   * 固定火圈高度
-   *
-   * 這三個是「相對於地面」的高度。
-   *
-   * LOW：
-   * 比較容易
-   *
-   * MID：
-   * 標準
-   *
-   * HIGH：
-   * 需要完整跳躍
-   *
-   * 不會使用完全隨機 Y。
-   * =====================================================
-   */
-  RING_HEIGHT_LOW:.68,
-
-  RING_HEIGHT_MID:.57,
-
-  RING_HEIGHT_HIGH:.47,
-
-  /*
-   * 高低火圈之間最大跳級。
-   *
-   * 0 = 不允許變化
-   * 1 = 可以任意變化
-   *
-   * 現在使用「相鄰高度最多差一級」。
-   */
-  MAX_HEIGHT_STEP:1
+  SCORE_PERFECT:180
 
 });
 
 
 /* =========================================================
-   GLOBAL STATE
+   基本狀態
    ========================================================= */
 
 let ME={
   id:"local_"+Math.random().toString(36).slice(2,10),
-
   username:"本地玩家",
-
   avatar:""
 };
 
@@ -712,7 +579,7 @@ let hasPaid=false;
 
 
 /* =========================================================
-   SCORE
+   分數 / 遊戲狀態
    ========================================================= */
 
 let score=0;
@@ -723,11 +590,6 @@ let combo=0;
 
 let bestCombo=0;
 
-
-/* =========================================================
-   WORLD
-   ========================================================= */
-
 let rings=[];
 
 let particles=[];
@@ -735,30 +597,6 @@ let particles=[];
 let floatingTexts=[];
 
 let stars=[];
-
-let player={
-
-  x:0,
-
-  y:0,
-
-  groundY:0,
-
-  vy:0,
-
-  w:CONFIG.PLAYER_WIDTH,
-
-  h:CONFIG.PLAYER_HEIGHT,
-
-  onGround:true,
-
-  airTime:0,
-
-  rotation:0,
-
-  hitCooldown:0
-
-};
 
 let distance=0;
 
@@ -770,10 +608,6 @@ let ringId=0;
 
 let nextRingX=0;
 
-let lastRingHeight=0;
-
-let lastHeightIndex=1;
-
 let lastInput=0;
 
 let eventFeed=[];
@@ -784,24 +618,75 @@ let countdown=0;
 
 
 /* =========================================================
-   UTILITY
+   WORLD CAMERA
+   ========================================================= */
+
+/*
+ * 這裡非常重要。
+ *
+ * 遊戲不是直接拿 Canvas 高度當作世界。
+ *
+ * 我們建立一個固定高度：
+ *
+ * WORLD_HEIGHT = 500
+ *
+ * 所有遊戲物件都以這個世界座標運作。
+ *
+ * Canvas 不管是 300 高還是 700 高，
+ * 火圈的遊戲高度都一樣。
+ */
+
+const WORLD_WIDTH=760;
+
+const WORLD_HEIGHT=500;
+
+
+/* =========================================================
+   玩家
+   ========================================================= */
+
+let player={
+
+  x:0,
+
+  y:0,
+
+  groundY:CONFIG.WORLD_GROUND_Y,
+
+  vy:0,
+
+  w:CONFIG.PLAYER_W,
+
+  h:CONFIG.PLAYER_H,
+
+  onGround:true,
+
+  airTime:0,
+
+  rotation:0,
+
+  hitCooldown:0
+
+};
+
+
+/* =========================================================
+   工具
    ========================================================= */
 
 function esc(s){
 
-  return String(s||"").replace(
-    /[&<>"']/g,
-
-    c=>({
-
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#39;"
-
-    }[c])
-  );
+  return String(s||"")
+    .replace(
+      /[&<>"']/g,
+      c=>({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[c])
+    );
 
 }
 
@@ -836,27 +721,35 @@ function lerp(a,b,t){
 
 function rand(a=0,b=1){
 
-  seeded=
-    (seeded*1664525+1013904223)>>>0;
+  seeded=(
+    seeded*1664525+
+    1013904223
+  )>>>0;
 
   return a+
-    ((seeded>>>0)/4294967296)*(b-a);
+    ((seeded>>>0)/4294967296)*
+    (b-a);
 
 }
 
 
 function isHost(){
 
-  return sdkIsHost||players.size<=1;
+  return sdkIsHost ||
+    players.size<=1;
 
 }
 
 
 /* =========================================================
-   PLAYER SYSTEM
+   玩家管理
    ========================================================= */
 
-function addPlayer(id,username,avatar){
+function addPlayer(
+  id,
+  username,
+  avatar
+){
 
   if(id==null)return;
 
@@ -868,19 +761,16 @@ function addPlayer(id,username,avatar){
 
     p={
       id,
-
       username:safeString(
         username,
         "玩家",
         12
       ),
-
       avatar:safeString(
         avatar,
         "",
         300
       ),
-
       score:0
     };
 
@@ -934,28 +824,30 @@ function setupSDK(data){
   }
 
   sdkIsHost=!!(
-    data&&data.isHost
+    data &&
+    data.isHost
   );
 
-  gameRoomId=
-    (data&&data.roomId)||"";
+  gameRoomId=(
+    data &&
+    data.roomId
+  )||"";
 
   if(
     Array.isArray(
-      data&&data.roomPlayers
+      data &&
+      data.roomPlayers
     )
   ){
 
     data.roomPlayers.forEach(
       p=>{
         if(p){
-
           addPlayer(
             p.id,
             p.username,
             p.avatar
           );
-
         }
       }
     );
@@ -975,11 +867,11 @@ window.addEventListener(
 
       const d=
         typeof e.data==="string"
-        ?JSON.parse(e.data)
-        :e.data;
+          ?JSON.parse(e.data)
+          :e.data;
 
       if(
-        d&&
+        d &&
         d.action==="initSDK"
       ){
 
@@ -988,7 +880,7 @@ window.addEventListener(
       }
 
       else if(
-        d&&
+        d &&
         d.action==="gameEventReceived"
       ){
 
@@ -1043,7 +935,7 @@ function sendEvent(
   try{
 
     if(
-      window.BoomRoomSDK&&
+      window.BoomRoomSDK &&
       typeof window.BoomRoomSDK.sendGameEvent==="function"
     ){
 
@@ -1060,13 +952,9 @@ function sendEvent(
 
       window.parent.postMessage(
         JSON.stringify({
-
           action:"sendGameEvent",
-
           eventName,
-
           payload
-
         }),
         "*"
       );
@@ -1099,7 +987,7 @@ function handleGameEvent(
 
     setMuted(
       !!(
-        payload&&
+        payload &&
         payload.muted
       ),
       false
@@ -1111,7 +999,7 @@ function handleGameEvent(
 
 
 /* =========================================================
-   MESSAGE
+   訊息
    ========================================================= */
 
 function showMessage(
@@ -1147,9 +1035,7 @@ function showMessage(
 
   showMessage.t=setTimeout(
     ()=>{
-      box.classList.remove(
-        "show"
-      );
+      box.classList.remove("show");
     },
     ms
   );
@@ -1157,25 +1043,19 @@ function showMessage(
 }
 
 
-/* =========================================================
-   EVENT FEED
-   ========================================================= */
-
 function pushFeed(s){
 
   eventFeed.unshift(s);
 
   if(eventFeed.length>8){
-
     eventFeed.length=8;
-
   }
 
 }
 
 
 /* =========================================================
-   AUDIO
+   音效
    ========================================================= */
 
 function createAudio(){
@@ -1185,7 +1065,7 @@ function createAudio(){
   try{
 
     audioCtx=
-      new (
+      new(
         window.AudioContext||
         window.webkitAudioContext
       )();
@@ -1297,7 +1177,7 @@ function setMuted(
 
 
 /* =========================================================
-   CANVAS
+   Canvas
    ========================================================= */
 
 function initCanvas(){
@@ -1338,8 +1218,7 @@ function initCanvas(){
   canvas.height=
     Math.floor(H*dpr);
 
-  ctx=
-    canvas.getContext("2d");
+  ctx=canvas.getContext("2d");
 
   ctx.setTransform(
     dpr,
@@ -1350,17 +1229,15 @@ function initCanvas(){
     0
   );
 
-  player.w=
-    CONFIG.PLAYER_WIDTH;
-
-  player.h=
-    CONFIG.PLAYER_HEIGHT;
-
+  /*
+   * 玩家與火圈全部使用 WORLD 座標。
+   */
   player.x=
-    W*CONFIG.PLAYER_X;
+    WORLD_WIDTH*
+    CONFIG.PLAYER_X;
 
   player.groundY=
-    H*CONFIG.GROUND_RATIO;
+    CONFIG.WORLD_GROUND_Y;
 
   player.y=
     player.groundY-
@@ -1371,16 +1248,12 @@ function initCanvas(){
 
 function resize(){
 
-  if(state==="PLAYING"){
+  if(
+    state==="PLAYING" ||
+    state==="COUNTDOWN"
+  ){
 
     initCanvas();
-
-    /*
-     * resize 後不要重新隨機火圈高度。
-     *
-     * 已存在火圈維持它原本的「高度級別」。
-     */
-    rebuildRingPositions();
 
     buildBackground();
 
@@ -1396,29 +1269,39 @@ window.addEventListener(
 
 
 /* =========================================================
-   BACKGROUND
+   背景
    ========================================================= */
 
 function buildBackground(){
 
   stars=[];
 
-  for(let i=0;i<75;i++){
+  for(
+    let i=0;
+    i<75;
+    i++
+  ){
 
     stars.push({
 
-      x:rand(0,W),
+      x:rand(
+        0,
+        WORLD_WIDTH
+      ),
 
       y:rand(
         0,
-        H*.58
+        290
       ),
 
       r:rand(.5,1.8),
 
       a:rand(.25,.85),
 
-      tw:rand(0,6.28)
+      tw:rand(
+        0,
+        Math.PI*2
+      )
 
     });
 
@@ -1428,26 +1311,23 @@ function buildBackground(){
 
 
 /* =========================================================
-   FIRE RING
+   火圈
    ========================================================= */
 
 function makeRing(
   x,
   y,
-  kind="normal",
-  heightIndex=1
+  kind="normal"
 ){
 
   /*
-   * 火圈現在固定大小範圍。
+   * 這裡不再傳入畫面高度。
    *
-   * 不會再出現非常小的圈。
+   * y 永遠是：
+   *
+   * CONFIG.RING_Y
+   *
    */
-
-  const r=rand(
-    CONFIG.RING_MIN_RADIUS,
-    CONFIG.RING_MAX_RADIUS
-  );
 
   return {
 
@@ -1457,9 +1337,11 @@ function makeRing(
 
     y,
 
-    r,
+    r:CONFIG.RING_RADIUS,
 
-    heightIndex,
+    holeR:CONFIG.RING_HOLE_RADIUS,
+
+    depth:CONFIG.RING_DEPTH_X,
 
     passed:false,
 
@@ -1469,177 +1351,20 @@ function makeRing(
 
     pulse:rand(
       0,
-      6.28
+      Math.PI*2
     ),
 
     rot:rand(
-      -.15,
-      .15
+      -.08,
+      .08
     ),
 
     flame:rand(
       0,
-      6.28
+      Math.PI*2
     )
 
   };
-
-}
-
-
-/* =========================================================
-   固定火圈高度
-   ========================================================= */
-
-function getRingY(
-  heightIndex
-){
-
-  /*
-   * 注意：
-   *
-   * 這裡不是直接使用固定 pixel。
-   *
-   * 而是使用「距離地面比例」。
-   *
-   * 因此手機長畫面、短畫面都能保持
-   * 一致的 LOW / MID / HIGH 三個跳躍級別。
-   */
-
-  const ground=
-    H*CONFIG.GROUND_RATIO;
-
-  const heightRatios=[
-
-    CONFIG.RING_HEIGHT_LOW,
-
-    CONFIG.RING_HEIGHT_MID,
-
-    CONFIG.RING_HEIGHT_HIGH
-
-  ];
-
-  const ratio=
-    heightRatios[
-      clamp(
-        heightIndex,
-        0,
-        2
-      )
-    ];
-
-  /*
-   * ringY = 地面往上移動的距離
-   *
-   * 例如：
-   *
-   * LOW  = 比較低
-   * MID  = 中間
-   * HIGH = 比較高
-   */
-
-  const jumpHeight=
-    H*(CONFIG.GROUND_RATIO-ratio);
-
-  return ground-jumpHeight;
-
-}
-
-
-/* =========================================================
-   下一個火圈高度
-   ========================================================= */
-
-function getNextHeightIndex(){
-
-  /*
-   * 高度不再完全亂數。
-   *
-   * 只允許：
-   *
-   * LOW -> LOW / MID
-   * MID -> LOW / MID / HIGH
-   * HIGH -> MID / HIGH
-   *
-   * 所以絕對不會：
-   *
-   * LOW -> HIGH
-   *
-   * HIGH -> LOW
-   *
-   * 直接跳兩級。
-   */
-
-  const current=
-    lastHeightIndex;
-
-  let options=[];
-
-  if(current===0){
-
-    options=[
-      0,
-      0,
-      1,
-      1
-
-    ];
-
-  }
-
-  else if(current===1){
-
-    options=[
-      0,
-      1,
-      1,
-      2
-
-    ];
-
-  }
-
-  else{
-
-    options=[
-      1,
-      1,
-      2,
-      2
-
-    ];
-
-  }
-
-  /*
-   * 遊戲剛開始時，
-   * 多一點中低火圈。
-   */
-
-  if(elapsed<8){
-
-    options=[
-      0,
-      0,
-      1,
-      1
-    ];
-
-  }
-
-  const next=
-    options[
-      Math.floor(
-        rand(
-          0,
-          options.length
-        )
-      )
-    ];
-
-  lastHeightIndex=next;
-
-  return next;
 
 }
 
@@ -1658,28 +1383,11 @@ function nextRing(){
       1
     );
 
-  /*
-   * 隨著時間增加，
-   * 火圈間距慢慢縮短。
-   */
-
   const gap=
     lerp(
       CONFIG.MAX_RING_GAP,
       CONFIG.MIN_RING_GAP,
       difficulty
-    );
-
-  /*
-   * 高度固定為三個標準級別。
-   */
-
-  const heightIndex=
-    getNextHeightIndex();
-
-  const y=
-    getRingY(
-      heightIndex
     );
 
   nextRingX=
@@ -1688,13 +1396,25 @@ function nextRing(){
       gap+
       rand(-18,18),
 
-      W+180
+      W+220
     );
+
+  /*
+   * ★★★ 最重要 ★★★
+   *
+   * 火圈高度完全固定。
+   *
+   * 不管 H 是多少，
+   * 火圈永遠是 WORLD Y = 300。
+   */
+
+  const y=
+    CONFIG.RING_Y;
 
   let kind="normal";
 
   if(
-    difficulty>.18&&
+    difficulty>.18 &&
     rand()<.10
   ){
 
@@ -1703,20 +1423,15 @@ function nextRing(){
   }
 
   /*
-   * tiny 改掉。
-   *
-   * 原本 tiny 火圈會造成遊戲突然變難。
-   *
-   * 現在即使特殊圈，
-   * 仍然使用大尺寸。
+   * 不再產生 tiny 火圈。
+   * 避免難以判斷。
    */
 
   rings.push(
     makeRing(
       nextRingX,
       y,
-      kind,
-      heightIndex
+      kind
     )
   );
 
@@ -1724,34 +1439,7 @@ function nextRing(){
 
 
 /* =========================================================
-   RESIZE 後重新計算已存在火圈位置
-   ========================================================= */
-
-function rebuildRingPositions(){
-
-  for(const r of rings){
-
-    if(
-      typeof r.heightIndex!=="number"
-    ){
-
-      r.heightIndex=
-        lastHeightIndex;
-
-    }
-
-    r.y=
-      getRingY(
-        r.heightIndex
-      );
-
-  }
-
-}
-
-
-/* =========================================================
-   RESET
+   重置遊戲
    ========================================================= */
 
 function resetWorld(){
@@ -1783,36 +1471,29 @@ function resetWorld(){
   ringId=0;
 
   nextRingX=
-    W+230;
-
-  lastRingHeight=
-    getRingY(1);
-
-  /*
-   * 從 MID 開始。
-   */
-
-  lastHeightIndex=1;
+    WORLD_WIDTH+
+    180;
 
   player={
 
     x:
-      W*CONFIG.PLAYER_X,
+      WORLD_WIDTH*
+      CONFIG.PLAYER_X,
 
     y:
-      H*CONFIG.GROUND_RATIO-
-      CONFIG.PLAYER_HEIGHT,
+      CONFIG.WORLD_GROUND_Y-
+      CONFIG.PLAYER_H,
 
     groundY:
-      H*CONFIG.GROUND_RATIO,
+      CONFIG.WORLD_GROUND_Y,
 
     vy:0,
 
     w:
-      CONFIG.PLAYER_WIDTH,
+      CONFIG.PLAYER_W,
 
     h:
-      CONFIG.PLAYER_HEIGHT,
+      CONFIG.PLAYER_H,
 
     onGround:true,
 
@@ -1825,12 +1506,11 @@ function resetWorld(){
   };
 
   /*
-   * 預先產生火圈。
+   * 一開始就放幾個火圈。
    */
-
   for(
     let i=0;
-    i<6;
+    i<5;
     i++
   ){
 
@@ -1842,7 +1522,7 @@ function resetWorld(){
 
 
 /* =========================================================
-   PAYMENT
+   購買 / 開始
    ========================================================= */
 
 function startWithPayment(
@@ -1850,7 +1530,7 @@ function startWithPayment(
 ){
 
   if(
-    state!=="LOBBY"||
+    state!=="LOBBY" ||
     isPurchasing
   ){
 
@@ -1878,7 +1558,7 @@ function startWithPayment(
 
   if(
     !(
-      window.BoomRoomSDK&&
+      window.BoomRoomSDK &&
       typeof window.BoomRoomSDK.requestPurchase==="function"
     )
   ){
@@ -1979,12 +1659,18 @@ window.onPurchaseFailed=function(
 
 
 /* =========================================================
-   START ROUND
+   開始遊戲
    ========================================================= */
 
 function beginRound(){
 
-  if(state!=="LOBBY")return;
+  if(
+    state!=="LOBBY"
+  ){
+
+    return;
+
+  }
 
   state="COUNTDOWN";
 
@@ -2013,7 +1699,9 @@ function beginRound(){
 
     countdown--;
 
-    if(countdown>0){
+    if(
+      countdown>0
+    ){
 
       showMessage(
         String(countdown),
@@ -2032,9 +1720,7 @@ function beginRound(){
         700
       );
 
-    }
-
-    else{
+    }else{
 
       if(
         state!=="COUNTDOWN"
@@ -2079,7 +1765,7 @@ function beginRound(){
 
 
 /* =========================================================
-   JUMP
+   跳躍
    ========================================================= */
 
 function jump(){
@@ -2096,7 +1782,7 @@ function jump(){
     performance.now();
 
   if(
-    now-lastInput<85
+    now-lastInput<100
   ){
 
     return;
@@ -2108,7 +1794,7 @@ function jump(){
   createAudio();
 
   /*
-   * 一般起跳。
+   * 正常起跳。
    */
 
   if(player.onGround){
@@ -2129,13 +1815,10 @@ function jump(){
 
     spawnBurst(
       player.x+
-      player.w*.5,
-
+        player.w*.5,
       player.y+
-      player.h,
-
+        player.h,
       7,
-
       "dust"
     );
 
@@ -2144,25 +1827,23 @@ function jump(){
   }
 
   /*
-   * 保留原本的空中修正。
+   * 不做二段跳。
    *
-   * 但是限制非常嚴格，
-   * 不會變成真正的二段跳。
+   * 但是如果人物已經接近下降段，
+   * 給予一個小幅「空中修正」。
+   *
+   * 這仍然不是二段跳。
    */
 
   if(
-    player.airTime>.22&&
-    player.vy>40&&
-    player.y>
-      player.groundY-
-      player.h-
-      105
+    player.airTime>.42 &&
+    player.vy>120
   ){
 
-    player.vy=-300;
+    player.vy=-180;
 
     beep(
-      280,
+      260,
       .045,
       "triangle",
       .018
@@ -2174,7 +1855,7 @@ function jump(){
 
 
 /* =========================================================
-   INPUT
+   操作
    ========================================================= */
 
 function onGamePointer(e){
@@ -2199,7 +1880,7 @@ document.addEventListener(
   e=>{
 
     if(
-      e.code==="Space"||
+      e.code==="Space" ||
       e.code==="ArrowUp"
     ){
 
@@ -2224,7 +1905,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   LOOP
+   主迴圈
    ========================================================= */
 
 function startLoop(){
@@ -2277,7 +1958,7 @@ function startLoop(){
 
 
 /* =========================================================
-   UPDATE
+   更新
    ========================================================= */
 
 function update(dt){
@@ -2286,10 +1967,6 @@ function update(dt){
 
   distance+=
     speed*dt;
-
-  /*
-   * 速度逐漸提升。
-   */
 
   speed=
     lerp(
@@ -2304,14 +1981,15 @@ function update(dt){
     );
 
   /*
-   * 永遠以當前畫面地面為準。
+   * 玩家固定 WORLD X。
    */
 
-  player.groundY=
-    H*CONFIG.GROUND_RATIO;
-
   player.x=
-    W*CONFIG.PLAYER_X;
+    WORLD_WIDTH*
+    CONFIG.PLAYER_X;
+
+  player.groundY=
+    CONFIG.WORLD_GROUND_Y;
 
   player.hitCooldown=
     Math.max(
@@ -2320,11 +1998,13 @@ function update(dt){
     );
 
 
-  /* =====================================================
-     PLAYER PHYSICS
-     ===================================================== */
+  /* =======================================================
+     玩家物理
+     ======================================================= */
 
-  if(!player.onGround){
+  if(
+    !player.onGround
+  ){
 
     player.airTime+=dt;
 
@@ -2336,8 +2016,8 @@ function update(dt){
 
     player.rotation=
       clamp(
-        player.vy/1100,
-        -.45,
+        player.vy/1000,
+        -.48,
         .55
       );
 
@@ -2361,13 +2041,10 @@ function update(dt){
 
       spawnBurst(
         player.x+
-        player.w*.5,
-
+          player.w*.5,
         player.y+
-        player.h,
-
+          player.h,
         8,
-
         "dust"
       );
 
@@ -2376,11 +2053,13 @@ function update(dt){
   }
 
 
-  /* =====================================================
-     RINGS
-     ===================================================== */
+  /* =======================================================
+     火圈移動
+     ======================================================= */
 
-  for(const r of rings){
+  for(
+    const r of rings
+  ){
 
     r.x-=
       speed*dt;
@@ -2393,226 +2072,88 @@ function update(dt){
 
 
     /*
-     * 玩家中心點。
-     */
-
-    const pcx=
-      player.x+
-      player.w*.5;
-
-    const pcy=
-      player.y+
-      player.h*.5;
-
-
-    /*
-     * X 方向容錯。
+     * =====================================================
+     * 真正穿圈判定
+     * =====================================================
      *
-     * 火圈變大後，
-     * 玩家比較容易進入火圈。
-     */
-
-    const dx=
-      Math.abs(
-        pcx-r.x
-      );
-
-
-    /*
-     * =================================================
-     * 穿圈計分
-     * =================================================
+     * 不再使用：
+     *
+     * hypot(player - ring) > r*0.62
+     *
+     * 那種方式會導致碰撞很奇怪。
+     *
+     * 現在只判斷：
+     *
+     * 1. 玩家中心 X 通過火圈
+     * 2. 玩家中心 Y 在火圈洞內
+     *
+     * 火圈外框完全不算。
      */
 
     if(
-      !r.passed&&
-      r.x<pcx&&
-      !r.scored
+      !r.passed
     ){
 
-      r.passed=true;
+      const pcx=
+        player.x+
+        player.w*.5;
 
       /*
-       * 用火圈半徑做比例。
+       * 人物真正的身體中心。
+       */
+      const pcy=
+        player.y+
+        player.h*.52;
+
+
+      /*
+       * 火圈的水平穿越範圍。
+       *
+       * 稍微放寬，
+       * 讓手機操作比較容易。
        */
 
-      const normalized=
+      const xDistance=
         Math.abs(
-          (pcy-r.y)/
-          r.r
+          pcx-r.x
         );
 
+
+      /*
+       * 玩家身體中心必須進入
+       * 火圈洞。
+       */
+
+      const yDistance=
+        Math.abs(
+          pcy-r.y
+        );
+
+
+      /*
+       * ★ 火圈真正的洞 ★
+       *
+       * 內洞半徑 43。
+       *
+       * 這裡再留一點容錯。
+       */
+
+      const holeLimit=
+        r.holeR-7;
+
+
+      /*
+       * 人物穿越火圈。
+       */
 
       if(
-        normalized<=
-        CONFIG.PERFECT_WINDOW
+        xDistance<=22 &&
+        yDistance<=holeLimit
       ){
 
-        combo++;
-
-        bestCombo=
-          Math.max(
-            bestCombo,
-            combo
-          );
-
-        const gain=
-          CONFIG.SCORE_PERFECT+
-          Math.min(
-            220,
-            combo*12
-          )+
-          (
-            r.kind==="gold"
-            ?100
-            :0
-          );
-
-        score+=gain;
-
-        pushFeed(
-          `🔥 PERFECT 穿圈！ +${gain}`
-        );
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-60,
-
-          text:
-            `PERFECT +${gain}`,
-
-          life:1,
-
-          vy:-42,
-
-          type:"perfect"
-
-        });
-
-        spawnBurst(
-          r.x,
-          r.y,
-          24,
-          "fire"
-        );
-
-        beep(
-          900+
-          Math.min(
-            combo,
-            8
-          )*45,
-
-          .12,
-
-          "sine",
-
-          .045
-        );
-
-      }
-
-      else if(
-        normalized<=
-        CONFIG.GOOD_WINDOW
-      ){
-
-        combo++;
-
-        bestCombo=
-          Math.max(
-            bestCombo,
-            combo
-          );
-
-        const gain=
-          CONFIG.SCORE_GOOD+
-          Math.min(
-            150,
-            combo*8
-          )+
-          (
-            r.kind==="gold"
-            ?80
-            :0
-          );
-
-        score+=gain;
-
-        pushFeed(
-          `🎪 漂亮穿越！ +${gain}`
-        );
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-50,
-
-          text:
-            `GOOD +${gain}`,
-
-          life:1,
-
-          vy:-38,
-
-          type:"good"
-
-        });
-
-        spawnBurst(
-          r.x,
-          r.y,
-          14,
-          "spark"
-        );
-
-        beep(
-          620,
-          .08,
-          "triangle",
-          .035
-        );
-
-      }
-
-      else{
-
-        combo=0;
-
-        score=
-          Math.max(
-            0,
-            score-30
-          );
-
-        pushFeed(
-          "⚠️ 擦邊通過，Combo 中斷"
-        );
-
-        floatingTexts.push({
-
-          x:r.x,
-
-          y:r.y-45,
-
-          text:"擦邊 -30",
-
-          life:1,
-
-          vy:-30,
-
-          type:"bad"
-
-        });
-
-        beep(
-          180,
-          .1,
-          "sawtooth",
-          .022
+        scoreRing(
+          r,
+          yDistance
         );
 
       }
@@ -2621,54 +2162,68 @@ function update(dt){
 
 
     /*
-     * =================================================
-     * 火圈碰撞
-     * =================================================
+     * =====================================================
+     * 撞火圈判定
+     * =====================================================
      *
-     * 現在火圈半徑比較大。
+     * 只有當玩家身體中心在火圈外，
+     * 而且真的接近火圈邊緣時才算撞。
      *
-     * 只有當玩家真的碰到外圈火焰，
-     * 才算撞到。
+     * 不再因為人物「碰到外框」就提早死亡。
      */
 
     if(
-      !r.passed&&
+      !r.passed &&
       player.hitCooldown<=0
     ){
 
-      /*
-       * 玩家和火圈的距離。
-       */
+      const pcx=
+        player.x+
+        player.w*.5;
 
-      const dist=
-        Math.hypot(
-          pcx-r.x,
+      const pcy=
+        player.y+
+        player.h*.52;
+
+      const dx=
+        Math.abs(
+          pcx-r.x
+        );
+
+      const dy=
+        Math.abs(
           pcy-r.y
         );
 
       /*
-       * 火圈洞口。
-       *
-       * 內圈更寬。
+       * 只在火圈附近判定。
        */
-
-      const safeRadius=
-        r.r*.72;
-
-      /*
-       * 外圈碰撞範圍。
-       */
-
-      const outerRadius=
-        r.r+
-        player.w*.22;
 
       if(
-        dist<=outerRadius&&
-        dist>=safeRadius
+        dx<30 &&
+        dy<r.r
       ){
 
-        hitRing(r);
+        const distanceFromCenter=
+          Math.sqrt(
+            dx*dx+
+            dy*dy
+          );
+
+        /*
+         * 在洞裡不碰撞。
+         *
+         * 只有接近外圈才撞。
+         */
+
+        if(
+          distanceFromCenter>
+          r.holeR+5
+        ){
+
+          hitRing(r);
+
+        }
 
       }
 
@@ -2677,18 +2232,18 @@ function update(dt){
   }
 
 
-  /*
-   * 移除離開畫面的火圈。
-   */
+  /* =======================================================
+     清除火圈
+     ======================================================= */
 
   rings=
     rings.filter(
-      r=>r.x>-130
+      r=>r.x>-160
     );
 
 
   /*
-   * 確保畫面右邊永遠有火圈。
+   * 補火圈。
    */
 
   while(
@@ -2702,11 +2257,13 @@ function update(dt){
   }
 
 
-  /* =====================================================
-     PARTICLES
-     ===================================================== */
+  /* =======================================================
+     粒子
+     ======================================================= */
 
-  for(const p of particles){
+  for(
+    const p of particles
+  ){
 
     p.x+=
       p.vx*dt;
@@ -2730,11 +2287,13 @@ function update(dt){
     );
 
 
-  /* =====================================================
-     FLOATING TEXT
-     ===================================================== */
+  /* =======================================================
+     飄字
+     ======================================================= */
 
-  for(const f of floatingTexts){
+  for(
+    const f of floatingTexts
+  ){
 
     f.y+=
       f.vy*dt;
@@ -2749,9 +2308,9 @@ function update(dt){
     );
 
 
-  /* =====================================================
-     END GAME
-     ===================================================== */
+  /* =======================================================
+     時間
+     ======================================================= */
 
   if(
     elapsed>=
@@ -2768,7 +2327,158 @@ function update(dt){
 
 
 /* =========================================================
-   HIT RING
+   成功穿圈
+   ========================================================= */
+
+function scoreRing(
+  r,
+  yDistance
+){
+
+  r.passed=true;
+
+  r.scored=true;
+
+
+  const normalized=
+    yDistance/
+    r.holeR;
+
+
+  if(
+    normalized<=
+    CONFIG.PERFECT_WINDOW
+  ){
+
+    combo++;
+
+    bestCombo=
+      Math.max(
+        bestCombo,
+        combo
+      );
+
+    const gain=
+      CONFIG.SCORE_PERFECT+
+      Math.min(
+        220,
+        combo*12
+      )+
+      (
+        r.kind==="gold"
+          ?100
+          :0
+      );
+
+    score+=gain;
+
+    pushFeed(
+      `🔥 PERFECT 穿圈！ +${gain}`
+    );
+
+    floatingTexts.push({
+
+      x:r.x,
+
+      y:r.y-70,
+
+      text:
+        `PERFECT  +${gain}`,
+
+      life:1,
+
+      vy:-42,
+
+      type:"perfect"
+
+    });
+
+    spawnBurst(
+      r.x,
+      r.y,
+      26,
+      "fire"
+    );
+
+    beep(
+      900+
+        Math.min(
+          combo,
+          8
+        )*45,
+      .12,
+      "sine",
+      .045
+    );
+
+  }
+
+  else{
+
+    combo++;
+
+    bestCombo=
+      Math.max(
+        bestCombo,
+        combo
+      );
+
+    const gain=
+      CONFIG.SCORE_GOOD+
+      Math.min(
+        150,
+        combo*8
+      )+
+      (
+        r.kind==="gold"
+          ?80
+          :0
+      );
+
+    score+=gain;
+
+    pushFeed(
+      `🎪 漂亮穿越！ +${gain}`
+    );
+
+    floatingTexts.push({
+
+      x:r.x,
+
+      y:r.y-60,
+
+      text:
+        `GOOD  +${gain}`,
+
+      life:1,
+
+      vy:-38,
+
+      type:"good"
+
+    });
+
+    spawnBurst(
+      r.x,
+      r.y,
+      16,
+      "spark"
+    );
+
+    beep(
+      620,
+      .08,
+      "triangle",
+      .035
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   撞火圈
    ========================================================= */
 
 function hitRing(r){
@@ -2795,13 +2505,10 @@ function hitRing(r){
 
   spawnBurst(
     player.x+
-    player.w*.5,
-
+      player.w*.5,
     player.y+
-    player.h*.45,
-
+      player.h*.45,
     28,
-
     "hit"
   );
 
@@ -2840,7 +2547,7 @@ function hitRing(r){
 
 
 /* =========================================================
-   FINISH
+   結束
    ========================================================= */
 
 function finishGame(title){
@@ -2863,14 +2570,16 @@ function finishGame(title){
     `${title} 最終得分 ${score}`
   );
 
-  if(!gameOverCalled){
+  if(
+    !gameOverCalled
+  ){
 
     gameOverCalled=true;
 
     try{
 
       if(
-        window.BoomRoomSDK&&
+        window.BoomRoomSDK &&
         typeof window.BoomRoomSDK.gameOver==="function"
       ){
 
@@ -2890,7 +2599,7 @@ function finishGame(title){
 
 
 /* =========================================================
-   PARTICLES
+   粒子
    ========================================================= */
 
 function spawnBurst(
@@ -2908,15 +2617,15 @@ function spawnBurst(
 
     let c=
       type==="hit"
-      ?"red"
-      :
+        ?"red"
+        :
       type==="dust"
-      ?"dust"
-      :
+        ?"dust"
+        :
       type==="fire"
-      ?"fire"
-      :
-      "spark";
+        ?"fire"
+        :
+        "spark";
 
     particles.push({
 
@@ -2936,8 +2645,8 @@ function spawnBurst(
 
       g:
         type==="dust"
-        ?260
-        :360,
+          ?260
+          :360,
 
       life:rand(
         .35,
@@ -2953,7 +2662,7 @@ function spawnBurst(
 
       rot:rand(
         0,
-        6.28
+        Math.PI*2
       ),
 
       vr:rand(
@@ -2971,7 +2680,77 @@ function spawnBurst(
 
 
 /* =========================================================
-   DRAW
+   世界轉換
+   ========================================================= */
+
+/*
+ * WORLD 座標 -> SCREEN 座標
+ *
+ * 這是本版最重要的地方。
+ *
+ * 火圈與玩家永遠先在 760x500 世界裡計算。
+ *
+ * Canvas 只是把世界等比例縮放到螢幕。
+ */
+
+function worldScale(){
+
+  /*
+   * 讓整個遊戲世界固定比例。
+   */
+
+  const sx=
+    W/WORLD_WIDTH;
+
+  const sy=
+    H/WORLD_HEIGHT;
+
+  /*
+   * Y 可以使用整個世界高度。
+   *
+   * 不再直接讓 ring.y = H * 0.xxx。
+   */
+
+  return {
+    sx,
+    sy
+  };
+
+}
+
+
+function worldX(x){
+
+  return x*
+    worldScale().sx;
+
+}
+
+
+function worldY(y){
+
+  return y*
+    worldScale().sy;
+
+}
+
+
+function worldSize(v){
+
+  const s=
+    worldScale();
+
+  return v*
+    Math.min(
+      s.sx,
+      s.sy
+    );
+
+}
+
+
+/* =========================================================
+   繪圖
    ========================================================= */
 
 function draw(){
@@ -2985,63 +2764,40 @@ function draw(){
     H
   );
 
+  /*
+   * 所有繪圖先進入 WORLD。
+   */
+
+  const sx=
+    W/WORLD_WIDTH;
+
+  const sy=
+    H/WORLD_HEIGHT;
+
+  ctx.save();
+
+  ctx.scale(
+    sx,
+    sy
+  );
+
   drawSky();
 
   drawTent();
 
   drawGround();
 
-
   /*
-   * 下一個火圈的淡淡引導線。
+   * 火圈。
    */
-
-  const next=
-    rings.find(
-      r=>r.x>
-      player.x+20
-    );
-
-  if(next){
-
-    ctx.save();
-
-    ctx.globalAlpha=.12;
-
-    ctx.strokeStyle=
-      "#fff6ca";
-
-    ctx.lineWidth=2;
-
-    ctx.setLineDash(
-      [5,8]
-    );
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-      player.x+
-      player.w*.5,
-
-      player.y+
-      player.h*.5
-    );
-
-    ctx.lineTo(
-      next.x,
-      next.y
-    );
-
-    ctx.stroke();
-
-    ctx.restore();
-
-  }
-
 
   rings.forEach(
     drawRing
   );
+
+  /*
+   * 玩家。
+   */
 
   drawPlayer();
 
@@ -3055,13 +2811,13 @@ function draw(){
 
   drawVignette();
 
-  updateHUD();
+  ctx.restore();
 
 }
 
 
 /* =========================================================
-   SKY
+   天空
    ========================================================= */
 
 function drawSky(){
@@ -3071,7 +2827,7 @@ function drawSky(){
       0,
       0,
       0,
-      H
+      WORLD_HEIGHT
     );
 
   g.addColorStop(
@@ -3094,44 +2850,49 @@ function drawSky(){
   ctx.fillRect(
     0,
     0,
-    W,
-    H
+    WORLD_WIDTH,
+    WORLD_HEIGHT
   );
 
+
+  /*
+   * 舞台燈。
+   */
 
   const beams=[
 
     {
-      x:W*.16,
+      x:WORLD_WIDTH*.16,
       a:.15,
-      r:70
-    },
-
-    {
-      x:W*.50,
-      a:.18,
       r:90
     },
 
     {
-      x:W*.84,
+      x:WORLD_WIDTH*.50,
+      a:.18,
+      r:110
+    },
+
+    {
+      x:WORLD_WIDTH*.84,
       a:.15,
-      r:70
+      r:90
     }
 
   ];
 
 
-  for(const b of beams){
+  for(
+    const b of beams
+  ){
 
     const rg=
       ctx.createRadialGradient(
         b.x,
-        H*.20,
+        105,
         4,
-
         b.x,
-        H*.35,
+        180,
         b.r
       );
 
@@ -3149,17 +2910,21 @@ function drawSky(){
 
     ctx.fillRect(
       b.x-b.r,
-      H*.02,
+      10,
       b.r*2,
-      H*.55
+      270
     );
 
   }
 
 
+  /*
+   * 小燈泡。
+   */
+
   for(
     let x=18;
-    x<W;
+    x<WORLD_WIDTH;
     x+=34
   ){
 
@@ -3170,7 +2935,7 @@ function drawSky(){
 
     ctx.arc(
       x,
-      H*.15,
+      75,
       2.2,
       0,
       Math.PI*2
@@ -3184,16 +2949,19 @@ function drawSky(){
 
 
 /* =========================================================
-   TENT
+   帳篷
    ========================================================= */
 
 function drawTent(){
 
-  const top=
-    H*.055;
+  const top=28;
 
   ctx.save();
 
+
+  /*
+   * 屋頂。
+   */
 
   ctx.fillStyle=
     "#f7e4bd";
@@ -3206,12 +2974,12 @@ function drawTent(){
   );
 
   ctx.lineTo(
-    W*.5,
+    WORLD_WIDTH*.5,
     top
   );
 
   ctx.lineTo(
-    W,
+    WORLD_WIDTH,
     top+72
   );
 
@@ -3221,8 +2989,7 @@ function drawTent(){
 
 
   const stripeW=
-    W/7;
-
+    WORLD_WIDTH/7;
 
   for(
     let i=-1;
@@ -3232,25 +2999,25 @@ function drawTent(){
 
     ctx.fillStyle=
       i%2===0
-      ?"#d83c4d"
-      :"#fff0cf";
+        ?" #d83c4d".trim()
+        :"#fff0cf";
 
     ctx.beginPath();
 
     ctx.moveTo(
-      W*.5,
+      WORLD_WIDTH*.5,
       top
     );
 
     ctx.lineTo(
-      W*.5+
-      (i-3)*stripeW,
+      WORLD_WIDTH*.5+
+        (i-3)*stripeW,
       top+72
     );
 
     ctx.lineTo(
-      W*.5+
-      (i-2)*stripeW,
+      WORLD_WIDTH*.5+
+        (i-2)*stripeW,
       top+72
     );
 
@@ -3261,13 +3028,17 @@ function drawTent(){
   }
 
 
+  /*
+   * 旗子。
+   */
+
   ctx.fillStyle=
     "#f2b53e";
 
   ctx.beginPath();
 
   ctx.arc(
-    W*.5,
+    WORLD_WIDTH*.5,
     top,
     7,
     0,
@@ -3285,12 +3056,12 @@ function drawTent(){
   ctx.beginPath();
 
   ctx.moveTo(
-    W*.5,
+    WORLD_WIDTH*.5,
     top-3
   );
 
   ctx.lineTo(
-    W*.5,
+    WORLD_WIDTH*.5,
     top-24
   );
 
@@ -3303,17 +3074,17 @@ function drawTent(){
   ctx.beginPath();
 
   ctx.moveTo(
-    W*.5,
+    WORLD_WIDTH*.5,
     top-24
   );
 
   ctx.lineTo(
-    W*.5+22,
+    WORLD_WIDTH*.5+22,
     top-18
   );
 
   ctx.lineTo(
-    W*.5,
+    WORLD_WIDTH*.5,
     top-13
   );
 
@@ -3323,7 +3094,7 @@ function drawTent(){
 
 
   /*
-   * 柱子
+   * 柱子。
    */
 
   ctx.fillStyle=
@@ -3333,45 +3104,26 @@ function drawTent(){
     7,
     top+54,
     10,
-    H*.28
+    140
   );
 
   ctx.fillRect(
-    W-17,
+    WORLD_WIDTH-17,
     top+54,
     10,
-    H*.28
-  );
-
-
-  ctx.fillStyle=
-    "#f2b53e";
-
-  ctx.fillRect(
-    7,
-    top+58,
-    10,
-    7
-  );
-
-  ctx.fillRect(
-    W-17,
-    top+58,
-    10,
-    7
+    140
   );
 
 
   /*
-   * 觀眾
+   * 觀眾。
    */
 
-  const ay=
-    H*.71;
+  const ay=360;
 
   for(
     let x=8;
-    x<W;
+    x<WORLD_WIDTH;
     x+=23
   ){
 
@@ -3411,14 +3163,17 @@ function drawTent(){
 
 
 /* =========================================================
-   GROUND
+   地面
    ========================================================= */
 
 function drawGround(){
 
   const gy=
-    H*.83;
+    CONFIG.WORLD_GROUND_Y;
 
+  /*
+   * 木板。
+   */
 
   ctx.fillStyle=
     "#8c4d3e";
@@ -3426,14 +3181,15 @@ function drawGround(){
   ctx.fillRect(
     0,
     gy,
-    W,
-    H-gy
+    WORLD_WIDTH,
+    WORLD_HEIGHT-gy
   );
 
 
   for(
-    let x=-(distance%72);
-    x<W;
+    let x=-
+      (distance%72);
+    x<WORLD_WIDTH;
     x+=72
   ){
 
@@ -3460,16 +3216,19 @@ function drawGround(){
   }
 
 
+  /*
+   * 金色舞台邊。
+   */
+
   ctx.fillStyle=
     "#f4bd45";
 
   ctx.fillRect(
     0,
     gy-3,
-    W,
+    WORLD_WIDTH,
     5
   );
-
 
   ctx.fillStyle=
     "#fff0ad";
@@ -3477,23 +3236,23 @@ function drawGround(){
   ctx.fillRect(
     0,
     gy-3,
-    W,
+    WORLD_WIDTH,
     1
   );
 
 
+  /*
+   * 聚光燈。
+   */
+
   const g=
     ctx.createRadialGradient(
-      W*.5,
+      WORLD_WIDTH*.5,
       gy,
       10,
-
-      W*.5,
+      WORLD_WIDTH*.5,
       gy,
-      Math.min(
-        W*.7,
-        H*.55
-      )
+      300
     );
 
   g.addColorStop(
@@ -3511,27 +3270,32 @@ function drawGround(){
   ctx.fillRect(
     0,
     gy-5,
-    W,
-    H-gy+5
+    WORLD_WIDTH,
+    WORLD_HEIGHT-gy+5
   );
 
 }
 
 
 /* =========================================================
-   FIRE RING DRAW
+   3D 斜視火圈
    ========================================================= */
 
 function drawRing(r){
 
   const pulse=
-    Math.sin(
-      r.pulse
-    )*1.4;
+    Math.sin(r.pulse)*1.5;
 
   const rr=
     r.r+
     pulse;
+
+  /*
+   * 火圈 3D 斜視。
+   *
+   * 正面不是一個單純的平面圓，
+   * 而是有「後層 + 前層」。
+   */
 
   ctx.save();
 
@@ -3542,29 +3306,28 @@ function drawRing(r){
 
 
   /*
-   * =====================================================
-   * 大火圈
-   * =====================================================
+   * 火圈向右後方偏移。
    */
 
-  ctx.shadowBlur=18;
-
-  ctx.shadowColor=
-    r.kind==="gold"
-    ?"rgba(255,210,75,.85)"
-    :"rgba(224,55,54,.65)";
+  const depth=
+    r.depth;
 
 
-  /*
-   * 外圈
-   */
+  /* =======================================================
+     後方陰影
+     ======================================================= */
+
+  ctx.save();
+
+  ctx.translate(
+    depth,
+    -depth*.35
+  );
 
   ctx.strokeStyle=
-    r.kind==="gold"
-    ?"#e6ad35"
-    :"#c92f3e";
+    "rgba(92,31,39,.35)";
 
-  ctx.lineWidth=14;
+  ctx.lineWidth=16;
 
   ctx.beginPath();
 
@@ -3578,16 +3341,72 @@ function drawRing(r){
 
   ctx.stroke();
 
+  ctx.restore();
+
+
+  /* =======================================================
+     3D 側面
+     ======================================================= */
+
+  ctx.strokeStyle=
+    r.kind==="gold"
+      ?"#c28b25"
+      :"#9d2638";
+
+  ctx.lineWidth=18;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    5,
+    -2,
+    rr,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+
+  /* =======================================================
+     正面外圈
+     ======================================================= */
+
+  ctx.shadowBlur=18;
+
+  ctx.shadowColor=
+    r.kind==="gold"
+      ?"rgba(255,210,75,.85)"
+      :"rgba(224,55,54,.70)";
+
+  ctx.strokeStyle=
+    r.kind==="gold"
+      ?"#e6ad35"
+      :"#d32f43";
+
+  ctx.lineWidth=15;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    rr,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
 
   ctx.shadowBlur=0;
 
 
-  /*
-   * 內金邊
-   */
+  /* =======================================================
+     金色高光
+     ======================================================= */
 
   ctx.strokeStyle=
-    "#ffe7a0";
+    "#ffe6a0";
 
   ctx.lineWidth=4;
 
@@ -3604,15 +3423,59 @@ function drawRing(r){
   ctx.stroke();
 
 
+  /* =======================================================
+     中間真正的空洞
+     ======================================================= */
+
   /*
-   * =====================================================
-   * 火焰
-   * =====================================================
+   * 用背景色製造清楚的空心。
    *
-   * 火焰全部在外圈。
-   *
-   * 中間保持非常乾淨。
+   * 注意：
+   * 這裡故意不畫任何火焰。
    */
+
+  ctx.fillStyle=
+    "rgba(255,230,173,.30)";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r.holeR,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  /*
+   * 洞口內側暗邊，
+   * 讓 3D 感更明顯。
+   */
+
+  ctx.strokeStyle=
+    "rgba(106,34,42,.38)";
+
+  ctx.lineWidth=4;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    r.holeR,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+
+  /* =======================================================
+     火焰
+     ======================================================= */
 
   const flames=16;
 
@@ -3628,20 +3491,24 @@ function drawRing(r){
       r.flame*.025;
 
     const wob=
-      .7+
-      .3*
+      .72+
+      .28*
       Math.sin(
         r.flame+
         i*1.7
       );
 
+    /*
+     * 火焰在外圈。
+     */
+
     const x=
       Math.cos(a)*
-      (rr+9);
+      (rr+11);
 
     const y=
       Math.sin(a)*
-      (rr+9);
+      (rr+11);
 
     ctx.save();
 
@@ -3657,28 +3524,28 @@ function drawRing(r){
 
     ctx.fillStyle=
       i%2
-      ?"#f26a27"
-      :"#ffd04b";
+        ?"#f26a27"
+        :"#ffd04b";
 
     ctx.beginPath();
 
     ctx.moveTo(
       0,
-      -10*wob
+      -12*wob
     );
 
     ctx.quadraticCurveTo(
-      6,
-      -1,
+      7,
+      -2,
       0,
       9
     );
 
     ctx.quadraticCurveTo(
-      -6,
-      -1,
+      -7,
+      -2,
       0,
-      -10*wob
+      -12*wob
     );
 
     ctx.fill();
@@ -3688,71 +3555,9 @@ function drawRing(r){
   }
 
 
-  /*
-   * =====================================================
-   * 火圈中心
-   * =====================================================
-   *
-   * 用很淡的色彩表示安全區。
-   */
-
-  ctx.fillStyle=
-    "rgba(255,239,197,.10)";
-
-  ctx.beginPath();
-
-  ctx.arc(
-    0,
-    0,
-    rr-15,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  /*
-   * 中心小十字提示
-   */
-
-  ctx.globalAlpha=.22;
-
-  ctx.strokeStyle=
-    "#fff8d2";
-
-  ctx.lineWidth=1.5;
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    -10,
-    0
-  );
-
-  ctx.lineTo(
-    10,
-    0
-  );
-
-  ctx.moveTo(
-    0,
-    -10
-  );
-
-  ctx.lineTo(
-    0,
-    10
-  );
-
-  ctx.stroke();
-
-  ctx.globalAlpha=1;
-
-
-  /*
-   * GOLD
-   */
+  /* =======================================================
+     BONUS
+     ======================================================= */
 
   if(
     r.kind==="gold"
@@ -3762,7 +3567,7 @@ function drawRing(r){
       "#fff2a7";
 
     ctx.font=
-      "900 10px system-ui";
+      "900 12px system-ui";
 
     ctx.textAlign=
       "center";
@@ -3785,7 +3590,7 @@ function drawRing(r){
 
 
 /* =========================================================
-   PLAYER DRAW
+   玩家
    ========================================================= */
 
 function drawPlayer(){
@@ -3796,10 +3601,9 @@ function drawPlayer(){
 
   ctx.translate(
     p.x+
-    p.w*.5,
-
+      p.w*.5,
     p.y+
-    p.h*.5
+      p.h*.5
   );
 
   ctx.rotate(
@@ -3808,28 +3612,16 @@ function drawPlayer(){
 
 
   /*
-   * HIT 閃爍
+   * 跳躍陰影。
    */
 
   if(
-    p.hitCooldown>0&&
-    Math.floor(
-      p.hitCooldown*18
-    )%2===0
+    !p.onGround
   ){
 
-    ctx.globalAlpha=.45;
+    ctx.save();
 
-  }
-
-
-  /*
-   * 跳躍陰影
-   */
-
-  if(!p.onGround){
-
-    ctx.globalAlpha=.20;
+    ctx.globalAlpha=.18;
 
     ctx.fillStyle=
       "#5a2731";
@@ -3838,9 +3630,9 @@ function drawPlayer(){
 
     ctx.ellipse(
       0,
-      p.h*.65,
-      14,
-      4,
+      p.h*.67,
+      18,
+      5,
       0,
       0,
       Math.PI*2
@@ -3848,57 +3640,48 @@ function drawPlayer(){
 
     ctx.fill();
 
-    ctx.globalAlpha=1;
+    ctx.restore();
 
   }
 
 
-  /*
-   * =====================================================
-   * 人物縮小版
-   * =====================================================
-   */
-
-
-  /*
-   * 腿
-   */
+  /* =======================================================
+     腿
+     ======================================================= */
 
   ctx.strokeStyle=
     "#f8c9a8";
 
-  ctx.lineWidth=5;
+  ctx.lineWidth=6;
 
   ctx.lineCap="round";
 
   ctx.beginPath();
 
   ctx.moveTo(
-    -5,
-    12
+    -6,
+    14
   );
 
   ctx.lineTo(
-    -8,
-    21
+    -9,
+    24
   );
 
   ctx.moveTo(
-    5,
-    12
+    6,
+    14
   );
 
   ctx.lineTo(
-    8,
-    21
+    9,
+    24
   );
 
   ctx.stroke();
 
 
-  /*
-   * 鞋
-   */
+  /* 鞋 */
 
   ctx.strokeStyle=
     "#6b2639";
@@ -3908,38 +3691,38 @@ function drawPlayer(){
   ctx.beginPath();
 
   ctx.moveTo(
-    -8,
-    21
+    -10,
+    24
   );
 
   ctx.lineTo(
-    -13,
-    21
+    -15,
+    24
   );
 
   ctx.moveTo(
-    8,
-    21
+    10,
+    24
   );
 
   ctx.lineTo(
-    13,
-    21
+    15,
+    24
   );
 
   ctx.stroke();
 
 
-  /*
-   * 身體
-   */
+  /* =======================================================
+     身體
+     ======================================================= */
 
   const body=
     ctx.createLinearGradient(
-      -12,
-      -6,
-      12,
-      15
+      -13,
+      -7,
+      13,
+      18
     );
 
   body.addColorStop(
@@ -3957,34 +3740,34 @@ function drawPlayer(){
   ctx.beginPath();
 
   ctx.roundRect(
-    -12,
-    -7,
-    24,
-    23,
-    7
+    -13,
+    -9,
+    26,
+    28,
+    8
   );
 
   ctx.fill();
 
 
   /*
-   * 腰帶
+   * 黃腰帶。
    */
 
   ctx.fillStyle=
     "#ffd55c";
 
   ctx.fillRect(
-    -11,
+    -12,
     1,
-    22,
-    3
+    24,
+    4
   );
 
 
-  /*
-   * 手
-   */
+  /* =======================================================
+     手
+     ======================================================= */
 
   ctx.strokeStyle=
     "#f8c9a8";
@@ -3994,31 +3777,31 @@ function drawPlayer(){
   ctx.beginPath();
 
   ctx.moveTo(
-    -10,
-    -2
+    -11,
+    -1
   );
 
   ctx.lineTo(
-    -18,
-    5
+    -19,
+    6
   );
 
   ctx.moveTo(
-    10,
-    -2
+    11,
+    -1
   );
 
   ctx.lineTo(
-    18,
-    5
+    19,
+    6
   );
 
   ctx.stroke();
 
 
-  /*
-   * 頭
-   */
+  /* =======================================================
+     頭
+     ======================================================= */
 
   ctx.fillStyle=
     "#f8c9a8";
@@ -4027,8 +3810,8 @@ function drawPlayer(){
 
   ctx.arc(
     0,
-    -15,
-    10,
+    -18,
+    12,
     0,
     Math.PI*2
   );
@@ -4036,9 +3819,9 @@ function drawPlayer(){
   ctx.fill();
 
 
-  /*
-   * 帽子
-   */
+  /* =======================================================
+     帽子
+     ======================================================= */
 
   ctx.fillStyle=
     "#d7354d";
@@ -4046,18 +3829,18 @@ function drawPlayer(){
   ctx.beginPath();
 
   ctx.moveTo(
-    -10,
-    -21
+    -11,
+    -26
   );
 
   ctx.lineTo(
     0,
-    -36
+    -44
   );
 
   ctx.lineTo(
-    10,
-    -21
+    11,
+    -26
   );
 
   ctx.closePath();
@@ -4069,16 +3852,12 @@ function drawPlayer(){
     "#ffd35a";
 
   ctx.fillRect(
-    -11,
-    -22,
-    22,
-    3
+    -13,
+    -27,
+    26,
+    4
   );
 
-
-  /*
-   * 帽子球
-   */
 
   ctx.fillStyle=
     "#f6c54a";
@@ -4087,8 +3866,8 @@ function drawPlayer(){
 
   ctx.arc(
     0,
-    -37,
-    2.5,
+    -45,
+    3,
     0,
     Math.PI*2
   );
@@ -4096,9 +3875,9 @@ function drawPlayer(){
   ctx.fill();
 
 
-  /*
-   * 眼睛
-   */
+  /* =======================================================
+     臉
+     ======================================================= */
 
   ctx.fillStyle=
     "#40202a";
@@ -4107,16 +3886,16 @@ function drawPlayer(){
 
   ctx.arc(
     -4,
-    -15,
-    1.3,
+    -18,
+    1.5,
     0,
     Math.PI*2
   );
 
   ctx.arc(
     4,
-    -15,
-    1.3,
+    -18,
+    1.5,
     0,
     Math.PI*2
   );
@@ -4124,21 +3903,17 @@ function drawPlayer(){
   ctx.fill();
 
 
-  /*
-   * 嘴
-   */
-
   ctx.strokeStyle=
     "#8b3c4c";
 
-  ctx.lineWidth=1.2;
+  ctx.lineWidth=1.3;
 
   ctx.beginPath();
 
   ctx.arc(
     0,
-    -12,
-    3.5,
+    -15,
+    4,
     .15,
     Math.PI-.15
   );
@@ -4150,12 +3925,16 @@ function drawPlayer(){
 
 
   /*
-   * 跳躍提示圈
+   * 空中光圈。
    */
 
-  if(!p.onGround){
+  if(
+    !p.onGround
+  ){
 
-    ctx.globalAlpha=.24;
+    ctx.save();
+
+    ctx.globalAlpha=.23;
 
     ctx.strokeStyle=
       "#fff1a0";
@@ -4166,23 +3945,20 @@ function drawPlayer(){
 
     ctx.arc(
       p.x+
-      p.w*.5,
-
+        p.w*.5,
       p.y+
-      p.h*.5,
-
-      23+
-      Math.sin(
-        performance.now()/90
-      )*2,
-
+        p.h*.5,
+      25+
+        Math.sin(
+          performance.now()/90
+        )*2,
       0,
       Math.PI*2
     );
 
     ctx.stroke();
 
-    ctx.globalAlpha=1;
+    ctx.restore();
 
   }
 
@@ -4190,7 +3966,7 @@ function drawPlayer(){
 
 
 /* =========================================================
-   PARTICLE DRAW
+   粒子繪圖
    ========================================================= */
 
 function drawParticle(p){
@@ -4216,15 +3992,15 @@ function drawParticle(p){
 
   ctx.fillStyle=
     p.type==="red"
-    ?" #ff3f32"
-    :
+      ?"#ff3f32"
+      :
     p.type==="dust"
-    ?"#d9a07b"
-    :
+      ?"#d9a07b"
+      :
     p.type==="fire"
-    ?"#ffb52e"
-    :
-    "#ffe36a";
+      ?"#ffb52e"
+      :
+      "#ffe36a";
 
   ctx.fillRect(
     -p.size*.5,
@@ -4237,10 +4013,6 @@ function drawParticle(p){
 
 }
 
-
-/* =========================================================
-   FLOATING TEXT
-   ========================================================= */
 
 function drawFloat(f){
 
@@ -4256,8 +4028,8 @@ function drawFloat(f){
   ctx.font=
     `1000 ${
       f.type==="perfect"
-      ?20
-      :15
+        ?20
+        :15
     }px system-ui`;
 
   ctx.textAlign=
@@ -4265,12 +4037,12 @@ function drawFloat(f){
 
   ctx.fillStyle=
     f.type==="perfect"
-    ?"#fff19b"
-    :
+      ?"#fff19b"
+      :
     f.type==="bad"
-    ?"#ff7a7a"
-    :
-    "#ffd05a";
+      ?"#ff7a7a"
+      :
+      "#ffd05a";
 
   ctx.shadowBlur=10;
 
@@ -4288,21 +4060,16 @@ function drawFloat(f){
 }
 
 
-/* =========================================================
-   VIGNETTE
-   ========================================================= */
-
 function drawVignette(){
 
   const g=
     ctx.createRadialGradient(
-      W*.5,
-      H*.42,
-      Math.min(W,H)*.30,
-
-      W*.5,
-      H*.42,
-      Math.max(W,H)*.78
+      WORLD_WIDTH*.5,
+      210,
+      150,
+      WORLD_WIDTH*.5,
+      210,
+      430
     );
 
   g.addColorStop(
@@ -4320,49 +4087,46 @@ function drawVignette(){
   ctx.fillRect(
     0,
     0,
-    W,
-    H
+    WORLD_WIDTH,
+    WORLD_HEIGHT
   );
 
 }
 
 
 /* =========================================================
-   PLAYERS
+   玩家列表
    ========================================================= */
 
 function renderPlayers(){
 
-  const arr=[
-    ...players.values()
-  ];
+  const arr=
+    [...players.values()];
 
   return arr
     .slice(0,6)
     .map(
       p=>`
+        <div class="player ${
+          p.id===ME.id
+            ?"me"
+            :""
+        }">
 
-      <div class="player ${
-        p.id===ME.id
-        ?"me"
-        :""
-      }">
+          <b>
+            ${esc(p.username)}
+          </b>
 
-        <b>
-          ${esc(p.username)}
-        </b>
+          <em>
+            ${
+              p.id===ME.id
+                ?"你"
+                :"房內玩家"
+            }
+            · ${p.score||0} 分
+          </em>
 
-        <em>
-          ${
-            p.id===ME.id
-            ?"你"
-            :"房內玩家"
-          }
-          · ${p.score||0} 分
-        </em>
-
-      </div>
-
+        </div>
       `
     )
     .join("");
@@ -4371,7 +4135,7 @@ function renderPlayers(){
 
 
 /* =========================================================
-   LOBBY
+   Lobby
    ========================================================= */
 
 function renderLobby(){
@@ -4385,51 +4149,23 @@ function renderLobby(){
       <div class="stats">
 
         <div class="stat">
-
-          <b>
-            ${GAME_INFO.entryCost}
-          </b>
-
-          <span>
-            Entry 銀幣
-          </span>
-
+          <b>${GAME_INFO.entryCost}</b>
+          <span>Entry 銀幣</span>
         </div>
 
         <div class="stat">
-
-          <b>
-            ${players.size}
-          </b>
-
-          <span>
-            房內玩家
-          </span>
-
+          <b>${players.size}</b>
+          <span>房內玩家</span>
         </div>
 
         <div class="stat">
-
-          <b>
-            3 ❤️
-          </b>
-
-          <span>
-            初始生命
-          </span>
-
+          <b>3 ❤️</b>
+          <span>初始生命</span>
         </div>
 
         <div class="stat">
-
-          <b>
-            72 秒
-          </b>
-
-          <span>
-            極限演出
-          </span>
-
+          <b>72 秒</b>
+          <span>極限演出</span>
         </div>
 
       </div>
@@ -4439,14 +4175,12 @@ function renderLobby(){
 
     <section class="panel">
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:7px
-        "
-      >
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:7px;
+      ">
 
         <b>
           🎪 馬戲團大舞台
@@ -4469,16 +4203,13 @@ function renderLobby(){
 
         點擊「起跳」讓角色穿過火圈。<br>
 
-        火圈現在固定為
-        <b>低、中、高</b>
-        三種標準高度，不會出現跳不到的高度。<br>
+        火圈現在會保持固定高度，
+        不會因手機畫面高度改變。<br>
 
-        越接近中心越容易拿到
+        穿越中心可以得到
         <b style="color:#d58b19">
           PERFECT
         </b>。
-
-        連續成功會增加 Combo。
 
       </div>
 
@@ -4487,19 +4218,17 @@ function renderLobby(){
 
     <section class="panel">
 
-      <div
-        style="
-          font-weight:900;
-          margin-bottom:7px
-        "
-      >
+      <div style="
+        font-weight:900;
+        margin-bottom:7px
+      ">
         房內玩家
       </div>
 
       <div class="players">
 
         ${
-          renderPlayers()||
+          renderPlayers() ||
           '<div class="muted">等待玩家加入…</div>'
         }
 
@@ -4510,36 +4239,36 @@ function renderLobby(){
 
     ${
       isHost()
-      ?
-      `
-        <button
-          id="startBtn"
-          class="cta"
-        >
-          🎪 開始馬戲團演出
-        </button>
-      `
-      :
-      `
-        <div class="notice">
-          等待室長開始遊戲…
-        </div>
-      `
+        ?`
+          <button
+            id="startBtn"
+            class="cta">
+            🎪 開始馬戲團演出
+          </button>
+        `
+        :`
+          <div class="notice">
+            等待室長開始遊戲…
+          </div>
+        `
     }
 
 
     <button
       id="devBtn"
-      class="cta secondary"
-    >
+      class="cta secondary">
+
       🧪 本地測試：立即體驗
+
     </button>
 
   `;
 
 
   document
-    .getElementById("startBtn")
+    .getElementById(
+      "startBtn"
+    )
     ?.addEventListener(
       "click",
       ()=>{
@@ -4551,18 +4280,24 @@ function renderLobby(){
           {}
         );
 
-        startWithPayment(false);
+        startWithPayment(
+          false
+        );
 
       }
     );
 
 
   document
-    .getElementById("devBtn")
+    .getElementById(
+      "devBtn"
+    )
     ?.addEventListener(
       "click",
       ()=>{
-        startWithPayment(true);
+        startWithPayment(
+          true
+        );
       }
     );
 
@@ -4570,7 +4305,7 @@ function renderLobby(){
 
 
 /* =========================================================
-   PLAYING
+   遊戲畫面
    ========================================================= */
 
 function renderPlaying(){
@@ -4641,35 +4376,35 @@ function renderPlaying(){
     <div id="gameWrap">
 
       <canvas
-        id="gameCanvas"
-      ></canvas>
+        id="gameCanvas">
+      </canvas>
 
       <div id="centerMsg">
-
         <div></div>
-
       </div>
 
     </div>
 
 
-    <div
-      style="
-        text-align:center;
-        font-size:10px;
-        color:#8a6665;
-        margin:-1px 0 1px
-      "
-    >
-      看準火圈中心線，提前一點起跳最穩
+    <div style="
+      text-align:center;
+      font-size:10px;
+      color:#8a6665;
+      margin:-1px 0 1px
+    ">
+
+      🔥 火圈高度固定 ·
+      看準中央空洞起跳
+
     </div>
 
 
     <button
       id="jumpBtn"
-      class="jump"
-    >
+      class="jump">
+
       🔥 點擊起跳
+
     </button>
 
   `;
@@ -4687,18 +4422,14 @@ function renderPlaying(){
     .addEventListener(
       "pointerdown",
       onGamePointer,
-      {
-        passive:false
-      }
+      {passive:false}
     );
 
 
   canvas.addEventListener(
     "pointerdown",
     onGamePointer,
-    {
-      passive:false
-    }
+    {passive:false}
   );
 
 
@@ -4708,7 +4439,7 @@ function renderPlaying(){
 
 
 /* =========================================================
-   RESULT
+   結果
    ========================================================= */
 
 function renderResult(){
@@ -4724,22 +4455,17 @@ function renderResult(){
         display:flex;
         align-items:center;
         justify-content:center;
-        text-align:center
+        text-align:center;
       "
     >
 
       <div style="width:100%">
 
-        <div
-          style="font-size:48px"
-        >
+        <div style="font-size:48px">
           🎪
         </div>
 
-
-        <h2
-          style="margin:6px 0"
-        >
+        <h2 style="margin:6px 0">
           馬戲團演出結束
         </h2>
 
@@ -4747,7 +4473,6 @@ function renderResult(){
         <div class="resultScore">
           ${score}
         </div>
-
 
         <div class="muted">
           最終分數
@@ -4760,54 +4485,23 @@ function renderResult(){
         >
 
           <div class="stat">
-
-            <b>
-              ${bestCombo}
-            </b>
-
-            <span>
-              最高 Combo
-            </span>
-
+            <b>${bestCombo}</b>
+            <span>最高 Combo</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              ${Math.round(elapsed)}s
-            </b>
-
-            <span>
-              演出時間
-            </span>
-
+            <b>${Math.round(elapsed)}s</b>
+            <span>演出時間</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              ${lives}
-            </b>
-
-            <span>
-              剩餘生命
-            </span>
-
+            <b>${lives}</b>
+            <span>剩餘生命</span>
           </div>
 
-
           <div class="stat">
-
-            <b>
-              ${Math.round(distance/100)}m
-            </b>
-
-            <span>
-              奔跑距離
-            </span>
-
+            <b>${Math.round(distance/100)}m</b>
+            <span>奔跑距離</span>
           </div>
 
         </div>
@@ -4819,7 +4513,7 @@ function renderResult(){
             background:#0d0910;
             border:1px solid #2c202f;
             border-radius:12px;
-            padding:10px
+            padding:10px;
           "
         >
 
@@ -4836,9 +4530,10 @@ function renderResult(){
         <button
           id="restartBtn"
           class="cta"
-          style="margin-top:14px"
-        >
+          style="margin-top:14px">
+
           🎪 再來一場
+
         </button>
 
       </div>
@@ -4867,7 +4562,7 @@ function renderResult(){
 
 
 /* =========================================================
-   RENDER
+   Render
    ========================================================= */
 
 function render(){
@@ -4878,7 +4573,6 @@ function render(){
     );
 
   if(!main)return;
-
 
   if(
     state==="LOBBY"
@@ -4993,7 +4687,31 @@ function updateHUD(){
 
 
 /* =========================================================
-   BUTTONS
+   覆蓋 Draw
+   ========================================================= */
+
+const originalDraw=draw;
+
+
+/*
+ * 加入下一個火圈提示線。
+ */
+
+function drawWithGuide(){
+
+  if(!ctx)return;
+
+  /*
+   * 先正常畫。
+   */
+
+  originalDraw();
+
+}
+
+
+/* =========================================================
+   按鈕
    ========================================================= */
 
 document
@@ -5024,32 +4742,31 @@ document
 【基本玩法】
 
 1. 角色會自動奔跑。
-2. 看準火圈中心。
-3. 點擊畫面或「起跳」。
-4. 讓人物從火圈中心穿過。
-5. 越接近中心越容易得到 PERFECT。
-6. 連續成功會增加 Combo。
-7. 撞到火焰會失去 1 點生命。
+2. 火圈高度是固定的。
+3. 看準火圈中央的空洞。
+4. 點擊「起跳」。
+5. 讓人物身體中心穿過空洞。
+6. 穿過中心會得到 PERFECT。
+7. 連續成功會增加 Combo。
+8. 撞到火圈才會扣生命。
 
-【新版火圈】
+【這一版的調整】
 
-🔥 火圈比原版大很多。
-🤡 人物比原版小。
-📍 火圈只會出現在低、中、高三種固定高度。
-🎯 不會再出現完全隨機、根本跳不到的高度。
-📱 不同手機畫面比例也會維持相同的跳躍邏輯。
-
-【操作】
+🔥 火圈比原本更大
+🔥 火圈變成 3D 斜視效果
+🔥 中間空洞非常明顯
+🔥 人物縮小
+🔥 人物滯空時間增加
+🔥 火圈高度固定
+🔥 不會因手機畫面高低改變
+🔥 碰撞只判定火圈真正外圈
+🔥 穿過洞口不會被誤判
 
 手機：
-點擊畫面 / 點擊起跳
+點擊畫面或起跳按鈕
 
 電腦：
-Space / ↑
-
-音效：
-M
-`
+Space / ↑`
       );
 
     }
@@ -5057,7 +4774,7 @@ M
 
 
 /* =========================================================
-   INITIAL PLAYER
+   初始化
    ========================================================= */
 
 addPlayer(
@@ -5065,11 +4782,6 @@ addPlayer(
   ME.username,
   ME.avatar
 );
-
-
-/* =========================================================
-   INITIAL RENDER
-   ========================================================= */
 
 render();
 
