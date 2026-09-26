@@ -804,9 +804,11 @@ function setupSDK(data){
         ME.username = String(u.username || '玩家').slice(0,12);
         addOrUpdatePlayer({ id: ME.id, username: ME.username, joinedAt: ME.joinedAt }, true);
     }
+    initialElectionDone = true;
     if(data && data.isHost){
         hostId = ME.id;
-        initialElectionDone = true;
+    } else if(data && data.isHost === false) {
+        if(hostId === ME.id) hostId = null;
     }
     if(data && Array.isArray(data.roomPlayers)){
         data.roomPlayers.forEach(rp => {

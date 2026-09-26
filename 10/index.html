@@ -815,6 +815,8 @@ function setupSDK(data){
   }
   if(data && data.isHost){
     sdkIsHost = true;
+  } else if(data && data.isHost === false) {
+    sdkIsHost = false;
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {

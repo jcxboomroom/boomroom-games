@@ -2807,6 +2807,8 @@ function setupSDK(data){
   }
   if(data && data.isHost){
     hostId = ME;
+  } else if(data && data.isHost === false) {
+    if(hostId === ME) hostId = "";
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {

@@ -756,9 +756,11 @@ function setupSDK(data){
     ME.avatar = String(u.avatar || '');
     addOrUpdatePlayer({ id: ME.id, username: ME.username, avatar: ME.avatar, joinedAt: ME.joinedAt }, true);
   }
+  initialElectionDone = true;
   if(data && data.isHost){
     hostId = ME.id;
-    initialElectionDone = true;
+  } else if(data && data.isHost === false) {
+    if(hostId === ME.id) hostId = null;
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {
