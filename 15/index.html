@@ -580,8 +580,7 @@ let turnOrder=[];
 
 function applyRoundStart(payload){
   if(!payload||typeof payload!=="object")return;
-  if(roundId&&payload.roundId!==roundId)return;
-  roundId=safeString(payload.roundId,roundId,100);
+  if(payload.roundId) roundId = safeString(payload.roundId, roundId, 100);
   roundSeed=(finite(payload.seed,0)>>>0);roundStartAt=finite(payload.startTime,Date.now());selectedCategory=safeString(payload.category,CATEGORIES[0].id,30);
   if(payload.turnSeconds) activeTurnSeconds = intClamp(payload.turnSeconds, 10, 60);
   totalPool=intClamp(payload.totalPool,0,CONFIG.MAX_PLAYERS*CONFIG.ENTRY_FEE);platformFee=intClamp(payload.platformFee,0,totalPool);prizePool=intClamp(payload.prizePool,0,totalPool-platformFee);
@@ -778,16 +777,16 @@ function handleEvent(userId,eventName,payload){
     const uid=safeString(payload.userId,userId,64);if(!players.has(uid))return;secondsVotes.set(uid,intClamp(payload.seconds,10,60));render();return;
   }
   if(eventName==="CATEGORY_VOTE_RESULT"){
-    if(!validRoundPayload(payload))return;
+    if(payload && payload.roundId) roundId = safeString(payload.roundId, roundId, 100);
     selectedCategory=safeString(payload.categoryId,CATEGORIES[0].id,30);
     if(payload.rounds) selectedRounds=intClamp(payload.rounds,1,5);
     if(payload.turnSeconds) { selectedTurnSeconds=intClamp(payload.turnSeconds,10,60); CONFIG.TURN_SECONDS=selectedTurnSeconds; }
-    paymentDeadline=finite(payload.paymentDeadline,Date.now()+CONFIG.PAYMENT_WINDOW_SECONDS*1000);state=STATES.PURCHASING;setNotice("題型："+getCategory(selectedCategory).icon+getCategory(selectedCategory).name+" ("+selectedRounds+"輪/"+selectedTurnSeconds+"秒)。支付 Entry 參賽。");render();return;
+    paymentDeadline=finite(payload.paymentDeadline,Date.now()+1500);state=STATES.PURCHASING;setNotice("投票完成！即將開始遊戲！");render();return;
   }
   if(eventName==="LOBBY_SYNC"){
     if(roundId&&payload.roundId!==roundId)return;roundId=safeString(payload.roundId,roundId,100);state=Object.values(STATES).includes(payload.phase)?payload.phase:state;selectedCategory=safeString(payload.category,selectedCategory,30);voteDeadline=finite(payload.voteDeadline,voteDeadline);paymentDeadline=finite(payload.paymentDeadline,paymentDeadline);matchStarted=!!payload.matchStarted;render();return;
   }
-  if(eventName==="ROUND_START"){if(roundId&&payload.roundId!==roundId)return;currentHostId=String(userId);applyRoundStart(payload);return;}
+  if(eventName==="ROUND_START"){currentHostId=String(userId);applyRoundStart(payload);return;}
   if(eventName==="TURN_START"){if(!validRoundPayload(payload)||!matchStarted||matchEnded)return;applyTurnStart(payload);return;}
   if(eventName==="TURN_END"){if(!validRoundPayload(payload)||matchEnded)return;applyTurnEnd(payload);return;}
   if(eventName==="GAME_EVENT"){
