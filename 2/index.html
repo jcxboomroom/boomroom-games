@@ -27,6 +27,7 @@
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif;}
 body{touch-action:none;overscroll-behavior:none;}
 button{font:inherit;color:inherit;border:0;outline:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+#startBtn{display:none !important;}
 button:active{transform:scale(.975);}
 .app{width:100%;height:100dvh;min-height:100dvh;position:relative;overflow:hidden;background:
   radial-gradient(circle at 50% -10%,rgba(155,108,255,.23),transparent 35%),
@@ -225,7 +226,7 @@ const GAME_INFO = {
   category: '反應挑戰',
   name: '霓虹疊塔：極限巔峰',
   description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '3.0.2',
+  version: '4.0.0',
   entryCost: 0,
   maxPlayers: 10,
   controlModes: ['Tap', 'Pointer'],
@@ -236,13 +237,15 @@ const GAME_INFO = {
 
 const AUTO_ROUND = {
   MAX_PLAYERS: GAME_INFO.maxPlayers,
-  STABLE_MS: 1200,          // 房間人數穩定後再開始
-  COUNTDOWN_MS: 3200,       // 3 秒倒數
-  RESULT_MS: 5200,          // 結算畫面停留時間
-  CLOSE_GRACE_MS: 450,      // 關閉前緩衝
-  HEARTBEAT_MS: 1200,
-  SYNC_MS: 900,
-  JOIN_GRACE_MS: 500
+  STABLE_MS: 900,           // 人數穩定 0.9 秒後進入倒數
+  COUNTDOWN_MS: 3000,       // 3 秒全房倒數
+  RESULT_MS: 3000,          // 結算展示 3 秒後自動返回
+  CLOSE_GRACE_MS: 80,       // 返回前緩衝
+  HEARTBEAT_MS: 650,        // 高頻同步，降低漏事件機率
+  SYNC_MS: 650,
+  JOIN_GRACE_MS: 400,
+  EVENT_REPEAT_MS: 900,     // 開局事件在前段重複廣播
+  RESULT_SYNC_MS: 3500
 };
 
 const CONFIG = {
@@ -1427,71 +1430,166 @@ function clearAutoRoundTimers(){
     clearInterval(state.countdownTimer);
     state.countdownTimer=null;
   }
+  if(state.remoteStartTimer){
+    clearTimeout(state.remoteStartTimer);
+    state.remoteStartTimer=null;
+  }
+  if(state.resultCloseTimer){
+    clearInterval(state.resultCloseTimer);
+    state.resultCloseTimer=null;
+  }
 }
 
 function getStablePlayerSignature(){
   return onlinePlayers().map(p=>p.id).sort().join('|');
 }
 
+function cleanPlayerIds(ids){
+  return [...new Set((Array.isArray(ids)?ids:[]).map(x=>String(x||'')).filter(Boolean))].slice(0,GAME_INFO.maxPlayers);
+}
+
+function currentRoundPlayers(){
+  const source = Array.isArray(state.roundPlayerIds) && state.roundPlayerIds.length
+    ? state.roundPlayerIds
+    : onlinePlayers().map(p=>p.id);
+  return cleanPlayerIds(source);
+}
+
+function resetRoundScoreboard(playerIds){
+  const ids=cleanPlayerIds(playerIds);
+  roomScoreMap.clear();
+  for(const id of ids){
+    const p=roomPlayersList.find(x=>x.id===id);
+    ensureScorePlayer(id,p?.nickname || '玩家');
+  }
+  const me=getUserId();
+  if(me && !roomScoreMap.has(me)) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
+  renderScoreBoard();
+}
+
+function makeRoundId(){
+  return 'neon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function sendHostSync(phaseOverride=''){ 
+  if(!isHost() || !sdkReady) return false;
+
+  const players=onlinePlayers();
+  const playerIds=cleanPlayerIds(players.map(p=>p.id));
+  const phase = phaseOverride || (
+    state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
+    state.game==='PLAYING' ? 'PLAYING' :
+    'WAITING'
+  );
+
+  return sendGameEvent('NEON_ROOM_SYNC',{
+    roomId:gameRoomId,
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version,
+    hostId:getUserId(),
+    phase,
+    game:state.game,
+    roundId:state.roundId || '',
+    playerCount:playerIds.length,
+    playerIds,
+    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''})),
+    countdownEndsAt:Number(state.countdownEndsAt||0),
+    startAt:Number(state.remoteStartAt||0),
+    timestamp:Date.now()
+  });
+}
+
+function broadcastRoundStart(roundId,players,startAt){
+  const payload={
+    roomId:gameRoomId,
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version,
+    roundId,
+    hostId:getUserId(),
+    startAt,
+    startedAt:startAt,
+    playerCount:players.length,
+    playerIds:players.map(p=>p.id),
+    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
+  };
+
+  // 立即送出一次，並在開局前後由 heartbeat / repeated event 再送，避免任何單次漏包。
+  sendGameEvent('NEON_ROUND_START',payload);
+  sendGameEvent('NEON_ROOM_SYNC',{
+    ...payload,
+    phase:'COUNTDOWN',
+    game:'LOBBY',
+    countdownEndsAt:state.countdownEndsAt,
+    timestamp:Date.now()
+  });
+
+  clearTimeout(state.roundStartRepeatTimer);
+  let repeats=0;
+  state.roundStartRepeatTimer=setInterval(()=>{
+    repeats+=1;
+    if(repeats>5 || state.game==='PLAYING' || state.game==='RESULT'){
+      clearInterval(state.roundStartRepeatTimer);
+      state.roundStartRepeatTimer=null;
+      return;
+    }
+    sendGameEvent('NEON_ROUND_START',payload);
+    sendGameEvent('NEON_ROOM_SYNC',{
+      ...payload,
+      phase:Date.now()<startAt?'COUNTDOWN':'PLAYING',
+      game:Date.now()<startAt?'LOBBY':'PLAYING',
+      countdownEndsAt:state.countdownEndsAt,
+      timestamp:Date.now()
+    });
+  },AUTO_ROUND.EVENT_REPEAT_MS);
+}
+
 function scheduleAutoStart(){
-  if(!isHost() || !sdkReady) return;
+  if(!sdkReady || !isHost()) return;
   if(state.game==='PLAYING' || state.game==='RESULT') return;
   if(state.autoRoundState==='COUNTDOWN' || state.autoRoundState==='PLAYING') return;
 
   const players=onlinePlayers();
   const count=players.length;
+  const signature=getStablePlayerSignature();
 
   if(count<=0){
-    if(state.autoRoundTimer){
-      clearTimeout(state.autoRoundTimer);
-      state.autoRoundTimer=null;
-    }
+    clearTimeout(state.autoRoundTimer);
+    state.autoRoundTimer=null;
     state.autoRoundState='WAITING';
     state.lastAutoScheduledSignature='';
+    sendHostSync('WAITING');
     renderAutoRoomUI();
     return;
   }
 
-  const signature=getStablePlayerSignature();
-
-  // ⭐ 重大修正：心跳會每 1.2 秒進來一次，不能每次都重設 1.8 秒計時。
-  // 只有「人數/玩家名單真的改變」時才建立新的穩定計時器。
+  // 不使用「每次 heartbeat 重新計時」；同一份名單只建立一次穩定計時器。
   if(
     state.autoRoundState==='STABILIZING' &&
     state.autoRoundTimer &&
     state.lastAutoScheduledSignature===signature
   ){
+    sendHostSync('STABILIZING');
     renderAutoRoomUI();
     return;
   }
 
-  if(state.autoRoundTimer){
-    clearTimeout(state.autoRoundTimer);
-    state.autoRoundTimer=null;
-  }
-
+  clearTimeout(state.autoRoundTimer);
   state.autoRoundState='STABILIZING';
   state.lastAutoScheduledSignature=signature;
+  state.roomPlayersUpdatedAt=state.roomPlayersUpdatedAt || Date.now();
   renderAutoRoomUI();
+  sendHostSync('STABILIZING');
 
-  const stableDeadline=Math.max(
-    Date.now()+AUTO_ROUND.STABLE_MS,
-    state.roomPlayersUpdatedAt + AUTO_ROUND.STABLE_MS
-  );
+  const stableSince=state.roomPlayersUpdatedAt || Date.now();
+  const delay=Math.max(80,(stableSince+AUTO_ROUND.STABLE_MS)-Date.now());
 
   state.autoRoundTimer=setTimeout(()=>{
     state.autoRoundTimer=null;
+    if(state.game!=='LOBBY' || !isHost()) return;
 
-    if(state.game!=='LOBBY') return;
-
-    const current=onlinePlayers();
-    const currentSig=getStablePlayerSignature();
-
-    if(
-      current.length !== count ||
-      currentSig !== signature ||
-      Date.now() < state.roomPlayersUpdatedAt + AUTO_ROUND.STABLE_MS - 50
-    ){
+    const latest=onlinePlayers();
+    const latestSig=getStablePlayerSignature();
+    if(!latest.length || latestSig!==signature){
       state.autoRoundState='WAITING';
       state.lastAutoScheduledSignature='';
       renderAutoRoomUI();
@@ -1499,108 +1597,115 @@ function scheduleAutoStart(){
       return;
     }
 
-    beginHostCountdown(current);
-  }, Math.max(50, stableDeadline-Date.now()));
+    beginHostCountdown(latest);
+  },delay);
 }
 
 function beginHostCountdown(players){
-  if(!isHost()) return;
-  if(state.game!=='LOBBY') return;
-  if(!players.length) return;
+  if(!isHost() || !sdkReady || state.game!=='LOBBY' || !players.length) return;
 
   clearAutoRoundTimers();
-
   state.autoRoundState='COUNTDOWN';
-  state.countdownEndsAt=Date.now()+AUTO_ROUND.COUNTDOWN_MS;
   state.hostRoundStarted=false;
+  state.roundPlayerIds=players.map(p=>p.id);
+  state.roundPlayerCount=players.length;
+  state.countdownEndsAt=Date.now()+AUTO_ROUND.COUNTDOWN_MS;
+  state.remoteStartAt=state.countdownEndsAt;
+  state.roundId=makeRoundId();
+  state.localFinished=false;
+  state.roundFinished=false;
+  state.closeRequested=false;
+  state.closeSent=false;
+  state.gameOverCalled=false;
 
-  const roundId=uid();
+  resetRoundScoreboard(state.roundPlayerIds);
 
   sendGameEvent('NEON_COUNTDOWN',{
-    roundId,
+    roomId:gameRoomId,
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version,
+    roundId:state.roundId,
+    hostId:getUserId(),
     endsAt:state.countdownEndsAt,
+    startAt:state.countdownEndsAt,
     playerCount:players.length,
-    playerIds:players.map(p=>p.id),
-    version:GAME_INFO.version
+    playerIds:state.roundPlayerIds,
+    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
   });
+  sendHostSync('COUNTDOWN');
 
-  renderAutoRoomUI();
   playStart();
   vibrate([10,25,10]);
+  renderAutoRoomUI();
 
   state.countdownTimer=setInterval(()=>{
     const remain=state.countdownEndsAt-Date.now();
-
-    if(remain<=0){
-      clearInterval(state.countdownTimer);
-      state.countdownTimer=null;
-
-      const latest=onlinePlayers();
-      const latestSig=getStablePlayerSignature();
-
-      if(
-        latest.length !== players.length ||
-        latestSig !== players.map(p=>p.id).sort().join('|')
-      ){
-        state.autoRoundState='WAITING';
-        renderAutoRoomUI();
-        scheduleAutoStart();
-        return;
-      }
-
-      launchHostRound(roundId,latest);
+    if(remain>0){
+      renderAutoRoomUI();
+      if(isHost()) sendHostSync('COUNTDOWN');
       return;
     }
 
-    renderAutoRoomUI();
-  },80);
+    clearInterval(state.countdownTimer);
+    state.countdownTimer=null;
 
-  renderAutoRoomUI();
+    const latest=onlinePlayers();
+    const latestIds=cleanPlayerIds(latest.map(p=>p.id));
+    const fixedIds=cleanPlayerIds(state.roundPlayerIds);
+    if(latestIds.join('|')!==fixedIds.join('|')){
+      state.autoRoundState='WAITING';
+      state.lastAutoScheduledSignature='';
+      renderAutoRoomUI();
+      scheduleAutoStart();
+      return;
+    }
+
+    launchHostRound(state.roundId,latest);
+  },100);
 }
 
 function launchHostRound(roundId,players){
-  if(!isHost()) return;
-  if(state.game!=='LOBBY') return;
+  if(!isHost() || state.game!=='LOBBY') return;
 
+  const startAt=Date.now()+220;
+  state.remoteStartAt=startAt;
   state.autoRoundState='PLAYING';
   state.hostRoundStarted=true;
+  state.roundPlayerIds=cleanPlayerIds(players.map(p=>p.id));
+  state.roundPlayerCount=state.roundPlayerIds.length;
 
-  const startAt=Date.now()+180;
-
-  sendGameEvent('NEON_ROUND_START',{
-    roundId,
-    startAt,
-    startedAt:startAt,
-    hostId:getUserId(),
-    playerCount:players.length,
-    playerIds:players.map(p=>p.id),
-    version:GAME_INFO.version
-  });
-
-  // Host 自己也走同一套啟動流程。
-  startGame(roundId,false,startAt,players.length);
+  broadcastRoundStart(roundId,players,startAt);
+  startGame(roundId,false,startAt,state.roundPlayerIds.length);
 }
 
-function startGame(remoteRoundId=null, remote=false, remoteStartAt=0, forcedPlayerCount=0){
+function startGame(remoteRoundId=null,remote=false,remoteStartAt=0,forcedPlayerCount=0,playerIds=null){
   if(state.game==='PLAYING' || state.game==='RESULT') return;
-
-  // 非 Host 禁止自己手動建立新局。
   if(!remote && !isHost()) return;
 
-  resumeAudio();
+  const id=String(remoteRoundId || state.roundId || makeRoundId());
+  const incomingStart=Number(remoteStartAt||0);
+  const startDelay=Math.max(0,incomingStart-Date.now());
 
-  const startDelay=Math.max(0,remoteStartAt ? remoteStartAt-Date.now() : 0);
+  if(state.remoteStartTimer){ clearTimeout(state.remoteStartTimer); state.remoteStartTimer=null; }
 
   const actuallyStart=()=>{
     if(state.game==='PLAYING' || state.game==='RESULT') return;
 
+    resumeAudio();
     playStart();
     vibrate([12,30,12]);
 
     state.game='PLAYING';
     state.autoRoundState='PLAYING';
-    state.roundId=remoteRoundId || uid();
-
+    state.roundId=id;
+    state.roundPlayerIds=cleanPlayerIds(playerIds || state.roundPlayerIds || onlinePlayers().map(p=>p.id));
+    if(!state.roundPlayerIds.length) state.roundPlayerIds=onlinePlayers().map(p=>p.id);
+    state.roundPlayerCount=state.roundPlayerIds.length || forcedPlayerCount || state.roomPlayerCount || 1;
+    state.roundFinished=false;
+    state.localFinished=false;
+    state.closeRequested=false;
+    state.closeSent=false;
+    state.gameOverCalled=false;
     state.score=0;
     state.layers=0;
     state.combo=0;
@@ -1622,13 +1727,10 @@ function startGame(remoteRoundId=null, remote=false, remoteStartAt=0, forcedPlay
     state.startedAt=performance.now();
     state.reward=0;
     state.resultReason='';
-    state.gameOverCalled=false;
     state.finishToastShown=false;
-    state.closeRequested=false;
-    state.closeSent=false;
-    state.resultCloseTimer=null;
-    state.remoteStartAt=remoteStartAt || Date.now();
+    state.remoteStartAt=incomingStart || Date.now();
 
+    resetRoundScoreboard(state.roundPlayerIds);
     ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
     updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
 
@@ -1639,31 +1741,24 @@ function startGame(remoteRoundId=null, remote=false, remoteStartAt=0, forcedPlay
 
     $('startOverlay').classList.remove('show');
     $('resultOverlay').classList.remove('show');
+    $('statusPill').textContent='本局進行中';
+    $('hintTitle').textContent='點一下，把方塊放下';
+    $('hintSub').textContent='每位玩家獨立挑戰；右上會即時看到同房最高分。';
 
     updateHUD();
     renderAutoRoomUI();
+    showToast(remote ? '全房同步開始！' : `自動開局 · ${state.roundPlayerCount} 人`);
 
-    showToast(
-      remote
-        ? '全房同步開始！'
-        : `自動開局 · ${forcedPlayerCount || state.roomPlayerCount} 人`
-    );
-
-    updatePlayerScore(
-      getUserId(),
-      state.score,
-      state.layers,
-      playerNameOf(state.sdkUser,'你'),
-      true
-    );
-
+    updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
     waitingForHost=false;
     lastRemoteRoundId=state.roundId;
-    renderAutoRoomUI();
   };
 
   if(startDelay>0){
-    setTimeout(actuallyStart,startDelay);
+    state.remoteStartTimer=setTimeout(()=>{
+      state.remoteStartTimer=null;
+      actuallyStart();
+    },startDelay);
   }else{
     actuallyStart();
   }
@@ -1671,183 +1766,99 @@ function startGame(remoteRoundId=null, remote=false, remoteStartAt=0, forcedPlay
 
 function sendRoomRosterToRequester(){
   if(!isHost()) return;
+  sendHostSync(
+    state.autoRoundState==='COUNTDOWN'
+      ? 'COUNTDOWN'
+      : state.game==='PLAYING'
+        ? 'PLAYING'
+        : 'WAITING'
+  );
+}
 
-  const players=onlinePlayers();
+function applyRemoteRoomSync(payload){
+  const remoteHostId=String(payload.hostId||'');
+  const me=getUserId();
+  if(remoteHostId && remoteHostId===me) return;
 
-  sendGameEvent('NEON_ROOM_ROSTER',{
+  if(Array.isArray(payload.players)){
+    updateRoomPlayers(payload.players,'remote-sync');
+  }else if(Array.isArray(payload.playerIds) && payload.playerIds.length){
+    const existing=new Map(roomPlayersList.map(p=>[p.id,p]));
+    updateRoomPlayers(payload.playerIds.map(id=>existing.get(String(id))||{id:String(id),username:'玩家'}),'remote-sync-ids');
+  }
+
+  const incomingRound=String(payload.roundId||'');
+  const incomingPhase=String(payload.phase||'');
+  const playerIds=cleanPlayerIds(payload.playerIds || onlinePlayers().map(p=>p.id));
+
+  if(incomingRound){
+    if(lastRemoteRoundId && incomingRound!==lastRemoteRoundId && state.game==='PLAYING') return;
+    lastRemoteRoundId=incomingRound;
+    state.roundId=incomingRound;
+    state.roundPlayerIds=playerIds;
+    state.roundPlayerCount=Number(payload.playerCount||playerIds.length||state.roomPlayerCount||1);
+  }
+
+  const startAt=Number(payload.startAt||payload.startedAt||0);
+  const countdownEndsAt=Number(payload.countdownEndsAt||payload.endsAt||startAt||0);
+
+  if(incomingPhase==='COUNTDOWN'){
+    state.autoRoundState='COUNTDOWN';
+    state.countdownEndsAt=countdownEndsAt || Date.now()+AUTO_ROUND.COUNTDOWN_MS;
+    state.remoteStartAt=startAt || state.countdownEndsAt;
+    renderAutoRoomUI();
+
+    if(state.game==='LOBBY'){
+      const target=state.remoteStartAt || state.countdownEndsAt;
+      const delay=Math.max(0,target-Date.now());
+      if(state.remoteStartTimer) clearTimeout(state.remoteStartTimer);
+      state.remoteStartTimer=setTimeout(()=>{
+        state.remoteStartTimer=null;
+        if(state.game==='LOBBY') startGame(incomingRound,true,target,state.roundPlayerCount,state.roundPlayerIds);
+      },delay);
+    }
+    return;
+  }
+
+  if(incomingPhase==='PLAYING'){
+    state.autoRoundState='PLAYING';
+    state.remoteStartAt=startAt || state.remoteStartAt || Date.now();
+    if(state.game!=='PLAYING' && state.game!=='RESULT'){
+      startGame(incomingRound,true,state.remoteStartAt,state.roundPlayerCount,state.roundPlayerIds);
+    }
+    renderAutoRoomUI();
+    return;
+  }
+
+  renderAutoRoomUI();
+}
+
+function sendHello(){
+  const me=getUserId();
+  if(!me) return;
+  sendGameEvent('NEON_ROOM_HELLO',{
     roomId:gameRoomId,
-    playerCount:players.length,
-    players:players.map(p=>({
-      id:p.id,
-      nickname:p.nickname
-    })),
-    game:state.game,
-    roundId:state.roundId,
-    autoRoundState:state.autoRoundState,
-    version:GAME_INFO.version
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version,
+    playerId:me,
+    player:{id:me,username:playerNameOf(state.sdkUser,'玩家'),avatar:state.sdkUser?.avatar || ''},
+    requestSync:true,
+    timestamp:Date.now()
   });
 }
 
-function handleGameEvent(name,payload,sender){
-  payload =
-    payload && typeof payload === 'object'
-      ? payload
-      : {};
+function localPlayerFinished(reason){
+  if(state.game!=='PLAYING' || state.localFinished) return;
 
-  if(name==='NEON_ROOM_HELLO'){
-    if(isHost()){
-      // Host 收到玩家存在訊號後，立即回傳目前房間名單。
-      sendRoomRosterToRequester();
-      scheduleAutoStart();
-    }
-    return;
-  }
-
-  if(name==='NEON_ROOM_ROSTER'){
-    if(isHost()) return;
-
-    if(Array.isArray(payload.players)){
-      updateRoomPlayers(payload.players,'event');
-    }
-
-    if(payload.game==='PLAYING' && payload.roundId){
-      if(String(payload.roundId)!==lastRemoteRoundId){
-        lastRemoteRoundId=String(payload.roundId);
-        startGame(
-          String(payload.roundId),
-          true,
-          Number(payload.startAt || 0),
-          Number(payload.playerCount || state.roomPlayerCount)
-        );
-      }
-    }
-
-    renderAutoRoomUI();
-    return;
-  }
-
-  if(name==='NEON_HELLO'){
-    if(isHost() && payload.requestRoster){
-      sendRoomRosterToRequester();
-    }
-    return;
-  }
-
-  if(name==='NEON_COUNTDOWN'){
-    if(isHost()) return;
-
-    const incomingRound=String(payload.roundId || '');
-    if(!incomingRound) return;
-
-    lastRemoteRoundId=incomingRound;
-    state.autoRoundState='COUNTDOWN';
-    state.countdownEndsAt=Number(payload.endsAt || Date.now()+AUTO_ROUND.COUNTDOWN_MS);
-
-    if(Array.isArray(payload.playerIds) && payload.playerIds.length){
-      const roster=payload.playerIds.map(id=>({id,nickname:'玩家'}));
-      const existing=new Map(roomPlayersList.map(p=>[p.id,p]));
-      updateRoomPlayers(
-        roster.map(p=>existing.get(p.id)||p),
-        'countdown'
-      );
-    }
-
-    renderAutoRoomUI();
-    return;
-  }
-
-  if(name==='NEON_ROUND_START' || name==='ROUND_START'){
-    if(isHost()) return;
-
-    const incomingRound=String(payload.roundId || '');
-    if(!incomingRound) return;
-
-    lastRemoteRoundId=incomingRound;
-
-    startGame(
-      incomingRound,
-      true,
-      Number(payload.startAt || payload.startedAt || 0),
-      Number(payload.playerCount || state.roomPlayerCount)
-    );
-
-    return;
-  }
-
-  if(name==='NEON_SCORE_UPDATE' || name==='SCORE_UPDATE'){
-    const id=String(payload.playerId || sender || '');
-    if(!id || id===getUserId()) return;
-
-    updatePlayerScore(
-      id,
-      payload.score,
-      payload.layers,
-      String(payload.playerName || '玩家'),
-      false
-    );
-    return;
-  }
-
-  if(name==='NEON_ROUND_END' || name==='ROUND_END'){
-    const incomingRound=String(payload.roundId || '');
-
-    if(
-      incomingRound &&
-      state.roundId &&
-      incomingRound!==state.roundId
-    ){
-      return;
-    }
-
-    if(state.game==='PLAYING'){
-      state.resultReason=String(
-        payload.reason || '本局已完成結算。'
-      );
-
-      gameOver('REMOTE_END',true);
-    }
-
-    return;
-  }
-
-  if(name==='NEON_GAME_CLOSE'){
-    const incomingRound=String(payload.roundId || '');
-
-    if(
-      incomingRound &&
-      state.roundId &&
-      incomingRound!==state.roundId
-    ){
-      return;
-    }
-
-    closeGameInstance(true);
-  }
-}
-
-function gameOver(reason,remoteEnd=false){
-  if(state.game==='RESULT' || state.gameOverCalled) return;
-
-  state.game='RESULT';
-  state.autoRoundState='RESULT';
-  state.gameOverCalled=true;
-
+  state.localFinished=true;
+  state.autoRoundState='PLAYER_FINISHED';
   if(state.currentBox) state.currentBox.moving=false;
 
   state.reward=calcReward(state.layers);
-
-  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
-  if(state.score>state.bestScore) state.bestScore=state.score;
-
-  saveBest();
-
-  state.resultReason =
-    state.resultReason ||
-    (reason==='MISS'?'落點完全失準。':'挑戰結束。');
-
-  const elapsed=Math.max(
-    0,
-    performance.now()-state.startedAt
+  state.resultReason=state.resultReason || (
+    reason==='MISS' ? '最後一塊沒有與塔身重疊。' :
+    reason==='TIMEOUT' ? '挑戰時間結束。' :
+    '你的本局挑戰已完成。'
   );
 
   updatePlayerScore(
@@ -1858,41 +1869,35 @@ function gameOver(reason,remoteEnd=false){
     true
   );
 
-  // 只有 Host 做正式結算與廣播。
-  if(!remoteEnd && isHost()){
-    try{
-      if(
-        window.BoomRoomSDK &&
-        typeof window.BoomRoomSDK.gameOver==='function'
-      ){
-        window.BoomRoomSDK.gameOver(state.reward);
-      }
-    }catch(_){}
+  sendGameEvent('NEON_PLAYER_FINISH',{
+    roomId:gameRoomId,
+    gameId:GAME_INFO.id,
+    roundId:state.roundId,
+    playerId:getUserId(),
+    playerName:playerNameOf(state.sdkUser,'你'),
+    score:clamp(state.score,0,999999),
+    layers:clamp(state.layers,0,99999),
+    reward:safeReward(state.reward),
+    reason:state.resultReason
+  });
 
-    sendGameEvent('NEON_ROUND_END',{
-      roundId:state.roundId,
-      status:'FINISHED',
-      score:state.score,
-      reward:state.reward,
-      reason:state.resultReason,
-      layers:state.layers,
-      durationMs:Math.round(elapsed),
-      playerCount:state.roomPlayerCount
-    });
-  }
+  state.game='RESULT';
+  state.roundFinished=true;
+  state.statusEndedAt=Date.now();
+  showResult();
+}
 
-  setTimeout(showResult,520);
+function gameOver(reason){
+  if(state.game==='RESULT' || state.localFinished || state.gameOverCalled) return;
+  localPlayerFinished(reason);
 }
 
 function showResult(){
   $('resultTitle').textContent =
-    state.layers>=40
-      ? '超越極限！'
-      : state.layers>=30
-        ? '巔峰完成！'
-        : state.layers>=20
-          ? '高塔達成！'
-          : '大樓倒塌！';
+    state.layers>=40 ? '超越極限！' :
+    state.layers>=30 ? '巔峰完成！' :
+    state.layers>=20 ? '高塔達成！' :
+    '大樓倒塌！';
 
   $('resultLead').textContent=state.resultReason;
   $('resultLayer').textContent=state.layers;
@@ -1903,116 +1908,170 @@ function showResult(){
 
   $('resultReason').textContent =
     state.reward>0
-      ? '本局獎勵已鎖定並完成一次結算。'
-      : '本局結果已完成結算。';
+      ? '本局獎勵已鎖定，3 秒後自動返回房間。'
+      : '本局結果已鎖定，3 秒後自動返回房間。';
 
   $('resultOverlay').classList.add('show');
   $('statusPill').textContent='本局已結束';
-  $('hintTitle').textContent='結算完成';
-  $('hintSub').textContent='本局已鎖定，遊戲將自動關閉。';
+  $('hintTitle').textContent='本局完成';
+  $('hintSub').textContent='遊戲已鎖定，無法再次開始；正在準備自動返回。';
 
   startAutoCloseCountdown();
 }
 
 function startAutoCloseCountdown(){
-  if(state.resultCloseTimer){
-    clearInterval(state.resultCloseTimer);
-  }
+  if(state.resultCloseTimer) clearInterval(state.resultCloseTimer);
 
   const endAt=Date.now()+AUTO_ROUND.RESULT_MS;
+  state.localReturnAt=endAt;
 
   const tick=()=>{
     const remain=Math.max(0,endAt-Date.now());
-    const sec=Math.ceil(remain/1000);
+    const sec=Math.max(1,Math.ceil(remain/1000));
 
-    $('finishBtn').textContent =
-      remain>0
-        ? `遊戲將於 ${sec} 秒後關閉`
-        : '正在關閉遊戲';
-
-    $('closeCountdownNote').textContent =
-      remain>0
-        ? `本局已鎖定 · ${sec} 秒後自動返回 BoomRoom`
-        : '正在返回 BoomRoom...';
+    $('finishBtn').textContent = remain>0 ? `${sec} 秒後自動返回` : '正在返回房間';
+    $('closeCountdownNote').textContent = remain>0
+      ? `結算完成 · ${sec} 秒後自動離開遊戲`
+      : '正在返回 BoomRoom...';
 
     if(remain<=0){
       clearInterval(state.resultCloseTimer);
       state.resultCloseTimer=null;
-
-      if(isHost()){
-        sendGameEvent('NEON_GAME_CLOSE',{
-          roundId:state.roundId,
-          reason:'RESULT_TIMEOUT'
-        });
-      }
-
-      setTimeout(()=>closeGameInstance(false),AUTO_ROUND.CLOSE_GRACE_MS);
+      finishAndLeave();
     }
   };
 
   tick();
-  state.resultCloseTimer=setInterval(tick,120);
+  state.resultCloseTimer=setInterval(tick,100);
 }
 
-function closeGameInstance(remote=false){
+function finishAndLeave(){
   if(state.closeRequested) return;
-
   state.closeRequested=true;
-  state.autoRoundState='CLOSING';
-  state.game='RESULT';
+  state.closeSent=false;
 
-  if(state.resultCloseTimer){
-    clearInterval(state.resultCloseTimer);
-    state.resultCloseTimer=null;
+  const reward=safeReward(state.reward);
+  state.reward=reward;
+
+  // 每一位玩家自己的自然結束只結算一次。
+  if(!state.gameOverCalled){
+    state.gameOverCalled=true;
+    try{
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+        window.BoomRoomSDK.gameOver(reward);
+        state.closeSent=true;
+      }
+    }catch(_){ }
   }
 
-  if(remote){
-    $('closeCountdownNote').textContent='房間已完成結算，正在關閉遊戲...';
-  }
-
-  try{
-    if(window.BoomRoomSDK){
-      if(typeof window.BoomRoomSDK.closeGame==='function'){
-        window.BoomRoomSDK.closeGame({
-          gameId:GAME_INFO.id,
-          roundId:state.roundId
-        });
-        state.closeSent=true;
-        return;
-      }
-
-      if(typeof window.BoomRoomSDK.finishGame==='function'){
-        window.BoomRoomSDK.finishGame({
-          gameId:GAME_INFO.id,
-          roundId:state.roundId
-        });
-        state.closeSent=true;
-        return;
-      }
-    }
-  }catch(_){}
-
+  // Web/iframe 宿主遵照 BoomRoom 指南使用 leaveGame；Mobile WebView 則由 SDK.gameOver 對接 Flutter 返回。
   try{
     if(window.parent && window.parent!==window){
       window.parent.postMessage({
-        action:'closeGame',
+        action:'leaveGame',
         gameId:GAME_INFO.id,
         roundId:state.roundId,
-        reason:'RESULT_TIMEOUT'
+        reason:'NATURAL_GAME_OVER'
       },'*');
       state.closeSent=true;
     }
-  }catch(_){}
+  }catch(_){ }
 
-  // 沒有宿主 close API 時，只停留在結算鎖定狀態，
-  // 絕不自行重新開始下一局。
-  $('finishBtn').textContent='本局已完成';
-  $('closeCountdownNote').textContent='請由 BoomRoom 房間重新開啟新的遊戲實例。';
+  if(!state.closeSent){
+    try{
+      window.location.href='../room.html';
+      state.closeSent=true;
+    }catch(_){ }
+  }
+
+  $('finishBtn').textContent='已完成 · 返回房間';
+  $('closeCountdownNote').textContent='本局已結算。';
 }
 
-function finishRound(){
-  // 保留函式名稱以相容舊 UI，但禁止手動重玩。
-  showToast('本局已完成，請返回 BoomRoom 房間。');
+function handleGameEvent(name,payload,sender){
+  payload=payload && typeof payload==='object' ? payload : {};
+  const event=String(name||'');
+  const senderId=sender!=null ? String(sender) : String(payload.playerId||'');
+
+  if(event==='NEON_ROOM_HELLO'){
+    if(isHost()){
+      const p=payload.player || {
+        id:String(payload.playerId||senderId||''),
+        username:String(payload.playerName||'玩家'),
+        avatar:String(payload.avatar||'')
+      };
+      if(p.id){
+        const existing=roomPlayersList.some(x=>x.id===String(p.id));
+        if(!existing){
+          updateRoomPlayers([...roomPlayersList,p],'hello-merge');
+        }
+      }
+      sendHostSync(
+        state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
+        state.game==='PLAYING' ? 'PLAYING' : 'WAITING'
+      );
+      scheduleAutoStart();
+    }
+    return;
+  }
+
+  if(event==='NEON_ROOM_SYNC'){
+    applyRemoteRoomSync(payload);
+    return;
+  }
+
+  if(event==='NEON_COUNTDOWN'){
+    const hostId=String(payload.hostId||'');
+    if(hostId && hostId===getUserId()) return;
+    applyRemoteRoomSync({
+      ...payload,
+      phase:'COUNTDOWN',
+      countdownEndsAt:Number(payload.endsAt||payload.countdownEndsAt||0),
+      startAt:Number(payload.startAt||payload.endsAt||0)
+    });
+    return;
+  }
+
+  if(event==='NEON_ROUND_START' || event==='ROUND_START'){
+    const hostId=String(payload.hostId||'');
+    if(hostId && hostId===getUserId()) return;
+    applyRemoteRoomSync({...payload,phase:'COUNTDOWN',countdownEndsAt:Number(payload.startAt||0),startAt:Number(payload.startAt||0)});
+    return;
+  }
+
+  if(event==='NEON_SCORE_UPDATE' || event==='SCORE_UPDATE'){
+    const id=String(payload.playerId||senderId||'');
+    if(!id || id===getUserId()) return;
+    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+    updatePlayerScore(
+      id,
+      payload.score,
+      payload.layers,
+      String(payload.playerName||'玩家'),
+      false
+    );
+    return;
+  }
+
+  if(event==='NEON_PLAYER_FINISH'){
+    const id=String(payload.playerId||senderId||'');
+    if(!id || id===getUserId()) return;
+    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+    updatePlayerScore(
+      id,
+      payload.score,
+      payload.layers,
+      String(payload.playerName||'玩家'),
+      false
+    );
+    return;
+  }
+
+  // 相容部分舊遊戲/宿主可能回傳的結束訊號：只同步分數，不強制結束其他人的本局。
+  if(event==='TOGGLE_SOUND'){
+    state.soundEnabled=!Boolean(payload.muted);
+    return;
+  }
 }
 
 window.addEventListener('message',e=>{
@@ -2030,22 +2089,13 @@ window.addEventListener('message',e=>{
       return;
     }
 
-    // 某些宿主會直接推送 room/player 更新。
     if(
       d.action==='roomPlayersUpdated' ||
       d.action==='roomRoster' ||
       d.action==='playersUpdated'
     ){
-      const list =
-        d.roomPlayers ||
-        d.players ||
-        d.data?.roomPlayers ||
-        d.data?.players;
-
-      if(Array.isArray(list)){
-        updateRoomPlayers(list,'postMessage');
-      }
-
+      const list=d.roomPlayers || d.players || d.data?.roomPlayers || d.data?.players;
+      if(Array.isArray(list)) updateRoomPlayers(list,'postMessage');
       if(isHost()) scheduleAutoStart();
       return;
     }
@@ -2057,111 +2107,93 @@ window.addEventListener('message',e=>{
         d.userId!=null ? String(d.userId) : null
       );
     }
-  }catch(_){}
+  }catch(_){ }
 });
 
 window.onBoomRoomSDKReady=function(){
   try{
-    if(window.BoomRoomSDK){
-      const sdkPayload={
-        user:
-          typeof window.BoomRoomSDK.getUser==='function'
-            ? window.BoomRoomSDK.getUser()
-            : null,
-        roomId:window.BoomRoomSDK.roomId,
-        roomPlayers:
-          window.BoomRoomSDK.roomPlayers ||
-          window.BoomRoomSDK.players ||
-          []
-      };
+    if(!window.BoomRoomSDK) return;
 
-      // 只有 SDK 真正提供 isHost 時才把它交給 setupSDK。
-      // 缺少 isHost 時絕不能產生一個「undefined 但存在」的欄位，避免把
-      // Flutter initSDK 已傳入的 isHost:true 錯誤覆蓋掉。
-      const sdkHost=window.BoomRoomSDK.isHost;
-      if(
-        sdkHost===true ||
-        sdkHost===false ||
-        sdkHost===1 ||
-        sdkHost===0 ||
-        sdkHost==='true' ||
-        sdkHost==='false'
-      ){
-        sdkPayload.isHost=sdkHost;
-      }
+    const sdkPayload={
+      user:typeof window.BoomRoomSDK.getUser==='function'
+        ? window.BoomRoomSDK.getUser()
+        : null,
+      roomId:window.BoomRoomSDK.roomId,
+      roomPlayers:
+        window.BoomRoomSDK.roomPlayers ||
+        window.BoomRoomSDK.players ||
+        []
+    };
 
-      setupSDK(sdkPayload);
+    // 僅在 SDK 實際提供明確 isHost 時採用；不要用 undefined 覆蓋 Flutter 傳入值。
+    const sdkHost=window.BoomRoomSDK.isHost;
+    if(
+      sdkHost===true || sdkHost===false ||
+      sdkHost===1 || sdkHost===0 ||
+      sdkHost==='true' || sdkHost==='false'
+    ){
+      sdkPayload.isHost=sdkHost;
     }
-  }catch(_){}
+
+    setupSDK(sdkPayload);
+  }catch(_){ }
 };
 
 try{
-  if(
-    window.BoomRoomSDK &&
-    typeof window.BoomRoomSDK.getUser==='function'
-  ){
+  if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
     state.sdkUser=window.BoomRoomSDK.getUser() || null;
   }
-}catch(_){}
+}catch(_){ }
 
 requestSDKInit();
 
 setTimeout(()=>{
-  if(window.BoomRoomSDK){
-    window.onBoomRoomSDKReady();
-  }
+  if(window.BoomRoomSDK) window.onBoomRoomSDKReady();
 },100);
 
-// 開發環境：若沒有 SDK，使用本地單機 Host 模式。
-// 不會在 SDK 已存在時搶走 Host 權限。
+// 開發模式：沒有 SDK 才啟用本地 Host，方便直接以 HTML 測試。
 setTimeout(()=>{
   if(!sdkReady){
     sdkReady=true;
     sdkIsHost=true;
     hostFlagExplicit=true;
-
-    if(!state.sdkUser){
-      state.sdkUser={
-        id:'dev_host',
-        nickname:'開發玩家'
-      };
-    }
-
+    if(!state.sdkUser) state.sdkUser={id:'dev_host',nickname:'開發玩家'};
     updateRoomPlayers([state.sdkUser],'dev-fallback');
     renderAutoRoomUI();
     scheduleAutoStart();
   }
 },1800);
 
-// 房間同步心跳：Host 定期廣播名單；非 Host 定期要求名單。
+// 全房高頻同步：Host 反覆告知「目前回合怎麼走」，非 Host 反覆要求同步。
 setInterval(()=>{
   if(!sdkReady) return;
 
   if(isHost()){
-    sendRoomRosterToRequester();
+    if(state.game==='PLAYING') sendHostSync('PLAYING');
+    else if(state.autoRoundState==='COUNTDOWN') sendHostSync('COUNTDOWN');
+    else if(state.game!=='RESULT') sendHostSync('WAITING');
     scheduleAutoStart();
   }else{
-    sendGameEvent('NEON_ROOM_HELLO',{
-      playerId:getUserId(),
-      playerName:playerNameOf(state.sdkUser,'玩家'),
-      roomId:gameRoomId,
-      timestamp:Date.now()
-    });
+    sendHello();
   }
 
   renderAutoRoomUI();
 },AUTO_ROUND.HEARTBEAT_MS);
 
-// Development diagnostics only.
 if(DEBUG){
   window.__NEON_STACK_DEBUG__={
     state,
     GAME_INFO,
-    get fps(){return state.avgFps;}
+    get host(){return isHost();},
+    get roomPlayers(){return [...roomPlayersList];},
+    get fps(){return state.avgFps;},
+    forceSync(){if(isHost())sendHostSync('PLAYING');},
+    forceStart(){if(isHost() && state.game==='LOBBY')beginHostCountdown(onlinePlayers());}
   };
 }
 
 requestAnimationFrame(loop);
+
 </script>
 </body>
 </html>
