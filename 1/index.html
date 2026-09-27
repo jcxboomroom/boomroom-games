@@ -699,13 +699,12 @@ h1{
 
     </div>
 
-    <button
-      type="button"
-      id="startBtn"
+    <div
+      id="autoStartNotice"
       class="start"
-      disabled>
-      連線中...
-    </button>
+      style="display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;">
+      ⏱️ 房間人數 1/1，準備自動開始...
+    </div>
 
     <div class="hint">
       正式環境會先完成 Entry；沒有 BoomRoom SDK 時只會進入開發測試。
@@ -1046,7 +1045,8 @@ function setupSDK(data){
 
   addPlayer(ME);
 
-  if(data && Array.isArray(data.roomPlayers)){
+  if(data && Array.isArray(data.roomPlayers) && data.roomPlayers.length > 0){
+    totalRoomPlayersCount = data.roomPlayers.length;
     data.roomPlayers.forEach(rp => {
       if(rp && rp.id != null) {
         addPlayer({
@@ -1059,14 +1059,12 @@ function setupSDK(data){
     });
   }
 
+  readyPlayersSet.add(String(ME.id));
+  updateAutoStartNotice();
+  scheduleAutoStartFallback();
+
   el.devBadge.style.display =
     'none';
-
-  el.start.textContent =
-    '開始搶金';
-
-  el.start.disabled =
-    false;
 
   syncUI();
 
@@ -4855,6 +4853,8 @@ function handleEvent(
       addPlayer(
         payload.player
       );
+      readyPlayersSet.add(String(payload.player.id));
+      updateAutoStartNotice();
 
     }
 
@@ -5432,6 +5432,8 @@ function(itemId){
 ========================================================= */
 
 function startRoundAfterEntry(){
+
+  autoStarted = false;
 
   electHost();
 
@@ -6270,6 +6272,42 @@ el.wait.addEventListener(
 /* =========================================================
    HEARTBEAT
 ========================================================= */
+
+let totalRoomPlayersCount = 1;
+let readyPlayersSet = new Set();
+let autoStarted = false;
+let autoStartTimer = null;
+
+function updateAutoStartNotice() {
+  const notice = document.getElementById("autoStartNotice");
+  if (!notice) return;
+  const currentCount = readyPlayersSet.size;
+  notice.textContent = "⏱️ 房間人數 " + currentCount + "/" + totalRoomPlayersCount + "，準備自動開始...";
+
+  if (currentCount >= totalRoomPlayersCount && !autoStarted && phase === STATES.MENU) {
+    triggerAutoStart();
+  }
+}
+
+function triggerAutoStart() {
+  if (autoStarted) return;
+  autoStarted = true;
+  clearTimeout(autoStartTimer);
+  const notice = document.getElementById("autoStartNotice");
+  if (notice) notice.textContent = "🚀 人數已齊全，自動開局！";
+  setTimeout(() => {
+    requestEntry();
+  }, 600);
+}
+
+function scheduleAutoStartFallback() {
+  clearTimeout(autoStartTimer);
+  autoStartTimer = setTimeout(() => {
+    if (!autoStarted && phase === STATES.MENU) {
+      triggerAutoStart();
+    }
+  }, 3500);
+}
 
 function hello(){
 
