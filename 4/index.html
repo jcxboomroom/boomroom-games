@@ -3,285 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#0a0a12">
-<title>貪婪礦坑：大逃殺</title>
+<meta name="theme-color" content="#080a12">
+<title>貪婪礦坑：大逃殺｜BoomRoom 1-10人全自動版</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
-:root {
-    --bg: #0a0a12;
-    --panel: rgba(15, 15, 25, 0.9);
-    --cyan: #00e5ff;
-    --gold: #ffea00;
-    --red: #ff2a2a;
-    --green: #00ff66;
-    --purple: #b700ff;
-    --text: #f7f8ff;
-    --muted: #8b94a5;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
+:root{
+  --bg:#080a12;
+  --panel:rgba(13,16,28,.84);
+  --panel2:rgba(18,22,38,.92);
+  --cyan:#00e5ff;
+  --gold:#ffea00;
+  --red:#ff3347;
+  --green:#00ff8a;
+  --purple:#b46cff;
+  --text:#f7f8ff;
+  --muted:#8e98ad;
+  --line:rgba(255,255,255,.10);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-
-* {
-    box-sizing: border-box; margin: 0; padding: 0;
-    user-select: none; -webkit-tap-highlight-color: transparent;
-    font-family: 'Orbitron', "Noto Sans TC", sans-serif;
-}
-
-html, body {
-    width: 100%; height: 100dvh;
-    background-color: var(--bg); color: var(--text);
-    overflow: hidden; touch-action: none;
-}
-
-/* Background */
-.bg-grid {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.1;
-    background-image: linear-gradient(var(--cyan) 1px, transparent 1px), linear-gradient(90deg, var(--cyan) 1px, transparent 1px);
-    background-size: 30px 30px;
-}
-
-#app {
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column;
-    height: 100%; max-width: 600px; margin: 0 auto;
-    padding: calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom));
-    gap: 10px;
-}
-
-/* Floating controls */
-.floating-controls {
-    position: fixed; top: calc(10px + var(--safe-top)); left: 10px; right: 10px;
-    z-index: 90; display:flex; justify-content:space-between; pointer-events:none;
-}
-.floating-controls .icon-btn { pointer-events:auto; }
-.icon-btn {
-    width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-    color: #fff; display: grid; place-items: center;
-    font-size: 18px; cursor: pointer; transition: transform 0.1s;
-}
-.icon-btn:active { transform: scale(0.9); }
-
-/* Info Panel */
-.info-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; flex-shrink: 0; }
-.stat-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 6px; text-align: center; }
-.stat-box b { display: block; font-size: 12px; color: var(--cyan); }
-.stat-box span { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; font-family: sans-serif; }
-
-/* Status Bar */
-.status-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 12px; background: rgba(255, 234, 0, 0.1);
-    border: 1px solid var(--gold); border-radius: 10px; flex-shrink: 0;
-}
-.phase-text { font-size: 14px; font-weight: bold; color: var(--gold); }
-.timer-text { font-size: 20px; font-weight: 900; color: var(--text); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-
-/* Leaderboard (Compact) */
-.leaderboard {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; flex-shrink: 0;
-    scrollbar-width: none;
-}
-.leaderboard::-webkit-scrollbar { display: none; }
-.player-chip {
-    display: flex; align-items: center; gap: 6px; padding: 4px 8px;
-    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 20px; font-size: 10px; white-space: nowrap;
-}
-.player-chip.me { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,229,255,0.3); }
-.player-chip.dead { filter: grayscale(1); opacity: 0.5; text-decoration: line-through; }
-.player-score { font-weight: bold; color: var(--gold); }
-
-/* Game Area (Mine Grid) */
-.game-area {
-    flex: 1; display: flex; flex-direction: column; justify-content: center;
-    background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-    padding: 10px; position: relative; overflow: hidden;
-}
-.grid-board {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
-    width: 100%; max-width: 400px; margin: 0 auto;
-}
-.block {
-    aspect-ratio: 1; background: linear-gradient(135deg, #3a3f58, #1f2233);
-    border: 2px solid #4a5070; border-radius: 8px;
-    display: flex; justify-content: center; align-items: center;
-    font-size: 24px; cursor: pointer; box-shadow: 0 4px 0 #151724;
-    transition: transform 0.05s, box-shadow 0.05s; position: relative;
-}
-.block:active { transform: translateY(4px); box-shadow: 0 0 0 #151724; }
-.block.mined {
-    background: #0d0f18; border-color: #1a1d2d; box-shadow: none;
-    transform: translateY(4px); cursor: default;
-}
-.block-owner {
-    position: absolute; bottom: 2px; right: 2px; font-size: 8px;
-    color: rgba(255,255,255,0.5); font-family: sans-serif;
-}
-
-/* Controls */
-.control-panel { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-.main-btn {
-    width: 100%; padding: 18px; font-size: 18px; font-weight: 900; border-radius: 15px;
-    border: none; cursor: pointer; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    transition: transform 0.1s, filter 0.2s; font-family: "Orbitron", "Noto Sans TC", sans-serif;
-}
-.main-btn:active { transform: scale(0.95); }
-.main-btn:disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
-.btn-entry { background: linear-gradient(90deg, #00e5ff, #0077ff); box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
-
-/* Modals */
-.overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-    z-index: 100; display: none; place-items: center; padding: 20px;
-}
-.overlay.show { display: grid; }
-.modal-card {
-    width: 100%; max-width: 360px; background: linear-gradient(180deg, #1a1a2e, #0f0f1a);
-    border: 1px solid var(--cyan); border-radius: 20px; padding: 24px; text-align: center;
-    box-shadow: 0 0 40px rgba(0, 229, 255, 0.2); max-height: 80vh; overflow-y: auto;
-}
-.modal-card h2 { color: var(--cyan); margin-bottom: 15px; font-size: 22px; }
-.rules-list { text-align: left; font-size: 12px; color: #d0d5e8; line-height: 1.6; margin-bottom: 20px; font-family: sans-serif; padding-left: 20px; }
-.rules-list li { margin-bottom: 8px; }
-
-.result-big { font-size: 32px; font-weight: 900; margin: 15px 0; }
-.result-big.win { color: var(--green); text-shadow: 0 0 20px var(--green); }
-.result-big.lose { color: var(--red); text-shadow: 0 0 20px var(--red); }
-
-/* Floating Text */
-.floating-text {
-    position: absolute; font-weight: 900; font-size: 18px;
-    pointer-events: none; animation: floatUp 0.8s forwards; z-index: 50;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}
-@keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-40px) scale(1.5); }
-}
-
-.toast {
-    position: fixed; top: calc(80px + var(--safe-top)); left: 50%; transform: translate(-50%, -10px);
-    background: rgba(0,0,0,0.9); border: 1px solid var(--cyan); color: #fff;
-    padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 200;
-    opacity: 0; pointer-events: none; transition: all 0.2s; font-family: sans-serif;
-}
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-/* Screen Shake */
-.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-@keyframes shake {
-    10%, 90% { transform: translate3d(-2px, 0, 0); }
-    20%, 80% { transform: translate3d(4px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-    40%, 60% { transform: translate3d(6px, 0, 0); }
-}
-
-.player-count-badge {
-    position:absolute; top:8px; right:8px; z-index:3;
-    padding:5px 9px; border-radius:999px;
-    background:rgba(0,0,0,.62); border:1px solid rgba(0,229,255,.35);
-    color:var(--cyan); font-size:9px; font-weight:900;
-}
-.lobby-info .live-count { border-color: rgba(0,229,255,.55); box-shadow: 0 0 12px rgba(0,229,255,.12); }
-.lobby-info .live-count b { font-size:16px; }
-.block.hot { animation: blockPulse .55s ease-out; }
-.block.just-mined { animation: minePop .22s ease-out; }
-@keyframes blockPulse {
-    0% { transform:scale(1); filter:brightness(1); }
-    50% { transform:scale(1.08); filter:brightness(1.8); }
-    100% { transform:scale(1); filter:brightness(1); }
-}
-@keyframes minePop {
-    0% { transform:scale(.82); opacity:.7; }
-    100% { transform:scale(1); opacity:1; }
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-tap-highlight-color:transparent;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif}
+html,body{width:100%;height:100dvh;background:var(--bg);color:var(--text);overflow:hidden;touch-action:none}
+body{position:relative}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.10;background-image:linear-gradient(rgba(0,229,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.7) 1px,transparent 1px);background-size:30px 30px}
+.bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at 50% 24%,rgba(0,229,255,.08),transparent 32%),radial-gradient(circle at 80% 80%,rgba(180,108,255,.07),transparent 30%)}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;max-width:600px;margin:0 auto;padding:calc(10px + var(--safe-top)) 10px calc(10px + var(--safe-bottom));gap:9px}
+.floating-controls{position:fixed;top:calc(10px + var(--safe-top));left:10px;right:10px;z-index:120;display:flex;justify-content:space-between;pointer-events:none}
+.floating-left,.floating-right{display:flex;gap:7px;pointer-events:none}
+.icon-btn{pointer-events:auto;width:36px;height:36px;border-radius:11px;background:rgba(8,10,18,.82);border:1px solid rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;font-size:17px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.22);backdrop-filter:blur(8px)}
+.icon-btn:active{transform:scale(.92)}
+.icon-btn.exit{border-color:rgba(255,51,71,.45)}
+.dev-badge{position:fixed;top:calc(14px + var(--safe-top));left:50%;transform:translateX(-50%);z-index:115;padding:5px 9px;border-radius:999px;background:rgba(255,234,0,.12);border:1px solid rgba(255,234,0,.35);color:var(--gold);font-size:9px;font-weight:800;pointer-events:none}
+.info-panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0;margin-top:36px}
+.stat-box{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:7px 5px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.stat-box b{display:block;font-size:13px;color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-box span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.stat-box.live-count{border-color:rgba(0,229,255,.34);box-shadow:0 0 16px rgba(0,229,255,.06)}
+.stat-box.live-count b{font-size:17px}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:rgba(255,234,0,.075);border:1px solid rgba(255,234,0,.42);border-radius:11px;flex-shrink:0}
+.phase-text{font-size:13px;font-weight:850;color:var(--gold)}
+.timer-text{font-size:20px;font-weight:950;color:var(--text);text-shadow:0 0 12px rgba(255,255,255,.26)}
+.auto-panel{flex-shrink:0;padding:10px 12px;border:1px solid rgba(0,229,255,.18);border-radius:12px;background:linear-gradient(180deg,rgba(0,229,255,.06),rgba(255,255,255,.025))}
+.auto-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.auto-title{font-size:11px;color:#dfe6f6;font-weight:800}
+.auto-sub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35}
+.auto-count{font-size:22px;font-weight:950;color:var(--cyan);white-space:nowrap}
+.auto-bar{height:5px;margin-top:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.06)}
+.auto-fill{height:100%;width:0%;border-radius:inherit;background:linear-gradient(90deg,var(--cyan),var(--purple));box-shadow:0 0 10px rgba(0,229,255,.4);transition:width .18s linear}
+.leaderboard{display:flex;gap:7px;overflow-x:auto;padding:1px 0 4px;flex-shrink:0;scrollbar-width:none}
+.leaderboard::-webkit-scrollbar{display:none}
+.player-chip{display:flex;align-items:center;gap:6px;padding:5px 9px;background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.15);border-radius:999px;font-size:10px;white-space:nowrap}
+.player-chip.me{border-color:rgba(0,229,255,.7);box-shadow:0 0 12px rgba(0,229,255,.10)}
+.player-chip.dead{filter:grayscale(1);opacity:.46;text-decoration:line-through}
+.player-chip.exit{opacity:.38}
+.player-score{font-weight:900;color:var(--gold)}
+.game-area{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,.46),rgba(10,12,20,.60));border-radius:14px;border:1px solid rgba(255,255,255,.09);padding:11px;position:relative;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,229,255,.025)}
+.player-count-badge{position:absolute;top:8px;right:8px;z-index:3;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.66);border:1px solid rgba(0,229,255,.35);color:var(--cyan);font-size:9px;font-weight:900}
+.grid-board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;max-width:390px;margin:0 auto}
+.block{aspect-ratio:1;background:linear-gradient(145deg,#3a4057,#202536);border:2px solid #4b5574;border-radius:9px;display:flex;justify-content:center;align-items:center;font-size:24px;cursor:pointer;box-shadow:0 4px 0 #121622;transition:transform .05s,box-shadow .05s,filter .1s;position:relative;will-change:transform}
+.block:active{transform:translateY(4px);box-shadow:0 0 0 #121622}
+.block.mined{background:#0e111b;border-color:#1d2335;box-shadow:none;transform:translateY(4px);cursor:default}
+.block-owner{position:absolute;bottom:2px;right:3px;font-size:7px;color:rgba(255,255,255,.52)}
+.block.hot{animation:blockPulse .55s ease-out}
+@keyframes blockPulse{0%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.8)}100%{transform:scale(1);filter:brightness(1)}}
+.action-hint{flex-shrink:0;text-align:center;font-size:11px;color:var(--muted);line-height:1.4;padding:2px 4px 0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.86);backdrop-filter:blur(6px);z-index:200;display:none;place-items:center;padding:20px}
+.overlay.show{display:grid}
+.modal-card{width:100%;max-width:380px;background:linear-gradient(180deg,#1a1d31,#0d101b);border:1px solid rgba(0,229,255,.58);border-radius:20px;padding:22px;text-align:center;box-shadow:0 0 50px rgba(0,229,255,.13);max-height:84vh;overflow-y:auto}
+.modal-card h2{color:var(--cyan);margin-bottom:14px;font-size:21px}
+.rules-list{text-align:left;font-size:12px;color:#d7dded;line-height:1.62;margin-bottom:16px;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;padding-left:19px}
+.rules-list li{margin-bottom:7px}
+.result-big{font-size:32px;font-weight:950;margin:13px 0}
+.result-big.win{color:var(--green);text-shadow:0 0 22px rgba(0,255,138,.35)}
+.result-big.lose{color:var(--red);text-shadow:0 0 20px rgba(255,51,71,.24)}
+.result-table{background:rgba(255,255,255,.045);border-radius:11px;padding:10px;margin-bottom:13px;text-align:left}
+.result-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;padding:4px 0}
+.result-row + .result-row{border-top:1px solid rgba(255,255,255,.05)}
+.result-rank{color:#dfe6f6}
+.result-score{color:var(--gold);font-weight:900}
+.result-foot{font-size:11px;color:var(--gold);margin:10px 0 12px}
+.main-btn{width:100%;padding:15px;font-size:16px;font-weight:900;border-radius:14px;border:none;cursor:pointer;color:#fff;background:linear-gradient(90deg,#0a86ff,#00c6ff);box-shadow:0 0 20px rgba(0,229,255,.20)}
+.main-btn:active{transform:scale(.97)}
+.toast{position:fixed;top:calc(82px + var(--safe-top));left:50%;transform:translate(-50%,-10px);max-width:calc(100vw - 28px);background:rgba(0,0,0,.92);border:1px solid rgba(0,229,255,.5);color:#fff;padding:8px 15px;border-radius:999px;font-size:12px;z-index:300;opacity:0;pointer-events:none;transition:all .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.floating-text{position:fixed;font-weight:950;font-size:18px;pointer-events:none;animation:floatUp .8s forwards;z-index:250;text-shadow:0 2px 4px rgba(0,0,0,.85)}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-40px) scale(1.45)}}
+.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(4px,0,0)}30%,50%,70%{transform:translate3d(-6px,0,0)}40%,60%{transform:translate3d(6px,0,0)}}
+@media (max-width:380px){
+  #app{gap:7px;padding-left:8px;padding-right:8px}
+  .grid-board{gap:5px}
+  .block{font-size:21px}
+  .modal-card{padding:18px}
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<div class="floating-controls">
+  <div class="floating-left">
+    <button class="icon-btn exit" id="btn-exit" aria-label="離開遊戲">✕</button>
+  </div>
+  <div class="floating-right">
+    <button class="icon-btn" id="btn-mute" aria-label="音效">🔊</button>
+    <button class="icon-btn" id="btn-help" aria-label="玩法規則">❓</button>
+  </div>
+</div>
+
+<div class="dev-badge" id="devBadge" style="display:none">開發測試模式 · 不扣款</div>
 
 <div id="app">
-    <div class="floating-controls">
-        <button class="icon-btn" id="btn-mute" aria-label="音效">🔊</button>
-        <button class="icon-btn" id="btn-help" aria-label="玩法規則">❓</button>
+  <div class="info-panel">
+    <div class="stat-box">
+      <b id="entry-fee">100 🪙</b>
+      <span>房主本局入場</span>
     </div>
+    <div class="stat-box">
+      <b id="total-pool">待入場</b>
+      <span>本局獎池</span>
+    </div>
+    <div class="stat-box live-count">
+      <b id="player-count">1/10</b>
+      <span>目前房內玩家</span>
+    </div>
+  </div>
 
-    <div class="info-panel lobby-info">
-        <div class="stat-box">
-            <b>100 🪙</b>
-            <span>房主本局入場</span>
-        </div>
-        <div class="stat-box">
-            <b id="total-pool">90 🪙</b>
-            <span>勝者獎勵</span>
-        </div>
-        <div class="stat-box live-count">
-            <b id="player-count">0/10</b>
-            <span>已進入房間</span>
-        </div>
-    </div>
+  <div class="status-bar">
+    <div class="phase-text" id="phase-text">同步房內玩家</div>
+    <div class="timer-text" id="timer-text">WAIT</div>
+  </div>
 
-    <div class="status-bar">
-        <div class="phase-text" id="phase-text">等待入場</div>
-        <div class="timer-text" id="timer-text">READY</div>
+  <div class="auto-panel">
+    <div class="auto-row">
+      <div>
+        <div class="auto-title" id="auto-title">🤖 全自動開局</div>
+        <div class="auto-sub" id="autoStartNotice">正在讀取 BoomRoom 房內玩家名單…</div>
+      </div>
+      <div class="auto-count" id="auto-count">1/10</div>
     </div>
+    <div class="auto-bar"><div class="auto-fill" id="auto-fill"></div></div>
+  </div>
 
-    <div class="leaderboard" id="leaderboard">
-        <!-- Player chips generated here -->
-    </div>
+  <div class="leaderboard" id="leaderboard"></div>
 
-    <div class="game-area" id="game-area">
-        <div class="grid-board" id="grid-board">
-            <!-- 30 blocks generated here -->
-        </div>
-    </div>
+  <div class="game-area" id="game-area">
+    <div class="player-count-badge" id="game-player-count">1 人</div>
+    <div class="grid-board" id="grid-board"></div>
+  </div>
 
-    <div class="control-panel">
-        <button class="main-btn btn-entry" id="main-btn">等待房主</button>
-        <div id="action-hint" style="text-align:center; font-size:11px; color:var(--muted); font-family:sans-serif;">房內玩家會自動加入；由房主按「開始遊戲」後所有人一起開始</div>
-    </div>
+  <div class="action-hint" id="action-hint">房內玩家會自動加入；達成人數同步後，系統會自動開始。</div>
 </div>
 
-<!-- Rules Modal -->
 <div class="overlay" id="modal-rules">
-    <div class="modal-card">
-        <h2>玩法規則</h2>
-        <ul class="rules-list">
-            <li><b>進入：</b>房內 1～10 人會自動加入，不需要每位玩家個別支付。</li>
-            <li><b>房主：</b>房主按「開始遊戲」時支付本局 100 銀幣，扣除平台 10% 後由勝者取得獎勵。</li>
-            <li><b>共同礦區：</b>1～10 人共用同一張地圖，任何人挖掉的礦石會立即同步到所有玩家畫面。</li>
-            <li><b>開採：</b>遊戲開始後，所有人同時點擊礦石搶分，越快找到高價礦石越有利。</li>
-            <li><b>積分：</b>💎鑽石(100分)、🔶黃金(50分)、💠白銀(10分)、🪨碎石(0分)。</li>
-            <li><b>淘汰：</b>挖到 💣炸彈 會直接淘汰！無法繼續開採。</li>
-            <li><b>刷新：</b>安全礦石挖完後，礦區會刷新，且炸彈變多！</li>
-            <li><b>連擊：</b>連續挖到安全礦石會提高得分倍率，最多 +30%。</li>
-            <li><b>獲勝：</b>時間結束時，積分最高的玩家獲得實際獎池！(平手則平分)</li>
-            <li><b>自動結束：</b>結算畫面顯示後約 5 秒，遊戲會自動通知 BoomRoom 關閉。</li>
-        </ul>
-        <button class="main-btn btn-entry" id="btn-close-rules" style="padding:15px; font-size:16px;">我知道了</button>
-    </div>
+  <div class="modal-card">
+    <h2>玩法規則</h2>
+    <ul class="rules-list">
+      <li><b>自動入場：</b>1～10 位房內玩家會依 BoomRoom 房內名單自動加入，不需要每位玩家按開始或支付。</li>
+      <li><b>自動開局：</b>房內名單同步完成後，由系統自動倒數；不需要「開始遊戲」或 Ready 按鈕。</li>
+      <li><b>入場費：</b>僅房主自動支付本局 100 銀幣；其他玩家不重複扣款。</li>
+      <li><b>共同礦區：</b>所有參賽者共用同一張 5×6 礦圖，任何人挖掉的礦石會同步給全員。</li>
+      <li><b>採礦：</b>💎鑽石 100 分、🔶黃金 50 分、💠白銀 10 分、🪨碎石 0 分。</li>
+      <li><b>炸彈：</b>💣 直接淘汰，之後只能觀戰。</li>
+      <li><b>連擊：</b>連續挖到安全礦石會提高倍率，最高 +30%。</li>
+      <li><b>獲勝：</b>時間結束或全員淘汰時，最高分玩家／平手玩家取得獎池。</li>
+      <li><b>自然結束：</b>系統結算並透過 BoomRoomSDK.gameOver 發送個人獎勵。</li>
+      <li><b>手動離開：</b>中途按左上角 ✕ 會視為放棄本局，不發放本局獎勵。</li>
+      <li><b>自動返回：</b>結算後 3 秒自動通知 BoomRoom 關閉遊戲並返回房間。</li>
+    </ul>
+    <button class="main-btn" id="btn-close-rules">我知道了</button>
+  </div>
 </div>
 
-<!-- Result Modal -->
 <div class="overlay" id="modal-result">
-    <div class="modal-card">
-        <h2>MINING RESULT</h2>
-        <div id="result-winner-text" style="font-size:18px; font-weight:bold; margin-bottom:10px;"></div>
-        <div class="result-big" id="result-amount">+0 🪙</div>
-        <p id="result-desc">本局已結束</p>
-        
-        <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:10px; margin-bottom:15px; text-align:left;">
-            <div style="font-size:10px; color:var(--muted); margin-bottom:5px;">最終排名：</div>
-            <div id="winners-list" style="font-size:12px; color:#fff; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
-        </div>
+  <div class="modal-card">
+    <h2>MINING RESULT</h2>
+    <div id="result-winner-text" style="font-size:18px;font-weight:900;margin-bottom:8px"></div>
+    <div class="result-big" id="result-amount">+0 🪙</div>
+    <p id="result-desc" style="font-size:12px;color:#d6dced">本局已結束</p>
 
-        <div id="result-close-countdown" style="font-size:12px; color:var(--gold); margin:10px 0 12px;">5 秒後自動關閉遊戲</div>
-        <button class="main-btn" id="btn-close-result" style="background:#333; padding:15px; font-size:16px; box-shadow:none;">關閉遊戲</button>
-        <p style="font-size:10px; color:var(--gold); margin-top:15px;">本局已結束，遊戲將自動關閉。</p>
+    <div class="result-table">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:5px">最終排名</div>
+      <div id="winners-list"></div>
     </div>
+
+    <div class="result-foot" id="result-close-countdown">3 秒後自動返回房間</div>
+    <button class="main-btn" id="btn-close-result" style="background:#303443;box-shadow:none">立即返回房間</button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -291,1012 +200,1367 @@ html, body {
 'use strict';
 
 /* ==============================
-   BoomRoom SDK & User
+   BoomRoom Game Info
    ============================== */
-const SDK = window.BoomRoomSDK || null;
-let user;
-try {
-    user = SDK && typeof SDK.getUser === 'function' ? SDK.getUser() : {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
-} catch(e) {
-    user = {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
-}
-const ME = {
-    id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2))),
-    username: String(user?.username || '玩家').slice(0,12),
-    joinedAt: Date.now()
+const GAME_INFO = {
+  category: '多人派對競技',
+  name: '貪婪礦坑：大逃殺',
+  description: '1～10人同屏搶挖礦石；避開炸彈、累積連擊，時間結束以最高分競逐獎池。',
+  entryCost: 100,
+  maxPlayers: 10,
+  controlModes: ['點擊']
 };
-const DEMO = !SDK;
 
 /* ==============================
-   Constants & Config
+   SDK / User
    ============================== */
-const ENTRY_FEE = 100;
-const PLATFORM_FEE_RATE = 0.1;
-const HOST_TIMEOUT_MS = 6000;
-const MAX_PLAYERS = 10;
-const RESULT_CLOSE_DELAY_MS = 5000;
-const GRID_SIZE = 30; // 6x5
+let SDK = window.BoomRoomSDK || null;
+let DEMO = !SDK;
 
-function getRoundTimeMs(count) {
-    if (count <= 1) return 35000;
-    if (count <= 3) return 40000;
-    if (count <= 6) return 50000;
-    return 60000;
+function getSDK(){
+  return window.BoomRoomSDK || SDK || null;
+}
+function refreshSDK(){
+  const live = window.BoomRoomSDK || SDK || null;
+  if(live) SDK = live;
+  DEMO = !SDK;
+  return SDK;
+}
+
+function makeDemoUser(){
+  return {id:'demo-'+Math.random().toString(36).slice(2,9), username:'體驗玩家', avatar:''};
+}
+
+let user = makeDemoUser();
+try{
+  const s = getSDK();
+  if(s && typeof s.getUser === 'function'){
+    user = s.getUser() || user;
+  }
+}catch(e){}
+
+const ME = {
+  id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2,9))),
+  username: String(user?.username || '玩家').slice(0,12),
+  avatar: String(user?.avatar || ''),
+  joinedAt: Date.now()
+};
+
+/* ==============================
+   Config
+   ============================== */
+const ENTRY_FEE = GAME_INFO.entryCost;
+const PLATFORM_FEE_RATE = 0.10;
+const MAX_PLAYERS = GAME_INFO.maxPlayers;
+const GRID_SIZE = 30;
+const HOST_TIMEOUT_MS = 7000;
+const AUTO_LOBBY_SETTLE_MS = 1400;
+const AUTO_START_FALLBACK_MS = 4200;
+const COUNTDOWN_MS = 3000;
+const RESULT_CLOSE_DELAY_MS = 3000;
+const STATE_SYNC_MS = 180;
+const CLOCK_SMOOTH = 0.18;
+
+function getRoundTimeMs(count){
+  if(count <= 1) return 35000;
+  if(count <= 3) return 40000;
+  if(count <= 6) return 50000;
+  return 60000;
 }
 
 const ITEMS = {
-    GEM: { icon: '💎', points: 100, color: 'var(--cyan)' },
-    GOLD: { icon: '🔶', points: 50, color: 'var(--gold)' },
-    SILVER: { icon: '💠', points: 10, color: '#ccc' },
-    DIRT: { icon: '🪨', points: 0, color: '#666' },
-    BOMB: { icon: '💣', points: 0, color: 'var(--red)' }
+  GEM:{icon:'💎',points:100},
+  GOLD:{icon:'🔶',points:50},
+  SILVER:{icon:'💠',points:10},
+  DIRT:{icon:'🪨',points:0},
+  BOMB:{icon:'💣',points:0}
 };
 
 const els = {
-    totalPool: document.getElementById('total-pool'),
-    playerCount: document.getElementById('player-count'),
-    actionHint: document.getElementById('action-hint'),
-    phaseText: document.getElementById('phase-text'),
-    timerText: document.getElementById('timer-text'),
-    leaderboard: document.getElementById('leaderboard'),
-    gridBoard: document.getElementById('grid-board'),
-    gameArea: document.getElementById('game-area'),
-    mainBtn: document.getElementById('main-btn'),
-    toast: document.getElementById('toast'),
-    btnMute: document.getElementById('btn-mute'),
-    btnHelp: document.getElementById('btn-help'),
-    modalRules: document.getElementById('modal-rules'),
-    btnCloseRules: document.getElementById('btn-close-rules'),
-    modalResult: document.getElementById('modal-result'),
-    resultWinnerText: document.getElementById('result-winner-text'),
-    resultAmount: document.getElementById('result-amount'),
-    resultDesc: document.getElementById('result-desc'),
-    resultCloseCountdown: document.getElementById('result-close-countdown'),
-    winnersList: document.getElementById('winners-list'),
-    btnCloseResult: document.getElementById('btn-close-result')
+  devBadge:document.getElementById('devBadge'),
+  entryFee:document.getElementById('entry-fee'),
+  totalPool:document.getElementById('total-pool'),
+  playerCount:document.getElementById('player-count'),
+  gamePlayerCount:document.getElementById('game-player-count'),
+  phaseText:document.getElementById('phase-text'),
+  timerText:document.getElementById('timer-text'),
+  autoTitle:document.getElementById('auto-title'),
+  autoStartNotice:document.getElementById('autoStartNotice'),
+  autoCount:document.getElementById('auto-count'),
+  autoFill:document.getElementById('auto-fill'),
+  leaderboard:document.getElementById('leaderboard'),
+  gameArea:document.getElementById('game-area'),
+  gridBoard:document.getElementById('grid-board'),
+  actionHint:document.getElementById('action-hint'),
+  toast:document.getElementById('toast'),
+  btnExit:document.getElementById('btn-exit'),
+  btnMute:document.getElementById('btn-mute'),
+  btnHelp:document.getElementById('btn-help'),
+  modalRules:document.getElementById('modal-rules'),
+  btnCloseRules:document.getElementById('btn-close-rules'),
+  modalResult:document.getElementById('modal-result'),
+  resultWinnerText:document.getElementById('result-winner-text'),
+  resultAmount:document.getElementById('result-amount'),
+  resultDesc:document.getElementById('result-desc'),
+  resultCloseCountdown:document.getElementById('result-close-countdown'),
+  winnersList:document.getElementById('winners-list'),
+  btnCloseResult:document.getElementById('btn-close-result')
 };
 
 /* ==============================
-   Audio System
+   Audio
    ============================== */
-let audioCtx = null, masterGain = null;
+let audioCtx = null;
+let masterGain = null;
 let isMuted = false;
 
-function initAudio() {
-    if(isMuted) return;
-    if(audioCtx) { if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{}); return; }
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.08;
-        masterGain.connect(audioCtx.destination);
-    } catch(e){}
+function initAudio(){
+  if(isMuted) return;
+  if(audioCtx){
+    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+    return;
+  }
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = .075;
+    masterGain.connect(audioCtx.destination);
+  }catch(e){}
 }
-function toggleMute() {
-    isMuted = !isMuted;
-    els.btnMute.textContent = isMuted ? '🔇' : '🔊';
-    if(isMuted && masterGain) masterGain.gain.value = 0;
-    else if(!isMuted && masterGain) masterGain.gain.value = 0.08;
+
+function toggleMute(){
+  isMuted = !isMuted;
+  els.btnMute.textContent = isMuted ? '🔇' : '🔊';
+  if(masterGain) masterGain.gain.value = isMuted ? 0 : .075;
 }
+
+function tone(freq,type,duration,vol=.5,delay=0){
+  if(!audioCtx || !masterGain || isMuted) return;
+  const now = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq,now);
+  g.gain.setValueAtTime(.0001,now);
+  g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),now+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(now); osc.stop(now+duration+.05);
+}
+
+const sfx = {
+  pay:()=>{tone(600,'sine',.1,.4);tone(900,'sine',.15,.4,.08)},
+  mine:()=>tone(400,'square',.05,.2),
+  gem:()=>{tone(800,'sine',.1,.3);tone(1200,'sine',.1,.3,.05)},
+  gold:()=>tone(600,'triangle',.1,.3),
+  bomb:()=>{tone(150,'sawtooth',.4,.6);tone(100,'square',.5,.6,.1)},
+  tick:()=>tone(1000,'sine',.05,.1),
+  win:()=>{tone(400,'square',.1,.4);tone(600,'square',.2,.4,.1);tone(800,'square',.3,.4,.3)},
+  lose:()=>{tone(300,'sawtooth',.2,.4);tone(200,'sawtooth',.4,.4,.2)}
+};
 els.btnMute.onclick = toggleMute;
 
-function tone(freq, type, duration, vol=0.5, delay=0) {
-    if(!audioCtx || !masterGain || isMuted) return;
-    const now = audioCtx.currentTime + delay;
-    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.001, vol), now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(now); osc.stop(now + duration + 0.05);
-}
-const sfx = {
-    pay: () => { tone(600, 'sine', 0.1, 0.4); tone(900, 'sine', 0.15, 0.4, 0.08); },
-    mine: () => tone(400, 'square', 0.05, 0.2),
-    gem: () => { tone(800, 'sine', 0.1, 0.3); tone(1200, 'sine', 0.1, 0.3, 0.05); },
-    gold: () => tone(600, 'triangle', 0.1, 0.3),
-    bomb: () => { tone(150, 'sawtooth', 0.4, 0.6); tone(100, 'square', 0.5, 0.6, 0.1); },
-    tick: () => tone(1000, 'sine', 0.05, 0.1),
-    win: () => { tone(400, 'square', 0.1, 0.4); tone(600, 'square', 0.2, 0.4, 0.1); tone(800, 'square', 0.3, 0.4, 0.3); },
-    lose: () => { tone(300, 'sawtooth', 0.2, 0.4); tone(200, 'sawtooth', 0.4, 0.4, 0.2); }
-};
-
 /* ==============================
-   State & Multiplayer
+   Multiplayer state
    ============================== */
 const players = new Map();
 let hostId = null;
 let initialElectionDone = false;
-
-// ONE-SHOT GAME STATE
-const state = {
-    matchId: 'M_' + Math.random().toString(36).slice(2,10),
-    phase: 'LOBBY', // LOBBY -> COUNTDOWN -> PLAYING -> RESULT -> CLOSED
-    phaseEndsAt: 0,
-    level: 1,
-    board: [], // Array of { type: 'GEM', minedBy: null }
-    result: []
-};
-
-let hasPaid = false; // 僅代表房主已完成本局入場扣款
+let roomRosterIds = new Set();
+let roundClockOffset = 0;
+let autoLaunchTimer = null;
+let autoLaunchFallbackTimer = null;
+let autoLaunchEpoch = 0;
 let purchasePending = false;
-let startRequested = false;
+let autoLaunchBusy = false;
+let hasPaid = false;
 let gameOverCalled = false;
+let resultShown = false;
+let closeRequested = false;
+let abandoned = false;
+let naturalClosing = false;
 let lastStateBroadcast = 0;
-let oldBoardState = []; // For detecting changes and playing animations
+let oldBoardState = [];
+let lastCountdownSecond = -1;
 
-function rankKey(p) { return Number(p.joinedAt) || 0; }
-function isHost() { return hostId === ME.id; }
-function currentHostOnline() { const p = players.get(hostId); return !!(p && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS); }
-function onlinePlayers() { return [...players.values()].filter(p => p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS).sort((a,b) => rankKey(a) - rankKey(b) || a.id.localeCompare(b.id)); }
+const state = {
+  matchId:'M_'+Math.random().toString(36).slice(2,10),
+  roundId:'',
+  phase:'LOBBY',
+  phaseEndsAt:0,
+  autoStartAt:0,
+  hostPaid:false,
+  expectedPlayers:0,
+  participantIds:[],
+  level:1,
+  board:[],
+  result:[]
+};
+state.roundId = state.matchId;
 
-function electInitialHost() {
-    if(initialElectionDone || SDK) return;
-    const a = onlinePlayers(); if(!a.length) return;
-    hostId = a[0].id; initialElectionDone = true;
+function syncRoundId(){
+  if(!state.roundId) state.roundId = state.matchId;
+}
+
+function rankKey(p){ return Number(p.joinedAt)||0; }
+
+function sdkHostFlag(){
+  const s = getSDK();
+  return s && typeof s.isHost === 'boolean' ? s.isHost : null;
+}
+
+function isHost(){
+  const flag = sdkHostFlag();
+  if(flag === true) return true;
+  if(flag === false && hostId === ME.id) return false;
+  return hostId === ME.id;
+}
+
+function addOrUpdatePlayer(raw,seen=true){
+  if(!raw || raw.id == null) return null;
+  const id = String(raw.id);
+  let p = players.get(id);
+  if(!p){
+    p = {
+      id,
+      username:String(raw.username||'玩家').slice(0,12),
+      avatar:String(raw.avatar||''),
+      joinedAt:Number(raw.joinedAt)||Date.now(),
+      hasPaid:false,
+      joined:true,
+      score:0,
+      status:'ALIVE',
+      online:true,
+      lastSeen:Date.now(),
+      combo:0,
+      bestCombo:0,
+      mines:0
+    };
+    players.set(id,p);
+  }else{
+    if(raw.username != null) p.username=String(raw.username).slice(0,12);
+    if(raw.avatar != null) p.avatar=String(raw.avatar);
+    if(raw.hasPaid != null) p.hasPaid=!!raw.hasPaid;
+    if(raw.joined != null) p.joined=!!raw.joined;
+    if(raw.score != null) p.score=Number(raw.score)||0;
+    if(raw.status != null) p.status=String(raw.status);
+    if(raw.combo != null) p.combo=Number(raw.combo)||0;
+    if(raw.bestCombo != null) p.bestCombo=Number(raw.bestCombo)||0;
+    if(raw.mines != null) p.mines=Number(raw.mines)||0;
+    if(seen){p.lastSeen=Date.now();p.online=true}
+  }
+  return p;
+}
+
+function getSDKRoomPlayers(){
+  const s = getSDK();
+  if(!s || !Array.isArray(s.roomPlayers)) return null;
+  return s.roomPlayers.slice(0,MAX_PLAYERS).filter(Boolean);
+}
+
+function syncRoomRosterFromSDK(force=false){
+  const s = refreshSDK();
+  if(!s) return;
+
+  const rawList = getSDKRoomPlayers();
+  if(rawList){
+    const nextIds = new Set();
+    rawList.forEach((rp,i)=>{
+      if(rp && rp.id != null){
+        const id=String(rp.id);
+        nextIds.add(id);
+        addOrUpdatePlayer({
+          id,
+          username:rp.username || '玩家',
+          avatar:rp.avatar || '',
+          joinedAt:Number(rp.joinedAt)||Date.now()+i,
+          joined:true
+        },true);
+      }
+    });
+
+    if(!nextIds.has(ME.id)){
+      nextIds.add(ME.id);
+      addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);
+    }
+
+    roomRosterIds = nextIds;
+
+    if(state.phase==='LOBBY' || force){
+      for(const p of players.values()){
+        if(p.id !== ME.id && !nextIds.has(p.id)) p.joined=false;
+      }
+    }
+  }
+
+  const flag = sdkHostFlag();
+  if(flag === true){
+    hostId = ME.id;
+    initialElectionDone = true;
+  }else if(flag === false && hostId===ME.id){
+    hostId = null;
+  }
+
+  if(DEMO && !rawList){
+    addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);
+    roomRosterIds = new Set([ME.id]);
+    if(!initialElectionDone){
+      hostId=ME.id;
+      initialElectionDone=true;
+    }
+  }
+}
+
+function getRoomParticipants(){
+  syncRoundId();
+  const rawList = getSDKRoomPlayers();
+
+  if(rawList){
+    const ids = [];
+    rawList.forEach(rp=>{
+      if(rp && rp.id!=null){
+        const id=String(rp.id);
+        if(!ids.includes(id)) ids.push(id);
+        addOrUpdatePlayer({
+          id,
+          username:rp.username || '玩家',
+          avatar:rp.avatar || '',
+          joined:true
+        },true);
+      }
+    });
+    if(!ids.includes(ME.id)) ids.push(ME.id);
+    return ids.slice(0,MAX_PLAYERS).map(id=>players.get(id)).filter(Boolean);
+  }
+
+  const list=[...players.values()].filter(p=>p.joined && p.online && Date.now()-p.lastSeen<HOST_TIMEOUT_MS);
+  if(!list.some(p=>p.id===ME.id)) list.push(players.get(ME.id));
+  return list.sort((a,b)=>rankKey(a)-rankKey(b)||a.id.localeCompare(b.id)).slice(0,MAX_PLAYERS);
+}
+
+function getMatchParticipants(){
+  return state.participantIds.map(id=>players.get(id)).filter(Boolean);
+}
+
+function onlineMatchParticipants(){
+  const now=Date.now();
+  return getMatchParticipants().filter(p=>p.online && now-p.lastSeen<HOST_TIMEOUT_MS && p.status!=='EXITED');
+}
+
+function refreshHostRole(){
+  const s=refreshSDK();
+  if(s && typeof s.isHost==='boolean'){
+    if(s.isHost){
+      if(hostId!==ME.id){
+        hostId=ME.id;
+        initialElectionDone=true;
+        if(state.phase!=='LOBBY') broadcastState(true);
+      }
+    }else if(hostId===ME.id && s.isHost===false){
+      hostId=null;
+    }
+  }
+}
+
+function electInitialHost(){
+  if(initialElectionDone) return;
+  const a=getRoomParticipants();
+  if(!a.length) return;
+  const next=a.slice().sort((x,y)=>rankKey(x)-rankKey(y)||x.id.localeCompare(y.id))[0];
+  hostId=next.id;
+  initialElectionDone=true;
+  if(isHost()) broadcastState(true);
+}
+
+function maybeTakeoverHost(){
+  if(!initialElectionDone || isHost()) return;
+  const hp=players.get(hostId);
+  if(hp && hp.online && Date.now()-hp.lastSeen<HOST_TIMEOUT_MS) return;
+
+  if(sdkHostFlag()===false) return;
+
+  const a=getRoomParticipants().filter(p=>p.status!=='EXITED');
+  if(!a.length) return;
+  const next=a.sort((x,y)=>rankKey(x)-rankKey(y)||x.id.localeCompare(y.id))[0];
+  if(next && next.id!==hostId){
+    hostId=next.id;
+    showToast('房主離開，已自動接管本局');
     if(isHost()) broadcastState(true);
     render();
-}
-function maybeTakeoverHost() {
-    if(!initialElectionDone || currentHostOnline()) return;
-    const a = onlinePlayers(); if(!a.length) return;
-    const next = a[0].id;
-    if(next !== hostId) {
-        hostId = next; showToast('市長離開，已自動接管房間');
-        broadcast('NDB_HOST', {hostId}); broadcastState(true); render();
-    }
-}
-
-function addOrUpdatePlayer(raw, seen=true) {
-    if(!raw || raw.id == null) return null;
-    const id = String(raw.id);
-    let p = players.get(id);
-    if(!p) {
-        p = { id, username: String(raw.username||'玩家').slice(0,12), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, joined: true, score: 0, status: 'ALIVE', online: true, lastSeen: Date.now(), combo: 0, bestCombo: 0, mines: 0 };
-        players.set(id, p);
-    } else {
-        if(raw.username != null) p.username = String(raw.username).slice(0,12);
-        if(raw.hasPaid != null) p.hasPaid = !!raw.hasPaid;
-        if(raw.joined != null) p.joined = !!raw.joined;
-        if(raw.score != null) p.score = Number(raw.score);
-        if(raw.status != null) p.status = raw.status;
-        if(raw.combo != null) p.combo = Number(raw.combo) || 0;
-        if(raw.bestCombo != null) p.bestCombo = Number(raw.bestCombo) || 0;
-        if(raw.mines != null) p.mines = Number(raw.mines) || 0;
-        if(seen) { p.lastSeen = Date.now(); p.online = true; }
-    }
-    return p;
-}
-
-function broadcast(name, payload) {
-    try { if(SDK && typeof SDK.sendGameEvent === 'function') SDK.sendGameEvent(name, payload || {}); } catch(e){}
-}
-function snapshotState() {
-    return {
-        hostId,
-        matchId: state.matchId,
-        phase: state.phase,
-        phaseEndsAt: state.phaseEndsAt,
-        autoStartAt: state.autoStartAt || 0,
-        expectedPlayers: state.expectedPlayers || 0,
-        level: state.level,
-        board: state.board,
-        result: state.result.slice(),
-        hostPaid: !!hasPaid,
-        players: [...players.values()].filter(p => p.joined).slice(0, MAX_PLAYERS).map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, joined: p.joined, score: p.score, status: p.status, online: p.online, combo: p.combo, bestCombo: p.bestCombo, mines: p.mines}))
-    };
-}
-function broadcastState(force=false) {
-    if(!isHost()) return;
-    const now = Date.now();
-    if(!force && now - lastStateBroadcast < 200) return; // 5fps sync is enough for board
-    lastStateBroadcast = now;
-    broadcast('NDB_STATE', snapshotState());
-}
-function applySnapshot(s) {
-    if(!s || typeof s !== 'object') return;
-    if(s.hostId != null) { hostId = String(s.hostId); initialElectionDone = true; }
-    if(Array.isArray(s.players)) for(const raw of s.players) addOrUpdatePlayer(raw, false);
-    
-    if(s.matchId && s.matchId !== state.matchId) {
-        state.matchId = s.matchId;
-        oldBoardState = [];
-    }
-
-    state.phase = s.phase || state.phase;
-    state.phaseEndsAt = Number(s.phaseEndsAt) || 0;
-    state.autoStartAt = Number(s.autoStartAt) || 0;
-    state.expectedPlayers = Number(s.expectedPlayers) || 0;
-    state.level = Number(s.level) || 1;
-    state.result = Array.isArray(s.result) ? s.result : [];
-    
-    if(Array.isArray(s.board)) {
-        state.board = s.board;
-        checkBoardChanges();
-        oldBoardState = JSON.parse(JSON.stringify(state.board));
-    }
-    
-    if(s.hostPaid != null) hasPaid = !!s.hostPaid;
-    
-    maybeCallGameOver();
-    render();
-}
-
-function checkBoardChanges() {
-    if(oldBoardState.length === 0 || state.board.length === 0) return;
-    state.board.forEach((block, i) => {
-        const oldBlock = oldBoardState[i];
-        if(block.minedBy && (!oldBlock || !oldBlock.minedBy)) {
-            // Newly mined!
-            const el = document.getElementById(`block-${i}`);
-            if(el) {
-                const itemDef = ITEMS[block.type];
-                if(block.minedBy === ME.id) {
-                    if(block.type === 'BOMB') {
-                        sfx.bomb();
-                        els.gameArea.classList.add('shake');
-                        setTimeout(() => els.gameArea.classList.remove('shake'), 400);
-                        if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                    } else if(block.type === 'GEM') sfx.gem();
-                    else if(block.type === 'GOLD') sfx.gold();
-                    else sfx.mine();
-                }
-                
-                if(itemDef.points > 0) {
-                    showFloatingText(el, `+${itemDef.points}`, itemDef.color);
-                } else if(block.type === 'BOMB') {
-                    showFloatingText(el, `BOOM!`, itemDef.color);
-                }
-            }
-        }
-    });
+  }
 }
 
 /* ==============================
-   Economy & Actions
+   Transport
    ============================== */
-function requestStartGame() {
-    initAudio();
-    if(!isHost() || state.phase !== 'LOBBY' || purchasePending || startRequested) return;
-
-    const roomCount = getRoomParticipants().length;
-    if(roomCount < 1) {
-        showToast('尚未偵測到房內玩家');
-        return;
-    }
-    if(roomCount > MAX_PLAYERS) {
-        showToast('本局最多 10 人');
-        return;
-    }
-
-    startRequested = true;
-    purchasePending = true;
-    render();
-
-    // 沒有 SDK 時只進開發測試模式，不假裝支付成功。
-    if(DEMO) {
-        purchasePending = false;
-        hasPaid = true;
-        hostStartGame();
-        return;
-    }
-
-    try {
-        // 只有房主支付一次；其他房內玩家完全不需要按支付。
-        window.BoomRoomSDK.requestPurchase('miner_entry', ENTRY_FEE);
-    } catch(e) {
-        startRequested = false;
-        purchasePending = false;
-        render();
-        showToast('無法發起房主入場扣款');
-    }
+function broadcast(eventName,payload){
+  const s=refreshSDK();
+  if(!s || typeof s.sendGameEvent!=='function') return;
+  try{
+    s.sendGameEvent(eventName,Object.assign({roundId:state.roundId,matchId:state.matchId},payload||{}));
+  }catch(e){}
 }
 
-window.onPurchaseSuccess = function(itemId) {
-    if(itemId !== 'miner_entry') return;
+function snapshotState(){
+  return {
+    hostId,
+    matchId:state.matchId,
+    roundId:state.roundId,
+    hostNow:Date.now(),
+    phase:state.phase,
+    phaseEndsAt:state.phaseEndsAt,
+    autoStartAt:state.autoStartAt,
+    hostPaid:!!hasPaid,
+    expectedPlayers:state.expectedPlayers,
+    participantIds:state.participantIds.slice(),
+    level:state.level,
+    board:state.board,
+    result:state.result.slice(),
+    players:[...players.values()]
+      .filter(p=>state.phase==='LOBBY' ? p.joined : state.participantIds.includes(p.id))
+      .slice(0,MAX_PLAYERS)
+      .map(p=>({
+        id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,
+        hasPaid:p.hasPaid,joined:p.joined,score:p.score,status:p.status,online:p.online,
+        combo:p.combo,bestCombo:p.bestCombo,mines:p.mines
+      }))
+  };
+}
 
-    purchasePending = false;
-    hasPaid = true;
-    startRequested = false;
+function broadcastState(force=false){
+  if(!isHost()) return;
+  const now=Date.now();
+  if(!force && now-lastStateBroadcast<STATE_SYNC_MS) return;
+  lastStateBroadcast=now;
+  broadcast('NDB_STATE',snapshotState());
+}
 
-    const me = players.get(ME.id);
-    if(me) {
-        me.hasPaid = true;
-        me.lastSeen = Date.now();
-        me.online = true;
+function applySnapshot(s){
+  if(!s || typeof s!=='object') return;
+  syncRoundId();
+
+  if(s.hostId!=null){
+    hostId=String(s.hostId);
+    initialElectionDone=true;
+  }
+
+  if(Number.isFinite(Number(s.hostNow))){
+    const desired=Number(s.hostNow)-Date.now();
+    roundClockOffset = roundClockOffset + (desired-roundClockOffset)*CLOCK_SMOOTH;
+  }
+
+  if(Array.isArray(s.players)){
+    s.players.forEach(raw=>addOrUpdatePlayer(raw,false));
+  }
+
+  const incomingRound=String(s.roundId || s.matchId || '');
+  if(incomingRound && incomingRound!==state.roundId){
+    state.roundId=incomingRound;
+    state.matchId=incomingRound;
+    oldBoardState=[];
+    resultShown=false;
+    gameOverCalled=false;
+    state.result=[];
+  }
+
+  state.phase=s.phase || state.phase;
+  state.phaseEndsAt=Number(s.phaseEndsAt)||0;
+  state.autoStartAt=Number(s.autoStartAt)||0;
+  state.expectedPlayers=Math.max(0,Math.min(MAX_PLAYERS,Number(s.expectedPlayers)||0));
+  state.participantIds=Array.isArray(s.participantIds)?s.participantIds.map(String).slice(0,MAX_PLAYERS):state.participantIds;
+  state.level=Math.max(1,Number(s.level)||1);
+  state.result=Array.isArray(s.result)?s.result:state.result;
+  if(s.hostPaid!=null) hasPaid=!!s.hostPaid;
+  state.hostPaid=!!hasPaid;
+
+  if(Array.isArray(s.board)){
+    oldBoardState = Array.isArray(state.board)?JSON.parse(JSON.stringify(state.board)):[];
+    state.board=s.board;
+    checkBoardChanges();
+  }
+
+  if(state.phase==='RESULT') maybeCallGameOver();
+  render();
+}
+
+function checkBoardChanges(){
+  if(oldBoardState.length===0 || state.board.length===0) return;
+  state.board.forEach((block,i)=>{
+    const oldBlock=oldBoardState[i];
+    if(block.minedBy && (!oldBlock || !oldBlock.minedBy)){
+      const el=document.getElementById('block-'+i);
+      if(!el) return;
+      if(block.minedBy===ME.id){
+        if(block.type==='BOMB'){
+          sfx.bomb();
+          els.gameArea.classList.add('shake');
+          setTimeout(()=>els.gameArea.classList.remove('shake'),400);
+          if(navigator.vibrate) navigator.vibrate([180,90,180]);
+        }else if(block.type==='GEM') sfx.gem();
+        else if(block.type==='GOLD') sfx.gold();
+        else sfx.mine();
+      }
+      const def=ITEMS[block.type]||ITEMS.DIRT;
+      if(def.points>0) showFloatingText(el,'+'+def.points);
+      else if(block.type==='BOMB') showFloatingText(el,'BOOM!');
     }
+  });
+}
 
+/* ==============================
+   Auto lobby / purchase / start
+   ============================== */
+function scheduleAutoLaunch(reason='roster'){
+  if(!isHost() || state.phase!=='LOBBY' || purchasePending || autoLaunchBusy) return;
+  clearTimeout(autoLaunchTimer);
+  clearTimeout(autoLaunchFallbackTimer);
+
+  const participants=getRoomParticipants();
+  const count=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
+  state.expectedPlayers=count;
+  state.autoStartAt=Date.now()+AUTO_LOBBY_SETTLE_MS;
+  autoLaunchEpoch++;
+
+  broadcastState(true);
+  render();
+
+  const epoch=autoLaunchEpoch;
+  autoLaunchTimer=setTimeout(()=>{
+    if(epoch!==autoLaunchEpoch) return;
+    syncRoomRosterFromSDK(true);
+    const current=getRoomParticipants().length;
+    if(current!==count){
+      scheduleAutoLaunch('rosterChanged');
+      return;
+    }
+    autoEntryAndStart();
+  },AUTO_LOBBY_SETTLE_MS);
+
+  autoLaunchFallbackTimer=setTimeout(()=>{
+    if(state.phase==='LOBBY' && !purchasePending && !autoLaunchBusy && isHost()){
+      autoLaunchEpoch++;
+      autoEntryAndStart();
+    }
+  },AUTO_START_FALLBACK_MS);
+}
+
+function autoEntryAndStart(){
+  if(!isHost() || state.phase!=='LOBBY' || purchasePending || autoLaunchBusy) return;
+  const participants=getRoomParticipants();
+  if(!participants.length) return;
+
+  state.expectedPlayers=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
+  state.participantIds=participants.map(p=>p.id);
+  participants.forEach(p=>{
+    p.joined=true;
+    p.score=0;
+    p.status='ALIVE';
+    p.combo=0;
+    p.bestCombo=0;
+    p.mines=0;
+  });
+
+  autoLaunchBusy=true;
+  clearTimeout(autoLaunchTimer);
+  clearTimeout(autoLaunchFallbackTimer);
+
+  if(DEMO){
+    hasPaid=false;
+    state.hostPaid=false;
     sfx.pay();
-    showToast('房主入場成功，所有玩家即將一起開始！');
+    beginCountdown();
+    return;
+  }
 
-    if(isHost()) {
-        hostStartGame();
-    }
+  purchasePending=true;
+  broadcast('NDB_AUTO_ENTRY',{
+    playerId:ME.id,
+    playerCount:state.expectedPlayers
+  });
+  showToast('房主人數已同步，正在自動處理本局入場…');
+  render();
+
+  try{
+    const s=refreshSDK();
+    if(!s || typeof s.requestPurchase!=='function') throw new Error('requestPurchase unavailable');
+    s.requestPurchase('miner_entry',ENTRY_FEE);
+  }catch(e){
+    purchasePending=false;
+    autoLaunchBusy=false;
+    state.autoStartAt=0;
+    broadcastState(true);
     render();
-};
-
-window.onPurchaseFailed = function(itemId) {
-    if(itemId === 'miner_entry') {
-        purchasePending = false;
-        startRequested = false;
-        showToast('房主支付取消或失敗，本局尚未開始');
-        render();
-    }
-};
-
-function getRoomParticipants() {
-    return [...players.values()]
-        .filter(p => p.joined && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS)
-        .sort((a,b) => Number(a.joinedAt) - Number(b.joinedAt) || a.id.localeCompare(b.id))
-        .slice(0, MAX_PLAYERS);
+    showToast('無法發起房主自動入場扣款');
+  }
 }
 
-function requestMine(index) {
-    initAudio();
+function beginCountdown(){
+  if(!isHost() || state.phase!=='LOBBY') return;
 
-    if(state.phase !== 'PLAYING') return;
+  purchasePending=false;
+  autoLaunchBusy=false;
+  hasPaid=!!hasPaid || DEMO;
+  state.hostPaid=!!hasPaid;
+  state.phase='COUNTDOWN';
+  state.phaseEndsAt=Date.now()+COUNTDOWN_MS;
+  state.autoStartAt=0;
+  state.level=1;
+  state.board=[];
+  state.result=[];
+  state.participantIds=getRoomParticipants().slice(0,MAX_PLAYERS).map(p=>p.id);
 
-    const me = players.get(ME.id);
-    if(!me || !me.joined || me.status === 'DEAD') {
-        showToast('你目前無法開採');
-        return;
-    }
+  if(!state.participantIds.includes(ME.id) && state.participantIds.length<MAX_PLAYERS){
+    state.participantIds.unshift(ME.id);
+  }
 
-    const block = state.board[index];
-    if(!block || block.minedBy) return;
-
-    if(isHost()) {
-        applyHostMine(ME.id, index);
-    } else {
-        broadcast('NDB_MINE', {
-            playerId: ME.id,
-            index,
-            matchId: state.matchId,
-            requestId: ME.id + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6)
-        });
-    }
+  state.expectedPlayers=state.participantIds.length;
+  state.board=[];
+  buildBoard();
+  oldBoardState=[];
+  broadcast('NDB_START',{
+    participantIds:state.participantIds.slice(),
+    expectedPlayers:state.expectedPlayers,
+    phaseEndsAt:state.phaseEndsAt
+  });
+  broadcastState(true);
+  showToast(`${state.expectedPlayers} 人已到齊，自動倒數開始`);
+  render();
 }
 
+window.onPurchaseSuccess=function(itemId){
+  if(itemId!=='miner_entry') return;
+  refreshSDK();
+  purchasePending=false;
+  autoLaunchBusy=false;
+  hasPaid=true;
+  state.hostPaid=true;
+
+  const me=players.get(ME.id);
+  if(me){me.hasPaid=true;me.lastSeen=Date.now();me.online=true}
+
+  sfx.pay();
+  showToast('房主入場成功，所有玩家同步開始！');
+
+  if(isHost() && state.phase==='LOBBY') beginCountdown();
+  else broadcastState(true);
+
+  render();
+};
+
+window.onPurchaseFailed=function(itemId){
+  if(itemId!=='miner_entry') return;
+  purchasePending=false;
+  autoLaunchBusy=false;
+  state.autoStartAt=0;
+  state.hostPaid=false;
+  broadcastState(true);
+  showToast('房主入場扣款未完成，本局尚未開始');
+  render();
+};
 
 /* ==============================
-   Host Logic
+   Board / Mine
    ============================== */
+function buildBoard(){
+  const board=[];
+  const playerCount=Math.max(1,Math.min(MAX_PLAYERS,state.expectedPlayers||1));
+  const bombs=Math.min(9,2+Math.floor((state.level-1)*.65)+Math.floor((playerCount-1)/3));
+  const gems=state.level%4===0?3:2;
+  const golds=playerCount>=6?6:5;
+  let silvers=10;
+  let dirts=GRID_SIZE-(bombs+gems+golds+silvers);
 
-function getActiveParticipants() {
-    return getRoomParticipants();
+  if(dirts<0){
+    dirts=0;
+    silvers=Math.max(0,GRID_SIZE-bombs-gems-golds);
+  }
+
+  const pool=[];
+  for(let i=0;i<bombs;i++)pool.push('BOMB');
+  for(let i=0;i<gems;i++)pool.push('GEM');
+  for(let i=0;i<golds;i++)pool.push('GOLD');
+  for(let i=0;i<silvers;i++)pool.push('SILVER');
+  for(let i=0;i<dirts;i++)pool.push('DIRT');
+
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+
+  for(let i=0;i<GRID_SIZE;i++){
+    board.push({type:pool[i]||'DIRT',minedBy:null,minedAt:0});
+  }
+  state.board=board;
 }
 
-function hostStartGame() {
-    if(!isHost() || state.phase !== 'LOBBY') return;
+function requestMine(index){
+  initAudio();
+  if(state.phase!=='PLAYING') return;
 
-    const participants = getActiveParticipants();
-    if(participants.length < 1) {
-        showToast('尚未偵測到房內玩家');
-        return;
-    }
+  const me=players.get(ME.id);
+  if(!me || !state.participantIds.includes(ME.id) || me.status==='DEAD' || me.status==='EXITED'){
+    showToast('你目前無法開採');
+    return;
+  }
 
-    participants.forEach(p => {
-        p.joined = true;
-        p.score = 0;
-        p.status = 'ALIVE';
-        p.combo = 0;
-        p.bestCombo = 0;
-        p.mines = 0;
+  const block=state.board[index];
+  if(!block || block.minedBy) return;
+
+  if(isHost()){
+    applyHostMine(ME.id,index);
+  }else{
+    broadcast('NDB_MINE',{
+      playerId:ME.id,
+      index:Number(index),
+      requestId:ME.id+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
     });
-
-    state.expectedPlayers = participants.length;
-    state.autoStartAt = 0;
-    state.phase = 'COUNTDOWN';
-    state.phaseEndsAt = Date.now() + 3000;
-    state.level = 1;
-    state.board = [];
-    state.lastMineAt = 0;
-    hostGenerateBoard();
-
-    // 先告知所有客戶端房主已確認玩家名單，再同步同一局。
-    broadcast('NDB_HOST', { hostId: ME.id, matchId: state.matchId });
-    broadcastState(true);
+  }
 }
 
-function hostGenerateBoard() {
-    const board = [];
-    const playerCount = Math.max(1, Math.min(MAX_PLAYERS, state.expectedPlayers || getActiveParticipants().length));
+function applyHostMine(playerId,index){
+  if(!isHost() || state.phase!=='PLAYING') return;
+  const pid=String(playerId);
+  if(!state.participantIds.includes(pid)) return;
 
-    let bombs = Math.min(9, 2 + Math.floor((state.level - 1) * 0.65) + Math.floor((playerCount - 1) / 3));
-    let gems = state.level % 4 === 0 ? 3 : 2;
-    let golds = playerCount >= 6 ? 6 : 5;
-    let silvers = 10;
-    let dirts = GRID_SIZE - (bombs + gems + golds + silvers);
+  const p=players.get(pid);
+  if(!p || p.status==='DEAD' || p.status==='EXITED') return;
 
-    if(dirts < 0) {
-        dirts = 0;
-        silvers = Math.max(0, GRID_SIZE - bombs - gems - golds);
-    }
+  const block=state.board[index];
+  if(!block || block.minedBy) return;
 
-    const pool = [];
-    for(let i=0; i<bombs; i++) pool.push('BOMB');
-    for(let i=0; i<gems; i++) pool.push('GEM');
-    for(let i=0; i<golds; i++) pool.push('GOLD');
-    for(let i=0; i<silvers; i++) pool.push('SILVER');
-    for(let i=0; i<dirts; i++) pool.push('DIRT');
+  block.minedBy=pid;
+  block.minedAt=Date.now();
+  p.mines=(p.mines||0)+1;
 
-    for(let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
+  if(block.type==='BOMB'){
+    p.status='DEAD';
+    p.combo=0;
+  }else{
+    const base=(ITEMS[block.type]||ITEMS.DIRT).points;
+    p.combo=(p.combo||0)+1;
+    p.bestCombo=Math.max(p.bestCombo||0,p.combo);
+    const multiplier=Math.min(1.3,1+Math.max(0,p.combo-1)*.1);
+    p.score+=(Math.round(base*multiplier));
+  }
 
-    for(let i = 0; i < GRID_SIZE; i++) {
-        board.push({ type: pool[i] || 'DIRT', minedBy: null, minedAt: 0 });
-    }
-    state.board = board;
+  const remainingSafe=state.board.some(b=>b.type!=='BOMB'&&!b.minedBy);
+  if(!remainingSafe){
+    state.level++;
+    buildBoard();
+  }
+
+  const matchPlayers=getMatchParticipants();
+  const active=matchPlayers.filter(pl=>pl.status==='ALIVE');
+  if(active.length===0){
+    resolveGame();
+    return;
+  }
+
+  broadcastState(true);
 }
 
-function applyHostMine(playerId, index) {
-    if(state.phase !== 'PLAYING') return;
-    const p = players.get(String(playerId));
-    if(!p || !p.joined || p.status === 'DEAD') return;
+function resolveGame(){
+  if(!isHost() || state.phase!=='PLAYING') return;
 
-    const block = state.board[index];
-    if(!block || block.minedBy) return;
+  state.phase='RESULT';
+  state.phaseEndsAt=Date.now()+RESULT_CLOSE_DELAY_MS;
+  state.autoStartAt=0;
 
-    block.minedBy = p.id;
-    block.minedAt = Date.now();
-    p.mines = (p.mines || 0) + 1;
+  const participants=getMatchParticipants();
+  const eligible=participants.filter(p=>p.status!=='EXITED');
+  const prizePool=hasPaid ? Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)) : 0;
 
-    if(block.type === 'BOMB') {
-        p.status = 'DEAD';
-        p.combo = 0;
-    } else {
-        const base = ITEMS[block.type].points;
-        p.combo = (p.combo || 0) + 1;
-        p.bestCombo = Math.max(p.bestCombo || 0, p.combo);
-        const multiplier = Math.min(1.3, 1 + Math.max(0, p.combo - 1) * 0.1);
-        p.score += Math.round(base * multiplier);
-    }
+  let maxScore=-1;
+  eligible.forEach(p=>{if(p.score>maxScore)maxScore=p.score});
+  const winners=maxScore>=0?eligible.filter(p=>p.score===maxScore):[];
+  const rewardPerWinner=winners.length?Math.floor(prizePool/winners.length):0;
 
-    const allSafeMined = state.board.every(b => b.type === 'BOMB' || !!b.minedBy);
-    if(allSafeMined) {
-        state.level++;
-        hostGenerateBoard();
-        broadcast('NDB_LEVELUP', { matchId: state.matchId, level: state.level });
-    }
+  state.result=participants.map(p=>({
+    id:p.id,
+    username:p.username,
+    score:p.score,
+    status:p.status,
+    bestCombo:p.bestCombo||0,
+    mines:p.mines||0,
+    isWinner:p.status!=='EXITED' && p.score===maxScore,
+    winAmount:(p.status!=='EXITED' && p.score===maxScore)?rewardPerWinner:0
+  })).sort((a,b)=>b.score-a.score||b.bestCombo-a.bestCombo||a.username.localeCompare(b.username));
 
-    const participants = [...players.values()].filter(pl => pl.joined);
-    const aliveCount = participants.filter(pl => pl.status === 'ALIVE').length;
-
-    if(aliveCount === 0) resolveGame();
-    else broadcastState(true);
-}
-
-function resolveGame() {
-    if(state.phase !== 'PLAYING') return;
-
-    state.phase = 'RESULT';
-    state.phaseEndsAt = Date.now() + RESULT_CLOSE_DELAY_MS;
-
-    // 本局只有房主支付一次 100 銀幣；10% 平台手續費後獎池為 90。
-    const totalPool = hasPaid ? ENTRY_FEE : 0;
-    const prizePool = Math.max(0, totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE));
-
-    const participants = [...players.values()].filter(p => p.joined);
-    let maxScore = -1;
-    participants.forEach(p => { if(p.score > maxScore) maxScore = p.score; });
-
-    const winners = participants.filter(p => p.score === maxScore);
-    const rewardPerWinner = winners.length > 0 ? Math.floor(prizePool / winners.length) : 0;
-
-    state.result = participants.map(p => ({
-        id: p.id,
-        username: p.username,
-        score: p.score,
-        status: p.status,
-        bestCombo: p.bestCombo || 0,
-        mines: p.mines || 0,
-        isWinner: p.score === maxScore,
-        winAmount: p.score === maxScore ? rewardPerWinner : 0
-    })).sort((a,b) => b.score - a.score || b.bestCombo - a.bestCombo);
-
-    broadcastState(true);
+  broadcastState(true);
+  maybeCallGameOver();
 }
 
 /* ==============================
-   Incoming Events
+   Incoming events
+   ============================== */
+function handleIncoming(data){
+  if(!data) return;
+
+  if(data.action==='initSDK'){
+    setupSDK(data);
+    return;
+  }
+  if(data.action!=='gameEventReceived') return;
+
+  const eventName=data.eventName || data.eventName?.name;
+  const payload=(data.payload && typeof data.payload==='object')?data.payload:{};
+  const incomingRound=String(payload.roundId || payload.matchId || '');
+
+  if(incomingRound && state.roundId && incomingRound!==state.roundId && !['NDB_STATE','NDB_HOST','NDB_START'].includes(eventName)){
+    return;
+  }
+
+  switch(eventName){
+    case 'NDB_HELLO':
+      if(payload.player){
+        addOrUpdatePlayer({...payload.player,joined:true},true);
+      }
+      if(isHost()) broadcastState(true);
+      render();
+      break;
+
+    case 'NDB_PING':
+      if(payload.player) addOrUpdatePlayer({...payload.player,joined:true},true);
+      if(isHost() && payload.requestState) broadcastState(true);
+      render();
+      break;
+
+    case 'NDB_AUTO_ENTRY':
+      if(payload.playerCount && state.phase==='LOBBY'){
+        state.expectedPlayers=Math.max(state.expectedPlayers,Math.min(MAX_PLAYERS,Number(payload.playerCount)||0));
+      }
+      render();
+      break;
+
+    case 'NDB_START':
+      if(payload.roundId && String(payload.roundId)!==state.roundId) return;
+      if(!isHost()){
+        if(Array.isArray(payload.participantIds)) state.participantIds=payload.participantIds.map(String).slice(0,MAX_PLAYERS);
+        state.expectedPlayers=Math.max(1,Math.min(MAX_PLAYERS,Number(payload.expectedPlayers)||state.participantIds.length||1));
+        state.phase='COUNTDOWN';
+        state.phaseEndsAt=Number(payload.phaseEndsAt)||Date.now()+COUNTDOWN_MS;
+        state.autoStartAt=0;
+        state.hostPaid=true;
+        hasPaid=true;
+        render();
+      }
+      break;
+
+    case 'NDB_MINE':
+      if(isHost()){
+        applyHostMine(payload.playerId,Number(payload.index));
+      }
+      break;
+
+    case 'NDB_STATE':
+      applySnapshot(payload);
+      break;
+
+    case 'NDB_HOST':
+      if(payload.hostId!=null){
+        hostId=String(payload.hostId);
+        initialElectionDone=true;
+      }
+      render();
+      break;
+
+    case 'NDB_LEAVE':{
+      const id=String(payload.playerId || data.userId || '');
+      if(!id) break;
+      const p=players.get(id);
+      if(p){
+        p.online=false;
+        p.lastSeen=0;
+        if(state.phase==='LOBBY') p.joined=false;
+        if(state.phase==='PLAYING') p.status='EXITED';
+      }
+      if(isHost()) broadcastState(true);
+      render();
+      break;
+    }
+
+    case 'NDB_CLOSE':
+      state.phase='CLOSED';
+      requestHostAppClose('gameFinished');
+      break;
+  }
+}
+
+window.addEventListener('message',e=>{
+  try{
+    const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
+    handleIncoming(d);
+  }catch(err){}
+});
+
+/* ==============================
+   SDK bootstrap
    ============================== */
 function setupSDK(data){
-    if(data && data.user){
-        const u = data.user;
-        ME.id = String(u.id);
-        ME.username = String(u.username || '玩家').slice(0,12);
+  refreshSDK();
+
+  if(data && data.user){
+    const u=data.user;
+    ME.id=String(u.id||ME.id);
+    ME.username=String(u.username||'玩家').slice(0,12);
+    ME.avatar=String(u.avatar||ME.avatar);
+  }
+
+  if(data && data.isHost===true){
+    hostId=ME.id;
+    initialElectionDone=true;
+  }else if(data && data.isHost===false && hostId===ME.id){
+    hostId=null;
+  }
+
+  if(data && Array.isArray(data.roomPlayers)){
+    roomRosterIds=new Set();
+    data.roomPlayers.slice(0,MAX_PLAYERS).forEach((rp,i)=>{
+      if(rp && rp.id!=null){
+        const id=String(rp.id);
+        roomRosterIds.add(id);
         addOrUpdatePlayer({
-            id: ME.id,
-            username: ME.username,
-            joinedAt: ME.joinedAt
-        }, true);
-    }
+          id,
+          username:rp.username||'玩家',
+          avatar:rp.avatar||'',
+          joinedAt:Number(rp.joinedAt)||Date.now()+i,
+          joined:true
+        },true);
+      }
+    });
+    if(!roomRosterIds.has(ME.id)) roomRosterIds.add(ME.id);
+  }
 
-    if(data && data.isHost === true){
-        hostId = ME.id;
-        initialElectionDone = true;
-    } else if(data && data.isHost === false){
-        if(hostId === ME.id) hostId = null;
-        // 不鎖死選舉：若 SDK 沒有傳來房主狀態，稍後由玩家 joinedAt 決定。
-        initialElectionDone = false;
-    }
+  addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true,hasPaid},true);
 
-    if(data && Array.isArray(data.roomPlayers)){
-        data.roomPlayers.slice(0, MAX_PLAYERS).forEach(rp => {
-            if(rp && rp.id != null){
-                addOrUpdatePlayer({
-                    id: String(rp.id),
-                    username: String(rp.username || '玩家').slice(0,12),
-                    joinedAt: Number(rp.joinedAt) || Date.now(),
-                    joined: true
-                }, true);
-            }
-        });
-    }
+  if(!getSDK()){
+    DEMO=true;
+  }else{
+    DEMO=false;
+    els.devBadge.style.display='none';
+  }
 
-    addOrUpdatePlayer({id: ME.id, username: ME.username, joinedAt: ME.joinedAt, joined:true, hasPaid}, true);
-    render();
+  refreshHostRole();
+  syncRoomRosterFromSDK(true);
+  announceHello();
+  render();
+
+  if(isHost() && state.phase==='LOBBY') scheduleAutoLaunch('sdkReady');
 }
 
-window.onBoomRoomSDKReady = function(){
-    if(window.BoomRoomSDK){
-        setupSDK({
-            user: window.BoomRoomSDK.getUser(),
-            isHost: window.BoomRoomSDK.isHost,
-            roomId: window.BoomRoomSDK.roomId,
-            roomPlayers: window.BoomRoomSDK.roomPlayers || []
-        });
-    }
+window.onBoomRoomSDKReady=function(){
+  const s=window.BoomRoomSDK;
+  if(!s) return;
+  setupSDK({
+    user:typeof s.getUser==='function'?s.getUser():null,
+    isHost:s.isHost,
+    roomId:s.roomId,
+    roomPlayers:Array.isArray(s.roomPlayers)?s.roomPlayers:[]
+  });
 };
 
-function handleIncoming(data) {
-    if(!data) return;
-    if(data.action === 'initSDK') { setupSDK(data); return; }
-    if(data.action !== 'gameEventReceived') return;
-    const eventName = data.eventName, payload = data.payload || {};
-    
-    if(payload.matchId && payload.matchId !== state.matchId && !['NDB_STATE','NDB_HOST'].includes(eventName)) return;
-
-    if(eventName === 'NDB_HELLO') {
-        if(payload.player) {
-            addOrUpdatePlayer({...payload.player, joined:true}, true);
-        }
-        if(isHost()) broadcastState(true);
-        render();
-        return;
+function announceHello(){
+  broadcast('NDB_HELLO',{
+    player:{
+      id:ME.id,
+      username:ME.username,
+      avatar:ME.avatar,
+      joinedAt:ME.joinedAt,
+      joined:true,
+      hasPaid
     }
-
-    if(eventName === 'NDB_PING') {
-        if(payload.player) addOrUpdatePlayer({...payload.player, joined:true}, true);
-        if(isHost() && payload.requestState) broadcastState(true);
-        return;
-    }
-
-    // 舊版支付事件保留相容，但不再把它當成玩家入場條件。
-    if(eventName === 'NDB_PAID') {
-        const p = players.get(String(payload.playerId));
-        if(p) p.hasPaid = true;
-        if(isHost()) broadcastState(true);
-        render();
-        return;
-    }
-
-    if(eventName === 'NDB_MINE') {
-        if(isHost()) {
-            applyHostMine(payload.playerId, Number(payload.index));
-        }
-        return;
-    }
-
-    if(eventName === 'NDB_LEVELUP') {
-        if(Number(payload.level) > state.level) {
-            state.level = Number(payload.level);
-            sfx.gem();
-        }
-        render();
-        return;
-    }
-
-    if(eventName === 'NDB_STATE') {
-        applySnapshot(payload);
-        return;
-    }
-
-    if(eventName === 'NDB_HOST') {
-        if(payload.matchId && payload.matchId !== state.matchId) {
-            state.matchId = String(payload.matchId);
-            oldBoardState = [];
-        }
-        if(payload.hostId != null) {
-            hostId = String(payload.hostId);
-            initialElectionDone = true;
-            render();
-        }
-        return;
-    }
-
-    if(eventName === 'NDB_CLOSE') {
-        state.phase = 'CLOSED';
-        showToast('遊戲結束，正在關閉…');
-        requestHostAppClose();
-        return;
-    }
+  });
+  broadcast('NDB_PING',{
+    player:{
+      id:ME.id,
+      username:ME.username,
+      avatar:ME.avatar,
+      joinedAt:ME.joinedAt,
+      joined:true,
+      hasPaid
+    },
+    requestState:true
+  });
 }
-window.addEventListener('message', e => { try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; handleIncoming(d); } catch(err){} });
 
 /* ==============================
-   UI & Rendering
+   Close / settlement
    ============================== */
-function initGrid() {
-    els.gridBoard.innerHTML = '';
-    for(let i=0; i<GRID_SIZE; i++) {
-        const b = document.createElement('div');
-        b.className = 'block';
-        b.id = `block-${i}`;
-        b.onclick = () => requestMine(i);
-        els.gridBoard.appendChild(b);
+function requestHostAppClose(reason='gameFinished'){
+  if(closeRequested) return;
+  closeRequested=true;
+  naturalClosing = reason==='gameFinished';
+
+  try{
+    if(window.parent && window.parent!==window){
+      window.parent.postMessage({action:'leaveGame',reason},'*');
+      window.parent.postMessage({action:'closeGame',reason},'*');
+      window.parent.postMessage(JSON.stringify({action:'leaveGame',reason}),'*');
     }
+  }catch(e){}
+
+  try{window.close()}catch(e){}
+}
+
+function abandonAndClose(){
+  if(closeRequested || state.phase==='CLOSED') return;
+  if(state.phase==='RESULT'){
+    requestHostAppClose('gameFinished');
+    return;
+  }
+
+  abandoned=true;
+  const p=players.get(ME.id);
+  if(p){
+    p.online=false;
+    p.status='EXITED';
+  }
+  broadcast('NDB_LEAVE',{playerId:ME.id,reason:'manual'});
+  showToast('你已放棄本局，不發放本局獎勵');
+  setTimeout(()=>requestHostAppClose('playerAbandoned'),220);
+}
+
+function maybeCallGameOver(){
+  if(state.phase!=='RESULT') return;
+  if(!state.result || state.result.length===0) return;
+
+  const mine=state.result.find(r=>r.id===ME.id);
+  if(!mine) return;
+
+  const s=refreshSDK();
+  if(!gameOverCalled){
+    gameOverCalled=true;
+    const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));
+    try{
+      if(s && typeof s.gameOver==='function') s.gameOver(reward);
+    }catch(e){}
+  }
+
+  if(!resultShown){
+    resultShown=true;
+    const winners=state.result.filter(r=>r.isWinner);
+
+    if(winners.length>1){
+      els.resultWinnerText.textContent='⚖️ 平手！';
+      els.resultWinnerText.style.color='var(--gold)';
+    }else if(winners.length===1){
+      els.resultWinnerText.textContent=`🏆 ${winners[0].username} 獲勝！`;
+      els.resultWinnerText.style.color='var(--cyan)';
+    }else{
+      els.resultWinnerText.textContent='本局無可結算玩家';
+      els.resultWinnerText.style.color='var(--muted)';
+    }
+
+    const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));
+    els.resultAmount.textContent='+'+reward.toLocaleString()+' 🪙';
+    els.resultAmount.className='result-big '+(mine.isWinner?'win':'lose');
+
+    els.resultDesc.textContent=mine.status==='EXITED'
+      ? `你中途離開本局，本局獎勵為 0；最終得分 ${mine.score} 分。`
+      : (mine.isWinner ? `恭喜！你的最終得分為 ${mine.score} 分。` : `你的最終得分為 ${mine.score} 分。`);
+
+    els.winnersList.innerHTML='';
+    state.result.forEach((r,i)=>{
+      const row=document.createElement('div');
+      row.className='result-row';
+      const icon=r.status==='DEAD'?'💀 ':r.status==='EXITED'?'🚪 ':'';
+      row.innerHTML=`<span class="result-rank">#${i+1} ${icon}${escapeHtml(r.username)}</span><span class="result-score">${r.score}分</span>`;
+      els.winnersList.appendChild(row);
+    });
+
+    els.modalResult.classList.add('show');
+    if(mine.status!=='EXITED'){
+      if(mine.isWinner) sfx.win(); else sfx.lose();
+    }
+  }
+}
+
+function updateResultCloseCountdown(){
+  if(state.phase!=='RESULT') return;
+  const remain=Math.max(0,Math.ceil((state.phaseEndsAt-(Date.now()+roundClockOffset))/1000));
+  if(els.resultCloseCountdown) els.resultCloseCountdown.textContent=`${remain} 秒後自動返回房間`;
+  if(remain<=0){
+    if(isHost()){
+      state.phase='CLOSED';
+      state.phaseEndsAt=0;
+      broadcast('NDB_CLOSE',{reason:'gameFinished'});
+      broadcastState(true);
+    }
+    // 每一位客戶端都自行通知容器離開，避免只依賴房主的關閉事件。
+    requestHostAppClose('gameFinished');
+  }
+}
+
+/* ==============================
+   UI rendering
+   ============================== */
+function initGrid(){
+  els.gridBoard.innerHTML='';
+  for(let i=0;i<GRID_SIZE;i++){
+    const b=document.createElement('div');
+    b.className='block';
+    b.id='block-'+i;
+    b.onpointerup=(e)=>{
+      e.preventDefault();
+      requestMine(i);
+    };
+    els.gridBoard.appendChild(b);
+  }
 }
 initGrid();
 
-function render() {
-    const participants = [...players.values()].filter(p => p.joined && p.online).slice(0, MAX_PLAYERS);
-    const participantCount = participants.length;
-    const totalPool = hasPaid ? ENTRY_FEE : 0;
-    const prizePool = Math.max(0, totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE));
-
-    if(els.totalPool) els.totalPool.textContent = prizePool.toLocaleString() + ' 🪙';
-    if(els.playerCount) els.playerCount.textContent = participantCount + '/10';
-
-    els.leaderboard.innerHTML = '';
-    const sortedPlayers = participants.slice().sort((a,b) => b.score - a.score || Number(a.joinedAt)-Number(b.joinedAt));
-    sortedPlayers.forEach(p => {
-        const chip = document.createElement('div');
-        chip.className = `player-chip ${p.id === ME.id ? 'me' : ''} ${p.status === 'DEAD' ? 'dead' : ''}`;
-        const combo = p.combo > 1 ? ` ×${p.combo}` : '';
-        chip.innerHTML = `<span>${p.username}</span> <span class="player-score">${p.score}${combo}</span>`;
-        els.leaderboard.appendChild(chip);
-    });
-
-    if(state.phase === 'LOBBY') {
-        els.phaseText.textContent = isHost() ? `👑 房主 · 已進入 ${participantCount}/10 人` : `等待房主 · 已進入 ${participantCount}/10 人`;
-        els.timerText.textContent = 'READY';
-        els.actionHint.textContent = isHost()
-            ? (hasPaid ? '房主已入場，按下開始後所有玩家同時進入同一張礦圖' : '房內玩家已自動加入；按「開始遊戲」時僅房主支付 100 銀幣')
-            : '你已自動進入本局，不需要支付；等待房主開始遊戲';
-    } else if(state.phase === 'COUNTDOWN') {
-        els.phaseText.textContent = `⚡ ${state.expectedPlayers || participantCount} 人共同開採`;
-        els.timerText.textContent = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
-        els.actionHint.textContent = '準備！所有人將在同一張礦圖同時搶礦';
-    } else if(state.phase === 'PLAYING') {
-        const me = players.get(ME.id);
-        const alive = participants.filter(p => p.status === 'ALIVE').length;
-        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
-        els.phaseText.textContent = `LV.${state.level} · ${alive}/${state.expectedPlayers || participantCount} 存活`;
-        els.timerText.textContent = rem + 's';
-        els.actionHint.textContent = me?.status === 'DEAD'
-            ? '💀 你已淘汰，可以觀看其他玩家搶礦'
-            : '⛏️ 所有人搶同一張地圖！高分礦石更值錢，但炸彈會直接淘汰';
-    } else if(state.phase === 'RESULT') {
-        els.phaseText.textContent = '🏆 結算完成';
-        els.timerText.textContent = 'RESULT';
-        els.actionHint.textContent = '結算完成後遊戲會自動關閉';
-    } else {
-        els.phaseText.textContent = '遊戲已關閉';
-        els.timerText.textContent = 'CLOSED';
-        els.actionHint.textContent = '請重新從 BoomRoom 開啟新局';
-    }
-
-    if(state.board && state.board.length === GRID_SIZE) {
-        for(let i=0; i<GRID_SIZE; i++) {
-            const blockData = state.board[i];
-            const el = document.getElementById(`block-${i}`);
-            if(!el) continue;
-            if(blockData.minedBy) {
-                el.className = 'block mined';
-                const itemDef = ITEMS[blockData.type];
-                el.innerHTML = itemDef.icon;
-                const owner = players.get(blockData.minedBy);
-                if(owner) {
-                    const ownerEl = document.createElement('div');
-                    ownerEl.className = 'block-owner';
-                    ownerEl.textContent = owner.username.slice(0,4);
-                    if(blockData.minedBy === ME.id) ownerEl.style.color = 'var(--cyan)';
-                    el.appendChild(ownerEl);
-                }
-            } else {
-                el.className = 'block';
-                el.innerHTML = '';
-            }
-        }
-    } else {
-        for(let i=0; i<GRID_SIZE; i++) {
-            const el = document.getElementById(`block-${i}`);
-            if(el) { el.className = 'block'; el.innerHTML = ''; }
-        }
-    }
-
-    if(state.phase === 'LOBBY') {
-        els.mainBtn.className = 'main-btn btn-entry';
-        if(isHost()) {
-            if(hasPaid) {
-                els.mainBtn.textContent = '🚀 開始遊戲';
-                els.mainBtn.disabled = participantCount < 1;
-                els.mainBtn.onclick = hostStartGame;
-            } else {
-                els.mainBtn.textContent = purchasePending ? '處理房主入場…' : '🚀 開始遊戲';
-                els.mainBtn.disabled = purchasePending || participantCount < 1;
-                els.mainBtn.onclick = requestStartGame;
-            }
-        } else {
-            els.mainBtn.textContent = '等待房主開始';
-            els.mainBtn.disabled = true;
-            els.mainBtn.onclick = null;
-        }
-    } else if(state.phase === 'PLAYING') {
-        els.mainBtn.className = 'main-btn';
-        const me = players.get(ME.id);
-        els.mainBtn.textContent = me?.status === 'DEAD' ? '💀 已淘汰 · 觀戰中' : '⛏️ 點擊礦石搶分';
-        els.mainBtn.disabled = true;
-        els.mainBtn.onclick = null;
-    } else if(state.phase === 'RESULT') {
-        els.mainBtn.className = 'main-btn btn-entry';
-        els.mainBtn.textContent = '結算完成 · 即將關閉';
-        els.mainBtn.disabled = true;
-        els.mainBtn.onclick = null;
-    } else {
-        els.mainBtn.className = 'main-btn btn-entry';
-        els.mainBtn.textContent = '遊戲已關閉';
-        els.mainBtn.disabled = true;
-        els.mainBtn.onclick = null;
-    }
+function safeTimeNow(){
+  return Date.now()+roundClockOffset;
 }
 
-let closeRequested = false;
-let resultShown = false;
+function render(){
+  syncRoundId();
 
-function requestHostAppClose() {
-    if(closeRequested) return;
-    closeRequested = true;
+  const participants=state.phase==='LOBBY'
+    ? getRoomParticipants()
+    : getMatchParticipants();
 
-    // SDK 指南未提供 closeGame API，因此不假設不存在的 SDK 方法。
-    // 透過 postMessage 請 BoomRoom WebView/父容器關閉本遊戲。
-    try {
-        if(window.parent && window.parent !== window) {
-            window.parent.postMessage({
-                action: 'closeGame',
-                reason: 'gameFinished'
-            }, '*');
+  const participantCount=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
+  const prizePool=hasPaid ? Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)) : 0;
 
-            window.parent.postMessage(JSON.stringify({
-                action: 'closeGame',
-                reason: 'gameFinished'
-            }), '*');
-        }
-    } catch(e) {}
+  els.entryFee.textContent=ENTRY_FEE.toLocaleString()+' 🪙';
+  els.totalPool.textContent=hasPaid ? prizePool.toLocaleString()+' 🪙' : (DEMO?'測試模式':'待入場');
+  els.playerCount.textContent=participantCount+'/10';
+  els.gamePlayerCount.textContent=participantCount+' 人';
+  els.autoCount.textContent=participantCount+'/10';
+  els.autoFill.style.width=Math.min(100,participantCount/MAX_PLAYERS*100)+'%';
 
-    // 若是獨立瀏覽器且允許 window.close，嘗試關閉；瀏覽器拒絕時不影響遊戲邏輯。
-    try { window.close(); } catch(e) {}
-}
+  els.leaderboard.innerHTML='';
+  const sorted=participants.slice().sort((a,b)=>b.score-a.score||rankKey(a)-rankKey(b));
+  sorted.forEach(p=>{
+    const chip=document.createElement('div');
+    chip.className='player-chip'+(p.id===ME.id?' me':'')+(p.status==='DEAD'?' dead':'')+(p.status==='EXITED'?' exit':'');
+    const combo=p.combo>1?` ×${p.combo}`:'';
+    chip.innerHTML=`<span>${escapeHtml(p.username)}</span><span class="player-score">${p.score}${combo}</span>`;
+    els.leaderboard.appendChild(chip);
+  });
 
-function maybeCallGameOver() {
-    if(!['RESULT', 'CLOSED'].includes(state.phase)) return;
-    if(!state.result || state.result.length === 0) return;
-
-    const myResult = state.result.find(r => r.id === ME.id);
-    if(!myResult) return;
-
-    if(!gameOverCalled) {
-        gameOverCalled = true;
-        const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
-
-        try {
-            if(SDK && typeof SDK.gameOver === 'function') {
-                window.BoomRoomSDK.gameOver(reward);
-            }
-        } catch(e) {}
+  const now=safeTimeNow();
+  if(state.phase==='LOBBY'){
+    els.phaseText.textContent=isHost()?`👑 房主 · 自動準備 ${participantCount}/10`:`⏳ 等待房主 · ${participantCount}/10`;
+    if(state.autoStartAt>now){
+      els.timerText.textContent=Math.max(0,Math.ceil((state.autoStartAt-now)/1000))+'s';
+    }else{
+      els.timerText.textContent=purchasePending?'PAY':'WAIT';
     }
-
-    if(!resultShown) {
-        resultShown = true;
-
-        const winners = state.result.filter(r => r.isWinner);
-        if(winners.length > 1) {
-            els.resultWinnerText.textContent = '⚖️ 平手！';
-            els.resultWinnerText.style.color = 'var(--gold)';
-        } else if(winners.length === 1) {
-            els.resultWinnerText.textContent = `🏆 ${winners[0].username} 獲勝！`;
-            els.resultWinnerText.style.color = 'var(--cyan)';
-        }
-
-        const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
-        els.resultAmount.textContent = '+' + reward.toLocaleString() + ' 🪙';
-        els.resultAmount.className = 'result-big ' + (myResult.isWinner ? 'win' : 'lose');
-        els.resultDesc.textContent = myResult.isWinner
-            ? `恭喜！你的最終得分為 ${myResult.score} 分。`
-            : `你的最終得分為 ${myResult.score} 分。`;
-
-        els.winnersList.innerHTML = '';
-        state.result.forEach((r, i) => {
-            const d = document.createElement('div');
-            d.style.display = 'flex';
-            d.style.justifyContent = 'space-between';
-            d.innerHTML =
-                `<span>#${i+1} ${r.username} ${r.status==='DEAD'?'💀':''} ${r.bestCombo>1?'🔥'+r.bestCombo:''}</span>` +
-                `<span style="color:var(--gold)">${r.score}分</span>`;
-            els.winnersList.appendChild(d);
-        });
-
-        els.modalResult.classList.add('show');
-        if(myResult.isWinner) sfx.win(); else sfx.lose();
-    }
-
+    els.autoTitle.textContent=purchasePending?'💳 房主正在自動入場…':'🤖 全自動開局';
+    els.autoStartNotice.textContent=isHost()
+      ? (purchasePending?'房主入場扣款處理中，其他玩家無需操作。':`已同步 ${participantCount} 人，系統將自動倒數，不需要按開始。`)
+      : `你已自動加入；目前 ${participantCount} 人，等待房主完成自動入場。`;
+    els.actionHint.textContent=purchasePending
+      ? '其他玩家請等待；不需要支付、不需要 Ready。'
+      : '所有玩家都會自動加入，房主入場處理完成後全員同步倒數。';
+  }else if(state.phase==='COUNTDOWN'){
+    const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));
+    els.phaseText.textContent=`⚡ ${state.expectedPlayers} 人共同開採`;
+    els.timerText.textContent=String(rem);
+    els.autoTitle.textContent='🚀 自動開局';
+    els.autoStartNotice.textContent='同一局、同一張礦圖、同一倒數時間。';
+    els.actionHint.textContent='準備！倒數結束後所有人同時開始搶礦。';
+  }else if(state.phase==='PLAYING'){
+    const me=players.get(ME.id);
+    const alive=getMatchParticipants().filter(p=>p.status==='ALIVE').length;
+    const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));
+    els.phaseText.textContent=`LV.${state.level} · ${alive}/${state.expectedPlayers} 存活`;
+    els.timerText.textContent=rem+'s';
+    els.autoTitle.textContent='⛏️ 採礦進行中';
+    els.autoStartNotice.textContent='共同礦區即時同步；越快找到高價礦石越有利。';
+    els.actionHint.textContent=me?.status==='DEAD'
+      ? '💀 你已淘汰，可以繼續觀看其他玩家搶礦。'
+      : me?.status==='EXITED'
+        ? '🚪 你已離開本局。'
+        : '⛏️ 點擊礦石搶分：💎100 / 🔶50 / 💠10；💣 炸彈直接淘汰。';
+  }else if(state.phase==='RESULT'){
+    els.phaseText.textContent='🏆 自動結算完成';
+    els.timerText.textContent='RESULT';
+    els.autoTitle.textContent='✅ 自動結算';
+    els.autoStartNotice.textContent='獎勵已透過 BoomRoomSDK.gameOver 處理。';
+    els.actionHint.textContent='本局結束，遊戲將自動返回房間。';
+    maybeCallGameOver();
     updateResultCloseCountdown();
+  }else{
+    els.phaseText.textContent='遊戲已關閉';
+    els.timerText.textContent='CLOSED';
+    els.autoTitle.textContent='↩️ 返回房間';
+    els.autoStartNotice.textContent='請重新從 BoomRoom 開啟新局。';
+    els.actionHint.textContent='本局已結束。';
+  }
+
+  if(state.board && state.board.length===GRID_SIZE){
+    for(let i=0;i<GRID_SIZE;i++){
+      const data=state.board[i];
+      const el=document.getElementById('block-'+i);
+      if(!el) continue;
+      if(data.minedBy){
+        const def=ITEMS[data.type]||ITEMS.DIRT;
+        el.className='block mined';
+        el.innerHTML=def.icon;
+        const owner=players.get(data.minedBy);
+        if(owner){
+          const oe=document.createElement('div');
+          oe.className='block-owner';
+          oe.textContent=owner.username.slice(0,4);
+          if(data.minedBy===ME.id) oe.style.color='var(--cyan)';
+          el.appendChild(oe);
+        }
+      }else{
+        el.className='block';
+        el.innerHTML='';
+      }
+    }
+  }else{
+    for(let i=0;i<GRID_SIZE;i++){
+      const el=document.getElementById('block-'+i);
+      if(el){el.className='block';el.innerHTML='';}
+    }
+  }
+
+  if(state.phase==='RESULT'){
+    els.modalResult.classList.add('show');
+  }else if(state.phase!=='RESULT'){
+    els.modalResult.classList.remove('show');
+  }
 }
 
-function updateResultCloseCountdown() {
-    if(state.phase !== 'RESULT' && state.phase !== 'CLOSED') return;
+function escapeHtml(v){
+  return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
 
-    const remain = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now()) / 1000));
-    if(els.resultCloseCountdown) {
-        els.resultCloseCountdown.textContent =
-            state.phase === 'CLOSED'
-                ? '正在關閉遊戲…'
-                : `${remain} 秒後自動關閉遊戲`;
-    }
+function showToast(msg){
+  els.toast.textContent=msg;
+  els.toast.classList.add('show');
+  clearTimeout(showToast.t);
+  showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1800);
+}
 
-    if(state.phase === 'RESULT' && remain <= 0 && isHost()) {
-        state.phase = 'CLOSED';
-        broadcast('NDB_CLOSE', {
-            matchId: state.matchId,
-            reason: 'gameFinished'
-        });
-        broadcastState(true);
-        requestHostAppClose();
-    }
+function showFloatingText(element,text){
+  const rect=element.getBoundingClientRect();
+  const div=document.createElement('div');
+  div.className='floating-text';
+  div.textContent=text;
+  div.style.color=text==='BOOM!'?'var(--red)':'var(--cyan)';
+  div.style.left=(rect.left+rect.width/2-20)+'px';
+  div.style.top=(rect.top-10)+'px';
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),800);
 }
 
 /* ==============================
-   Main Loop & Utils
+   Events / lifecycle
    ============================== */
-let lastTickSec = -1;
+els.btnHelp.onclick=()=>{initAudio();els.modalRules.classList.add('show')};
+els.btnCloseRules.onclick=()=>{initAudio();els.modalRules.classList.remove('show')};
+els.btnExit.onclick=()=>{initAudio();abandonAndClose()};
+els.btnCloseResult.onclick=()=>{initAudio();requestHostAppClose('gameFinished')};
+document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
 
-function raf() {
-    if(isHost()) {
-        const realNow = Date.now();
+window.addEventListener('pagehide',()=>{
+  if(naturalClosing || closeRequested || abandoned || state.phase==='RESULT' || state.phase==='CLOSED') return;
+  const p=players.get(ME.id);
+  if(p) p.status='EXITED';
+  broadcast('NDB_LEAVE',{playerId:ME.id,reason:'pagehide'});
+});
 
-        if(state.phase === 'COUNTDOWN' && realNow >= state.phaseEndsAt) {
-            state.phase = 'PLAYING';
+setInterval(()=>{
+  refreshSDK();
+  refreshHostRole();
+  syncRoomRosterFromSDK();
 
-            const count = Math.max(1, Math.min(
-                MAX_PLAYERS,
-                state.expectedPlayers || getRoomParticipants().length
-            ));
+  const me=players.get(ME.id);
+  if(me){
+    me.online=true;
+    me.lastSeen=Date.now();
+    me.joined = state.phase==='LOBBY' ? true : me.joined;
+  }
 
-            state.phaseEndsAt = realNow + getRoundTimeMs(count);
-            state.level = 1;
-            hostGenerateBoard();
-            broadcastState(true);
-        }
+  if(state.phase==='LOBBY'){
+    const roomCount=getRoomParticipants().length;
+    if(isHost()){
+      if(!purchasePending && !autoLaunchBusy && state.expectedPlayers!==roomCount){
+        scheduleAutoLaunch('countChanged');
+      }else if(state.expectedPlayers===0 && roomCount>0 && !purchasePending && !autoLaunchBusy){
+        scheduleAutoLaunch('initial');
+      }
+    }
+  }
 
-        if(state.phase === 'PLAYING' && realNow >= state.phaseEndsAt) {
-            resolveGame();
-        }
+  if(isHost()) broadcastState(false);
+  else{
+    const now=Date.now();
+    for(const p of players.values()){
+      if(now-p.lastSeen>HOST_TIMEOUT_MS) p.online=false;
+    }
+    maybeTakeoverHost();
+  }
+  render();
+},500);
 
-        if(state.phase === 'COUNTDOWN' || (state.phase === 'PLAYING' && state.phaseEndsAt - realNow < 5000)) {
-            const sec = Math.ceil((state.phaseEndsAt - realNow)/1000);
-            if(sec !== lastTickSec && sec > 0) {
-                lastTickSec = sec;
-                sfx.tick();
-            }
-        }
+let lastFrame=performance.now();
+function raf(now){
+  const dt=Math.min(.033,(now-lastFrame)/1000||0);
+  lastFrame=now;
+  void dt;
 
-        // 低頻同步，確保所有玩家看到同一個狀態。
-        if(state.phase === 'LOBBY' || state.phase === 'PLAYING') {
-            broadcastState(false);
-        }
+  refreshHostRole();
+
+  const realNow=Date.now();
+
+  if(isHost()){
+    if(state.phase==='COUNTDOWN' && realNow>=state.phaseEndsAt){
+      state.phase='PLAYING';
+      state.phaseEndsAt=realNow+getRoundTimeMs(state.expectedPlayers);
+      state.level=1;
+      buildBoard();
+      lastCountdownSecond=-1;
+      broadcastState(true);
     }
 
-    maybeCallGameOver();
-    render();
-    requestAnimationFrame(raf);
-}
+    if(state.phase==='PLAYING' && realNow>=state.phaseEndsAt){
+      resolveGame();
+    }
 
+    if(state.phase==='COUNTDOWN' || (state.phase==='PLAYING' && state.phaseEndsAt-realNow<5000)){
+      const sec=Math.ceil((state.phaseEndsAt-realNow)/1000);
+      if(sec!==lastCountdownSecond && sec>0){
+        lastCountdownSecond=sec;
+        sfx.tick();
+      }
+    }
+  }
+
+  if(state.phase==='RESULT'){
+    maybeCallGameOver();
+    updateResultCloseCountdown();
+  }
+
+  render();
+  requestAnimationFrame(raf);
+}
 requestAnimationFrame(raf);
 
-function showToast(msg) {
-    els.toast.textContent = msg; els.toast.classList.add('show');
-    clearTimeout(showToast.t); showToast.t = setTimeout(() => els.toast.classList.remove('show'), 1500);
+/* Initial bootstrap */
+if(!getSDK()){
+  DEMO=true;
+  els.devBadge.style.display='block';
+  setupSDK({user:getSDK()?.getUser?.()||user,isHost:true,roomId:'DEMO',roomPlayers:[{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}]});
+  showToast('開發測試模式：1 人自動開局，不扣款');
+}else{
+  els.devBadge.style.display='none';
+  setupSDK({
+    user:typeof getSDK().getUser==='function'?getSDK().getUser():user,
+    isHost:getSDK().isHost,
+    roomId:getSDK().roomId,
+    roomPlayers:Array.isArray(getSDK().roomPlayers)?getSDK().roomPlayers:[]
+  });
 }
-
-function showFloatingText(element, text, color) {
-    const rect = element.getBoundingClientRect();
-    const div = document.createElement('div');
-    div.className = 'floating-text';
-    div.innerText = text;
-    div.style.color = color;
-    div.style.left = (rect.left + rect.width/2 - 20) + 'px';
-    div.style.top = (rect.top - 10) + 'px';
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 800);
-}
-
-/* ==============================
-   Init & Bindings
-   ============================== */
-els.btnHelp.onclick = () => { initAudio(); els.modalRules.classList.add('show'); };
-els.btnCloseRules.onclick = () => { initAudio(); els.modalRules.classList.remove('show'); };
-els.btnCloseResult.onclick = () => {
-    initAudio();
-    requestHostAppClose();
-};
-document.addEventListener('pointerdown', initAudio, {once:true, passive:true});
-
-function announceHello() {
-    broadcast('NDB_HELLO', {
-        player: {
-            id: ME.id,
-            username: ME.username,
-            joinedAt: ME.joinedAt,
-            joined: true,
-            hasPaid
-        }
-    });
-    broadcast('NDB_PING', {
-        player: {
-            id: ME.id,
-            username: ME.username,
-            joinedAt: ME.joinedAt,
-            joined: true,
-            hasPaid
-        },
-        requestState: true
-    });
-}
-
-announceHello();
-setTimeout(() => {
-    // 若 SDK 明確提供房主資訊，直接使用；只有沒有提供時才做一次本地備援選舉。
-    if(!initialElectionDone && !SDK) electInitialHost();
-    if(isHost()) broadcastState(true);
-}, 1000);
-
-setInterval(() => {
-    const me = players.get(ME.id);
-    if(me) { me.online = true; me.lastSeen = Date.now(); }
-    broadcast('NDB_PING', {
-        player: {
-            id: ME.id,
-            username: ME.username,
-            joinedAt: ME.joinedAt,
-            joined: true,
-            hasPaid
-        }
-    });
-    if(isHost()) broadcastState(true);
-}, 2000);
-
-setInterval(() => {
-    const now = Date.now();
-    for(const p of players.values()) if(now - p.lastSeen > HOST_TIMEOUT_MS) p.online = false;
-    maybeTakeoverHost();
-}, 1000);
-
-if(DEMO) showToast('預覽模式：未偵測到 BoomRoom SDK');
-render();
-
-window.addEventListener('visibilitychange', () => {
-    if(!document.hidden) {
-        const p = players.get(ME.id);
-        if(p) { p.lastSeen = Date.now(); p.online = true; }
-        announceHello();
-    }
-});
 
 })();
 </script>
 </body>
+
 </html>
