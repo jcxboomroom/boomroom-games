@@ -819,6 +819,8 @@ const CFG = {
 
   STATE_MS:700,
 
+  RESULT_DISPLAY_MS:3000,
+
   MAX_PARTICLES:120,
 
   MAX_RIPPLES:45,
@@ -955,203 +957,122 @@ const el = {
 ========================================================= */
 
 let DEV = true;
-let sdkInitialized = false;
+
 let sdkIsHost = false;
+
 let gameRoomId = '';
 
 let rawUser = {
-  id:'dev-'+Math.random().toString(36).slice(2),
+
+  id:'dev-'+
+    Math.random()
+      .toString(36)
+      .slice(2),
+
   username:'開發玩家',
+
   avatar:''
+
 };
 
 let ME = {
+
   id:rawUser.id,
+
   username:rawUser.username,
+
   avatar:rawUser.avatar,
+
   joinedAt:Date.now()
+
 };
 
-const players = new Map();
-const items = new Map();
-const seenActions = new Map();
+const players =
+  new Map();
+
+const items =
+  new Map();
+
+const seenActions =
+  new Map();
 
 addPlayer(ME);
 
 /* =========================================================
-   SDK INIT / BRIDGE
-   支援：
-   1. window.BoomRoomSDK 已存在
-   2. onBoomRoomSDKReady
-   3. Flutter / WebView postMessage
-   4. 沒有 SDK 時自動 DEV fallback
+   SDK INIT
 ========================================================= */
 
-function getSdkSnapshot(){
-  const sdk = window.BoomRoomSDK;
-
-  if(!sdk) return null;
-
-  let user = null;
-
-  try{
-    if(typeof sdk.getUser === 'function'){
-      user = sdk.getUser();
-    }else if(sdk.user){
-      user = sdk.user;
-    }
-  }catch(_){}
-
-  const roomId =
-    sdk.roomId != null
-      ? String(sdk.roomId)
-      : '';
-
-  const isHost =
-    !!sdk.isHost;
-
-  const roomPlayers =
-    Array.isArray(sdk.roomPlayers)
-      ? sdk.roomPlayers
-      : [];
-
-  /*
-   * SDK 至少要能提供 user / roomId / isHost
-   * 其中任一項即可視為「已掛載」。
-   */
-  if(!user && !roomId && !isHost && !roomPlayers.length){
-    return null;
-  }
-
-  return {
-    user,
-    isHost,
-    roomId,
-    roomPlayers
-  };
-}
-
 function setupSDK(data){
-  /*
-   * 不要因為空 initSDK 就把 DEV 關掉。
-   * 否則 Flutter 只送 {action:'initSDK'} 時，
-   * 遊戲會進入「非 DEV、又沒有 SDK」的死區。
-   */
-  if(!data || typeof data !== 'object'){
-    return false;
-  }
 
-  const hasUsefulData =
-    !!data.user ||
-    data.roomId != null ||
-    data.isHost != null ||
-    Array.isArray(data.roomPlayers);
-
-  if(!hasUsefulData){
-    return false;
-  }
-
-  sdkInitialized = true;
   DEV = false;
 
-  if(data.user){
+  if(data && data.user){
+
     rawUser = data.user;
 
-    const nextId =
-      rawUser.id != null
-        ? String(rawUser.id)
-        : ME.id;
-
-    ME.id = nextId;
+    ME.id =
+      String(rawUser.id);
 
     ME.username =
       String(
         rawUser.username ||
-        rawUser.name ||
         '玩家'
       ).slice(0,22);
 
     ME.avatar =
       String(
         rawUser.avatar ||
-        rawUser.avatarUrl ||
         ''
       );
+
   }
 
-  sdkIsHost = !!data.isHost;
+  sdkIsHost =
+    !!(data && data.isHost);
 
   gameRoomId =
-    data.roomId != null
+    data && data.roomId
       ? String(data.roomId)
       : '';
 
   if(sdkIsHost){
-    hostId = ME.id;
+
+    hostId =
+      ME.id;
+
   }
 
   players.clear();
+
   addPlayer(ME);
 
-  if(Array.isArray(data.roomPlayers)){
+  if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {
-      if(rp && rp.id != null){
+      if(rp && rp.id != null) {
         addPlayer({
-          id:String(rp.id),
-          username:String(
-            rp.username ||
-            rp.name ||
-            '玩家'
-          ).slice(0,22),
-          avatar:String(
-            rp.avatar ||
-            rp.avatarUrl ||
-            ''
-          ),
-          joinedAt:
-            finite(
-              rp.joinedAt,
-              Date.now()
-            )
+          id: String(rp.id),
+          username: String(rp.username || '玩家').slice(0, 22),
+          avatar: String(rp.avatar || ''),
+          joinedAt: Date.now()
         });
       }
     });
   }
 
-  el.devBadge.style.display = 'none';
-  el.start.textContent = '開始搶金';
-  el.start.disabled = false;
+  el.devBadge.style.display =
+    'none';
+
+  el.start.textContent =
+    '開始搶金';
+
+  el.start.disabled =
+    false;
 
   syncUI();
+
   hello();
 
-  return true;
 }
-
-function tryInitFromSDK(){
-  if(sdkInitialized) return true;
-
-  const snapshot = getSdkSnapshot();
-
-  if(!snapshot) return false;
-
-  return setupSDK(snapshot);
-}
-
-/*
- * 一定先註冊 callback，再檢查 SDK。
- * 避免 SDK 在頁面載入前就 ready，
- * 導致 onBoomRoomSDKReady 永遠收不到。
- */
-window.onBoomRoomSDKReady = function(){
-  tryInitFromSDK();
-};
-
-/*
- * 某些 WebView 會把 SDK 直接掛上 window，
- * 但不會呼叫 callback，所以立即檢查。
- */
-tryInitFromSDK();
 
 /* =========================================================
    FLUTTER / WEB MESSAGE
@@ -1160,138 +1081,114 @@ tryInitFromSDK();
 window.addEventListener(
   'message',
   e => {
+
     let d;
 
     try{
+
       d =
         typeof e.data === 'string'
           ? JSON.parse(e.data)
           : e.data;
-    }catch(_){
+
+    }catch(err){
+
       return;
+
     }
 
-    if(!d || typeof d !== 'object') return;
+    if(!d)return;
 
-    /*
-     * 兼容：
-     * {action:'initSDK', ...}
-     * {type:'initSDK', ...}
-     */
-    const action =
-      String(
-        d.action ||
-        d.type ||
-        ''
-      );
+    if(d.action === 'initSDK'){
 
-    if(
-      action === 'initSDK' ||
-      action === 'boomroom:initSDK' ||
-      action === 'sdkReady'
-    ){
       setupSDK(d);
-      return;
-    }
 
-    if(action === 'gameEventReceived'){
+    }else
+    if(d.action === 'gameEventReceived'){
+
       handleEvent(
-        String(d.eventName || ''),
+        String(
+          d.eventName ||
+          ''
+        ),
         d.payload || {},
         d.userId != null
           ? String(d.userId)
           : null
       );
-      return;
+
     }
 
-    if(action === 'purchaseSuccess'){
+    /*
+     * Flutter purchase callback
+     */
+    if(d.action === 'purchaseSuccess'){
+
       window.onPurchaseSuccess(
         String(d.itemId || '')
       );
-      return;
+
     }
 
-    if(action === 'purchaseFailed'){
+    if(d.action === 'purchaseFailed'){
+
       window.onPurchaseFailed(
         String(d.itemId || '')
       );
-      return;
+
     }
+
   }
 );
 
+window.onBoomRoomSDKReady =
+function(){
+
+  if(
+    window.BoomRoomSDK
+  ){
+
+    setupSDK({
+
+      user:
+        window.BoomRoomSDK.getUser(),
+
+      isHost:
+        window.BoomRoomSDK.isHost,
+
+      roomId:
+        window.BoomRoomSDK.roomId,
+
+      roomPlayers:
+        window.BoomRoomSDK.roomPlayers || []
+
+    });
+
+  }
+
+};
+
 /*
- * 告訴 Flutter / 父頁面：
- * 「HTML 遊戲已經準備好，可以把 SDK 初始化資料送進來」。
+ * 沒 SDK → 開發模式
  */
-function requestSDKInit(){
-  const msg = {
-    action:'requestSDKInit',
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version
-  };
+setTimeout(
+  () => {
 
-  try{
-    if(window.parent !== window){
-      window.parent.postMessage(msg, '*');
-    }
-  }catch(_){}
+    if(DEV){
 
-  try{
-    if(window.BoomRoomSDK &&
-       typeof window.BoomRoomSDK.requestInit === 'function'){
-      window.BoomRoomSDK.requestInit();
-    }
-  }catch(_){}
-}
+      el.start.textContent =
+        '開始搶金 (開發模式)';
 
-/*
- * 給 WebView 足夠時間接 SDK。
- * 沒 SDK 才進 DEV；DEV 模式永遠可以直接玩。
- */
-let sdkBootTimer = 0;
+      el.start.disabled =
+        false;
 
-function bootSDKBridge(){
-  tryInitFromSDK();
-
-  requestSDKInit();
-
-  window.setTimeout(() => {
-    tryInitFromSDK();
-
-    if(!sdkInitialized && !window.BoomRoomSDK){
-      DEV = true;
-      el.devBadge.style.display = 'inline-flex';
-      el.start.textContent = '開始搶金（開發模式）';
-      el.start.disabled = false;
-      syncUI();
       hello();
-    }
-  }, 1500);
 
-  /*
-   * 某些 App 比較慢，繼續容許到 8 秒才完成 SDK 初始化。
-   * 但 DEV 已啟動也不會阻止正式 SDK 接管。
-   */
-  sdkBootTimer = window.setInterval(() => {
-    if(sdkInitialized){
-      window.clearInterval(sdkBootTimer);
-      return;
     }
 
-    tryInitFromSDK();
-
-    if(
-      sdkInitialized ||
-      window.BoomRoomSDK
-    ){
-      window.clearInterval(sdkBootTimer);
-    }
-  }, 500);
-}
-
-bootSDKBridge();
+  },
+  1500
+);
 
 /* =========================================================
    NETWORK
@@ -1301,45 +1198,56 @@ function send(
   name,
   payload
 ){
-  const safePayload =
-    payload && typeof payload === 'object'
-      ? payload
-      : {};
 
-  /*
-   * 正式 SDK 優先。
-   * DEV 模式仍允許 parent postMessage，
-   * 方便在 BoomRoom WebView shell 裡做聯調。
-   */
+  if(DEV)return;
+
+  const eventData = {
+
+    action:
+      'sendGameEvent',
+
+    eventName:
+      name,
+
+    payload:
+      payload
+
+  };
+
   if(
     window.BoomRoomSDK &&
-    typeof window.BoomRoomSDK.sendGameEvent === 'function'
+    typeof
+      window.BoomRoomSDK
+        .sendGameEvent ===
+      'function'
   ){
-    try{
-      window.BoomRoomSDK.sendGameEvent(
+
+    window.BoomRoomSDK
+      .sendGameEvent(
         name,
-        safePayload
+        payload
       );
-    }catch(_){}
-    return;
+
+  }else
+  if(
+    window.parent !==
+    window
+  ){
+
+    window.parent.postMessage(
+      JSON.stringify(
+        eventData
+      ),
+      '*'
+    );
+
   }
 
-  if(window.parent !== window){
-    try{
-      window.parent.postMessage({
-        action:'sendGameEvent',
-        eventName:name,
-        payload:safePayload
-      }, '*');
-    }catch(_){}
-  }
 }
 
 /* =========================================================
    GAME STATE
-=========================================================
-
- */
+========================================================= */
 
 let phase =
   STATES.MENU;
@@ -1376,6 +1284,12 @@ let currentSettled =
 
 let gameOverCalled =
   false;
+
+let resultStartedAt =
+  0;
+
+let resultGameOverTimer =
+  null;
 
 let purchasing =
   false;
@@ -2289,14 +2203,36 @@ function itemPos(
     p*p*
     (3-2*p);
 
+  const sway =
+    Math.sin(
+      it.wobble +
+      p*Math.PI*1.7
+    )*
+    (2.5 + p*3.5);
+
+  const curve =
+    it.curve *
+    Math.sin(
+      p*Math.PI
+    );
+
   return {
 
     x:
-      it.x/100*W,
+      clamp(
+        it.x +
+        it.drift*p +
+        curve +
+        sway,
+        4,
+        96
+      )/100*W,
 
     y:
-      (-8+
-       118*e) /
+      (
+        it.startY +
+        124*e
+      ) /
       100*H
 
   };
@@ -2424,57 +2360,54 @@ function spawnBatch(now){
     }
 
     /*
-     * 避免全部重疊
+     * 不再使用固定分道。
+     * 每顆金幣都有自己的 X、起始高度、橫向漂移與落點偏移，
+     * 讓畫面看起來像隨機掉落，而不是整齊排隊。
      */
-    const lane =
-      i %
-      Math.max(
-        1,
-        Math.min(
-          count,
-          5
-        )
-      );
-
     let x =
-      8 +
-      (
-        lane /
-        Math.max(
-          1,
-          Math.min(
-            count,
-            5
-          )-1
-        )
-      )*84;
+      7 +
+      r()*86;
 
-    if(
-      count <= 1
-    ){
+    let tooClose =
+      true;
+
+    for(let attempt=0; attempt<8 && tooClose; attempt++){
+
+      tooClose =
+        false;
 
       x =
-        50;
+        7 +
+        r()*86;
+
+      for(const old of arr){
+
+        if(
+          Math.abs(old.x-x) <
+          9
+        ){
+
+          tooClose =
+            true;
+
+          break;
+
+        }
+
+      }
 
     }
-
-    /*
-     * 隨機偏移
-     */
-    x +=
-      (r()-.5)*
-      13;
 
     x =
       clamp(
         x,
-        7,
-        93
+        6,
+        94
       );
 
     const spawnAt =
       now +
-      i*35;
+      i*(18+r()*58);
 
     arr.push({
 
@@ -2503,6 +2436,22 @@ function spawnBatch(now){
             r()*.18,
 
       rot:
+        r()*
+        Math.PI*2,
+
+      startY:
+        -16 +
+        r()*18,
+
+      drift:
+        (r()-.5)*
+        18,
+
+      curve:
+        (r()-.5)*
+        10,
+
+      wobble:
         r()*
         Math.PI*2
 
@@ -2590,6 +2539,33 @@ function acceptBatch(arr){
       rot:
         finite(
           raw.rot,
+          0
+        ),
+
+      startY:
+        clamp(
+          raw.startY,
+          -25,
+          8
+        ),
+
+      drift:
+        clamp(
+          raw.drift,
+          -22,
+          22
+        ),
+
+      curve:
+        clamp(
+          raw.curve,
+          -14,
+          14
+        ),
+
+      wobble:
+        finite(
+          raw.wobble,
           0
         ),
 
@@ -4289,7 +4265,10 @@ function hostClaim(
         p.combo,
 
       bestCombo:
-        p.bestCombo
+        p.bestCombo,
+
+      actions:
+        p.actions
 
     }
   );
@@ -4418,14 +4397,23 @@ function playerClaim(
     ){
 
       /*
-       * 客戶端預先算分
-       * 讓操作沒有網路延遲感
+       * 只計算預覽，不直接改本地分數。
+       * 最終分數一律由 Host 的 BBG_CLAIMED 回傳，
+       * 避免 Web 版同步時出現加分後又被扣回 0。
        */
+      const mult =
+        1 +
+        Math.min(
+          optimisticPlayer.combo,
+          20
+        )*.10;
+
       const delta =
-        scoreItem(
-          optimisticPlayer,
-          visualCopy
-        );
+        visualCopy.type === 'bomb'
+          ? VALUE.bomb
+          : Math.floor(
+              VALUE[visualCopy.type]*mult
+            );
 
       claimEffect(
         visualCopy,
@@ -4784,6 +4772,33 @@ function addRemotePlayerState(
 
   if(!q)return;
 
+  const incomingActions =
+    clamp(
+      p.actions,
+      0,
+      9999
+    );
+
+  /*
+   * 防止舊的 BBG_STATE 把剛搶到的分數覆蓋回 0。
+   * actions 是本局單調遞增的版本號；
+   * 只有較新的狀態才可以覆蓋分數。
+   */
+  if(
+    phase === STATES.PLAYING &&
+    incomingActions < q.actions
+  ){
+
+    q.online =
+      !!p.online;
+
+    q.lastSeen =
+      Date.now();
+
+    return;
+
+  }
+
   q.score =
     clamp(
       p.score,
@@ -4806,11 +4821,7 @@ function addRemotePlayerState(
     );
 
   q.actions =
-    clamp(
-      p.actions,
-      0,
-      9999
-    );
+    incomingActions;
 
   q.online =
     !!p.online;
@@ -5269,26 +5280,43 @@ function handleEvent(
 
     if(p){
 
-      p.score =
+      const incomingActions =
         clamp(
-          payload.score,
+          payload.actions,
           0,
-          Number.MAX_SAFE_INTEGER
+          9999
         );
 
-      p.combo =
+      if(
+        incomingActions >=
+        p.actions
+      ){
+
+        p.score =
+          clamp(
+            payload.score,
+            0,
+            Number.MAX_SAFE_INTEGER
+          );
+
+        p.combo =
         clamp(
           payload.combo,
           0,
           30
         );
 
-      p.bestCombo =
-        clamp(
-          payload.bestCombo,
-          0,
-          30
-        );
+        p.bestCombo =
+          clamp(
+            payload.bestCombo,
+            0,
+            30
+          );
+
+        p.actions =
+          incomingActions;
+
+      }
 
     }
 
@@ -5347,93 +5375,17 @@ function handleEvent(
 ========================================================= */
 
 function requestEntry(){
-  if(
-    currentPaid ||
-    purchasing
-  ){
-    return;
-  }
-
-  /*
-   * 獨立瀏覽器 / DEV：不扣銀幣，直接開始。
-   */
-  if(DEV && !window.BoomRoomSDK){
-    currentPaid = true;
-    startRoundAfterEntry();
-    return;
-  }
-
-  const itemId =
-    'entry_' +
-    String(selectedEntry);
-
-  pendingPurchase = itemId;
-  purchasing = true;
-  phase = STATES.PURCHASING;
-  syncUI();
-
-  const sdk =
-    window.BoomRoomSDK;
-
-  /*
-   * 正式 SDK。
-   */
-  if(
-    sdk &&
-    typeof sdk.requestPurchase === 'function'
-  ){
-    try{
-      sdk.requestPurchase(
-        itemId,
-        selectedEntry
-      );
-      return;
-    }catch(_){}
-  }
-
-  /*
-   * Flutter / WebView bridge fallback。
-   */
-  if(window.parent !== window){
-    try{
-      window.parent.postMessage({
-        action:'requestPurchase',
-        itemId,
-        cost:selectedEntry
-      }, '*');
-      return;
-    }catch(_){}
-  }
-
-  /*
-   * 完全沒有支付橋接時，不要永久卡在 PURCHASING。
-   */
-  purchasing = false;
-  pendingPurchase = '';
-  phase = STATES.MENU;
-  syncUI();
-
-  showToast(
-    '找不到支付 SDK',
-    '#ff7b92'
-  );
+  currentPaid = true;
+  startRoundAfterEntry();
 }
 
 window.onPurchaseSuccess =
 function(itemId){
 
-  itemId =
-    String(
-      itemId ||
-      pendingPurchase ||
-      ''
-    );
-
-  if(!purchasing) return;
-
   if(
-    pendingPurchase &&
-    itemId !== pendingPurchase
+    !purchasing ||
+    itemId !==
+    pendingPurchase
   )return;
 
   purchasing =
@@ -5452,16 +5404,9 @@ function(itemId){
 window.onPurchaseFailed =
 function(itemId){
 
-  itemId =
-    String(
-      itemId ||
-      pendingPurchase ||
-      ''
-    );
-
   if(
-    pendingPurchase &&
-    itemId !== pendingPurchase
+    itemId !==
+    pendingPurchase
   )return;
 
   purchasing =
@@ -5521,6 +5466,16 @@ function startRoundAfterEntry(){
 
   gameOverCalled =
     false;
+
+  resultStartedAt =
+    0;
+
+  if(resultGameOverTimer){
+    clearTimeout(
+      resultGameOverTimer
+    );
+    resultGameOverTimer = null;
+  }
 
   phase =
     STATES.COUNTDOWN;
@@ -5678,33 +5633,52 @@ function settleReward(){
 
     };
 
-    if(
-      window.BoomRoomSDK &&
-      typeof
-        window.BoomRoomSDK
-          .gameOver ===
-        'function'
-    ){
+    /*
+     * 結算畫面至少完整展示 3 秒。
+     * 不要在 finishResult() 當下就通知 Flutter 關閉 WebView，
+     * 否則玩家只會看到一閃而過的結算。
+     */
+    resultStartedAt =
+      Date.now();
 
-      window.BoomRoomSDK
-        .gameOver(
-          safe
-        );
+    resultGameOverTimer =
+      setTimeout(
+        () => {
 
-    }else
-    if(
-      window.parent !==
-      window
-    ){
+          resultGameOverTimer =
+            null;
 
-      window.parent.postMessage(
-        JSON.stringify(
-          reqData
-        ),
-        '*'
+          if(
+            window.BoomRoomSDK &&
+            typeof
+              window.BoomRoomSDK
+                .gameOver ===
+              'function'
+          ){
+
+            window.BoomRoomSDK
+              .gameOver(
+                safe
+              );
+
+          }else
+          if(
+            window.parent !==
+            window
+          ){
+
+            window.parent.postMessage(
+              JSON.stringify(
+                reqData
+              ),
+              '*'
+            );
+
+          }
+
+        },
+        CFG.RESULT_DISPLAY_MS
       );
-
-    }
 
   }
 
@@ -5957,7 +5931,25 @@ function finishResult(){
     'grid';
 
   el.wait.disabled =
-    false;
+    true;
+
+  el.wait.textContent =
+    '結算中 3 秒…';
+
+  setTimeout(
+    () => {
+
+      if(phase !== STATES.RESULT)return;
+
+      el.wait.disabled =
+        false;
+
+      el.wait.textContent =
+        '等待房主重新開局';
+
+    },
+    CFG.RESULT_DISPLAY_MS
+  );
 
 }
 
@@ -6658,15 +6650,8 @@ requestAnimationFrame(
    INITIAL
 ========================================================= */
 
-el.lobby.style.display = 'grid';
-
-/*
- * 明確初始化 UI。
- * 如果 SDK 尚未到，顯示「連線中」；
- * bootSDKBridge() 成功後會切換成可按鈕。
- */
-el.start.disabled = true;
-el.start.textContent = '連線中...';
+el.lobby.style.display =
+  'grid';
 
 })();
 </script>
