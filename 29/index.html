@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#160d2d">
+    <title>燙手炸彈</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="hud">
+        <div class="brand"><span class="brand-mark">✳</span><span>BOOM<span class="brand-light">ROOM</span></span></div>
+        <div class="round-clock" aria-label="剩餘時間"><span class="clock-dot"></span><span id="clock">45</span></div>
+        <div class="leader" id="leader" aria-live="polite"></div>
+      </header>
+
+      <section class="arena-wrap" aria-label="炸彈競技場">
+        <canvas id="arena" aria-label="遊戲場景"></canvas>
+        <div class="round-callout" id="callout" aria-live="assertive"></div>
+        <div class="event-toast" id="toast"></div>
+        <div class="joystick" id="joystick" aria-label="移動搖桿">
+          <span class="stick-ring"></span><span class="stick-knob" id="knob"></span>
+        </div>
+        <button class="pass-button" id="pass" aria-label="把炸彈傳出去">
+          <span class="pass-icon" aria-hidden="true"></span><span>傳球</span>
+        </button>
+      </section>
+
+      <footer class="footer">
+        <div class="life-strip" id="life-strip"></div>
+        <div class="hint" id="hint">移動躲開　·　拿到炸彈就傳給別人</div>
+        <div class="mini-score" id="mini-score">0 分</div>
+      </footer>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
