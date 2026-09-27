@@ -49,13 +49,12 @@ html, body {
     gap: 10px;
 }
 
-/* Topbar */
-.topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 10px; background: var(--panel);
-    border: 1px solid rgba(0, 229, 255, 0.3); border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); flex-shrink: 0;
+/* Floating controls */
+.floating-controls {
+    position: fixed; top: calc(10px + var(--safe-top)); left: 10px; right: 10px;
+    z-index: 90; display:flex; justify-content:space-between; pointer-events:none;
 }
+.floating-controls .icon-btn { pointer-events:auto; }
 .icon-btn {
     width: 36px; height: 36px; border-radius: 10px;
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
@@ -63,8 +62,6 @@ html, body {
     font-size: 18px; cursor: pointer; transition: transform 0.1s;
 }
 .icon-btn:active { transform: scale(0.9); }
-.brand h1 { font-size: 16px; margin: 0; color: var(--gold); text-shadow: 0 0 5px var(--gold); letter-spacing: 1px; }
-.brand small { display: block; font-size: 9px; color: var(--muted); font-family: sans-serif; }
 
 /* Info Panel */
 .info-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; flex-shrink: 0; }
@@ -187,6 +184,8 @@ html, body {
     background:rgba(0,0,0,.62); border:1px solid rgba(0,229,255,.35);
     color:var(--cyan); font-size:9px; font-weight:900;
 }
+.lobby-info .live-count { border-color: rgba(0,229,255,.55); box-shadow: 0 0 12px rgba(0,229,255,.12); }
+.lobby-info .live-count b { font-size:16px; }
 .block.hot { animation: blockPulse .55s ease-out; }
 .block.just-mined { animation: minePop .22s ease-out; }
 @keyframes blockPulse {
@@ -205,35 +204,23 @@ html, body {
 <div class="bg-grid"></div>
 
 <div id="app">
-    <header class="topbar">
-        <div class="brand">
-            <button class="icon-btn" id="btn-mute">🔊</button>
-            <div>
-                <h1>貪婪礦坑</h1>
-                <small>大逃殺 · 積分爭奪</small>
-            </div>
-        </div>
-        <div class="brand">
-            <div style="text-align: right;">
-                <div style="font-size:11px; font-weight:bold; color:var(--cyan);" id="my-username">Player</div>
-                <div style="font-size:9px; color:var(--muted);" id="role-text">連線中</div>
-            </div>
-            <button class="icon-btn" id="btn-help">❓</button>
-        </div>
-    </header>
+    <div class="floating-controls">
+        <button class="icon-btn" id="btn-mute" aria-label="音效">🔊</button>
+        <button class="icon-btn" id="btn-help" aria-label="玩法規則">❓</button>
+    </div>
 
-    <div class="info-panel">
+    <div class="info-panel lobby-info">
         <div class="stat-box">
             <b>100 🪙</b>
-            <span>固定入場費</span>
+            <span>房主本局入場</span>
         </div>
         <div class="stat-box">
-            <b id="total-pool">0 🪙</b>
-            <span>總投入</span>
+            <b id="total-pool">90 🪙</b>
+            <span>勝者獎勵</span>
         </div>
-        <div class="stat-box">
+        <div class="stat-box live-count">
             <b id="player-count">0/10</b>
-            <span>已入場玩家</span>
+            <span>已進入房間</span>
         </div>
     </div>
 
@@ -253,8 +240,8 @@ html, body {
     </div>
 
     <div class="control-panel">
-        <button class="main-btn btn-entry" id="main-btn">支付 100 🪙 入場</button>
-        <div id="action-hint" style="text-align:center; font-size:10px; color:var(--muted); font-family:sans-serif;">支付後會自動加入同一礦區；1～10 人共用同一張地圖</div>
+        <button class="main-btn btn-entry" id="main-btn">等待房主</button>
+        <div id="action-hint" style="text-align:center; font-size:11px; color:var(--muted); font-family:sans-serif;">房內玩家會自動加入；由房主按「開始遊戲」後所有人一起開始</div>
     </div>
 </div>
 
@@ -263,7 +250,8 @@ html, body {
     <div class="modal-card">
         <h2>玩法規則</h2>
         <ul class="rules-list">
-            <li><b>入場：</b>每人支付 100 銀幣，形成總獎池 (平台收取 10% 手續費)。</li>
+            <li><b>進入：</b>房內 1～10 人會自動加入，不需要每位玩家個別支付。</li>
+            <li><b>房主：</b>房主按「開始遊戲」時支付本局 100 銀幣，扣除平台 10% 後由勝者取得獎勵。</li>
             <li><b>共同礦區：</b>1～10 人共用同一張地圖，任何人挖掉的礦石會立即同步到所有玩家畫面。</li>
             <li><b>開採：</b>遊戲開始後，所有人同時點擊礦石搶分，越快找到高價礦石越有利。</li>
             <li><b>積分：</b>💎鑽石(100分)、🔶黃金(50分)、💠白銀(10分)、🪨碎石(0分)。</li>
@@ -290,7 +278,8 @@ html, body {
             <div id="winners-list" style="font-size:12px; color:#fff; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
-        <button class="main-btn" id="btn-close-result" style="background:#333; padding:15px; font-size:16px; box-shadow:none;">關閉面板</button>
+        <div id="result-close-countdown" style="font-size:12px; color:var(--gold); margin:10px 0 12px;">5 秒後自動關閉遊戲</div>
+        <button class="main-btn" id="btn-close-result" style="background:#333; padding:15px; font-size:16px; box-shadow:none;">關閉遊戲</button>
         <p style="font-size:10px; color:var(--gold); margin-top:15px;">本局已結束，遊戲將自動關閉。</p>
     </div>
 </div>
@@ -325,7 +314,6 @@ const ENTRY_FEE = 100;
 const PLATFORM_FEE_RATE = 0.1;
 const HOST_TIMEOUT_MS = 6000;
 const MAX_PLAYERS = 10;
-const AUTO_START_DELAY_MS = 4500;
 const RESULT_CLOSE_DELAY_MS = 5000;
 const GRID_SIZE = 30; // 6x5
 
@@ -345,10 +333,7 @@ const ITEMS = {
 };
 
 const els = {
-    myUsername: document.getElementById('my-username'),
-    roleText: document.getElementById('role-text'),
     totalPool: document.getElementById('total-pool'),
-    prizePool: document.getElementById('prize-pool'),
     playerCount: document.getElementById('player-count'),
     actionHint: document.getElementById('action-hint'),
     phaseText: document.getElementById('phase-text'),
@@ -434,8 +419,9 @@ const state = {
     result: []
 };
 
-let hasPaid = false;
+let hasPaid = false; // 僅代表房主已完成本局入場扣款
 let purchasePending = false;
+let startRequested = false;
 let gameOverCalled = false;
 let lastStateBroadcast = 0;
 let oldBoardState = []; // For detecting changes and playing animations
@@ -446,7 +432,7 @@ function currentHostOnline() { const p = players.get(hostId); return !!(p && p.o
 function onlinePlayers() { return [...players.values()].filter(p => p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS).sort((a,b) => rankKey(a) - rankKey(b) || a.id.localeCompare(b.id)); }
 
 function electInitialHost() {
-    if(initialElectionDone) return;
+    if(initialElectionDone || SDK) return;
     const a = onlinePlayers(); if(!a.length) return;
     hostId = a[0].id; initialElectionDone = true;
     if(isHost()) broadcastState(true);
@@ -467,11 +453,12 @@ function addOrUpdatePlayer(raw, seen=true) {
     const id = String(raw.id);
     let p = players.get(id);
     if(!p) {
-        p = { id, username: String(raw.username||'玩家').slice(0,12), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, score: 0, status: 'ALIVE', online: true, lastSeen: Date.now(), combo: 0, bestCombo: 0, mines: 0 };
+        p = { id, username: String(raw.username||'玩家').slice(0,12), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, joined: true, score: 0, status: 'ALIVE', online: true, lastSeen: Date.now(), combo: 0, bestCombo: 0, mines: 0 };
         players.set(id, p);
     } else {
         if(raw.username != null) p.username = String(raw.username).slice(0,12);
         if(raw.hasPaid != null) p.hasPaid = !!raw.hasPaid;
+        if(raw.joined != null) p.joined = !!raw.joined;
         if(raw.score != null) p.score = Number(raw.score);
         if(raw.status != null) p.status = raw.status;
         if(raw.combo != null) p.combo = Number(raw.combo) || 0;
@@ -496,7 +483,8 @@ function snapshotState() {
         level: state.level,
         board: state.board,
         result: state.result.slice(),
-        players: [...players.values()].filter(p => p.hasPaid || p.id === ME.id).map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, score: p.score, status: p.status, online: p.online, combo: p.combo, bestCombo: p.bestCombo, mines: p.mines}))
+        hostPaid: !!hasPaid,
+        players: [...players.values()].filter(p => p.joined).slice(0, MAX_PLAYERS).map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, joined: p.joined, score: p.score, status: p.status, online: p.online, combo: p.combo, bestCombo: p.bestCombo, mines: p.mines}))
     };
 }
 function broadcastState(force=false) {
@@ -529,8 +517,7 @@ function applySnapshot(s) {
         oldBoardState = JSON.parse(JSON.stringify(state.board));
     }
     
-    const me = players.get(ME.id);
-    if(me) { hasPaid = me.hasPaid; }
+    if(s.hostPaid != null) hasPaid = !!s.hostPaid;
     
     maybeCallGameOver();
     render();
@@ -569,30 +556,40 @@ function checkBoardChanges() {
 /* ==============================
    Economy & Actions
    ============================== */
-function requestEntry() {
+function requestStartGame() {
     initAudio();
-    if(state.phase !== 'LOBBY' || hasPaid || purchasePending) return;
+    if(!isHost() || state.phase !== 'LOBBY' || purchasePending || startRequested) return;
 
-    const currentPaid = [...players.values()].filter(p => p.hasPaid).length;
-    if(currentPaid >= MAX_PLAYERS) {
-        showToast('本局已滿 10 人');
+    const roomCount = getRoomParticipants().length;
+    if(roomCount < 1) {
+        showToast('尚未偵測到房內玩家');
+        return;
+    }
+    if(roomCount > MAX_PLAYERS) {
+        showToast('本局最多 10 人');
         return;
     }
 
+    startRequested = true;
     purchasePending = true;
     render();
 
+    // 沒有 SDK 時只進開發測試模式，不假裝支付成功。
     if(DEMO) {
-        setTimeout(() => window.onPurchaseSuccess('miner_entry'), 300);
+        purchasePending = false;
+        hasPaid = true;
+        hostStartGame();
         return;
     }
 
     try {
+        // 只有房主支付一次；其他房內玩家完全不需要按支付。
         window.BoomRoomSDK.requestPurchase('miner_entry', ENTRY_FEE);
     } catch(e) {
+        startRequested = false;
         purchasePending = false;
         render();
-        showToast('入場請求失敗');
+        showToast('無法發起房主入場扣款');
     }
 }
 
@@ -601,57 +598,54 @@ window.onPurchaseSuccess = function(itemId) {
 
     purchasePending = false;
     hasPaid = true;
+    startRequested = false;
 
     const me = players.get(ME.id);
     if(me) {
         me.hasPaid = true;
         me.lastSeen = Date.now();
         me.online = true;
-        me.status = 'ALIVE';
-        me.combo = 0;
-        me.bestCombo = 0;
-        me.mines = 0;
     }
 
     sfx.pay();
-    showToast('成功加入共同礦區！');
-
-    broadcast('NDB_PAID', {
-        playerId: ME.id,
-        matchId: state.matchId
-    });
+    showToast('房主入場成功，所有玩家即將一起開始！');
 
     if(isHost()) {
-        maybeAutoStart();
-        broadcastState(true);
+        hostStartGame();
     }
-
     render();
 };
 
 window.onPurchaseFailed = function(itemId) {
     if(itemId === 'miner_entry') {
         purchasePending = false;
-        showToast('支付取消或失敗');
+        startRequested = false;
+        showToast('房主支付取消或失敗，本局尚未開始');
         render();
     }
 };
 
+function getRoomParticipants() {
+    return [...players.values()]
+        .filter(p => p.joined && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS)
+        .sort((a,b) => Number(a.joinedAt) - Number(b.joinedAt) || a.id.localeCompare(b.id))
+        .slice(0, MAX_PLAYERS);
+}
+
 function requestMine(index) {
     initAudio();
 
-    if(state.phase !== 'PLAYING' || !hasPaid) return;
+    if(state.phase !== 'PLAYING') return;
 
     const me = players.get(ME.id);
-    if(!me || me.status === 'DEAD') {
-        showToast('你已被炸彈淘汰，無法繼續開採！');
+    if(!me || !me.joined || me.status === 'DEAD') {
+        showToast('你目前無法開採');
         return;
     }
 
     const block = state.board[index];
     if(!block || block.minedBy) return;
 
-    // 所有人看到的是同一個 board；只有 Host 實際決定結果。
     if(isHost()) {
         applyHostMine(ME.id, index);
     } else {
@@ -664,43 +658,26 @@ function requestMine(index) {
     }
 }
 
+
 /* ==============================
    Host Logic
    ============================== */
 
-function getPaidOnlinePlayers() {
-    return [...players.values()]
-        .filter(p => p.hasPaid && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS)
-        .sort((a,b) => Number(a.joinedAt) - Number(b.joinedAt) || a.id.localeCompare(b.id));
-}
-
-function maybeAutoStart() {
-    if(!isHost() || state.phase !== 'LOBBY') return;
-
-    const paidPlayers = getPaidOnlinePlayers();
-    if(paidPlayers.length < 1) return;
-
-    // 第一位玩家入場後自動倒數，不再要求房主手動按開始。
-    if(!state.autoStartAt) {
-        state.autoStartAt = Date.now() + AUTO_START_DELAY_MS;
-        state.expectedPlayers = Math.min(MAX_PLAYERS, paidPlayers.length);
-        broadcastState(true);
-    }
-
-    // 10 人滿員時立即進入短倒數，避免最後一人等太久。
-    if(paidPlayers.length >= MAX_PLAYERS) {
-        state.autoStartAt = Math.min(state.autoStartAt, Date.now() + 1200);
-        broadcastState(true);
-    }
+function getActiveParticipants() {
+    return getRoomParticipants();
 }
 
 function hostStartGame() {
     if(!isHost() || state.phase !== 'LOBBY') return;
 
-    const paidPlayers = getPaidOnlinePlayers().slice(0, MAX_PLAYERS);
-    if(paidPlayers.length < 1) return;
+    const participants = getActiveParticipants();
+    if(participants.length < 1) {
+        showToast('尚未偵測到房內玩家');
+        return;
+    }
 
-    paidPlayers.forEach(p => {
+    participants.forEach(p => {
+        p.joined = true;
         p.score = 0;
         p.status = 'ALIVE';
         p.combo = 0;
@@ -708,7 +685,7 @@ function hostStartGame() {
         p.mines = 0;
     });
 
-    state.expectedPlayers = paidPlayers.length;
+    state.expectedPlayers = participants.length;
     state.autoStartAt = 0;
     state.phase = 'COUNTDOWN';
     state.phaseEndsAt = Date.now() + 3000;
@@ -716,14 +693,16 @@ function hostStartGame() {
     state.board = [];
     state.lastMineAt = 0;
     hostGenerateBoard();
+
+    // 先告知所有客戶端房主已確認玩家名單，再同步同一局。
+    broadcast('NDB_HOST', { hostId: ME.id, matchId: state.matchId });
     broadcastState(true);
 }
 
 function hostGenerateBoard() {
     const board = [];
-    const playerCount = Math.max(1, Math.min(MAX_PLAYERS, state.expectedPlayers || getPaidOnlinePlayers().length));
+    const playerCount = Math.max(1, Math.min(MAX_PLAYERS, state.expectedPlayers || getActiveParticipants().length));
 
-    // 人越多競爭越激烈；隨樓層逐步增加炸彈。
     let bombs = Math.min(9, 2 + Math.floor((state.level - 1) * 0.65) + Math.floor((playerCount - 1) / 3));
     let gems = state.level % 4 === 0 ? 3 : 2;
     let golds = playerCount >= 6 ? 6 : 5;
@@ -747,22 +726,16 @@ function hostGenerateBoard() {
         [pool[i], pool[j]] = [pool[j], pool[i]];
     }
 
-    for(let i=0; i<GRID_SIZE; i++) {
-        board.push({
-            type: pool[i] || 'DIRT',
-            minedBy: null,
-            minedAt: 0
-        });
+    for(let i = 0; i < GRID_SIZE; i++) {
+        board.push({ type: pool[i] || 'DIRT', minedBy: null, minedAt: 0 });
     }
-
     state.board = board;
 }
 
 function applyHostMine(playerId, index) {
     if(state.phase !== 'PLAYING') return;
-
     const p = players.get(String(playerId));
-    if(!p || !p.hasPaid || p.status === 'DEAD') return;
+    if(!p || !p.joined || p.status === 'DEAD') return;
 
     const block = state.board[index];
     if(!block || block.minedBy) return;
@@ -778,33 +751,22 @@ function applyHostMine(playerId, index) {
         const base = ITEMS[block.type].points;
         p.combo = (p.combo || 0) + 1;
         p.bestCombo = Math.max(p.bestCombo || 0, p.combo);
-
-        // 連續採礦加成：2連 +10%，3連 +20%，4連以上 +30%，上限 +30%。
         const multiplier = Math.min(1.3, 1 + Math.max(0, p.combo - 1) * 0.1);
-        const gained = Math.round(base * multiplier);
-        p.score += gained;
+        p.score += Math.round(base * multiplier);
     }
 
-    // 安全區採完，所有仍存活玩家一起進入下一層。
     const allSafeMined = state.board.every(b => b.type === 'BOMB' || !!b.minedBy);
-
     if(allSafeMined) {
         state.level++;
         hostGenerateBoard();
-        broadcast('NDB_LEVELUP', {
-            matchId: state.matchId,
-            level: state.level
-        });
+        broadcast('NDB_LEVELUP', { matchId: state.matchId, level: state.level });
     }
 
-    const paidPlayers = [...players.values()].filter(pl => pl.hasPaid);
-    const aliveCount = paidPlayers.filter(pl => pl.status === 'ALIVE').length;
+    const participants = [...players.values()].filter(pl => pl.joined);
+    const aliveCount = participants.filter(pl => pl.status === 'ALIVE').length;
 
-    if(aliveCount === 0) {
-        resolveGame();
-    } else {
-        broadcastState(true);
-    }
+    if(aliveCount === 0) resolveGame();
+    else broadcastState(true);
 }
 
 function resolveGame() {
@@ -813,19 +775,18 @@ function resolveGame() {
     state.phase = 'RESULT';
     state.phaseEndsAt = Date.now() + RESULT_CLOSE_DELAY_MS;
 
-    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
-    const totalPool = paidPlayers.length * ENTRY_FEE;
-    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
+    // 本局只有房主支付一次 100 銀幣；10% 平台手續費後獎池為 90。
+    const totalPool = hasPaid ? ENTRY_FEE : 0;
+    const prizePool = Math.max(0, totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE));
 
+    const participants = [...players.values()].filter(p => p.joined);
     let maxScore = -1;
-    paidPlayers.forEach(p => {
-        if(p.score > maxScore) maxScore = p.score;
-    });
+    participants.forEach(p => { if(p.score > maxScore) maxScore = p.score; });
 
-    const winners = paidPlayers.filter(p => p.score === maxScore);
+    const winners = participants.filter(p => p.score === maxScore);
     const rewardPerWinner = winners.length > 0 ? Math.floor(prizePool / winners.length) : 0;
 
-    state.result = paidPlayers.map(p => ({
+    state.result = participants.map(p => ({
         id: p.id,
         username: p.username,
         score: p.score,
@@ -869,12 +830,14 @@ function setupSDK(data){
                 addOrUpdatePlayer({
                     id: String(rp.id),
                     username: String(rp.username || '玩家').slice(0,12),
-                    joinedAt: Number(rp.joinedAt) || Date.now()
+                    joinedAt: Number(rp.joinedAt) || Date.now(),
+                    joined: true
                 }, true);
             }
         });
     }
 
+    addOrUpdatePlayer({id: ME.id, username: ME.username, joinedAt: ME.joinedAt, joined:true, hasPaid}, true);
     render();
 }
 
@@ -895,44 +858,28 @@ function handleIncoming(data) {
     if(data.action !== 'gameEventReceived') return;
     const eventName = data.eventName, payload = data.payload || {};
     
-    if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;
+    if(payload.matchId && payload.matchId !== state.matchId && !['NDB_STATE','NDB_HOST'].includes(eventName)) return;
 
     if(eventName === 'NDB_HELLO') {
         if(payload.player) {
-            const existing = players.get(String(payload.player.id));
-            const knownCount = [...players.values()].length;
-            if(existing || knownCount < MAX_PLAYERS || String(payload.player.id) === ME.id) {
-                addOrUpdatePlayer(payload.player, true);
-            }
+            addOrUpdatePlayer({...payload.player, joined:true}, true);
         }
-        if(isHost()) {
-            maybeAutoStart();
-            broadcastState(true);
-        }
+        if(isHost()) broadcastState(true);
+        render();
         return;
     }
 
     if(eventName === 'NDB_PING') {
-        if(payload.player) addOrUpdatePlayer(payload.player, true);
-        if(isHost()) {
-            maybeAutoStart();
-            if(payload.requestState) broadcastState(true);
-        }
+        if(payload.player) addOrUpdatePlayer({...payload.player, joined:true}, true);
+        if(isHost() && payload.requestState) broadcastState(true);
         return;
     }
 
+    // 舊版支付事件保留相容，但不再把它當成玩家入場條件。
     if(eventName === 'NDB_PAID') {
         const p = players.get(String(payload.playerId));
-        if(p && (p.hasPaid || [...players.values()].filter(x => x.hasPaid).length < MAX_PLAYERS)) {
-            p.hasPaid = true;
-            p.status = 'ALIVE';
-            p.lastSeen = Date.now();
-            p.online = true;
-        }
-        if(isHost()) {
-            maybeAutoStart();
-            broadcastState(true);
-        }
+        if(p) p.hasPaid = true;
+        if(isHost()) broadcastState(true);
         render();
         return;
     }
@@ -959,6 +906,10 @@ function handleIncoming(data) {
     }
 
     if(eventName === 'NDB_HOST') {
+        if(payload.matchId && payload.matchId !== state.matchId) {
+            state.matchId = String(payload.matchId);
+            oldBoardState = [];
+        }
         if(payload.hostId != null) {
             hostId = String(payload.hostId);
             initialElectionDone = true;
@@ -992,20 +943,16 @@ function initGrid() {
 initGrid();
 
 function render() {
-    els.myUsername.textContent = ME.username;
-    els.roleText.textContent = isHost() ? '👑 自動房主' : '玩家 · 同步中';
+    const participants = [...players.values()].filter(p => p.joined && p.online).slice(0, MAX_PLAYERS);
+    const participantCount = participants.length;
+    const totalPool = hasPaid ? ENTRY_FEE : 0;
+    const prizePool = Math.max(0, totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE));
 
-    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
-    const paidCount = Math.min(MAX_PLAYERS, paidPlayers.length);
-    const totalPool = paidCount * ENTRY_FEE;
-    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
-
-    els.totalPool.textContent = totalPool.toLocaleString() + ' 🪙';
-    els.prizePool.textContent = prizePool.toLocaleString() + ' 🪙';
-    els.playerCount.textContent = paidCount + '/10';
+    if(els.totalPool) els.totalPool.textContent = prizePool.toLocaleString() + ' 🪙';
+    if(els.playerCount) els.playerCount.textContent = participantCount + '/10';
 
     els.leaderboard.innerHTML = '';
-    const sortedPlayers = paidPlayers.slice().sort((a,b) => b.score - a.score);
+    const sortedPlayers = participants.slice().sort((a,b) => b.score - a.score || Number(a.joinedAt)-Number(b.joinedAt));
     sortedPlayers.forEach(p => {
         const chip = document.createElement('div');
         chip.className = `player-chip ${p.id === ME.id ? 'me' : ''} ${p.status === 'DEAD' ? 'dead' : ''}`;
@@ -1015,29 +962,24 @@ function render() {
     });
 
     if(state.phase === 'LOBBY') {
-        const autoRem = state.autoStartAt ? Math.max(0, Math.ceil((state.autoStartAt - Date.now()) / 1000)) : 0;
-        if(paidCount > 0 && state.autoStartAt) {
-            els.phaseText.textContent = `⚡ ${paidCount}/10 人已入場 · 自動開局`;
-            els.timerText.textContent = autoRem + 's';
-            els.actionHint.textContent = '所有玩家共用同一礦區；現在加入會一起進場';
-        } else {
-            els.phaseText.textContent = `等待玩家 · ${paidCount}/10`;
-            els.timerText.textContent = 'READY';
-            els.actionHint.textContent = '支付 100 銀幣即可加入；第一位玩家入場後自動倒數';
-        }
+        els.phaseText.textContent = isHost() ? `👑 房主 · 已進入 ${participantCount}/10 人` : `等待房主 · 已進入 ${participantCount}/10 人`;
+        els.timerText.textContent = 'READY';
+        els.actionHint.textContent = isHost()
+            ? (hasPaid ? '房主已入場，按下開始後所有玩家同時進入同一張礦圖' : '房內玩家已自動加入；按「開始遊戲」時僅房主支付 100 銀幣')
+            : '你已自動進入本局，不需要支付；等待房主開始遊戲';
     } else if(state.phase === 'COUNTDOWN') {
-        els.phaseText.textContent = `⚡ ${state.expectedPlayers || paidCount} 人共同開採`;
+        els.phaseText.textContent = `⚡ ${state.expectedPlayers || participantCount} 人共同開採`;
         els.timerText.textContent = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
         els.actionHint.textContent = '準備！所有人將在同一張礦圖同時搶礦';
     } else if(state.phase === 'PLAYING') {
         const me = players.get(ME.id);
-        const alive = paidPlayers.filter(p => p.status === 'ALIVE').length;
+        const alive = participants.filter(p => p.status === 'ALIVE').length;
         const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
-        els.phaseText.textContent = `LV.${state.level} · ${alive}/${paidCount} 存活`;
+        els.phaseText.textContent = `LV.${state.level} · ${alive}/${state.expectedPlayers || participantCount} 存活`;
         els.timerText.textContent = rem + 's';
         els.actionHint.textContent = me?.status === 'DEAD'
             ? '💀 你已淘汰，可以觀看其他玩家搶礦'
-            : '⛏️ 快速選礦！高分礦石更值錢，但炸彈會直接淘汰';
+            : '⛏️ 所有人搶同一張地圖！高分礦石更值錢，但炸彈會直接淘汰';
     } else if(state.phase === 'RESULT') {
         els.phaseText.textContent = '🏆 結算完成';
         els.timerText.textContent = 'RESULT';
@@ -1053,12 +995,10 @@ function render() {
             const blockData = state.board[i];
             const el = document.getElementById(`block-${i}`);
             if(!el) continue;
-
             if(blockData.minedBy) {
                 el.className = 'block mined';
                 const itemDef = ITEMS[blockData.type];
                 el.innerHTML = itemDef.icon;
-
                 const owner = players.get(blockData.minedBy);
                 if(owner) {
                     const ownerEl = document.createElement('div');
@@ -1081,28 +1021,37 @@ function render() {
 
     if(state.phase === 'LOBBY') {
         els.mainBtn.className = 'main-btn btn-entry';
-
-        if(!hasPaid) {
-            els.mainBtn.textContent = paidCount >= MAX_PLAYERS ? '本局已滿 10 人' : '支付 100 🪙 入場';
-            els.mainBtn.disabled = purchasePending || paidCount >= MAX_PLAYERS;
-            els.mainBtn.onclick = requestEntry;
+        if(isHost()) {
+            if(hasPaid) {
+                els.mainBtn.textContent = '🚀 開始遊戲';
+                els.mainBtn.disabled = participantCount < 1;
+                els.mainBtn.onclick = hostStartGame;
+            } else {
+                els.mainBtn.textContent = purchasePending ? '處理房主入場…' : '🚀 開始遊戲';
+                els.mainBtn.disabled = purchasePending || participantCount < 1;
+                els.mainBtn.onclick = requestStartGame;
+            }
         } else {
-            els.mainBtn.textContent = '✓ 已入場 · 等待自動開局';
+            els.mainBtn.textContent = '等待房主開始';
             els.mainBtn.disabled = true;
+            els.mainBtn.onclick = null;
         }
     } else if(state.phase === 'PLAYING') {
         els.mainBtn.className = 'main-btn';
         const me = players.get(ME.id);
         els.mainBtn.textContent = me?.status === 'DEAD' ? '💀 已淘汰 · 觀戰中' : '⛏️ 點擊礦石搶分';
         els.mainBtn.disabled = true;
+        els.mainBtn.onclick = null;
     } else if(state.phase === 'RESULT') {
         els.mainBtn.className = 'main-btn btn-entry';
         els.mainBtn.textContent = '結算完成 · 即將關閉';
         els.mainBtn.disabled = true;
+        els.mainBtn.onclick = null;
     } else {
         els.mainBtn.className = 'main-btn btn-entry';
         els.mainBtn.textContent = '遊戲已關閉';
         els.mainBtn.disabled = true;
+        els.mainBtn.onclick = null;
     }
 }
 
@@ -1138,7 +1087,7 @@ function maybeCallGameOver() {
     if(!state.result || state.result.length === 0) return;
 
     const myResult = state.result.find(r => r.id === ME.id);
-    if(!myResult || !hasPaid) return;
+    if(!myResult) return;
 
     if(!gameOverCalled) {
         gameOverCalled = true;
@@ -1219,20 +1168,12 @@ function raf() {
     if(isHost()) {
         const realNow = Date.now();
 
-        if(state.phase === 'LOBBY') {
-            maybeAutoStart();
-
-            if(state.autoStartAt && realNow >= state.autoStartAt) {
-                hostStartGame();
-            }
-        }
-
         if(state.phase === 'COUNTDOWN' && realNow >= state.phaseEndsAt) {
             state.phase = 'PLAYING';
 
             const count = Math.max(1, Math.min(
                 MAX_PLAYERS,
-                state.expectedPlayers || getPaidOnlinePlayers().length
+                state.expectedPlayers || getRoomParticipants().length
             ));
 
             state.phaseEndsAt = realNow + getRoundTimeMs(count);
@@ -1300,6 +1241,7 @@ function announceHello() {
             id: ME.id,
             username: ME.username,
             joinedAt: ME.joinedAt,
+            joined: true,
             hasPaid
         }
     });
@@ -1308,6 +1250,7 @@ function announceHello() {
             id: ME.id,
             username: ME.username,
             joinedAt: ME.joinedAt,
+            joined: true,
             hasPaid
         },
         requestState: true
@@ -1316,11 +1259,9 @@ function announceHello() {
 
 announceHello();
 setTimeout(() => {
-    if(!initialElectionDone) electInitialHost();
-    if(isHost()) {
-        maybeAutoStart();
-        broadcastState(true);
-    }
+    // 若 SDK 明確提供房主資訊，直接使用；只有沒有提供時才做一次本地備援選舉。
+    if(!initialElectionDone && !SDK) electInitialHost();
+    if(isHost()) broadcastState(true);
 }, 1000);
 
 setInterval(() => {
@@ -1331,13 +1272,11 @@ setInterval(() => {
             id: ME.id,
             username: ME.username,
             joinedAt: ME.joinedAt,
+            joined: true,
             hasPaid
         }
     });
-    if(isHost()) {
-        maybeAutoStart();
-        broadcastState(true);
-    }
+    if(isHost()) broadcastState(true);
 }, 2000);
 
 setInterval(() => {

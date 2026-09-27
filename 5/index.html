@@ -520,7 +520,8 @@ function addOrUpdatePlayer(raw,seen=true){
     }else{
         if(raw.username != null) p.username=String(raw.username).slice(0,12);
         if(raw.joinedAt != null) p.joinedAt=safeNum(raw.joinedAt,p.joinedAt);
-        if(raw.hasPaid != null) p.hasPaid=!!raw.hasPaid;
+        // 入場付款是本局不可逆狀態：避免舊的 HELLO / STATE 封包把已付款玩家重設成未付款。
+        if(raw.hasPaid === true) p.hasPaid=true;
         if(raw.score != null) p.score=Math.max(0,safeNum(raw.score,0));
         if(raw.status != null && ['WAITING','HOLDING','CASHED_OUT','DEAD'].includes(raw.status)) p.status=raw.status;
         if(raw.winAmount != null) p.winAmount=Math.max(0,safeNum(raw.winAmount,0));
@@ -963,7 +964,11 @@ function applySnapshot(s){
     state.result=Array.isArray(s.result)?s.result:[];
 
     const me=players.get(ME.id);
-    if(me) hasPaid=!!me.hasPaid;
+    // 已經成功付款後，任何延遲的舊快照都不能把本地按鈕退回「支付入場」。
+    if(me){
+        if(hasPaid) me.hasPaid=true;
+        else if(me.hasPaid===true) hasPaid=true;
+    }
 
     /* 遊戲由大廳進入倒數／開始時，本地狀態一定重新歸零 */
     if(oldPhase==='LOBBY' && state.phase==='COUNTDOWN'){
