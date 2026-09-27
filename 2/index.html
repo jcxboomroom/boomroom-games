@@ -198,6 +198,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
     </div>
   </div>
 
+  <div class="overlay" id="personalFinishOverlay" data-locked="true">
+    <div class="modal">
+      <div class="modalHead"><div class="kicker">PLAYER COMPLETE</div><div style="font-size:9px;color:#8b92a8;font-weight:900;">其他玩家仍在挑戰</div></div>
+      <div class="h1" id="personalFinishTitle">本局已完成</div>
+      <p class="lead" id="personalFinishLead">你已完成本局，等待其他玩家繼續挑戰。</p>
+      <div class="resultStats">
+        <div class="resultStat"><div class="v" id="personalFinishLayer">0</div><div class="l">目前層數</div></div>
+        <div class="resultStat"><div class="v" id="personalFinishScore">0</div><div class="l">目前分數</div></div>
+        <div class="resultStat"><div class="v" id="personalFinishCount">0 / 1</div><div class="l">已完成玩家</div></div>
+        <div class="resultStat"><div class="v">⏳</div><div class="l">等待中</div></div>
+      </div>
+      <div class="resultReason" id="personalFinishWait">還有玩家挑戰中 · 你無法再次操作</div>
+      <button class="primary" id="personalFinishBtn" disabled>等待全房結算</button>
+      <div class="note">其他玩家還可以繼續疊塔。所有玩家完成或全房時間到後，才會進入最終結算。</div>
+    </div>
+  </div>
+
   <div class="overlay" id="resultOverlay" data-locked="true">
     <div class="modal">
       <div class="modalHead"><div class="kicker">ROUND COMPLETE</div><div style="font-size:9px;color:#8b92a8;font-weight:900;">本局已鎖定</div></div>
@@ -226,7 +243,7 @@ const GAME_INFO = {
   category: '反應挑戰',
   name: '霓虹疊塔：極限巔峰',
   description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '4.0.0',
+  version: '4.0.2',
   entryCost: 0,
   maxPlayers: 10,
   controlModes: ['Tap', 'Pointer'],
@@ -239,7 +256,8 @@ const AUTO_ROUND = {
   MAX_PLAYERS: GAME_INFO.maxPlayers,
   STABLE_MS: 900,           // 人數穩定 0.9 秒後進入倒數
   COUNTDOWN_MS: 3000,       // 3 秒全房倒數
-  RESULT_MS: 3000,          // 結算展示 3 秒後自動返回
+  RESULT_MS: 3000,          // 全房結算展示 3 秒後自動返回
+  GLOBAL_ROUND_MAX_MS: 120000, // 單局最長 120 秒；有人未結束時不會無限等待
   CLOSE_GRACE_MS: 80,       // 返回前緩衝
   HEARTBEAT_MS: 650,        // 高頻同步，降低漏事件機率
   SYNC_MS: 650,
@@ -338,8 +356,14 @@ const state = {
   remoteStartAt: 0,
   lastRoomSignature: '',
   lastAutoScheduledSignature: '',
-  localPlayerReady: false
+  localPlayerReady: false,
+  roundFinalized: false,
+  globalRoundDeadline: 0,
+  finishedCount: 0
 };
+
+let finishedPlayers = new Map();
+let globalRoundTimer = null;
 
 let audioCtx = null;
 let toastTimer = 0;
@@ -642,7 +666,7 @@ function scoreFor(grade){
 
 function placeCurrent(){
   const now=performance.now();
-  if(state.game!=='PLAYING' || !state.currentBox || now<state.inputLockedUntil) return;
+  if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized || !state.currentBox || now<state.inputLockedUntil) return;
   if(now<state.nextEntryAt) return;
   resumeAudio();
   state.inputLockedUntil=now+170;
@@ -1495,6 +1519,9 @@ function sendHostSync(phaseOverride=''){
     players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''})),
     countdownEndsAt:Number(state.countdownEndsAt||0),
     startAt:Number(state.remoteStartAt||0),
+    globalRoundDeadline:Number(state.globalRoundDeadline||0),
+    finishedIds:[...finishedPlayers.keys()],
+    finishedCount:Number(state.finishedCount||0),
     timestamp:Date.now()
   });
 }
@@ -1614,6 +1641,11 @@ function beginHostCountdown(players){
   state.roundId=makeRoundId();
   state.localFinished=false;
   state.roundFinished=false;
+  state.roundFinalized=false;
+  state.globalRoundDeadline=0;
+  state.finishedCount=0;
+  finishedPlayers.clear();
+  if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
   state.closeRequested=false;
   state.closeSent=false;
   state.gameOverCalled=false;
@@ -1702,7 +1734,12 @@ function startGame(remoteRoundId=null,remote=false,remoteStartAt=0,forcedPlayerC
     if(!state.roundPlayerIds.length) state.roundPlayerIds=onlinePlayers().map(p=>p.id);
     state.roundPlayerCount=state.roundPlayerIds.length || forcedPlayerCount || state.roomPlayerCount || 1;
     state.roundFinished=false;
+    state.roundFinalized=false;
     state.localFinished=false;
+    state.finishedCount=0;
+    finishedPlayers.clear();
+    if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
+    state.globalRoundDeadline=Date.now()+AUTO_ROUND.GLOBAL_ROUND_MAX_MS;
     state.closeRequested=false;
     state.closeSent=false;
     state.gameOverCalled=false;
@@ -1752,6 +1789,15 @@ function startGame(remoteRoundId=null,remote=false,remoteStartAt=0,forcedPlayerC
     updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
     waitingForHost=false;
     lastRemoteRoundId=state.roundId;
+
+    // 由 Host 控制全房最大回合時間：個別玩家失誤不會結束其他人的遊戲。
+    if(isHost()){
+      if(globalRoundTimer) clearTimeout(globalRoundTimer);
+      globalRoundTimer=setTimeout(()=>{
+        globalRoundTimer=null;
+        finalizeWholeRound('TIMEOUT');
+      },AUTO_ROUND.GLOBAL_ROUND_MAX_MS + 120);
+    }
   };
 
   if(startDelay>0){
@@ -1797,6 +1843,13 @@ function applyRemoteRoomSync(payload){
     state.roundId=incomingRound;
     state.roundPlayerIds=playerIds;
     state.roundPlayerCount=Number(payload.playerCount||playerIds.length||state.roomPlayerCount||1);
+  }
+
+  if(Number(payload.globalRoundDeadline||0)>0){
+    state.globalRoundDeadline=Number(payload.globalRoundDeadline);
+  }
+  if(Array.isArray(payload.finishedIds)){
+    updateFinishedPlayersFromPayload(payload.finishedIds);
   }
 
   const startAt=Number(payload.startAt||payload.startedAt||0);
@@ -1847,8 +1900,153 @@ function sendHello(){
   });
 }
 
+function getRoundPlayerIds(){
+  return cleanPlayerIds(state.roundPlayerIds || onlinePlayers().map(p=>p.id));
+}
+
+function getFinishedCount(){
+  const ids=getRoundPlayerIds();
+  let count=0;
+  for(const id of ids){
+    if(finishedPlayers.has(id)) count++;
+  }
+  state.finishedCount=count;
+  return count;
+}
+
+function renderPersonalFinished(){
+  const overlay=$('personalFinishOverlay');
+  if(!overlay) return;
+
+  const count=getFinishedCount();
+  const total=Math.max(1,getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1);
+  const waitCount=Math.max(0,total-count);
+
+  $('personalFinishTitle').textContent='本局已完成';
+  $('personalFinishLead').textContent=state.resultReason || '你已完成本局，等待其他玩家繼續挑戰。';
+  $('personalFinishLayer').textContent=state.layers;
+  $('personalFinishScore').textContent=state.score;
+  $('personalFinishCount').textContent=`${count} / ${total}`;
+  $('personalFinishWait').textContent =
+    waitCount>0
+      ? `還有 ${waitCount} 位玩家挑戰中 · 你無法再次操作`
+      : '所有玩家都已完成 · 正在進入全房結算';
+
+  // 只有「自己」已完成時才顯示個人等待層；其他玩家輸掉不會遮住你的遊戲。
+  if(state.localFinished && state.game==='PLAYING' && !state.roundFinalized){
+    overlay.classList.add('show');
+  }else{
+    overlay.classList.remove('show');
+  }
+}
+
+function updateFinishedPlayersFromPayload(ids){
+  const expected=new Set(getRoundPlayerIds());
+  for(const id of cleanPlayerIds(ids)){
+    if(expected.has(id)) finishedPlayers.set(id, finishedPlayers.get(id) || {at:Date.now()});
+  }
+  getFinishedCount();
+  renderPersonalFinished();
+}
+
+function recordPlayerFinished(payload,senderId){
+  const id=String(payload.playerId||senderId||'');
+  if(!id) return false;
+
+  const expected=new Set(getRoundPlayerIds());
+  if(expected.size && !expected.has(id)) return false;
+
+  finishedPlayers.set(id,{
+    at:Date.now(),
+    score:clamp(Number(payload.score)||0,0,999999),
+    layers:clamp(Number(payload.layers)||0,0,99999),
+    reward:safeReward(payload.reward),
+    reason:String(payload.reason||'本局完成')
+  });
+
+  updatePlayerScore(
+    id,
+    payload.score,
+    payload.layers,
+    String(payload.playerName||'玩家'),
+    false
+  );
+
+  getFinishedCount();
+  renderPersonalFinished();
+  return true;
+}
+
+function tryFinalizeWholeRound(reason='ALL_FINISHED'){
+  if(!isHost() || state.roundFinalized || state.game==='LOBBY') return;
+
+  const total=getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1;
+  const finished=getFinishedCount();
+
+  if(reason!=='TIMEOUT' && finished<total) return;
+  finalizeWholeRound(reason);
+}
+
+function finalizeWholeRound(reason='ALL_FINISHED'){
+  if(!isHost() || state.roundFinalized) return;
+  if(state.game!=='PLAYING' && !state.localFinished) return;
+
+  state.roundFinalized=true;
+  state.roundFinished=true;
+  state.autoRoundState='RESULT';
+  state.statusEndedAt=Date.now();
+
+  if(globalRoundTimer){
+    clearTimeout(globalRoundTimer);
+    globalRoundTimer=null;
+  }
+
+  // Host 若尚未結束，先將自己的最終成績記錄進房間。
+  if(!finishedPlayers.has(getUserId())){
+    finishedPlayers.set(getUserId(),{
+      at:Date.now(),
+      score:clamp(state.score,0,999999),
+      layers:clamp(state.layers,0,99999),
+      reward:safeReward(calcReward(state.layers)),
+      reason:state.localFinished ? state.resultReason : '全房時間到'
+    });
+  }
+  getFinishedCount();
+
+  const results=getRoundPlayerIds().map(id=>{
+    const p=finishedPlayers.get(id)||{};
+    const roster=roomPlayersList.find(x=>x.id===id);
+    const board=roomScoreMap.get(id)||{};
+    return {
+      id,
+      username:roster?.nickname || board.name || '玩家',
+      score:clamp(Number(p.score ?? board.score)||0,0,999999),
+      layers:clamp(Number(p.layers ?? board.layers)||0,0,99999),
+      reward:safeReward(p.reward),
+      finished:finishedPlayers.has(id)
+    };
+  }).sort((a,b)=>b.layers-a.layers || b.score-a.score);
+
+  const payload={
+    roomId:gameRoomId,
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version,
+    roundId:state.roundId,
+    status:'FINISHED',
+    reason:reason==='TIMEOUT'?'全房時間到，未完成玩家以目前成績結算。':'所有玩家已完成挑戰。',
+    playerCount:getRoundPlayerIds().length,
+    finishedCount:getFinishedCount(),
+    finishedIds:[...finishedPlayers.keys()],
+    results,
+    globalEndedAt:Date.now()
+  };
+
+  sendGameEvent('NEON_ROUND_END',payload);
+  applyWholeRoundResult(payload,true);
+}
+
 function localPlayerFinished(reason){
-  if(state.game!=='PLAYING' || state.localFinished) return;
+  if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized) return;
 
   state.localFinished=true;
   state.autoRoundState='PLAYER_FINISHED';
@@ -1857,17 +2055,18 @@ function localPlayerFinished(reason){
   state.reward=calcReward(state.layers);
   state.resultReason=state.resultReason || (
     reason==='MISS' ? '最後一塊沒有與塔身重疊。' :
-    reason==='TIMEOUT' ? '挑戰時間結束。' :
+    reason==='TIMEOUT' ? '你的挑戰時間已結束。' :
     '你的本局挑戰已完成。'
   );
 
-  updatePlayerScore(
-    getUserId(),
-    state.score,
-    state.layers,
-    playerNameOf(state.sdkUser,'你'),
-    true
-  );
+  recordPlayerFinished({
+    playerId:getUserId(),
+    playerName:playerNameOf(state.sdkUser,'你'),
+    score:state.score,
+    layers:state.layers,
+    reward:state.reward,
+    reason:state.resultReason
+  },getUserId());
 
   sendGameEvent('NEON_PLAYER_FINISH',{
     roomId:gameRoomId,
@@ -1881,15 +2080,53 @@ function localPlayerFinished(reason){
     reason:state.resultReason
   });
 
-  state.game='RESULT';
-  state.roundFinished=true;
-  state.statusEndedAt=Date.now();
-  showResult();
+  // 重要：個人失敗只鎖定自己的操作，不能把整房遊戲切成 RESULT。
+  renderPersonalFinished();
+
+  if(isHost()){
+    tryFinalizeWholeRound('ALL_FINISHED');
+  }
 }
 
 function gameOver(reason){
-  if(state.game==='RESULT' || state.localFinished || state.gameOverCalled) return;
+  if(state.localFinished || state.roundFinalized || state.gameOverCalled) return;
   localPlayerFinished(reason);
+}
+
+function applyWholeRoundResult(payload,localHost=false){
+  if(state.roundFinalized && state.game==='RESULT' && localHost!==true) return;
+  if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+
+  state.roundFinalized=true;
+  state.roundFinished=true;
+  state.game='RESULT';
+  state.autoRoundState='RESULT';
+  state.statusEndedAt=Date.now();
+
+  if(globalRoundTimer){
+    clearTimeout(globalRoundTimer);
+    globalRoundTimer=null;
+  }
+
+  if(Array.isArray(payload.finishedIds)){
+    updateFinishedPlayersFromPayload(payload.finishedIds);
+  }
+
+  const myResult=(Array.isArray(payload.results)?payload.results:[]).find(r=>String(r.id)===getUserId());
+  if(myResult){
+    state.score=clamp(Number(myResult.score)||state.score,0,999999);
+    state.layers=clamp(Number(myResult.layers)||state.layers,0,99999);
+    state.reward=safeReward(myResult.reward);
+  }
+
+  if(!state.localFinished){
+    state.resultReason=String(payload.reason||'本局已完成全房結算。');
+    state.localFinished=true;
+  }else if(payload.reason){
+    state.resultReason=state.resultReason || String(payload.reason);
+  }
+
+  showResult();
 }
 
 function showResult(){
@@ -1908,13 +2145,14 @@ function showResult(){
 
   $('resultReason').textContent =
     state.reward>0
-      ? '本局獎勵已鎖定，3 秒後自動返回房間。'
-      : '本局結果已鎖定，3 秒後自動返回房間。';
+      ? '全房結算完成，3 秒後自動返回 BoomRoom。'
+      : '全房結算完成，3 秒後自動返回 BoomRoom。';
 
+  $('personalFinishOverlay').classList.remove('show');
   $('resultOverlay').classList.add('show');
-  $('statusPill').textContent='本局已結束';
+  $('statusPill').textContent='全房結算完成';
   $('hintTitle').textContent='本局完成';
-  $('hintSub').textContent='遊戲已鎖定，無法再次開始；正在準備自動返回。';
+  $('hintSub').textContent='所有玩家已完成或時間到；本局已鎖定，無法再次開始。';
 
   startAutoCloseCountdown();
 }
@@ -1931,7 +2169,7 @@ function startAutoCloseCountdown(){
 
     $('finishBtn').textContent = remain>0 ? `${sec} 秒後自動返回` : '正在返回房間';
     $('closeCountdownNote').textContent = remain>0
-      ? `結算完成 · ${sec} 秒後自動離開遊戲`
+      ? `全房結算完成 · ${sec} 秒後自動離開遊戲`
       : '正在返回 BoomRoom...';
 
     if(remain<=0){
@@ -1953,7 +2191,7 @@ function finishAndLeave(){
   const reward=safeReward(state.reward);
   state.reward=reward;
 
-  // 每一位玩家自己的自然結束只結算一次。
+  // 每一位玩家只在「全房結算完成後」呼叫一次 gameOver。
   if(!state.gameOverCalled){
     state.gameOverCalled=true;
     try{
@@ -1964,7 +2202,6 @@ function finishAndLeave(){
     }catch(_){ }
   }
 
-  // Web/iframe 宿主遵照 BoomRoom 指南使用 leaveGame；Mobile WebView 則由 SDK.gameOver 對接 Flutter 返回。
   try{
     if(window.parent && window.parent!==window){
       window.parent.postMessage({
@@ -2054,20 +2291,19 @@ function handleGameEvent(name,payload,sender){
   }
 
   if(event==='NEON_PLAYER_FINISH'){
-    const id=String(payload.playerId||senderId||'');
-    if(!id || id===getUserId()) return;
     if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
-    updatePlayerScore(
-      id,
-      payload.score,
-      payload.layers,
-      String(payload.playerName||'玩家'),
-      false
-    );
+    recordPlayerFinished(payload,senderId);
+    if(isHost()) tryFinalizeWholeRound('ALL_FINISHED');
     return;
   }
 
-  // 相容部分舊遊戲/宿主可能回傳的結束訊號：只同步分數，不強制結束其他人的本局。
+  if(event==='NEON_ROUND_END'){
+    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+    applyWholeRoundResult(payload,false);
+    return;
+  }
+
+  // 個人 NEON_PLAYER_FINISH 絕不直接切換 RESULT；只有全房 NEON_ROUND_END 才結束整局。
   if(event==='TOGGLE_SOUND'){
     state.soundEnabled=!Boolean(payload.muted);
     return;

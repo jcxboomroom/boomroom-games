@@ -82,7 +82,7 @@ body{touch-action:none}button{font:inherit;color:inherit;border:0;outline:0}
 
 const GAME={id:'neon_cyber_clash',entryCost:100,itemId:'cyber_clash_entry_100',maxPlayers:10,durationMs:90000,countdownMs:1400,resultMs:3000,heartbeatMs:1200,stateMs:280};
 const S={MENU:'MENU',LOBBY:'LOBBY',PURCHASING:'PURCHASING',COUNTDOWN:'COUNTDOWN',PLAYING:'PLAYING',RESULT:'RESULT'};
-const CFG={perfect:4,good:16,cursorStart:.78,cursorMax:1.42,centerSlow:13,ultMax:100,actionCooldown:88,hostTimeout:4800,maxParticles:220,maxShockwaves:12,autoSettleMs:2200};
+const CFG={perfect:4,good:16,cursorStart:.78,cursorMax:1.42,centerSlow:13,ultMax:100,actionCooldown:88,hostTimeout:9000,maxParticles:220,maxShockwaves:12,autoSettleMs:2800};
 const $=id=>document.getElementById(id);
 const els={canvas:$('gameCanvas'),menu:$('menu'),ui:$('ui'),result:$('result'),roomMatchLabel:$('roomMatchLabel'),roomMatchDesc:$('roomMatchDesc'),matchSlots:$('matchSlots'),autoStatusTitle:$('autoStatusTitle'),autoStatusText:$('autoStatusText'),roomChip:$('roomChip'),roundLabel:$('roundLabel'),modeLabel:$('modeLabel'),coreChip:$('coreChip'),timeChip:$('timeChip'),blueAvatars:$('blueAvatars'),redAvatars:$('redAvatars'),phaseLabel:$('phaseLabel'),blueEnergy:$('blueEnergy'),redEnergy:$('redEnergy'),blueMeter:$('blueMeter'),redMeter:$('redMeter'),coreOrb:$('coreOrb'),cursor:$('cursor'),accuracyLabel:$('accuracyLabel'),comboLabel:$('comboLabel'),statusMini:$('statusMini'),lastHitMini:$('lastHitMini'),hackBtn:$('hackBtn'),ultBtn:$('ultBtn'),ultFill:$('ultFill'),centerMsg:$('centerMsg'),hitFlash:$('hitFlash'),dangerFlash:$('dangerFlash'),resultRank:$('resultRank'),resultReward:$('resultReward'),resultReason:$('resultReason'),resultList:$('resultList'),resultAutoTitle:$('resultAutoTitle'),resultAutoText:$('resultAutoText')};
 const ctx=els.canvas.getContext('2d',{alpha:false});
@@ -102,6 +102,8 @@ let lastHeartbeat=0;
 let autoRoundTimer=null;
 let autoStartArmed=false;
 let lastRosterHash='';
+let lockedRoomPlayers=[];
+let lastRoomSnapshot='';
 let gameOverCalled=false;
 let resultRendered=false;
 let lastTeamSignature='';
@@ -153,14 +155,28 @@ function addPlayer(raw){
 }
 addPlayer({...ME,joinOrder:0});
 function sortedPlayers(){return [...roster.values()].sort((a,b)=>(a.joinOrder??999999)-(b.joinOrder??999999)||a.id.localeCompare(b.id))}
-function onlinePlayers(){const t=now();for(const p of roster.values())if(t-p.lastSeen>CFG.hostTimeout)p.online=false;return sortedPlayers().filter(p=>p.online)}
+function onlinePlayers(){
+  // 房間階段才依心跳判斷在線；本局開始後不得因心跳延遲改變參賽名單。
+  if(state.phase!==S.MENU&&state.phase!==S.LOBBY&&state.phase!==S.RESULT){
+    return sortedPlayers();
+  }
+  const t=now();
+  for(const p of roster.values())if(t-p.lastSeen>CFG.hostTimeout)p.online=false;
+  return sortedPlayers().filter(p=>p.online);
+}
 function roomCount(){return clamp(onlinePlayers().length,1,GAME.maxPlayers)}
+function lockedOrCurrentRoomCount(){
+  if(lockedRoomPlayers.length) return lockedRoomPlayers.length;
+  return roomCount();
+}
 function getMatch(n){n=clamp(n,1,GAME.maxPlayers);if(n===1)return{humanCount:1,blueCount:1,redCount:1,label:'1VAI',desc:'目前 1 位玩家：你將對戰 1 名 AI。',ai:true};const blue=Math.floor(n/2),red=Math.ceil(n/2);return{humanCount:n,blueCount:blue,redCount:red,label:`${blue}V${red}`,desc:`目前 ${n} 位玩家：自動編成 ${blue}V${red}。`,ai:false}}
 function applyMatch(n){const m=getMatch(n);state.humanCount=m.humanCount;state.blueCount=m.blueCount;state.redCount=m.redCount;state.aiEnabled=m.ai;AI.team='RED';AI.online=m.ai;return m}
 
 function updateRoomPreview(){
-  state.roomCount=roomCount();
-  const m=getMatch(state.roomCount);
+  // MENU/LOBBY 顯示即時房間人數；本局開始後一律顯示開局瞬間鎖定的人數。
+  const previewCount=(state.phase===S.MENU||state.phase===S.LOBBY)?roomCount():lockedOrCurrentRoomCount();
+  state.roomCount=previewCount;
+  const m=getMatch(previewCount);
   setText(els.roomMatchLabel,m.label);setText(els.roomMatchDesc,m.desc);
   els.matchSlots.innerHTML='';
   const humans=onlinePlayers().slice(0,GAME.maxPlayers);
@@ -192,7 +208,12 @@ function broadcastRoomSync(force=false){
   if(!isHost())return;
   const t=now();if(!force&&t-lastRoomBroadcast<GAME.stateMs)return;lastRoomBroadcast=t;
   const players=onlinePlayers().slice(0,GAME.maxPlayers).map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,joinOrder:p.joinOrder,online:true}));
-  send('NCC_ROOM_SYNC',{roundId:state.roundId,hostId:state.hostId||ME.id,roomCount:players.length,players});
+  send('NCC_ROOM_SYNC',{
+    roundId:state.roundId,hostId:state.hostId||ME.id,roomCount:players.length,players,
+    phase:state.phase,humanCount:state.humanCount,blueCount:state.blueCount,redCount:state.redCount,
+    aiEnabled:state.aiEnabled,phaseEndsAt:state.phaseEndsAt,startAt:state.startAt,balance:state.balance,
+    winner:state.winner,reason:state.reason,seed:state.seed
+  });
 }
 function broadcastState(force=false){
   if(!isHost())return;
@@ -240,11 +261,15 @@ function beginRoundFromHost(){
   if(!isHost()||state.phase!==S.LOBBY)return;
   const humans=onlinePlayers().slice(0,GAME.maxPlayers);
   if(!humans.length)return;
-  state.roomCount=humans.length;state.humanCount=humans.length;applyMatch(state.humanCount);
-  roundParticipantIds=new Set(humans.map(p=>p.id));
+  // 在開局瞬間鎖定本局參賽者；之後房間心跳/SDK roomPlayers 變化都不能把本局從 2 人改成 1 人。
+  lockedRoomPlayers=humans.map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,joinOrder:p.joinOrder}));
+  state.roomCount=lockedRoomPlayers.length;
+  state.humanCount=lockedRoomPlayers.length;
+  applyMatch(state.humanCount);
+  roundParticipantIds=new Set(lockedRoomPlayers.map(p=>p.id));
   state.roundId+=1;resetRound();assignTeams();
-  state.roomCount=humans.length;state.hostId=ME.id;state.phase=S.PURCHASING;
-  send('NCC_ROUND_OPEN',{roundId:state.roundId,hostId:state.hostId,humanCount:state.humanCount,blueCount:state.blueCount,redCount:state.redCount,aiEnabled:state.aiEnabled,roomCount:state.roomCount,players:humans.map(p=>({id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,joinOrder:p.joinOrder,team:p.team}))});
+  state.roomCount=lockedRoomPlayers.length;state.hostId=ME.id;state.phase=S.PURCHASING;
+  send('NCC_ROUND_OPEN',{roundId:state.roundId,hostId:state.hostId,humanCount:state.humanCount,blueCount:state.blueCount,redCount:state.redCount,aiEnabled:state.aiEnabled,roomCount:state.roomCount,players:lockedRoomPlayers.map(p=>{const q=roster.get(p.id)||p;return{id:q.id,username:q.username,avatar:q.avatar,joinedAt:q.joinedAt,joinOrder:q.joinOrder,team:q.team}})});
   broadcastState(true);els.menu.style.display='none';els.result.style.display='none';els.ui.style.display='block';updateHud();requestAutoEntry();
 }
 function scheduleAutoRound(resetTimer=false){
@@ -310,6 +335,7 @@ function renderResult(){
   els.resultList.innerHTML='';state.result.slice(0,10).forEach((r,i)=>{const item=document.createElement('div');item.className='result-item';item.innerHTML='<b>#'+(i+1)+'</b><span>'+escapeHtml(r.username)+' · '+escapeHtml(r.team)+'</span><strong>'+Math.round(r.score)+'</strong>';els.resultList.appendChild(item)});
 }
 function showResult(){
+  state.roomCount=lockedOrCurrentRoomCount();
   const first=!resultRendered;
   resultRendered=true;
   renderResult();
@@ -320,6 +346,9 @@ function showResult(){
 }
 function scheduleLeave(){if(leaveScheduled)return;leaveScheduled=true;const endAt=state.phaseEndsAt||now()+GAME.resultMs;const tick=()=>{const sec=Math.max(0,Math.ceil((endAt-now())/1000));setText(els.resultAutoTitle,sec>0?sec+' 秒後自動返回房間':'正在返回房間…');if(now()>=endAt){leaveGame();}else setTimeout(tick,120)};tick()}
 function leaveGame(){
+  lockedRoomPlayers=[];
+  roundParticipantIds.clear();
+  requestedEntryRounds.delete(currentPurchaseRound);
   if(window.parent&&window.parent!==window){try{window.parent.postMessage({action:'leaveGame'},'*');}catch(e){}try{window.parent.postMessage(JSON.stringify({action:'leaveGame'}),'*');}catch(e){}}
   try{if(window.opener){window.close();return}}catch(e){}
   try{history.back()}catch(e){}
@@ -348,7 +377,9 @@ function updateCursor(dt){if(state.phase!==S.PLAYING||now()<freezeUntil)return;c
 function avatarNode(p){const d=document.createElement('div');d.className='avatar';if(p.avatar){const img=new Image();img.onload=()=>{d.innerHTML='';d.appendChild(img)};img.onerror=()=>{d.textContent=String(p.username||'玩家').slice(0,2)};img.src=p.avatar}else d.textContent=String(p.username||'玩家').slice(0,2);return d}
 function renderTeams(){const sig=sortedPlayers().map(p=>p.id+':'+p.team).join('|')+':'+state.humanCount+':'+state.aiEnabled;if(sig===lastTeamSignature)return;lastTeamSignature=sig;els.blueAvatars.innerHTML='';els.redAvatars.innerHTML='';sortedPlayers().filter(p=>roundParticipantIds.size?p.team==='BLUE'&&roundParticipantIds.has(p.id):p.team==='BLUE').slice(0,state.blueCount).forEach(p=>els.blueAvatars.appendChild(avatarNode(p)));sortedPlayers().filter(p=>roundParticipantIds.size?p.team==='RED'&&roundParticipantIds.has(p.id):p.team==='RED').slice(0,state.redCount).forEach(p=>els.redAvatars.appendChild(avatarNode(p)));if(state.aiEnabled)els.redAvatars.appendChild(avatarNode(AI))}
 function updateHud(){
-  state.roomCount=roomCount();const me=roster.get(ME.id);const m=getMatch(state.humanCount||state.roomCount);const ult=clamp(me?.ult||0,0,100);
+  const me=roster.get(ME.id);const displayRoomCount=lockedOrCurrentRoomCount();
+  if(state.phase===S.MENU||state.phase===S.LOBBY)state.roomCount=displayRoomCount;
+  const m=getMatch(state.humanCount||displayRoomCount);const ult=clamp(me?.ult||0,0,100);
   setText(els.roundLabel,'ROUND '+String(state.roundId).padStart(2,'0'));setText(els.modeLabel,m.label);setText(els.coreChip,'核心 '+Math.round(state.balance)+'%');setText(els.timeChip,state.phase===S.PLAYING?Math.max(0,(state.phaseEndsAt-now())/1000).toFixed(1)+'s':'—');setText(els.roomChip,`房間 ${state.roomCount}/${GAME.maxPlayers} · 本局 ${state.humanCount} 人${state.aiEnabled?' + AI':''}`);setText(els.comboLabel,'COMBO ×'+Math.round(me?.combo||0));setText(els.phaseLabel,state.phase===S.COUNTDOWN?'SYSTEM BOOT':state.phase===S.PLAYING?'OVERDRIVE':state.phase===S.RESULT?'LOCKED':state.phase===S.PURCHASING?'ENTRY':'WAITING');els.blueEnergy.style.width=Math.max(0,state.balance-2)+'%';els.redEnergy.style.width=Math.max(0,98-state.balance)+'%';els.blueMeter.style.width=clamp(state.balance,0,100)+'%';els.redMeter.style.width=clamp(100-state.balance,0,100)+'%';els.ultFill.style.height=ult+'%';els.ultBtn.classList.toggle('ready',ult>=100);els.hackBtn.disabled=state.phase!==S.PLAYING||!paidRoundByMe.has(state.roundId);els.ultBtn.disabled=state.phase!==S.PLAYING||!paidRoundByMe.has(state.roundId)||ult<100;els.hackBtn.classList.toggle('live',state.phase===S.PLAYING);
   if(state.phase===S.PLAYING){const d=difficulty();setText(els.statusMini,'OVERDRIVE Lv.'+(1+Math.floor(d.elapsed*5))+' · 游標 '+Math.round(d.speed*60)+'%/s');setText(els.accuracyLabel,d.elapsed<.25?'抓節奏':d.elapsed<.55?'速度上升':'危險高速')}
   else if(state.phase===S.COUNTDOWN){setText(els.statusMini,'倒數 '+Math.max(0,Math.ceil((state.phaseEndsAt-now())/1000))+' 秒');setText(els.accuracyLabel,'SYSTEM READY')}
@@ -375,33 +406,71 @@ function handleEvent(eventName,payload,senderId){
         broadcastRoomSync(true);
         if(changed){lastRosterHash=hash;scheduleAutoRound(true)}else scheduleAutoRound(false);
       }
-      if(p.requestState)broadcastState(true);
+      if(p.requestState){
+        if(state.phase===S.MENU||state.phase===S.LOBBY)broadcastRoomSync(true);
+        else broadcastState(true);
+      }
     }
     updateRoomPreview();return;
   }
   if(eventName==='NCC_ROOM_SYNC'){
     if(Array.isArray(p.players))p.players.forEach(x=>addPlayer(x));
-    if(p.hostId!=null&&!isCanonicalHost())state.hostId=String(p.hostId);state.roomCount=clamp(p.roomCount||roomCount(),1,GAME.maxPlayers);updateRoomPreview();return;
+    if(p.hostId!=null&&!isCanonicalHost())state.hostId=String(p.hostId);
+    const incomingRound=finite(p.roundId,state.roundId);
+    const incomingPhase=Object.values(S).includes(p.phase)?p.phase:S.LOBBY;
+    const incomingPlayers=Array.isArray(p.players)?p.players:[];
+    const amParticipant=incomingPlayers.some(x=>x&&String(x.id)===ME.id);
+    const localWaiting=(state.phase===S.MENU||state.phase===S.LOBBY);
+    if((incomingRound>state.roundId || (incomingRound===state.roundId&&localWaiting)) && amParticipant && incomingPhase!==S.LOBBY && incomingPhase!==S.MENU){
+      // 補救：如果 ROUND_OPEN 訊息因事件時序遺失，房間同步本身也能把玩家帶進正在進行的本局。
+      state.roundId=incomingRound;
+      state.roomCount=clamp(p.roomCount||incomingPlayers.length,1,GAME.maxPlayers);
+      state.humanCount=clamp(p.humanCount||state.roomCount,1,GAME.maxPlayers);
+      state.blueCount=clamp(p.blueCount||getMatch(state.humanCount).blueCount,1,GAME.maxPlayers);
+      state.redCount=clamp(p.redCount||getMatch(state.humanCount).redCount,1,GAME.maxPlayers);
+      state.aiEnabled=!!p.aiEnabled;
+      roundParticipantIds=new Set(incomingPlayers.map(x=>String(x.id)));
+      resetRound();
+      for(const x of incomingPlayers)addPlayer(x);
+      state.phase=incomingPhase;state.phaseEndsAt=finite(p.phaseEndsAt);state.startAt=finite(p.startAt);state.balance=clamp(p.balance,0,100);state.winner=p.winner==null?null:String(p.winner);state.reason=String(p.reason||'');state.seed=finite(p.seed);
+      lockedRoomPlayers=incomingPlayers.map(x=>({id:String(x.id),username:String(x.username||'玩家'),avatar:String(x.avatar||''),joinedAt:finite(x.joinedAt,now()),joinOrder:finite(x.joinOrder,999999)}));
+      if(state.phase!==S.PURCHASING)paidRoundByMe.add(state.roundId);
+      els.menu.style.display='none';els.result.style.display='none';els.ui.style.display='block';renderTeams();updateHud();
+      if(state.phase===S.PURCHASING)requestAutoEntry();
+      else if(state.phase===S.RESULT)showResult();
+      return;
+    }
+    if(state.phase===S.MENU||state.phase===S.LOBBY)state.roomCount=clamp(p.roomCount||roomCount(),1,GAME.maxPlayers);
+    updateRoomPreview();return;
   }
   if(eventName==='NCC_HOST'){if(p.hostId!=null)state.hostId=String(p.hostId);return}
   if(eventName==='NCC_ROUND_OPEN'){
     state.roundId=finite(p.roundId,state.roundId);state.humanCount=clamp(p.humanCount,1,10);state.blueCount=clamp(p.blueCount,1,10);state.redCount=clamp(p.redCount,1,10);state.aiEnabled=!!p.aiEnabled;state.roomCount=clamp(p.roomCount,1,10);state.hostId=String(state.hostId||p.hostId||'');
-    roundParticipantIds=new Set();if(Array.isArray(p.players)){p.players.forEach(x=>{addPlayer(x);roundParticipantIds.add(String(x.id))})}
-    resetRound();state.phase=S.PURCHASING;els.menu.style.display='none';els.result.style.display='none';els.ui.style.display='block';updateHud();requestAutoEntry();return;
+    roundParticipantIds=new Set();
+    lockedRoomPlayers=[];
+    if(Array.isArray(p.players)){p.players.forEach(x=>{addPlayer(x);roundParticipantIds.add(String(x.id));lockedRoomPlayers.push({id:String(x.id),username:String(x.username||'玩家'),avatar:String(x.avatar||''),joinedAt:finite(x.joinedAt,now()),joinOrder:finite(x.joinOrder,999999)})})}
+    resetRound();
+    state.roomCount=lockedRoomPlayers.length||state.roomCount;
+    state.phase=S.PURCHASING;
+    els.menu.style.display='none';els.result.style.display='none';els.ui.style.display='block';renderTeams();updateHud();requestAutoEntry();return;
   }
   if(eventName==='NCC_ENTRY_PAID'){
     if(!isHost()||!validRound(p.roundId))return;const id=String(p.playerId||sender||'');if(sender&&id!==sender)return;if(roundParticipantIds.has(id))requiredPaidIds.add(id);if(allPaid())maybeBeginCountdown();broadcastState(true);return;
   }
   if(eventName==='NCC_ROUND_START'){
-    if(finite(p.roundId,-1)<state.roundId)return;state.roundId=finite(p.roundId,state.roundId);state.seed=finite(p.seed);state.humanCount=clamp(p.humanCount,1,10);state.blueCount=clamp(p.blueCount,1,10);state.redCount=clamp(p.redCount,1,10);state.aiEnabled=!!p.aiEnabled;state.startAt=finite(p.startAt,now()+GAME.countdownMs);state.phaseEndsAt=state.startAt;state.phase=S.COUNTDOWN;paidRoundByMe.add(state.roundId);cursor=50;direction=state.seed%2===0?1:-1;updateHud();return;
+    if(finite(p.roundId,-1)<state.roundId)return;state.roundId=finite(p.roundId,state.roundId);state.seed=finite(p.seed);state.humanCount=clamp(p.humanCount,1,10);state.blueCount=clamp(p.blueCount,1,10);state.redCount=clamp(p.redCount,1,10);state.aiEnabled=!!p.aiEnabled;
+    state.roomCount=clamp(p.roomCount||state.roomCount,1,10);
+    if(!lockedRoomPlayers.length&&roundParticipantIds.size)lockedRoomPlayers=sortedPlayers().filter(x=>roundParticipantIds.has(x.id)).map(x=>({id:x.id,username:x.username,avatar:x.avatar,joinedAt:x.joinedAt,joinOrder:x.joinOrder}));
+    state.startAt=finite(p.startAt,now()+GAME.countdownMs);state.phaseEndsAt=state.startAt;state.phase=S.COUNTDOWN;paidRoundByMe.add(state.roundId);cursor=50;direction=state.seed%2===0?1:-1;updateHud();return;
   }
   if(eventName==='NCC_STATE'){
     const r=finite(p.roundId,-1);if(r<state.roundId)return;if(r===state.roundId&&isHost())return;
     state.roundId=r;state.hostId=p.hostId!=null?String(p.hostId):state.hostId;state.humanCount=clamp(p.humanCount||p.mode||1,1,10);
-    const m=getMatch(state.humanCount);state.blueCount=clamp(p.blueCount||m.blueCount,1,10);state.redCount=clamp(p.redCount||m.redCount,1,10);state.aiEnabled=!!p.aiEnabled;state.roomCount=clamp(p.roomCount||roomCount(),1,10);
+    const m=getMatch(state.humanCount);state.blueCount=clamp(p.blueCount||m.blueCount,1,10);state.redCount=clamp(p.redCount||m.redCount,1,10);state.aiEnabled=!!p.aiEnabled;
+    state.roomCount=clamp(p.roomCount||lockedOrCurrentRoomCount(),1,10);
     state.phase=Object.values(S).includes(p.phase)?p.phase:state.phase;state.phaseEndsAt=finite(p.phaseEndsAt);state.startAt=finite(p.startAt);state.balance=clamp(p.balance,0,100);state.winner=p.winner==null?null:String(p.winner);state.reason=String(p.reason||'');
     let participantHere=false;
-    if(Array.isArray(p.players)){const ids=new Set();p.players.forEach(x=>{if(x&&x.id!=null){const id=String(x.id);addPlayer(x);ids.add(id);if(id===ME.id)participantHere=true}});if(r===state.roundId)roundParticipantIds=ids}
+    if(Array.isArray(p.players)){const ids=new Set();p.players.forEach(x=>{if(x&&x.id!=null){const id=String(x.id);addPlayer(x);ids.add(id);if(id===ME.id)participantHere=true}});if(r===state.roundId){roundParticipantIds=ids;lockedRoomPlayers=p.players.map(x=>({id:String(x.id),username:String(x.username||'玩家'),avatar:String(x.avatar||''),joinedAt:finite(x.joinedAt,now()),joinOrder:finite(x.joinOrder,999999)}));}}
     if((state.phase===S.PURCHASING||state.phase===S.COUNTDOWN||state.phase===S.PLAYING) && !participantHere){
       // Late joiner: do not enter or pay for a round that is already locked.
       state.phase=S.LOBBY;roundParticipantIds.clear();requestedEntryRounds.delete(state.roundId);
@@ -409,7 +478,9 @@ function handleEvent(eventName,payload,senderId){
     }
     currentPurchaseRound=state.roundId;if(state.phase!==S.PURCHASING)paidRoundByMe.add(state.roundId);
     els.menu.style.display=state.phase===S.MENU?'grid':'none';els.ui.style.display=state.phase===S.RESULT?'none':'block';
-    if(state.phase===S.RESULT){state.result=Array.isArray(p.result)?p.result:state.result;showResult()}else updateHud();return;
+    if(state.phase===S.RESULT){state.result=Array.isArray(p.result)?p.result:state.result;showResult()}
+    else {updateHud();if(state.phase===S.PURCHASING&&participantHere)requestAutoEntry();}
+    return;
   }
   if(eventName==='NCC_HIT'){
     if(!isHost()||!validRound(p.roundId))return;const id=String(p.playerId||sender||'');if(sender&&id!==sender)return;const key=String(p.actionId||'');if(key&&processedActions.has(key))return;const pl=roster.get(id);if(!pl||!roundParticipantIds.has(id)||!pl.team)return;applyHostHit(id,String(p.type||'MISS'),clamp(p.push,-2,3.45),key||null);return;
@@ -425,6 +496,8 @@ function handleEvent(eventName,payload,senderId){
 function onMessage(e){let d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(err){return}if(!d)return;if(d.action==='initSDK'){setupSDK(d);return}if(d.action==='gameEventReceived'){handleEvent(d.eventName,d.payload,d.userId)}}
 window.addEventListener('message',onMessage);
 window.onBoomRoomGameEvent=function(eventName,payload,senderId){handleEvent(eventName,payload,senderId)};
+window.onGameEventReceived=function(eventName,payload,senderId){handleEvent(eventName,payload,senderId)};
+window.addEventListener('gameEventReceived',e=>{try{const d=e&&e.detail?e.detail:e; if(d&&d.eventName)handleEvent(d.eventName,d.payload,d.userId||d.senderId)}catch(err){}});
 window.onPurchaseSuccess=function(itemId){onEntrySuccess(itemId)};
 window.onPurchaseFailed=function(itemId){if(itemId!=null&&String(itemId)!==String(GAME.itemId))return;requestedEntryRounds.delete(currentPurchaseRound);setText(els.lastHitMini,'Entry 失敗，重新自動請求');setTimeout(requestAutoEntry,400)};
 
@@ -457,7 +530,8 @@ setInterval(()=>{
   const me=roster.get(ME.id);if(me){me.online=true;me.lastSeen=now()}
   send('NCC_HEARTBEAT',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:me.joinedAt,joinOrder:me.joinOrder},requestState:state.phase===S.MENU||state.phase===S.LOBBY});
   if(isHost()){
-    state.roomCount=roomCount();
+    if(state.phase===S.MENU||state.phase===S.LOBBY)state.roomCount=roomCount();
+    else state.roomCount=lockedOrCurrentRoomCount();
     if(state.phase===S.MENU||state.phase===S.LOBBY){
       const hash=onlinePlayers().slice(0,GAME.maxPlayers).map(p=>`${p.id}:${p.joinOrder}`).join('|');
       const changed=hash!==lastRosterHash;

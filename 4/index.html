@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080a12">
-<title>貪婪礦坑：大逃殺｜BoomRoom 1-10人全自動版</title>
+<title>貪婪礦坑：輪流奪寶｜BoomRoom 1-10人全自動版</title>
 <style>
 :root{
   --bg:#080a12;
@@ -95,6 +95,38 @@ body{position:relative}
   .block{font-size:21px}
   .modal-card{padding:18px}
 }
+
+.turn-panel{flex-shrink:0;border:1px solid rgba(180,108,255,.28);background:linear-gradient(180deg,rgba(180,108,255,.09),rgba(255,255,255,.025));border-radius:13px;padding:9px 11px}
+.turn-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.turn-label{font-size:10px;color:var(--muted);letter-spacing:.5px}
+.turn-player{font-size:15px;font-weight:950;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px}
+.turn-timer{font-size:20px;font-weight:950;color:var(--gold);min-width:42px;text-align:right}
+.turn-bar{height:5px;margin-top:7px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
+.turn-bar-fill{height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transition:width .1s linear}
+.player-chip{position:relative;min-width:94px;flex-direction:column;align-items:stretch;gap:3px;padding:6px 8px}
+.player-top{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.player-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.player-hp{display:flex;align-items:center;gap:2px;font-size:9px;line-height:1}
+.hp-heart{font-size:10px;filter:drop-shadow(0 0 3px rgba(255,51,71,.3))}
+.hp-heart.empty{filter:grayscale(1);opacity:.3}
+.player-shield{font-size:9px;color:#8fdcff}
+.player-turn{border-color:rgba(255,234,0,.82);box-shadow:0 0 18px rgba(255,234,0,.16),inset 0 0 12px rgba(255,234,0,.05);transform:translateY(-1px)}
+.player-turn::after{content:'YOUR TURN';position:absolute;left:6px;right:6px;bottom:-10px;height:3px;border-radius:3px;background:var(--gold);box-shadow:0 0 10px rgba(255,234,0,.7)}
+.player-turn.me::after{content:'輪到你'}
+.game-area{padding-top:42px}
+.game-tip{position:absolute;left:10px;right:10px;top:10px;font-size:10px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.block{background:linear-gradient(145deg,#3d435c,#212638);border-color:#58627f;transition:transform .08s,box-shadow .08s,filter .1s,opacity .15s}
+.block.available{box-shadow:0 0 0 1px rgba(0,229,255,.35),0 5px 0 #121622,0 0 13px rgba(0,229,255,.09)}
+.block.available:hover{filter:brightness(1.18);transform:translateY(-1px)}
+.block.not-turn{cursor:not-allowed;opacity:.72}
+.block.mined{opacity:.9}
+.block.reveal-good{animation:revealGood .32s ease-out}
+.block.reveal-bad{animation:revealBad .42s ease-out}
+@keyframes revealGood{0%{transform:scale(.84);filter:brightness(2)}100%{transform:scale(1);filter:brightness(1)}}
+@keyframes revealBad{0%{transform:scale(.84) rotate(-2deg);filter:brightness(2) saturate(1.4)}35%{transform:scale(1.08) rotate(2deg);filter:brightness(2.2)}100%{transform:scale(1);filter:brightness(1)}}
+.mine-legend{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;font-size:9px;color:#aeb7ca;line-height:1.2;margin-top:6px}
+.mine-legend span{white-space:nowrap}
+.action-hint{font-weight:650}
 </style>
 </head>
 
@@ -118,7 +150,7 @@ body{position:relative}
   <div class="info-panel">
     <div class="stat-box">
       <b id="entry-fee">100 🪙</b>
-      <span>房主本局入場</span>
+      <span>房主自動入場</span>
     </div>
     <div class="stat-box">
       <b id="total-pool">待入場</b>
@@ -133,6 +165,17 @@ body{position:relative}
   <div class="status-bar">
     <div class="phase-text" id="phase-text">同步房內玩家</div>
     <div class="timer-text" id="timer-text">WAIT</div>
+  </div>
+
+  <div class="turn-panel">
+    <div class="turn-row">
+      <div style="min-width:0">
+        <div class="turn-label" id="turn-label">目前回合</div>
+        <div class="turn-player" id="turn-player">等待開局…</div>
+      </div>
+      <div class="turn-timer" id="turn-timer">--</div>
+    </div>
+    <div class="turn-bar"><div class="turn-bar-fill" id="turn-bar-fill"></div></div>
   </div>
 
   <div class="auto-panel">
@@ -150,7 +193,11 @@ body{position:relative}
 
   <div class="game-area" id="game-area">
     <div class="player-count-badge" id="game-player-count">1 人</div>
+    <div class="game-tip" id="game-tip">輪流點 1 格 · 每回合只有當前玩家可以操作</div>
     <div class="grid-board" id="grid-board"></div>
+    <div class="mine-legend" id="mine-legend">
+      <span>💎+100</span><span>🔶+60</span><span>💠+25</span><span>📦+80</span><span>❤️回1血</span><span>🛡️護盾</span><span>💣-1血</span>
+    </div>
   </div>
 
   <div class="action-hint" id="action-hint">房內玩家會自動加入；達成人數同步後，系統會自動開始。</div>
@@ -160,17 +207,18 @@ body{position:relative}
   <div class="modal-card">
     <h2>玩法規則</h2>
     <ul class="rules-list">
-      <li><b>自動入場：</b>1～10 位房內玩家會依 BoomRoom 房內名單自動加入，不需要每位玩家按開始或支付。</li>
-      <li><b>自動開局：</b>房內名單同步完成後，由系統自動倒數；不需要「開始遊戲」或 Ready 按鈕。</li>
-      <li><b>入場費：</b>僅房主自動支付本局 100 銀幣；其他玩家不重複扣款。</li>
-      <li><b>共同礦區：</b>所有參賽者共用同一張 5×6 礦圖，任何人挖掉的礦石會同步給全員。</li>
-      <li><b>採礦：</b>💎鑽石 100 分、🔶黃金 50 分、💠白銀 10 分、🪨碎石 0 分。</li>
-      <li><b>炸彈：</b>💣 直接淘汰，之後只能觀戰。</li>
-      <li><b>連擊：</b>連續挖到安全礦石會提高倍率，最高 +30%。</li>
-      <li><b>獲勝：</b>時間結束或全員淘汰時，最高分玩家／平手玩家取得獎池。</li>
-      <li><b>自然結束：</b>系統結算並透過 BoomRoomSDK.gameOver 發送個人獎勵。</li>
-      <li><b>手動離開：</b>中途按左上角 ✕ 會視為放棄本局，不發放本局獎勵。</li>
-      <li><b>自動返回：</b>結算後 3 秒自動通知 BoomRoom 關閉遊戲並返回房間。</li>
+      <li><b>自動入場：</b>1～10 位房內玩家依 BoomRoom 房內名單自動加入，不需要按開始、Ready 或個別支付。</li>
+      <li><b>房主支付：</b>只有房主自動支付本局 100 銀幣；其他玩家不扣款。</li>
+      <li><b>輪流操作：</b>遊戲開始後不是大家亂點，而是依序輪流；輪到你的裝置才可以點 1 格。</li>
+      <li><b>回合時間：</b>每人約 5 秒。時間到沒有操作就自動跳過，遊戲不會卡住。</li>
+      <li><b>生命：</b>每人 3 ❤️。踩到 💣 炸彈扣 1 ❤️；生命歸 0 就淘汰，只能觀戰。</li>
+      <li><b>護盾：</b>挖到 🛡️ 可擋下一次炸彈，護盾會優先消耗。</li>
+      <li><b>回血：</b>挖到 ❤️ 可以回 1 點生命，最多 3 ❤️。</li>
+      <li><b>得分：</b>💎100、🔶60、💠25、📦80；連續挖到有分礦石會提高連擊倍率。</li>
+      <li><b>礦脈：</b>安全格挖完會自動生成下一層礦區，等級越高炸彈越多。</li>
+      <li><b>獲勝：</b>時間結束或只剩 1 名存活玩家時結算，最高分玩家／平手玩家取得獎池。</li>
+      <li><b>自然結束：</b>每位玩家只結算一次，透過 BoomRoomSDK.gameOver 發送對應獎勵。</li>
+      <li><b>中途離開：</b>按左上角 ✕ 視為放棄本局，本局獎勵為 0，不影響其他玩家繼續。</li>
     </ul>
     <button class="main-btn" id="btn-close-rules">我知道了</button>
   </div>
@@ -199,1366 +247,461 @@ body{position:relative}
 (()=>{
 'use strict';
 
-/* ==============================
-   BoomRoom Game Info
-   ============================== */
-const GAME_INFO = {
-  category: '多人派對競技',
-  name: '貪婪礦坑：大逃殺',
-  description: '1～10人同屏搶挖礦石；避開炸彈、累積連擊，時間結束以最高分競逐獎池。',
-  entryCost: 100,
-  maxPlayers: 10,
-  controlModes: ['點擊']
+const GAME_INFO={
+  category:'多人派對競技',
+  name:'貪婪礦坑：輪流奪寶',
+  description:'1～10人輪流點礦格；炸彈扣血、護盾防爆、回血保命、連擊搶分，最後比誰帶走最多寶物。',
+  entryCost:100,
+  maxPlayers:10,
+  controlModes:['點擊']
 };
 
-/* ==============================
-   SDK / User
-   ============================== */
-let SDK = window.BoomRoomSDK || null;
-let DEMO = !SDK;
-
-function getSDK(){
-  return window.BoomRoomSDK || SDK || null;
-}
+/* ================= SDK ================= */
+let SDK=null;
+let DEMO=false;
 function refreshSDK(){
-  const live = window.BoomRoomSDK || SDK || null;
-  if(live) SDK = live;
-  DEMO = !SDK;
+  const s=window.BoomRoomSDK||SDK||null;
+  if(s) SDK=s;
+  DEMO=!SDK;
   return SDK;
 }
+function getSDK(){return refreshSDK()}
+function makeDemoUser(){return{id:'demo-'+Math.random().toString(36).slice(2,9),username:'體驗玩家',avatar:''}}
+let initialUser=makeDemoUser();
+try{const s=getSDK();if(s&&typeof s.getUser==='function')initialUser=s.getUser()||initialUser}catch(e){}
+const ME={id:String(initialUser?.id||makeDemoUser().id),username:String(initialUser?.username||'玩家').slice(0,12),avatar:String(initialUser?.avatar||''),joinedAt:Date.now()};
 
-function makeDemoUser(){
-  return {id:'demo-'+Math.random().toString(36).slice(2,9), username:'體驗玩家', avatar:''};
-}
-
-let user = makeDemoUser();
-try{
-  const s = getSDK();
-  if(s && typeof s.getUser === 'function'){
-    user = s.getUser() || user;
-  }
-}catch(e){}
-
-const ME = {
-  id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2,9))),
-  username: String(user?.username || '玩家').slice(0,12),
-  avatar: String(user?.avatar || ''),
-  joinedAt: Date.now()
-};
-
-/* ==============================
-   Config
-   ============================== */
-const ENTRY_FEE = GAME_INFO.entryCost;
-const PLATFORM_FEE_RATE = 0.10;
-const MAX_PLAYERS = GAME_INFO.maxPlayers;
-const GRID_SIZE = 30;
-const HOST_TIMEOUT_MS = 7000;
-const AUTO_LOBBY_SETTLE_MS = 1400;
-const AUTO_START_FALLBACK_MS = 4200;
-const COUNTDOWN_MS = 3000;
-const RESULT_CLOSE_DELAY_MS = 3000;
-const STATE_SYNC_MS = 180;
-const CLOCK_SMOOTH = 0.18;
+/* ================= Config ================= */
+const ENTRY_FEE=GAME_INFO.entryCost;
+const PLATFORM_FEE_RATE=.10;
+const MAX_PLAYERS=GAME_INFO.maxPlayers;
+const GRID_SIZE=30;
+const COUNTDOWN_MS=3000;
+const TURN_MS=5000;
+const RESULT_CLOSE_DELAY_MS=3000;
+const AUTO_LOBBY_SETTLE_MS=1300;
+const AUTO_START_FALLBACK_MS=4500;
+const STATE_SYNC_MS=450;
+const ROSTER_POLL_MS=500;
+const CLOCK_SMOOTH=.22;
+const STARTER_HP=3;
 
 function getRoundTimeMs(count){
-  if(count <= 1) return 35000;
-  if(count <= 3) return 40000;
-  if(count <= 6) return 50000;
-  return 60000;
+  if(count<=1)return 45000;
+  if(count<=3)return 60000;
+  if(count<=6)return 75000;
+  return 90000;
 }
 
-const ITEMS = {
-  GEM:{icon:'💎',points:100},
-  GOLD:{icon:'🔶',points:50},
-  SILVER:{icon:'💠',points:10},
-  DIRT:{icon:'🪨',points:0},
-  BOMB:{icon:'💣',points:0}
+const ITEMS={
+  GEM:{icon:'💎',points:100,kind:'score'},
+  GOLD:{icon:'🔶',points:60,kind:'score'},
+  SILVER:{icon:'💠',points:25,kind:'score'},
+  CHEST:{icon:'📦',points:80,kind:'score'},
+  HEART:{icon:'❤️',points:0,kind:'heal'},
+  SHIELD:{icon:'🛡️',points:0,kind:'shield'},
+  DIRT:{icon:'🪨',points:0,kind:'empty'},
+  BOMB:{icon:'💣',points:0,kind:'bomb'}
 };
 
-const els = {
-  devBadge:document.getElementById('devBadge'),
-  entryFee:document.getElementById('entry-fee'),
-  totalPool:document.getElementById('total-pool'),
-  playerCount:document.getElementById('player-count'),
-  gamePlayerCount:document.getElementById('game-player-count'),
-  phaseText:document.getElementById('phase-text'),
-  timerText:document.getElementById('timer-text'),
-  autoTitle:document.getElementById('auto-title'),
-  autoStartNotice:document.getElementById('autoStartNotice'),
-  autoCount:document.getElementById('auto-count'),
-  autoFill:document.getElementById('auto-fill'),
-  leaderboard:document.getElementById('leaderboard'),
-  gameArea:document.getElementById('game-area'),
-  gridBoard:document.getElementById('grid-board'),
-  actionHint:document.getElementById('action-hint'),
-  toast:document.getElementById('toast'),
-  btnExit:document.getElementById('btn-exit'),
-  btnMute:document.getElementById('btn-mute'),
-  btnHelp:document.getElementById('btn-help'),
-  modalRules:document.getElementById('modal-rules'),
-  btnCloseRules:document.getElementById('btn-close-rules'),
-  modalResult:document.getElementById('modal-result'),
-  resultWinnerText:document.getElementById('result-winner-text'),
-  resultAmount:document.getElementById('result-amount'),
-  resultDesc:document.getElementById('result-desc'),
-  resultCloseCountdown:document.getElementById('result-close-countdown'),
-  winnersList:document.getElementById('winners-list'),
-  btnCloseResult:document.getElementById('btn-close-result')
+const els={
+  devBadge:document.getElementById('devBadge'),entryFee:document.getElementById('entry-fee'),totalPool:document.getElementById('total-pool'),
+  playerCount:document.getElementById('player-count'),gamePlayerCount:document.getElementById('game-player-count'),phaseText:document.getElementById('phase-text'),timerText:document.getElementById('timer-text'),
+  turnLabel:document.getElementById('turn-label'),turnPlayer:document.getElementById('turn-player'),turnTimer:document.getElementById('turn-timer'),turnBarFill:document.getElementById('turn-bar-fill'),
+  autoTitle:document.getElementById('auto-title'),autoStartNotice:document.getElementById('autoStartNotice'),autoCount:document.getElementById('auto-count'),autoFill:document.getElementById('auto-fill'),
+  leaderboard:document.getElementById('leaderboard'),gameArea:document.getElementById('game-area'),gameTip:document.getElementById('game-tip'),gridBoard:document.getElementById('grid-board'),actionHint:document.getElementById('action-hint'),toast:document.getElementById('toast'),
+  btnExit:document.getElementById('btn-exit'),btnMute:document.getElementById('btn-mute'),btnHelp:document.getElementById('btn-help'),modalRules:document.getElementById('modal-rules'),btnCloseRules:document.getElementById('btn-close-rules'),
+  modalResult:document.getElementById('modal-result'),resultWinnerText:document.getElementById('result-winner-text'),resultAmount:document.getElementById('result-amount'),resultDesc:document.getElementById('result-desc'),resultCloseCountdown:document.getElementById('result-close-countdown'),winnersList:document.getElementById('winners-list'),btnCloseResult:document.getElementById('btn-close-result')
 };
 
-/* ==============================
-   Audio
-   ============================== */
-let audioCtx = null;
-let masterGain = null;
-let isMuted = false;
-
+/* ================= Audio ================= */
+let audioCtx=null,masterGain=null,isMuted=false;
 function initAudio(){
-  if(isMuted) return;
-  if(audioCtx){
-    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-    return;
-  }
-  try{
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    masterGain = audioCtx.createGain();
-    masterGain.gain.value = .075;
-    masterGain.connect(audioCtx.destination);
-  }catch(e){}
+  if(isMuted)return;
+  if(audioCtx){if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});return}
+  try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();masterGain.gain.value=.075;masterGain.connect(audioCtx.destination)}catch(e){}
 }
-
-function toggleMute(){
-  isMuted = !isMuted;
-  els.btnMute.textContent = isMuted ? '🔇' : '🔊';
-  if(masterGain) masterGain.gain.value = isMuted ? 0 : .075;
-}
-
+function toggleMute(){isMuted=!isMuted;els.btnMute.textContent=isMuted?'🔇':'🔊';if(masterGain)masterGain.gain.value=isMuted?0:.075}
 function tone(freq,type,duration,vol=.5,delay=0){
-  if(!audioCtx || !masterGain || isMuted) return;
-  const now = audioCtx.currentTime + delay;
-  const osc = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq,now);
-  g.gain.setValueAtTime(.0001,now);
-  g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),now+.01);
-  g.gain.exponentialRampToValueAtTime(.0001,now+duration);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(now); osc.stop(now+duration+.05);
+  if(!audioCtx||!masterGain||isMuted)return;
+  const now=audioCtx.currentTime+delay;const osc=audioCtx.createOscillator();const g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(Math.max(.001,vol),now+.01);g.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.connect(g);g.connect(masterGain);osc.start(now);osc.stop(now+duration+.05)
 }
-
-const sfx = {
-  pay:()=>{tone(600,'sine',.1,.4);tone(900,'sine',.15,.4,.08)},
-  mine:()=>tone(400,'square',.05,.2),
-  gem:()=>{tone(800,'sine',.1,.3);tone(1200,'sine',.1,.3,.05)},
-  gold:()=>tone(600,'triangle',.1,.3),
-  bomb:()=>{tone(150,'sawtooth',.4,.6);tone(100,'square',.5,.6,.1)},
-  tick:()=>tone(1000,'sine',.05,.1),
-  win:()=>{tone(400,'square',.1,.4);tone(600,'square',.2,.4,.1);tone(800,'square',.3,.4,.3)},
-  lose:()=>{tone(300,'sawtooth',.2,.4);tone(200,'sawtooth',.4,.4,.2)}
+const sfx={
+ pay:()=>{tone(600,'sine',.1,.4);tone(900,'sine',.15,.4,.08)},
+ click:()=>tone(430,'square',.045,.18),gem:()=>{tone(760,'sine',.08,.28);tone(1120,'sine',.12,.26,.05)},gold:()=>tone(620,'triangle',.11,.28),silver:()=>tone(500,'sine',.07,.22),
+ chest:()=>{tone(500,'triangle',.08,.22);tone(900,'sine',.14,.3,.07)},heal:()=>{tone(520,'sine',.10,.25);tone(820,'sine',.16,.28,.08)},shield:()=>{tone(360,'triangle',.12,.22);tone(540,'triangle',.16,.26,.08)},
+ bomb:()=>{tone(145,'sawtooth',.22,.5);tone(90,'square',.32,.5,.1)},timeout:()=>tone(220,'triangle',.13,.23),tick:()=>tone(980,'sine',.045,.08),win:()=>{tone(400,'square',.1,.38);tone(600,'square',.18,.4,.09);tone(800,'square',.28,.4,.25)},lose:()=>{tone(300,'sawtooth',.16,.38);tone(200,'sawtooth',.33,.36,.15)}
 };
-els.btnMute.onclick = toggleMute;
+els.btnMute.onclick=toggleMute;
 
-/* ==============================
-   Multiplayer state
-   ============================== */
-const players = new Map();
-let hostId = null;
-let initialElectionDone = false;
-let roomRosterIds = new Set();
-let roundClockOffset = 0;
-let autoLaunchTimer = null;
-let autoLaunchFallbackTimer = null;
-let autoLaunchEpoch = 0;
-let purchasePending = false;
-let autoLaunchBusy = false;
-let hasPaid = false;
-let gameOverCalled = false;
-let resultShown = false;
-let closeRequested = false;
-let abandoned = false;
-let naturalClosing = false;
-let lastStateBroadcast = 0;
-let oldBoardState = [];
-let lastCountdownSecond = -1;
+/* ================= Multiplayer ================= */
+const players=new Map();
+let roomRosterIds=new Set();
+let hostId=null;
+let roundClockOffset=0;
+let autoLaunchTimer=null,autoLaunchFallbackTimer=null,purchasePending=false,autoLaunchBusy=false;
+let hasPaid=false,gameOverCalled=false,resultShown=false,closeRequested=false,abandoned=false,naturalClosing=false;
+let lastStateBroadcast=0,lastRosterHash='';
+const processedActions=new Set();
 
-const state = {
-  matchId:'M_'+Math.random().toString(36).slice(2,10),
-  roundId:'',
-  phase:'LOBBY',
-  phaseEndsAt:0,
-  autoStartAt:0,
-  hostPaid:false,
-  expectedPlayers:0,
-  participantIds:[],
-  level:1,
-  board:[],
-  result:[]
+const state={
+ matchId:'M_'+Math.random().toString(36).slice(2,10),roundId:'',phase:'LOBBY',phaseEndsAt:0,autoStartAt:0,hostPaid:false,
+ expectedPlayers:0,participantIds:[],level:1,board:[],turnIndex:0,turnNo:0,turnEndsAt:0,result:[],lastAction:null
 };
-state.roundId = state.matchId;
+state.roundId=state.matchId;
 
-function syncRoundId(){
-  if(!state.roundId) state.roundId = state.matchId;
-}
-
-function rankKey(p){ return Number(p.joinedAt)||0; }
-
-function sdkHostFlag(){
-  const s = getSDK();
-  return s && typeof s.isHost === 'boolean' ? s.isHost : null;
-}
-
-function isHost(){
-  const flag = sdkHostFlag();
-  if(flag === true) return true;
-  if(flag === false && hostId === ME.id) return false;
-  return hostId === ME.id;
-}
+function rankKey(p){return Number(p.joinedAt)||0}
+function sdkHostFlag(){const s=getSDK();return s&&typeof s.isHost==='boolean'?s.isHost:null}
+function isHost(){const f=sdkHostFlag();if(f===true)return true;if(f===false)return false;return DEMO}
+function safeRoundNow(){return Date.now()+roundClockOffset}
 
 function addOrUpdatePlayer(raw,seen=true){
-  if(!raw || raw.id == null) return null;
-  const id = String(raw.id);
-  let p = players.get(id);
+  if(!raw||raw.id==null)return null;
+  const id=String(raw.id);let p=players.get(id);
   if(!p){
-    p = {
-      id,
-      username:String(raw.username||'玩家').slice(0,12),
-      avatar:String(raw.avatar||''),
-      joinedAt:Number(raw.joinedAt)||Date.now(),
-      hasPaid:false,
-      joined:true,
-      score:0,
-      status:'ALIVE',
-      online:true,
-      lastSeen:Date.now(),
-      combo:0,
-      bestCombo:0,
-      mines:0
-    };
+    p={id,username:String(raw.username||'玩家').slice(0,12),avatar:String(raw.avatar||''),joinedAt:Number(raw.joinedAt)||Date.now(),joined:true,online:true,lastSeen:Date.now(),score:0,status:'ALIVE',hp:STARTER_HP,shield:0,combo:0,bestCombo:0,mines:0,actions:0,lastActionAt:0};
     players.set(id,p);
   }else{
-    if(raw.username != null) p.username=String(raw.username).slice(0,12);
-    if(raw.avatar != null) p.avatar=String(raw.avatar);
-    if(raw.hasPaid != null) p.hasPaid=!!raw.hasPaid;
-    if(raw.joined != null) p.joined=!!raw.joined;
-    if(raw.score != null) p.score=Number(raw.score)||0;
-    if(raw.status != null) p.status=String(raw.status);
-    if(raw.combo != null) p.combo=Number(raw.combo)||0;
-    if(raw.bestCombo != null) p.bestCombo=Number(raw.bestCombo)||0;
-    if(raw.mines != null) p.mines=Number(raw.mines)||0;
-    if(seen){p.lastSeen=Date.now();p.online=true}
+    if(raw.username!=null)p.username=String(raw.username).slice(0,12);if(raw.avatar!=null)p.avatar=String(raw.avatar);if(raw.joined!=null)p.joined=!!raw.joined;
+    if(raw.joinedAt!=null)p.joinedAt=Number(raw.joinedAt)||p.joinedAt;if(raw.online!=null&&!seen)p.online=!!raw.online;
+    if(raw.score!=null)p.score=Number(raw.score)||0;if(raw.status!=null)p.status=String(raw.status);if(raw.hp!=null)p.hp=Math.max(0,Math.min(STARTER_HP,Number(raw.hp)||0));
+    if(raw.shield!=null)p.shield=Math.max(0,Math.min(2,Number(raw.shield)||0));if(raw.combo!=null)p.combo=Number(raw.combo)||0;if(raw.bestCombo!=null)p.bestCombo=Number(raw.bestCombo)||0;
+    if(raw.mines!=null)p.mines=Number(raw.mines)||0;if(raw.actions!=null)p.actions=Number(raw.actions)||0;if(seen){p.lastSeen=Date.now();p.online=true}
   }
   return p;
 }
 
-function getSDKRoomPlayers(){
-  const s = getSDK();
-  if(!s || !Array.isArray(s.roomPlayers)) return null;
-  return s.roomPlayers.slice(0,MAX_PLAYERS).filter(Boolean);
-}
-
-function syncRoomRosterFromSDK(force=false){
-  const s = refreshSDK();
-  if(!s) return;
-
-  const rawList = getSDKRoomPlayers();
-  if(rawList){
-    const nextIds = new Set();
-    rawList.forEach((rp,i)=>{
-      if(rp && rp.id != null){
-        const id=String(rp.id);
-        nextIds.add(id);
-        addOrUpdatePlayer({
-          id,
-          username:rp.username || '玩家',
-          avatar:rp.avatar || '',
-          joinedAt:Number(rp.joinedAt)||Date.now()+i,
-          joined:true
-        },true);
-      }
-    });
-
-    if(!nextIds.has(ME.id)){
-      nextIds.add(ME.id);
-      addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);
-    }
-
-    roomRosterIds = nextIds;
-
-    if(state.phase==='LOBBY' || force){
-      for(const p of players.values()){
-        if(p.id !== ME.id && !nextIds.has(p.id)) p.joined=false;
-      }
-    }
+function syncRoomRosterFromSDK(){
+  const s=refreshSDK();if(!s)return;
+  let list=Array.isArray(s.roomPlayers)?s.roomPlayers.slice(0,MAX_PLAYERS).filter(Boolean):null;
+  if(list){
+    const ids=new Set();
+    list.forEach((rp,i)=>{if(rp&&rp.id!=null){const id=String(rp.id);ids.add(id);addOrUpdatePlayer({id,username:rp.username||'玩家',avatar:rp.avatar||'',joinedAt:Number(rp.joinedAt)||Date.now()+i,joined:true},true)}});
+    if(!ids.has(ME.id)){ids.add(ME.id);addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true)}
+    roomRosterIds=ids;
+    if(state.phase==='LOBBY')for(const p of players.values())if(p.id!==ME.id&&!ids.has(p.id))p.joined=false;
   }
-
-  const flag = sdkHostFlag();
-  if(flag === true){
-    hostId = ME.id;
-    initialElectionDone = true;
-  }else if(flag === false && hostId===ME.id){
-    hostId = null;
-  }
-
-  if(DEMO && !rawList){
-    addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);
-    roomRosterIds = new Set([ME.id]);
-    if(!initialElectionDone){
-      hostId=ME.id;
-      initialElectionDone=true;
-    }
-  }
+  const flag=sdkHostFlag();
+  if(flag===true)hostId=ME.id;
+  else if(flag===false&&hostId===ME.id)hostId=null;
 }
 
 function getRoomParticipants(){
-  syncRoundId();
-  const rawList = getSDKRoomPlayers();
-
-  if(rawList){
-    const ids = [];
-    rawList.forEach(rp=>{
-      if(rp && rp.id!=null){
-        const id=String(rp.id);
-        if(!ids.includes(id)) ids.push(id);
-        addOrUpdatePlayer({
-          id,
-          username:rp.username || '玩家',
-          avatar:rp.avatar || '',
-          joined:true
-        },true);
-      }
-    });
-    if(!ids.includes(ME.id)) ids.push(ME.id);
-    return ids.slice(0,MAX_PLAYERS).map(id=>players.get(id)).filter(Boolean);
+  const s=getSDK();
+  if(s&&Array.isArray(s.roomPlayers)){
+    const out=[];const seen=new Set();
+    s.roomPlayers.slice(0,MAX_PLAYERS).forEach((rp,i)=>{if(rp&&rp.id!=null){const id=String(rp.id);if(!seen.has(id)){seen.add(id);out.push(addOrUpdatePlayer({id,username:rp.username||'玩家',avatar:rp.avatar||'',joinedAt:Number(rp.joinedAt)||Date.now()+i,joined:true},true))}}});
+    if(!seen.has(ME.id)&&out.length<MAX_PLAYERS)out.push(addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true));
+    return out.filter(Boolean).slice(0,MAX_PLAYERS);
   }
-
-  const list=[...players.values()].filter(p=>p.joined && p.online && Date.now()-p.lastSeen<HOST_TIMEOUT_MS);
-  if(!list.some(p=>p.id===ME.id)) list.push(players.get(ME.id));
-  return list.sort((a,b)=>rankKey(a)-rankKey(b)||a.id.localeCompare(b.id)).slice(0,MAX_PLAYERS);
+  const arr=[...players.values()].filter(p=>p.joined||p.id===ME.id);if(!arr.some(p=>p.id===ME.id))arr.push(players.get(ME.id));return arr.filter(Boolean).sort((a,b)=>rankKey(a)-rankKey(b)||a.id.localeCompare(b.id)).slice(0,MAX_PLAYERS);
 }
+function getMatchParticipants(){return state.participantIds.map(id=>players.get(id)).filter(Boolean)}
+function aliveMatchPlayers(){return getMatchParticipants().filter(p=>p.status==='ALIVE')}
 
-function getMatchParticipants(){
-  return state.participantIds.map(id=>players.get(id)).filter(Boolean);
-}
-
-function onlineMatchParticipants(){
-  const now=Date.now();
-  return getMatchParticipants().filter(p=>p.online && now-p.lastSeen<HOST_TIMEOUT_MS && p.status!=='EXITED');
-}
-
-function refreshHostRole(){
-  const s=refreshSDK();
-  if(s && typeof s.isHost==='boolean'){
-    if(s.isHost){
-      if(hostId!==ME.id){
-        hostId=ME.id;
-        initialElectionDone=true;
-        if(state.phase!=='LOBBY') broadcastState(true);
-      }
-    }else if(hostId===ME.id && s.isHost===false){
-      hostId=null;
-    }
-  }
-}
-
-function electInitialHost(){
-  if(initialElectionDone) return;
-  const a=getRoomParticipants();
-  if(!a.length) return;
-  const next=a.slice().sort((x,y)=>rankKey(x)-rankKey(y)||x.id.localeCompare(y.id))[0];
-  hostId=next.id;
-  initialElectionDone=true;
-  if(isHost()) broadcastState(true);
-}
-
-function maybeTakeoverHost(){
-  if(!initialElectionDone || isHost()) return;
-  const hp=players.get(hostId);
-  if(hp && hp.online && Date.now()-hp.lastSeen<HOST_TIMEOUT_MS) return;
-
-  if(sdkHostFlag()===false) return;
-
-  const a=getRoomParticipants().filter(p=>p.status!=='EXITED');
-  if(!a.length) return;
-  const next=a.sort((x,y)=>rankKey(x)-rankKey(y)||x.id.localeCompare(y.id))[0];
-  if(next && next.id!==hostId){
-    hostId=next.id;
-    showToast('房主離開，已自動接管本局');
-    if(isHost()) broadcastState(true);
-    render();
-  }
-}
-
-/* ==============================
-   Transport
-   ============================== */
 function broadcast(eventName,payload){
-  const s=refreshSDK();
-  if(!s || typeof s.sendGameEvent!=='function') return;
-  try{
-    s.sendGameEvent(eventName,Object.assign({roundId:state.roundId,matchId:state.matchId},payload||{}));
-  }catch(e){}
+  const s=refreshSDK();if(!s||typeof s.sendGameEvent!=='function')return;
+  try{s.sendGameEvent(eventName,Object.assign({roundId:state.roundId,matchId:state.matchId},payload||{}))}catch(e){}
 }
 
+function playerSnapshot(p){return{id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,joined:p.joined,online:p.online,score:p.score,status:p.status,hp:p.hp,shield:p.shield,combo:p.combo,bestCombo:p.bestCombo,mines:p.mines,actions:p.actions}}
 function snapshotState(){
-  return {
-    hostId,
-    matchId:state.matchId,
-    roundId:state.roundId,
-    hostNow:Date.now(),
-    phase:state.phase,
-    phaseEndsAt:state.phaseEndsAt,
-    autoStartAt:state.autoStartAt,
-    hostPaid:!!hasPaid,
-    expectedPlayers:state.expectedPlayers,
-    participantIds:state.participantIds.slice(),
-    level:state.level,
-    board:state.board,
-    result:state.result.slice(),
-    players:[...players.values()]
-      .filter(p=>state.phase==='LOBBY' ? p.joined : state.participantIds.includes(p.id))
-      .slice(0,MAX_PLAYERS)
-      .map(p=>({
-        id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,
-        hasPaid:p.hasPaid,joined:p.joined,score:p.score,status:p.status,online:p.online,
-        combo:p.combo,bestCombo:p.bestCombo,mines:p.mines
-      }))
-  };
+  return{hostId,hostNow:Date.now(),matchId:state.matchId,roundId:state.roundId,phase:state.phase,phaseEndsAt:state.phaseEndsAt,autoStartAt:state.autoStartAt,hostPaid:!!hasPaid,expectedPlayers:state.expectedPlayers,participantIds:state.participantIds.slice(),level:state.level,board:state.board,turnIndex:state.turnIndex,turnNo:state.turnNo,turnEndsAt:state.turnEndsAt,result:state.result.slice(),lastAction:state.lastAction,players:getMatchParticipants().map(playerSnapshot)}
 }
-
-function broadcastState(force=false){
-  if(!isHost()) return;
-  const now=Date.now();
-  if(!force && now-lastStateBroadcast<STATE_SYNC_MS) return;
-  lastStateBroadcast=now;
-  broadcast('NDB_STATE',snapshotState());
-}
+function broadcastState(force=false){if(!isHost())return;const now=Date.now();if(!force&&now-lastStateBroadcast<STATE_SYNC_MS)return;lastStateBroadcast=now;broadcast('NDB_STATE',snapshotState())}
 
 function applySnapshot(s){
-  if(!s || typeof s!=='object') return;
-  syncRoundId();
-
-  if(s.hostId!=null){
-    hostId=String(s.hostId);
-    initialElectionDone=true;
-  }
-
-  if(Number.isFinite(Number(s.hostNow))){
-    const desired=Number(s.hostNow)-Date.now();
-    roundClockOffset = roundClockOffset + (desired-roundClockOffset)*CLOCK_SMOOTH;
-  }
-
-  if(Array.isArray(s.players)){
-    s.players.forEach(raw=>addOrUpdatePlayer(raw,false));
-  }
-
-  const incomingRound=String(s.roundId || s.matchId || '');
-  if(incomingRound && incomingRound!==state.roundId){
-    state.roundId=incomingRound;
-    state.matchId=incomingRound;
-    oldBoardState=[];
-    resultShown=false;
-    gameOverCalled=false;
-    state.result=[];
-  }
-
-  state.phase=s.phase || state.phase;
-  state.phaseEndsAt=Number(s.phaseEndsAt)||0;
-  state.autoStartAt=Number(s.autoStartAt)||0;
-  state.expectedPlayers=Math.max(0,Math.min(MAX_PLAYERS,Number(s.expectedPlayers)||0));
-  state.participantIds=Array.isArray(s.participantIds)?s.participantIds.map(String).slice(0,MAX_PLAYERS):state.participantIds;
-  state.level=Math.max(1,Number(s.level)||1);
-  state.result=Array.isArray(s.result)?s.result:state.result;
-  if(s.hostPaid!=null) hasPaid=!!s.hostPaid;
-  state.hostPaid=!!hasPaid;
-
-  if(Array.isArray(s.board)){
-    oldBoardState = Array.isArray(state.board)?JSON.parse(JSON.stringify(state.board)):[];
-    state.board=s.board;
-    checkBoardChanges();
-  }
-
-  if(state.phase==='RESULT') maybeCallGameOver();
-  render();
+  if(!s||typeof s!=='object')return;
+  if(s.hostId!=null)hostId=String(s.hostId);
+  if(Number.isFinite(Number(s.hostNow))){const desired=Number(s.hostNow)-Date.now();roundClockOffset=roundClockOffset+(desired-roundClockOffset)*CLOCK_SMOOTH}
+  if(Array.isArray(s.players))s.players.forEach(r=>addOrUpdatePlayer(r,false));
+  const r=String(s.roundId||s.matchId||'');
+  if(r&&r!==state.roundId){state.roundId=r;state.matchId=r;state.result=[];resultShown=false;gameOverCalled=false;processedActions.clear()}
+  state.phase=s.phase||state.phase;state.phaseEndsAt=Number(s.phaseEndsAt)||0;state.autoStartAt=Number(s.autoStartAt)||0;state.hostPaid=!!s.hostPaid;hasPaid=!!s.hostPaid;
+  state.expectedPlayers=Math.max(1,Math.min(MAX_PLAYERS,Number(s.expectedPlayers)||state.expectedPlayers||1));
+  if(Array.isArray(s.participantIds))state.participantIds=s.participantIds.map(String).slice(0,MAX_PLAYERS);
+  state.level=Math.max(1,Number(s.level)||1);state.turnIndex=Math.max(0,Number(s.turnIndex)||0);state.turnNo=Math.max(0,Number(s.turnNo)||0);state.turnEndsAt=Number(s.turnEndsAt)||0;state.result=Array.isArray(s.result)?s.result:state.result;state.lastAction=s.lastAction||state.lastAction;
+  if(Array.isArray(s.board)&&s.board.length===GRID_SIZE){state.board=s.board;}
+  maybeCallGameOver();render();
 }
 
-function checkBoardChanges(){
-  if(oldBoardState.length===0 || state.board.length===0) return;
-  state.board.forEach((block,i)=>{
-    const oldBlock=oldBoardState[i];
-    if(block.minedBy && (!oldBlock || !oldBlock.minedBy)){
-      const el=document.getElementById('block-'+i);
-      if(!el) return;
-      if(block.minedBy===ME.id){
-        if(block.type==='BOMB'){
-          sfx.bomb();
-          els.gameArea.classList.add('shake');
-          setTimeout(()=>els.gameArea.classList.remove('shake'),400);
-          if(navigator.vibrate) navigator.vibrate([180,90,180]);
-        }else if(block.type==='GEM') sfx.gem();
-        else if(block.type==='GOLD') sfx.gold();
-        else sfx.mine();
-      }
-      const def=ITEMS[block.type]||ITEMS.DIRT;
-      if(def.points>0) showFloatingText(el,'+'+def.points);
-      else if(block.type==='BOMB') showFloatingText(el,'BOOM!');
-    }
-  });
+/* ================= Lobby / automatic start ================= */
+function rosterKey(){return getRoomParticipants().map(p=>p.id).sort().join('|')}
+function scheduleAutoLaunch(){
+  if(!isHost()||state.phase!=='LOBBY'||purchasePending||autoLaunchBusy)return;
+  clearTimeout(autoLaunchTimer);clearTimeout(autoLaunchFallbackTimer);
+  const parts=getRoomParticipants();if(!parts.length)return;
+  const hash=rosterKey();lastRosterHash=hash;state.expectedPlayers=Math.max(1,parts.length);state.autoStartAt=Date.now()+AUTO_LOBBY_SETTLE_MS;
+  broadcastState(true);render();
+  autoLaunchTimer=setTimeout(()=>{if(state.phase!=='LOBBY'||purchasePending||autoLaunchBusy||rosterKey()!==lastRosterHash)return;if(rosterKey()!==hash){scheduleAutoLaunch();return}autoEntryAndStart()},AUTO_LOBBY_SETTLE_MS);
+  autoLaunchFallbackTimer=setTimeout(()=>{if(state.phase==='LOBBY'&&!purchasePending&&!autoLaunchBusy&&isHost())autoEntryAndStart()},AUTO_START_FALLBACK_MS);
 }
-
-/* ==============================
-   Auto lobby / purchase / start
-   ============================== */
-function scheduleAutoLaunch(reason='roster'){
-  if(!isHost() || state.phase!=='LOBBY' || purchasePending || autoLaunchBusy) return;
-  clearTimeout(autoLaunchTimer);
-  clearTimeout(autoLaunchFallbackTimer);
-
-  const participants=getRoomParticipants();
-  const count=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
-  state.expectedPlayers=count;
-  state.autoStartAt=Date.now()+AUTO_LOBBY_SETTLE_MS;
-  autoLaunchEpoch++;
-
-  broadcastState(true);
-  render();
-
-  const epoch=autoLaunchEpoch;
-  autoLaunchTimer=setTimeout(()=>{
-    if(epoch!==autoLaunchEpoch) return;
-    syncRoomRosterFromSDK(true);
-    const current=getRoomParticipants().length;
-    if(current!==count){
-      scheduleAutoLaunch('rosterChanged');
-      return;
-    }
-    autoEntryAndStart();
-  },AUTO_LOBBY_SETTLE_MS);
-
-  autoLaunchFallbackTimer=setTimeout(()=>{
-    if(state.phase==='LOBBY' && !purchasePending && !autoLaunchBusy && isHost()){
-      autoLaunchEpoch++;
-      autoEntryAndStart();
-    }
-  },AUTO_START_FALLBACK_MS);
-}
-
 function autoEntryAndStart(){
-  if(!isHost() || state.phase!=='LOBBY' || purchasePending || autoLaunchBusy) return;
-  const participants=getRoomParticipants();
-  if(!participants.length) return;
-
-  state.expectedPlayers=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
-  state.participantIds=participants.map(p=>p.id);
-  participants.forEach(p=>{
-    p.joined=true;
-    p.score=0;
-    p.status='ALIVE';
-    p.combo=0;
-    p.bestCombo=0;
-    p.mines=0;
-  });
-
+  if(!isHost()||state.phase!=='LOBBY'||purchasePending||autoLaunchBusy)return;
+  clearTimeout(autoLaunchTimer);clearTimeout(autoLaunchFallbackTimer);
+  const parts=getRoomParticipants().slice(0,MAX_PLAYERS);if(!parts.length)return;
+  state.expectedPlayers=parts.length;state.participantIds=parts.map(p=>p.id);state.autoStartAt=0;
+  parts.forEach(p=>{p.joined=true;p.status='ALIVE';p.hp=STARTER_HP;p.shield=0;p.score=0;p.combo=0;p.bestCombo=0;p.mines=0;p.actions=0});
   autoLaunchBusy=true;
-  clearTimeout(autoLaunchTimer);
-  clearTimeout(autoLaunchFallbackTimer);
-
-  if(DEMO){
-    hasPaid=false;
-    state.hostPaid=false;
-    sfx.pay();
-    beginCountdown();
-    return;
-  }
-
-  purchasePending=true;
-  broadcast('NDB_AUTO_ENTRY',{
-    playerId:ME.id,
-    playerCount:state.expectedPlayers
-  });
-  showToast('房主人數已同步，正在自動處理本局入場…');
-  render();
-
-  try{
-    const s=refreshSDK();
-    if(!s || typeof s.requestPurchase!=='function') throw new Error('requestPurchase unavailable');
-    s.requestPurchase('miner_entry',ENTRY_FEE);
-  }catch(e){
-    purchasePending=false;
-    autoLaunchBusy=false;
-    state.autoStartAt=0;
-    broadcastState(true);
-    render();
-    showToast('無法發起房主自動入場扣款');
-  }
+  if(DEMO){hasPaid=false;beginRoundCountdown();return}
+  purchasePending=true;showToast('房內玩家已同步，正在自動處理房主入場…');render();
+  try{const s=refreshSDK();if(!s||typeof s.requestPurchase!=='function')throw new Error('purchase unavailable');s.requestPurchase('miner_entry',ENTRY_FEE)}catch(e){purchasePending=false;autoLaunchBusy=false;state.autoStartAt=0;showToast('無法發起房主入場扣款');render()}
 }
+window.onPurchaseSuccess=function(itemId){if(itemId!=='miner_entry')return;purchasePending=false;autoLaunchBusy=false;hasPaid=true;state.hostPaid=true;const p=players.get(ME.id);if(p)p.online=true;sfx.pay();showToast('房主入場成功，所有玩家同步開始！');if(isHost()&&state.phase==='LOBBY')beginRoundCountdown();else broadcastState(true);render()}
+window.onPurchaseFailed=function(itemId){if(itemId!=='miner_entry')return;purchasePending=false;autoLaunchBusy=false;state.autoStartAt=0;state.hostPaid=false;showToast('房主入場扣款未完成，本局尚未開始');if(isHost())broadcastState(true);render()}
 
-function beginCountdown(){
-  if(!isHost() || state.phase!=='LOBBY') return;
-
-  purchasePending=false;
-  autoLaunchBusy=false;
-  hasPaid=!!hasPaid || DEMO;
-  state.hostPaid=!!hasPaid;
-  state.phase='COUNTDOWN';
-  state.phaseEndsAt=Date.now()+COUNTDOWN_MS;
-  state.autoStartAt=0;
-  state.level=1;
-  state.board=[];
-  state.result=[];
-  state.participantIds=getRoomParticipants().slice(0,MAX_PLAYERS).map(p=>p.id);
-
-  if(!state.participantIds.includes(ME.id) && state.participantIds.length<MAX_PLAYERS){
-    state.participantIds.unshift(ME.id);
-  }
-
-  state.expectedPlayers=state.participantIds.length;
-  state.board=[];
-  buildBoard();
-  oldBoardState=[];
-  broadcast('NDB_START',{
-    participantIds:state.participantIds.slice(),
-    expectedPlayers:state.expectedPlayers,
-    phaseEndsAt:state.phaseEndsAt
-  });
-  broadcastState(true);
-  showToast(`${state.expectedPlayers} 人已到齊，自動倒數開始`);
-  render();
-}
-
-window.onPurchaseSuccess=function(itemId){
-  if(itemId!=='miner_entry') return;
-  refreshSDK();
-  purchasePending=false;
-  autoLaunchBusy=false;
-  hasPaid=true;
-  state.hostPaid=true;
-
-  const me=players.get(ME.id);
-  if(me){me.hasPaid=true;me.lastSeen=Date.now();me.online=true}
-
-  sfx.pay();
-  showToast('房主入場成功，所有玩家同步開始！');
-
-  if(isHost() && state.phase==='LOBBY') beginCountdown();
-  else broadcastState(true);
-
-  render();
-};
-
-window.onPurchaseFailed=function(itemId){
-  if(itemId!=='miner_entry') return;
-  purchasePending=false;
-  autoLaunchBusy=false;
-  state.autoStartAt=0;
-  state.hostPaid=false;
-  broadcastState(true);
-  showToast('房主入場扣款未完成，本局尚未開始');
-  render();
-};
-
-/* ==============================
-   Board / Mine
-   ============================== */
+/* ================= Board / turn mechanics ================= */
 function buildBoard(){
-  const board=[];
-  const playerCount=Math.max(1,Math.min(MAX_PLAYERS,state.expectedPlayers||1));
-  const bombs=Math.min(9,2+Math.floor((state.level-1)*.65)+Math.floor((playerCount-1)/3));
-  const gems=state.level%4===0?3:2;
-  const golds=playerCount>=6?6:5;
-  let silvers=10;
-  let dirts=GRID_SIZE-(bombs+gems+golds+silvers);
-
-  if(dirts<0){
-    dirts=0;
-    silvers=Math.max(0,GRID_SIZE-bombs-gems-golds);
-  }
-
+  const n=Math.max(1,Math.min(MAX_PLAYERS,state.expectedPlayers||1));
+  const bombs=Math.min(7,3+Math.floor((state.level-1)*.55)+Math.floor((n-1)/4));
+  const gems=state.level%3===0?4:3;
+  const golds=5,silvers=7,chests=3,hearts=2,shields=2;
+  let dirt=GRID_SIZE-(bombs+gems+golds+silvers+chests+hearts+shields);if(dirt<0)dirt=0;
   const pool=[];
-  for(let i=0;i<bombs;i++)pool.push('BOMB');
-  for(let i=0;i<gems;i++)pool.push('GEM');
-  for(let i=0;i<golds;i++)pool.push('GOLD');
-  for(let i=0;i<silvers;i++)pool.push('SILVER');
-  for(let i=0;i<dirts;i++)pool.push('DIRT');
-
-  for(let i=pool.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [pool[i],pool[j]]=[pool[j],pool[i]];
-  }
-
-  for(let i=0;i<GRID_SIZE;i++){
-    board.push({type:pool[i]||'DIRT',minedBy:null,minedAt:0});
-  }
-  state.board=board;
+  for(let i=0;i<bombs;i++)pool.push('BOMB');for(let i=0;i<gems;i++)pool.push('GEM');for(let i=0;i<golds;i++)pool.push('GOLD');for(let i=0;i<silvers;i++)pool.push('SILVER');for(let i=0;i<chests;i++)pool.push('CHEST');for(let i=0;i<hearts;i++)pool.push('HEART');for(let i=0;i<shields;i++)pool.push('SHIELD');for(let i=0;i<dirt;i++)pool.push('DIRT');
+  while(pool.length<GRID_SIZE)pool.push('DIRT');
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  state.board=pool.slice(0,GRID_SIZE).map(type=>({type,minedBy:null,minedAt:0,actionId:''}));
 }
-
+function resetRoundPlayers(){getMatchParticipants().forEach(p=>{p.status='ALIVE';p.hp=STARTER_HP;p.shield=0;p.score=0;p.combo=0;p.bestCombo=0;p.mines=0;p.actions=0;p.lastActionAt=0})}
+function beginRoundCountdown(){
+  if(!isHost()||state.phase!=='LOBBY')return;
+  autoLaunchBusy=false;purchasePending=false;state.phase='COUNTDOWN';state.phaseEndsAt=Date.now()+COUNTDOWN_MS;state.level=1;state.result=[];state.turnIndex=0;state.turnNo=0;state.turnEndsAt=0;state.lastAction=null;resetRoundPlayers();buildBoard();processedActions.clear();
+  broadcast('NDB_ROUND_START',{participantIds:state.participantIds.slice(),expectedPlayers:state.expectedPlayers,countdownEndsAt:state.phaseEndsAt});broadcastState(true);showToast(`${state.expectedPlayers} 人已到齊，3 秒後輪流開挖`);render()
+}
+function getCurrentTurnPlayer(){return state.participantIds[state.turnIndex]||null}
+function findNextAliveIndex(fromIndex){
+  const ids=state.participantIds;if(!ids.length)return -1;
+  for(let step=1;step<=ids.length;step++){const i=(fromIndex+step)%ids.length;const p=players.get(ids[i]);if(p&&p.status==='ALIVE')return i}
+  return -1
+}
+function startPlaying(){
+  if(!isHost()||state.phase!=='COUNTDOWN')return;
+  state.phase='PLAYING';state.phaseEndsAt=Date.now()+getRoundTimeMs(state.expectedPlayers);state.turnNo=1;state.turnIndex=0;state.turnEndsAt=Date.now()+TURN_MS;state.level=1;buildBoard();
+  const idx=findNextAliveIndex(-1);state.turnIndex=idx<0?0:idx;state.lastAction=null;broadcastState(true);sfx.tick();render()
+}
+function passTurn(reason='timeout',playerId=null){
+  if(!isHost()||state.phase!=='PLAYING')return;
+  if(state.turnNo<=0)return;
+  const next=findNextAliveIndex(state.turnIndex);if(next<0){resolveGame();return}
+  state.turnIndex=next;state.turnNo+=1;state.turnEndsAt=Date.now()+TURN_MS;state.lastAction={type:'PASS',reason,playerId:String(playerId||getCurrentTurnPlayer()||''),turnNo:state.turnNo-1};
+  broadcastState(true);if(reason==='timeout')sfx.timeout();render()
+}
+function ensureLevelProgress(){
+  const remainingSafe=state.board.some(b=>b.type!=='BOMB'&&!b.minedBy);if(!remainingSafe){state.level+=1;buildBoard();showToast(`⚒️ 礦脈升級 LV.${state.level}`);sfx.gem()}
+}
+function applyTileEffect(p,block){
+  const def=ITEMS[block.type]||ITEMS.DIRT;
+  let floatText=def.icon;
+  if(def.kind==='score'){
+    p.combo=(p.combo||0)+1;p.bestCombo=Math.max(p.bestCombo||0,p.combo);const mult=Math.min(1.5,1+Math.max(0,p.combo-1)*.1);const gain=Math.round(def.points*mult);p.score+=gain;floatText='+'+gain+(mult>1?` ×${mult.toFixed(1)}`:'');
+  }else if(def.kind==='bomb'){
+    p.combo=0;if(p.shield>0){p.shield-=1;floatText='🛡️ 擋住炸彈';}else{p.hp=Math.max(0,p.hp-1);floatText=p.hp>0?'💣 -1 ❤️':'💥 淘汰'}
+    if(p.hp<=0)p.status='DEAD';
+  }else if(def.kind==='heal'){
+    p.hp=Math.min(STARTER_HP,p.hp+1);p.combo=0;floatText='❤️ +1 HP';
+  }else if(def.kind==='shield'){
+    p.shield=Math.min(2,p.shield+1);p.combo=0;floatText='🛡️ +1';
+  }else{
+    p.combo=0;floatText='🪨 空礦';
+  }
+  p.mines=(p.mines||0)+1;p.actions=(p.actions||0)+1;p.lastActionAt=Date.now();
+  return{floatText,def};
+}
+function validateAction(action){
+  if(!action||state.phase!=='PLAYING')return false;
+  if(String(action.roundId||state.roundId)!==state.roundId)return false;
+  if(Number(action.turnNo)!==state.turnNo)return false;
+  const pid=String(action.playerId||'');if(pid!==getCurrentTurnPlayer())return false;
+  if(!state.participantIds.includes(pid))return false;
+  const p=players.get(pid);if(!p||p.status!=='ALIVE')return false;
+  const idx=Number(action.index);if(!Number.isInteger(idx)||idx<0||idx>=GRID_SIZE)return false;
+  const b=state.board[idx];if(!b||b.minedBy)return false;
+  return true;
+}
+function applyTurnAction(action,source='remote'){
+  const actionId=String(action.actionId||'');if(actionId&&processedActions.has(actionId))return false;if(!validateAction(action))return false;
+  if(actionId)processedActions.add(actionId);
+  if(processedActions.size>300){const arr=[...processedActions];arr.slice(0,100).forEach(x=>processedActions.delete(x))}
+  const idx=Number(action.index),pid=String(action.playerId);const p=players.get(pid),block=state.board[idx];block.minedBy=pid;block.minedAt=Date.now();block.actionId=actionId;
+  const fx=applyTileEffect(p,block);
+  state.lastAction={type:'MINE',playerId:pid,index:idx,actionId,turnNo:state.turnNo,tile:block.type};
+  const el=document.getElementById('block-'+idx);
+  if(el){el.classList.add(block.type==='BOMB'?'reveal-bad':'reveal-good');setTimeout(()=>el.classList.remove('reveal-bad','reveal-good'),450);showFloatingText(el,fx.floatText,block.type==='BOMB'?'var(--red)':'var(--cyan)')}
+  playItemSfx(block.type,pid===ME.id);
+  if(block.type==='BOMB'&&pid===ME.id){els.gameArea.classList.add('shake');setTimeout(()=>els.gameArea.classList.remove('shake'),400);if(navigator.vibrate)navigator.vibrate(p.hp<=0?[200,80,240]:[110])}
+  ensureLevelProgress();
+  if(aliveMatchPlayers().length<=1){if(isHost())resolveGame();return true}
+  const next=findNextAliveIndex(state.turnIndex);if(next<0){if(isHost())resolveGame();return true}
+  state.turnIndex=next;state.turnNo+=1;state.turnEndsAt=Date.now()+TURN_MS;
+  render();
+  return true;
+}
+function playItemSfx(type,mine){
+  if(!mine)return;
+  if(type==='BOMB')sfx.bomb();else if(type==='GEM')sfx.gem();else if(type==='GOLD')sfx.gold();else if(type==='SILVER')sfx.silver();else if(type==='CHEST')sfx.chest();else if(type==='HEART')sfx.heal();else if(type==='SHIELD')sfx.shield();else sfx.click();
+}
 function requestMine(index){
   initAudio();
-  if(state.phase!=='PLAYING') return;
-
-  const me=players.get(ME.id);
-  if(!me || !state.participantIds.includes(ME.id) || me.status==='DEAD' || me.status==='EXITED'){
-    showToast('你目前無法開採');
-    return;
-  }
-
-  const block=state.board[index];
-  if(!block || block.minedBy) return;
-
-  if(isHost()){
-    applyHostMine(ME.id,index);
-  }else{
-    broadcast('NDB_MINE',{
-      playerId:ME.id,
-      index:Number(index),
-      requestId:ME.id+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)
-    });
-  }
+  if(state.phase!=='PLAYING'){showToast('還沒開始，請等倒數');return}
+  if(getCurrentTurnPlayer()!==ME.id){showToast('現在不是你的回合');return}
+  const p=players.get(ME.id);if(!p||p.status!=='ALIVE'){showToast('你已無法行動');return}
+  const b=state.board[index];if(!b||b.minedBy)return;
+  const action={playerId:ME.id,index:Number(index),turnNo:state.turnNo,actionId:ME.id+'_'+state.roundId+'_'+state.turnNo+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,5)};
+  if(!applyTurnAction(action,'local'))return;
+  broadcast('NDB_TURN_ACTION',action);
+  if(isHost())broadcastState(true);
+  render();
 }
 
-function applyHostMine(playerId,index){
-  if(!isHost() || state.phase!=='PLAYING') return;
-  const pid=String(playerId);
-  if(!state.participantIds.includes(pid)) return;
-
-  const p=players.get(pid);
-  if(!p || p.status==='DEAD' || p.status==='EXITED') return;
-
-  const block=state.board[index];
-  if(!block || block.minedBy) return;
-
-  block.minedBy=pid;
-  block.minedAt=Date.now();
-  p.mines=(p.mines||0)+1;
-
-  if(block.type==='BOMB'){
-    p.status='DEAD';
-    p.combo=0;
-  }else{
-    const base=(ITEMS[block.type]||ITEMS.DIRT).points;
-    p.combo=(p.combo||0)+1;
-    p.bestCombo=Math.max(p.bestCombo||0,p.combo);
-    const multiplier=Math.min(1.3,1+Math.max(0,p.combo-1)*.1);
-    p.score+=(Math.round(base*multiplier));
-  }
-
-  const remainingSafe=state.board.some(b=>b.type!=='BOMB'&&!b.minedBy);
-  if(!remainingSafe){
-    state.level++;
-    buildBoard();
-  }
-
-  const matchPlayers=getMatchParticipants();
-  const active=matchPlayers.filter(pl=>pl.status==='ALIVE');
-  if(active.length===0){
-    resolveGame();
-    return;
-  }
-
-  broadcastState(true);
-}
-
+/* ================= Result ================= */
 function resolveGame(){
-  if(!isHost() || state.phase!=='PLAYING') return;
-
-  state.phase='RESULT';
-  state.phaseEndsAt=Date.now()+RESULT_CLOSE_DELAY_MS;
-  state.autoStartAt=0;
-
-  const participants=getMatchParticipants();
-  const eligible=participants.filter(p=>p.status!=='EXITED');
-  const prizePool=hasPaid ? Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)) : 0;
-
-  let maxScore=-1;
-  eligible.forEach(p=>{if(p.score>maxScore)maxScore=p.score});
-  const winners=maxScore>=0?eligible.filter(p=>p.score===maxScore):[];
-  const rewardPerWinner=winners.length?Math.floor(prizePool/winners.length):0;
-
-  state.result=participants.map(p=>({
-    id:p.id,
-    username:p.username,
-    score:p.score,
-    status:p.status,
-    bestCombo:p.bestCombo||0,
-    mines:p.mines||0,
-    isWinner:p.status!=='EXITED' && p.score===maxScore,
-    winAmount:(p.status!=='EXITED' && p.score===maxScore)?rewardPerWinner:0
-  })).sort((a,b)=>b.score-a.score||b.bestCombo-a.bestCombo||a.username.localeCompare(b.username));
-
-  broadcastState(true);
-  maybeCallGameOver();
+  if(!isHost()||state.phase!=='PLAYING')return;
+  state.phase='RESULT';state.phaseEndsAt=Date.now()+RESULT_CLOSE_DELAY_MS;state.turnEndsAt=0;
+  const parts=getMatchParticipants();const eligible=parts.filter(p=>p.status!=='EXITED');const prizePool=hasPaid?Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)):0;
+  let maxScore=-1;eligible.forEach(p=>{if(p.score>maxScore)maxScore=p.score});
+  const winners=eligible.filter(p=>p.status!=='EXITED'&&p.score===maxScore);const rewardPerWinner=winners.length?Math.floor(prizePool/winners.length):0;
+  state.result=parts.map(p=>({id:p.id,username:p.username,score:p.score,hp:p.hp,shield:p.shield,status:p.status,bestCombo:p.bestCombo||0,mines:p.mines||0,isWinner:p.status!=='EXITED'&&p.score===maxScore,winAmount:p.status!=='EXITED'&&p.score===maxScore?rewardPerWinner:0})).sort((a,b)=>b.score-a.score||b.hp-a.hp||b.bestCombo-a.bestCombo||a.username.localeCompare(b.username));
+  broadcastState(true);maybeCallGameOver();render();
+}
+function maybeCallGameOver(){
+  if(state.phase!=='RESULT'||!state.result.length||abandoned)return;const mine=state.result.find(r=>r.id===ME.id);if(!mine)return;
+  if(!gameOverCalled){gameOverCalled=true;const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));try{const s=refreshSDK();if(s&&typeof s.gameOver==='function')s.gameOver(reward)}catch(e){}}
+  if(!resultShown){resultShown=true;const winners=state.result.filter(r=>r.isWinner);els.resultWinnerText.textContent=winners.length>1?'⚖️ 平手！':winners.length===1?`🏆 ${winners[0].username} 獲勝！`:'本局無可結算玩家';els.resultWinnerText.style.color=winners.length?'var(--cyan)':'var(--muted)';
+    const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));els.resultAmount.textContent='+'+reward.toLocaleString()+' 🪙';els.resultAmount.className='result-big '+(mine.isWinner?'win':'lose');
+    els.resultDesc.textContent=mine.isWinner?`你的最終得分 ${mine.score} 分，拿到本局獎勵。`:`你的最終得分 ${mine.score} 分。`;
+    els.winnersList.innerHTML='';state.result.forEach((r,i)=>{const row=document.createElement('div');row.className='result-row';const status=r.status==='DEAD'?'💀 ':r.status==='EXITED'?'🚪 ':'';row.innerHTML=`<span class="result-rank">#${i+1} ${status}${escapeHtml(r.username)} · ${r.hp}❤️</span><span class="result-score">${r.score}分</span>`;els.winnersList.appendChild(row)});
+    els.modalResult.classList.add('show');if(mine.isWinner)sfx.win();else if(mine.status!=='EXITED')sfx.lose();
+  }
+}
+function updateResultCloseCountdown(){
+  if(state.phase!=='RESULT')return;const remain=Math.max(0,Math.ceil((state.phaseEndsAt-safeRoundNow())/1000));els.resultCloseCountdown.textContent=`${remain} 秒後自動返回房間`;if(remain<=0){if(isHost()){state.phase='CLOSED';broadcast('NDB_CLOSE',{reason:'gameFinished'});broadcastState(true)}requestHostAppClose('gameFinished')}
 }
 
-/* ==============================
-   Incoming events
-   ============================== */
+/* ================= Incoming events ================= */
 function handleIncoming(data){
-  if(!data) return;
-
-  if(data.action==='initSDK'){
-    setupSDK(data);
-    return;
-  }
-  if(data.action!=='gameEventReceived') return;
-
-  const eventName=data.eventName || data.eventName?.name;
-  const payload=(data.payload && typeof data.payload==='object')?data.payload:{};
-  const incomingRound=String(payload.roundId || payload.matchId || '');
-
-  if(incomingRound && state.roundId && incomingRound!==state.roundId && !['NDB_STATE','NDB_HOST','NDB_START'].includes(eventName)){
-    return;
-  }
-
+  if(!data)return;
+  if(data.action==='initSDK'){setupSDK(data);return}
+  if(data.action!=='gameEventReceived')return;
+  const eventName=data.eventName;const payload=data.payload&&typeof data.payload==='object'?data.payload:{};
+  const rid=String(payload.roundId||payload.matchId||'');
+  if(rid&&rid!==state.roundId&&!['NDB_STATE','NDB_ROUND_START','NDB_HOST'].includes(eventName))return;
   switch(eventName){
     case 'NDB_HELLO':
-      if(payload.player){
-        addOrUpdatePlayer({...payload.player,joined:true},true);
-      }
-      if(isHost()) broadcastState(true);
-      render();
-      break;
-
+      if(payload.player)addOrUpdatePlayer({...payload.player,joined:true},true);if(isHost())broadcastState(true);render();break;
     case 'NDB_PING':
-      if(payload.player) addOrUpdatePlayer({...payload.player,joined:true},true);
-      if(isHost() && payload.requestState) broadcastState(true);
-      render();
-      break;
-
-    case 'NDB_AUTO_ENTRY':
-      if(payload.playerCount && state.phase==='LOBBY'){
-        state.expectedPlayers=Math.max(state.expectedPlayers,Math.min(MAX_PLAYERS,Number(payload.playerCount)||0));
-      }
-      render();
-      break;
-
-    case 'NDB_START':
-      if(payload.roundId && String(payload.roundId)!==state.roundId) return;
+      if(payload.player)addOrUpdatePlayer({...payload.player,joined:true},true);if(isHost()&&payload.requestState)broadcastState(true);render();break;
+    case 'NDB_ROUND_START':
+      if(payload.roundId&&String(payload.roundId)!==state.roundId)return;
       if(!isHost()){
-        if(Array.isArray(payload.participantIds)) state.participantIds=payload.participantIds.map(String).slice(0,MAX_PLAYERS);
-        state.expectedPlayers=Math.max(1,Math.min(MAX_PLAYERS,Number(payload.expectedPlayers)||state.participantIds.length||1));
-        state.phase='COUNTDOWN';
-        state.phaseEndsAt=Number(payload.phaseEndsAt)||Date.now()+COUNTDOWN_MS;
-        state.autoStartAt=0;
-        state.hostPaid=true;
-        hasPaid=true;
-        render();
-      }
-      break;
-
-    case 'NDB_MINE':
-      if(isHost()){
-        applyHostMine(payload.playerId,Number(payload.index));
-      }
-      break;
-
-    case 'NDB_STATE':
-      applySnapshot(payload);
-      break;
-
-    case 'NDB_HOST':
-      if(payload.hostId!=null){
-        hostId=String(payload.hostId);
-        initialElectionDone=true;
-      }
-      render();
-      break;
-
+        state.participantIds=Array.isArray(payload.participantIds)?payload.participantIds.map(String).slice(0,MAX_PLAYERS):state.participantIds;state.expectedPlayers=Math.max(1,Number(payload.expectedPlayers)||state.participantIds.length||1);state.phase='COUNTDOWN';state.phaseEndsAt=Number(payload.countdownEndsAt)||Date.now()+COUNTDOWN_MS;hasPaid=true;buildClientBoardIfNeeded();render();
+      }break;
+    case 'NDB_TURN_ACTION':
+      if(applyTurnAction(payload,'remote')){if(isHost())broadcastState(true);render()}break;
+    case 'NDB_STATE':applySnapshot(payload);break;
+    case 'NDB_CLOSE':state.phase='CLOSED';requestHostAppClose('gameFinished');break;
     case 'NDB_LEAVE':{
-      const id=String(payload.playerId || data.userId || '');
-      if(!id) break;
-      const p=players.get(id);
-      if(p){
-        p.online=false;
-        p.lastSeen=0;
-        if(state.phase==='LOBBY') p.joined=false;
-        if(state.phase==='PLAYING') p.status='EXITED';
-      }
-      if(isHost()) broadcastState(true);
-      render();
-      break;
+      const id=String(payload.playerId||'');const p=players.get(id);if(p){p.online=false;if(state.phase==='LOBBY')p.joined=false;else if(state.phase==='PLAYING'){p.status='EXITED';if(isHost()&&getCurrentTurnPlayer()===id)passTurn('leave',id)}}if(isHost())broadcastState(true);render();break;
     }
-
-    case 'NDB_CLOSE':
-      state.phase='CLOSED';
-      requestHostAppClose('gameFinished');
-      break;
   }
 }
+window.addEventListener('message',e=>{try{const d=typeof e.data==='string'?JSON.parse(e.data):e.data;handleIncoming(d)}catch(err){}});
+function buildClientBoardIfNeeded(){if(state.board.length===GRID_SIZE)return;state.board=[];for(let i=0;i<GRID_SIZE;i++)state.board.push({type:'DIRT',minedBy:null,minedAt:0,actionId:''})}
 
-window.addEventListener('message',e=>{
-  try{
-    const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
-    handleIncoming(d);
-  }catch(err){}
-});
-
-/* ==============================
-   SDK bootstrap
-   ============================== */
+/* ================= SDK setup ================= */
 function setupSDK(data){
   refreshSDK();
-
-  if(data && data.user){
-    const u=data.user;
-    ME.id=String(u.id||ME.id);
-    ME.username=String(u.username||'玩家').slice(0,12);
-    ME.avatar=String(u.avatar||ME.avatar);
-  }
-
-  if(data && data.isHost===true){
-    hostId=ME.id;
-    initialElectionDone=true;
-  }else if(data && data.isHost===false && hostId===ME.id){
-    hostId=null;
-  }
-
-  if(data && Array.isArray(data.roomPlayers)){
-    roomRosterIds=new Set();
-    data.roomPlayers.slice(0,MAX_PLAYERS).forEach((rp,i)=>{
-      if(rp && rp.id!=null){
-        const id=String(rp.id);
-        roomRosterIds.add(id);
-        addOrUpdatePlayer({
-          id,
-          username:rp.username||'玩家',
-          avatar:rp.avatar||'',
-          joinedAt:Number(rp.joinedAt)||Date.now()+i,
-          joined:true
-        },true);
-      }
-    });
-    if(!roomRosterIds.has(ME.id)) roomRosterIds.add(ME.id);
-  }
-
-  addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true,hasPaid},true);
-
-  if(!getSDK()){
-    DEMO=true;
-  }else{
-    DEMO=false;
-    els.devBadge.style.display='none';
-  }
-
-  refreshHostRole();
-  syncRoomRosterFromSDK(true);
-  announceHello();
-  render();
-
-  if(isHost() && state.phase==='LOBBY') scheduleAutoLaunch('sdkReady');
+  if(data&&data.user){ME.id=String(data.user.id||ME.id);ME.username=String(data.user.username||'玩家').slice(0,12);ME.avatar=String(data.user.avatar||ME.avatar)}
+  if(data&&data.isHost===true)hostId=ME.id;else if(data&&data.isHost===false&&hostId===ME.id)hostId=null;
+  addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);syncRoomRosterFromSDK();
+  if(getSDK()){DEMO=false;els.devBadge.style.display='none'}else{DEMO=true;els.devBadge.style.display='block'}
+  announceHello();render();if(isHost()&&state.phase==='LOBBY')scheduleAutoLaunch();
 }
+window.onBoomRoomSDKReady=()=>{const s=window.BoomRoomSDK;if(!s)return;setupSDK({user:typeof s.getUser==='function'?s.getUser():null,isHost:s.isHost,roomId:s.roomId,roomPlayers:Array.isArray(s.roomPlayers)?s.roomPlayers:[]})};
+function announceHello(){broadcast('NDB_HELLO',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true}});broadcast('NDB_PING',{player:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},requestState:true})}
 
-window.onBoomRoomSDKReady=function(){
-  const s=window.BoomRoomSDK;
-  if(!s) return;
-  setupSDK({
-    user:typeof s.getUser==='function'?s.getUser():null,
-    isHost:s.isHost,
-    roomId:s.roomId,
-    roomPlayers:Array.isArray(s.roomPlayers)?s.roomPlayers:[]
-  });
-};
-
-function announceHello(){
-  broadcast('NDB_HELLO',{
-    player:{
-      id:ME.id,
-      username:ME.username,
-      avatar:ME.avatar,
-      joinedAt:ME.joinedAt,
-      joined:true,
-      hasPaid
-    }
-  });
-  broadcast('NDB_PING',{
-    player:{
-      id:ME.id,
-      username:ME.username,
-      avatar:ME.avatar,
-      joinedAt:ME.joinedAt,
-      joined:true,
-      hasPaid
-    },
-    requestState:true
-  });
-}
-
-/* ==============================
-   Close / settlement
-   ============================== */
+/* ================= Close ================= */
 function requestHostAppClose(reason='gameFinished'){
-  if(closeRequested) return;
-  closeRequested=true;
-  naturalClosing = reason==='gameFinished';
-
-  try{
-    if(window.parent && window.parent!==window){
-      window.parent.postMessage({action:'leaveGame',reason},'*');
-      window.parent.postMessage({action:'closeGame',reason},'*');
-      window.parent.postMessage(JSON.stringify({action:'leaveGame',reason}),'*');
-    }
-  }catch(e){}
-
+  if(closeRequested)return;closeRequested=true;naturalClosing=reason==='gameFinished';
+  try{if(window.parent&&window.parent!==window){window.parent.postMessage({action:'leaveGame',reason},'*');window.parent.postMessage({action:'closeGame',reason},'*');window.parent.postMessage(JSON.stringify({action:'leaveGame',reason}),'*')}}catch(e){}
   try{window.close()}catch(e){}
 }
-
 function abandonAndClose(){
-  if(closeRequested || state.phase==='CLOSED') return;
-  if(state.phase==='RESULT'){
-    requestHostAppClose('gameFinished');
-    return;
-  }
-
-  abandoned=true;
-  const p=players.get(ME.id);
-  if(p){
-    p.online=false;
-    p.status='EXITED';
-  }
-  broadcast('NDB_LEAVE',{playerId:ME.id,reason:'manual'});
-  showToast('你已放棄本局，不發放本局獎勵');
-  setTimeout(()=>requestHostAppClose('playerAbandoned'),220);
+  if(closeRequested||state.phase==='CLOSED')return;if(state.phase==='RESULT'){requestHostAppClose('gameFinished');return}
+  abandoned=true;const p=players.get(ME.id);if(p){p.status='EXITED';p.online=false}broadcast('NDB_LEAVE',{playerId:ME.id,reason:'manual'});showToast('你已放棄本局，不發放獎勵');setTimeout(()=>requestHostAppClose('playerAbandoned'),220)
 }
 
-function maybeCallGameOver(){
-  if(state.phase!=='RESULT') return;
-  if(!state.result || state.result.length===0) return;
-
-  const mine=state.result.find(r=>r.id===ME.id);
-  if(!mine) return;
-
-  const s=refreshSDK();
-  if(!gameOverCalled){
-    gameOverCalled=true;
-    const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));
-    try{
-      if(s && typeof s.gameOver==='function') s.gameOver(reward);
-    }catch(e){}
-  }
-
-  if(!resultShown){
-    resultShown=true;
-    const winners=state.result.filter(r=>r.isWinner);
-
-    if(winners.length>1){
-      els.resultWinnerText.textContent='⚖️ 平手！';
-      els.resultWinnerText.style.color='var(--gold)';
-    }else if(winners.length===1){
-      els.resultWinnerText.textContent=`🏆 ${winners[0].username} 獲勝！`;
-      els.resultWinnerText.style.color='var(--cyan)';
-    }else{
-      els.resultWinnerText.textContent='本局無可結算玩家';
-      els.resultWinnerText.style.color='var(--muted)';
-    }
-
-    const reward=Math.max(0,Math.floor(Number(mine.winAmount)||0));
-    els.resultAmount.textContent='+'+reward.toLocaleString()+' 🪙';
-    els.resultAmount.className='result-big '+(mine.isWinner?'win':'lose');
-
-    els.resultDesc.textContent=mine.status==='EXITED'
-      ? `你中途離開本局，本局獎勵為 0；最終得分 ${mine.score} 分。`
-      : (mine.isWinner ? `恭喜！你的最終得分為 ${mine.score} 分。` : `你的最終得分為 ${mine.score} 分。`);
-
-    els.winnersList.innerHTML='';
-    state.result.forEach((r,i)=>{
-      const row=document.createElement('div');
-      row.className='result-row';
-      const icon=r.status==='DEAD'?'💀 ':r.status==='EXITED'?'🚪 ':'';
-      row.innerHTML=`<span class="result-rank">#${i+1} ${icon}${escapeHtml(r.username)}</span><span class="result-score">${r.score}分</span>`;
-      els.winnersList.appendChild(row);
-    });
-
-    els.modalResult.classList.add('show');
-    if(mine.status!=='EXITED'){
-      if(mine.isWinner) sfx.win(); else sfx.lose();
-    }
-  }
-}
-
-function updateResultCloseCountdown(){
-  if(state.phase!=='RESULT') return;
-  const remain=Math.max(0,Math.ceil((state.phaseEndsAt-(Date.now()+roundClockOffset))/1000));
-  if(els.resultCloseCountdown) els.resultCloseCountdown.textContent=`${remain} 秒後自動返回房間`;
-  if(remain<=0){
-    if(isHost()){
-      state.phase='CLOSED';
-      state.phaseEndsAt=0;
-      broadcast('NDB_CLOSE',{reason:'gameFinished'});
-      broadcastState(true);
-    }
-    // 每一位客戶端都自行通知容器離開，避免只依賴房主的關閉事件。
-    requestHostAppClose('gameFinished');
-  }
-}
-
-/* ==============================
-   UI rendering
-   ============================== */
-function initGrid(){
-  els.gridBoard.innerHTML='';
-  for(let i=0;i<GRID_SIZE;i++){
-    const b=document.createElement('div');
-    b.className='block';
-    b.id='block-'+i;
-    b.onpointerup=(e)=>{
-      e.preventDefault();
-      requestMine(i);
-    };
-    els.gridBoard.appendChild(b);
-  }
-}
+/* ================= Render ================= */
+function initGrid(){els.gridBoard.innerHTML='';for(let i=0;i<GRID_SIZE;i++){const b=document.createElement('div');b.className='block';b.id='block-'+i;b.onpointerup=e=>{e.preventDefault();requestMine(i)};els.gridBoard.appendChild(b)}}
 initGrid();
-
-function safeTimeNow(){
-  return Date.now()+roundClockOffset;
-}
-
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+function showToast(msg){els.toast.textContent=msg;els.toast.classList.add('show');clearTimeout(showToast.t);showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1700)}
+function showFloatingText(element,text,color){const r=element.getBoundingClientRect();const d=document.createElement('div');d.className='floating-text';d.textContent=text;d.style.color=color||'var(--cyan)';d.style.left=(r.left+r.width/2-25)+'px';d.style.top=(r.top-10)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),800)}
+function renderHearts(p){let s='';for(let i=0;i<STARTER_HP;i++)s+=`<span class="hp-heart ${i<p.hp?'':'empty'}">❤️</span>`;return s}
 function render(){
-  syncRoundId();
+  const participants=state.phase==='LOBBY'?getRoomParticipants():getMatchParticipants();const count=Math.max(1,Math.min(MAX_PLAYERS,participants.length));const prizePool=hasPaid?Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)):0;
+  els.entryFee.textContent=ENTRY_FEE.toLocaleString()+' 🪙';els.totalPool.textContent=hasPaid?prizePool.toLocaleString()+' 🪙':(DEMO?'測試模式':'待入場');els.playerCount.textContent=count+'/10';els.gamePlayerCount.textContent=count+' 人';els.autoCount.textContent=count+'/10';els.autoFill.style.width=Math.min(100,count/MAX_PLAYERS*100)+'%';
+  els.leaderboard.innerHTML='';const sorted=participants.slice().sort((a,b)=>{const at=state.phase==='PLAYING'&&getCurrentTurnPlayer()===a.id?0:1;const bt=state.phase==='PLAYING'&&getCurrentTurnPlayer()===b.id?0:1;return at-bt||b.score-a.score||rankKey(a)-rankKey(b)});
+  sorted.forEach(p=>{const chip=document.createElement('div');const active=state.phase==='PLAYING'&&getCurrentTurnPlayer()===p.id;chip.className='player-chip'+(p.id===ME.id?' me':'')+(p.status==='DEAD'?' dead':'')+(p.status==='EXITED'?' exit':'')+(active?' player-turn':'');chip.innerHTML=`<div class="player-top"><span class="player-name">${active?'👉 ':''}${escapeHtml(p.username)}</span><span class="player-score">${p.score}</span></div><div class="player-hp">${renderHearts(p)} <span class="player-shield">${p.shield?' 🛡️'+p.shield:''}</span></div>`;els.leaderboard.appendChild(chip)});
 
-  const participants=state.phase==='LOBBY'
-    ? getRoomParticipants()
-    : getMatchParticipants();
-
-  const participantCount=Math.max(1,Math.min(MAX_PLAYERS,participants.length));
-  const prizePool=hasPaid ? Math.max(0,ENTRY_FEE-Math.floor(ENTRY_FEE*PLATFORM_FEE_RATE)) : 0;
-
-  els.entryFee.textContent=ENTRY_FEE.toLocaleString()+' 🪙';
-  els.totalPool.textContent=hasPaid ? prizePool.toLocaleString()+' 🪙' : (DEMO?'測試模式':'待入場');
-  els.playerCount.textContent=participantCount+'/10';
-  els.gamePlayerCount.textContent=participantCount+' 人';
-  els.autoCount.textContent=participantCount+'/10';
-  els.autoFill.style.width=Math.min(100,participantCount/MAX_PLAYERS*100)+'%';
-
-  els.leaderboard.innerHTML='';
-  const sorted=participants.slice().sort((a,b)=>b.score-a.score||rankKey(a)-rankKey(b));
-  sorted.forEach(p=>{
-    const chip=document.createElement('div');
-    chip.className='player-chip'+(p.id===ME.id?' me':'')+(p.status==='DEAD'?' dead':'')+(p.status==='EXITED'?' exit':'');
-    const combo=p.combo>1?` ×${p.combo}`:'';
-    chip.innerHTML=`<span>${escapeHtml(p.username)}</span><span class="player-score">${p.score}${combo}</span>`;
-    els.leaderboard.appendChild(chip);
-  });
-
-  const now=safeTimeNow();
+  const now=safeRoundNow();
   if(state.phase==='LOBBY'){
-    els.phaseText.textContent=isHost()?`👑 房主 · 自動準備 ${participantCount}/10`:`⏳ 等待房主 · ${participantCount}/10`;
-    if(state.autoStartAt>now){
-      els.timerText.textContent=Math.max(0,Math.ceil((state.autoStartAt-now)/1000))+'s';
-    }else{
-      els.timerText.textContent=purchasePending?'PAY':'WAIT';
-    }
-    els.autoTitle.textContent=purchasePending?'💳 房主正在自動入場…':'🤖 全自動開局';
-    els.autoStartNotice.textContent=isHost()
-      ? (purchasePending?'房主入場扣款處理中，其他玩家無需操作。':`已同步 ${participantCount} 人，系統將自動倒數，不需要按開始。`)
-      : `你已自動加入；目前 ${participantCount} 人，等待房主完成自動入場。`;
-    els.actionHint.textContent=purchasePending
-      ? '其他玩家請等待；不需要支付、不需要 Ready。'
-      : '所有玩家都會自動加入，房主入場處理完成後全員同步倒數。';
+    els.phaseText.textContent=isHost()?`👑 自動準備 ${count}/10`:`⏳ 等待開局 · ${count}/10`;els.timerText.textContent=state.autoStartAt>now?Math.max(0,Math.ceil((state.autoStartAt-now)/1000))+'s':purchasePending?'PAY':'WAIT';els.turnLabel.textContent='目前回合';els.turnPlayer.textContent=purchasePending?'房主自動入場中…':'等待自動開局…';els.turnTimer.textContent='--';els.turnBarFill.style.width='100%';
+    els.autoTitle.textContent=purchasePending?'💳 房主正在自動入場…':'🤖 全自動開局';els.autoStartNotice.textContent=isHost()?(purchasePending?'其他玩家不用操作，系統正在處理房主入場。':`已同步 ${count} 人，系統會自動開始。`):`你已自動加入；等待房主完成入場後一起開始。`;els.gameTip.textContent='遊戲會自動開始，不需要按任何開始按鈕。';els.actionHint.textContent='等待自動開局；進入遊戲後會依序輪流點格子。';
   }else if(state.phase==='COUNTDOWN'){
-    const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));
-    els.phaseText.textContent=`⚡ ${state.expectedPlayers} 人共同開採`;
-    els.timerText.textContent=String(rem);
-    els.autoTitle.textContent='🚀 自動開局';
-    els.autoStartNotice.textContent='同一局、同一張礦圖、同一倒數時間。';
-    els.actionHint.textContent='準備！倒數結束後所有人同時開始搶礦。';
+    const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));els.phaseText.textContent=`⚡ ${state.expectedPlayers} 人準備完畢`;els.timerText.textContent=String(rem);els.turnLabel.textContent='即將輪到';const cp=players.get(getCurrentTurnPlayer());els.turnPlayer.textContent=cp?cp.username:'準備中';els.turnTimer.textContent='5';els.turnBarFill.style.width='100%';els.autoTitle.textContent='🚀 自動倒數';els.autoStartNotice.textContent='每人輪流點 1 格；炸彈扣血，不是立即淘汰。';els.gameTip.textContent='3 秒後開始，先看清楚目前輪到誰。';els.actionHint.textContent='準備！遊戲開始後只在自己的回合操作。';
   }else if(state.phase==='PLAYING'){
-    const me=players.get(ME.id);
-    const alive=getMatchParticipants().filter(p=>p.status==='ALIVE').length;
-    const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));
-    els.phaseText.textContent=`LV.${state.level} · ${alive}/${state.expectedPlayers} 存活`;
-    els.timerText.textContent=rem+'s';
-    els.autoTitle.textContent='⛏️ 採礦進行中';
-    els.autoStartNotice.textContent='共同礦區即時同步；越快找到高價礦石越有利。';
-    els.actionHint.textContent=me?.status==='DEAD'
-      ? '💀 你已淘汰，可以繼續觀看其他玩家搶礦。'
-      : me?.status==='EXITED'
-        ? '🚪 你已離開本局。'
-        : '⛏️ 點擊礦石搶分：💎100 / 🔶50 / 💠10；💣 炸彈直接淘汰。';
+    const alive=aliveMatchPlayers().length;const cp=players.get(getCurrentTurnPlayer());const rem=Math.max(0,Math.ceil((state.phaseEndsAt-now)/1000));const tr=Math.max(0,Math.ceil((state.turnEndsAt-now)/1000));els.phaseText.textContent=`LV.${state.level} · ${alive}/${state.expectedPlayers} 存活`;els.timerText.textContent=rem+'s';els.turnLabel.textContent=`回合 ${state.turnNo}`;els.turnPlayer.textContent=cp?`👉 ${cp.username}`:'—';els.turnTimer.textContent=tr+'s';els.turnBarFill.style.width=Math.min(100,Math.max(0,(state.turnEndsAt-now)/TURN_MS*100))+'%';els.autoTitle.textContent=isCurrentTurnLocal()?'🎯 輪到你了！':'👀 等待其他玩家';els.autoStartNotice.textContent=isCurrentTurnLocal()?'選一格，5 秒內點下去！炸彈只扣 1 ❤️。':`現在是 ${cp?cp.username:'其他玩家'} 的回合。`;els.gameTip.textContent=isCurrentTurnLocal()?'你的回合：點 1 格就會立即揭開，然後換下一位。':'目前輪到其他玩家，格子暫時不可點。';els.actionHint.textContent=isCurrentTurnLocal()?'🎯 選擇一格：💎高分、❤️回血、🛡️擋炸彈，但 💣 會扣 1 ❤️。':'⏳ 等待回合結束；你下一輪會自動輪到。';
   }else if(state.phase==='RESULT'){
-    els.phaseText.textContent='🏆 自動結算完成';
-    els.timerText.textContent='RESULT';
-    els.autoTitle.textContent='✅ 自動結算';
-    els.autoStartNotice.textContent='獎勵已透過 BoomRoomSDK.gameOver 處理。';
-    els.actionHint.textContent='本局結束，遊戲將自動返回房間。';
-    maybeCallGameOver();
-    updateResultCloseCountdown();
+    els.phaseText.textContent='🏆 自動結算完成';els.timerText.textContent='RESULT';els.turnLabel.textContent='本局結束';els.turnPlayer.textContent='結果統計中';els.turnTimer.textContent='';els.turnBarFill.style.width='0%';els.autoTitle.textContent='✅ 自動結算';els.autoStartNotice.textContent='獎勵已透過 BoomRoomSDK.gameOver 處理。';els.gameTip.textContent='本局已完成，稍後自動返回 BoomRoom。';els.actionHint.textContent='請稍候，遊戲會自動返回房間。';maybeCallGameOver();updateResultCloseCountdown();
   }else{
-    els.phaseText.textContent='遊戲已關閉';
-    els.timerText.textContent='CLOSED';
-    els.autoTitle.textContent='↩️ 返回房間';
-    els.autoStartNotice.textContent='請重新從 BoomRoom 開啟新局。';
-    els.actionHint.textContent='本局已結束。';
+    els.phaseText.textContent='↩️ 已返回房間';els.timerText.textContent='CLOSED';els.turnLabel.textContent='本局結束';els.turnPlayer.textContent='';els.turnTimer.textContent='';els.turnBarFill.style.width='0%';els.autoTitle.textContent='↩️ 返回房間';els.autoStartNotice.textContent='請重新從 BoomRoom 開啟新局。';els.actionHint.textContent='本局已結束。';
   }
 
-  if(state.board && state.board.length===GRID_SIZE){
-    for(let i=0;i<GRID_SIZE;i++){
-      const data=state.board[i];
-      const el=document.getElementById('block-'+i);
-      if(!el) continue;
-      if(data.minedBy){
-        const def=ITEMS[data.type]||ITEMS.DIRT;
-        el.className='block mined';
-        el.innerHTML=def.icon;
-        const owner=players.get(data.minedBy);
-        if(owner){
-          const oe=document.createElement('div');
-          oe.className='block-owner';
-          oe.textContent=owner.username.slice(0,4);
-          if(data.minedBy===ME.id) oe.style.color='var(--cyan)';
-          el.appendChild(oe);
-        }
-      }else{
-        el.className='block';
-        el.innerHTML='';
-      }
-    }
-  }else{
-    for(let i=0;i<GRID_SIZE;i++){
-      const el=document.getElementById('block-'+i);
-      if(el){el.className='block';el.innerHTML='';}
-    }
-  }
-
-  if(state.phase==='RESULT'){
-    els.modalResult.classList.add('show');
-  }else if(state.phase!=='RESULT'){
-    els.modalResult.classList.remove('show');
-  }
+  if(state.board.length===GRID_SIZE){for(let i=0;i<GRID_SIZE;i++){const data=state.board[i],el=document.getElementById('block-'+i);if(!el)continue;const myTurn=isCurrentTurnLocal();if(data.minedBy){const def=ITEMS[data.type]||ITEMS.DIRT;el.className='block mined';el.innerHTML=def.icon;const owner=players.get(data.minedBy);if(owner){const oe=document.createElement('div');oe.className='block-owner';oe.textContent=owner.username.slice(0,4);if(data.minedBy===ME.id)oe.style.color='var(--cyan)';el.appendChild(oe)}}else{el.className='block '+(myTurn?'available':'not-turn');el.innerHTML=''}}}else{for(let i=0;i<GRID_SIZE;i++){const el=document.getElementById('block-'+i);if(el){el.className='block not-turn';el.innerHTML=''}}}
+  if(state.phase==='RESULT')els.modalResult.classList.add('show');else els.modalResult.classList.remove('show');
 }
+function isCurrentTurnLocal(){return state.phase==='PLAYING'&&getCurrentTurnPlayer()===ME.id&&players.get(ME.id)?.status==='ALIVE'}
 
-function escapeHtml(v){
-  return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-}
-
-function showToast(msg){
-  els.toast.textContent=msg;
-  els.toast.classList.add('show');
-  clearTimeout(showToast.t);
-  showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1800);
-}
-
-function showFloatingText(element,text){
-  const rect=element.getBoundingClientRect();
-  const div=document.createElement('div');
-  div.className='floating-text';
-  div.textContent=text;
-  div.style.color=text==='BOOM!'?'var(--red)':'var(--cyan)';
-  div.style.left=(rect.left+rect.width/2-20)+'px';
-  div.style.top=(rect.top-10)+'px';
-  document.body.appendChild(div);
-  setTimeout(()=>div.remove(),800);
-}
-
-/* ==============================
-   Events / lifecycle
-   ============================== */
-els.btnHelp.onclick=()=>{initAudio();els.modalRules.classList.add('show')};
-els.btnCloseRules.onclick=()=>{initAudio();els.modalRules.classList.remove('show')};
-els.btnExit.onclick=()=>{initAudio();abandonAndClose()};
-els.btnCloseResult.onclick=()=>{initAudio();requestHostAppClose('gameFinished')};
-document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
-
-window.addEventListener('pagehide',()=>{
-  if(naturalClosing || closeRequested || abandoned || state.phase==='RESULT' || state.phase==='CLOSED') return;
-  const p=players.get(ME.id);
-  if(p) p.status='EXITED';
-  broadcast('NDB_LEAVE',{playerId:ME.id,reason:'pagehide'});
-});
+/* ================= Lifecycle ================= */
+els.btnHelp.onclick=()=>{initAudio();els.modalRules.classList.add('show')};els.btnCloseRules.onclick=()=>{initAudio();els.modalRules.classList.remove('show')};els.btnExit.onclick=()=>{initAudio();abandonAndClose()};els.btnCloseResult.onclick=()=>{initAudio();requestHostAppClose('gameFinished')};document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
+window.addEventListener('pagehide',()=>{if(naturalClosing||closeRequested||abandoned||state.phase==='RESULT'||state.phase==='CLOSED')return;broadcast('NDB_LEAVE',{playerId:ME.id,reason:'pagehide'})});
 
 setInterval(()=>{
-  refreshSDK();
-  refreshHostRole();
-  syncRoomRosterFromSDK();
-
-  const me=players.get(ME.id);
-  if(me){
-    me.online=true;
-    me.lastSeen=Date.now();
-    me.joined = state.phase==='LOBBY' ? true : me.joined;
+  refreshSDK();syncRoomRosterFromSDK();
+  addOrUpdatePlayer({id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt,joined:true},true);
+  if(state.phase==='LOBBY'&&isHost()){
+    const hash=rosterKey();const cnt=getRoomParticipants().length;if(cnt>0&&hash!==lastRosterHash&&!purchasePending&&!autoLaunchBusy)scheduleAutoLaunch();
+    if(state.expectedPlayers!==cnt&&!purchasePending&&!autoLaunchBusy)state.expectedPlayers=Math.max(1,cnt);
+    clearTimeout(void 0);
   }
-
-  if(state.phase==='LOBBY'){
-    const roomCount=getRoomParticipants().length;
-    if(isHost()){
-      if(!purchasePending && !autoLaunchBusy && state.expectedPlayers!==roomCount){
-        scheduleAutoLaunch('countChanged');
-      }else if(state.expectedPlayers===0 && roomCount>0 && !purchasePending && !autoLaunchBusy){
-        scheduleAutoLaunch('initial');
-      }
-    }
-  }
-
-  if(isHost()) broadcastState(false);
-  else{
-    const now=Date.now();
-    for(const p of players.values()){
-      if(now-p.lastSeen>HOST_TIMEOUT_MS) p.online=false;
-    }
-    maybeTakeoverHost();
-  }
+  if(isHost())broadcastState(false);
   render();
-},500);
+},ROSTER_POLL_MS);
 
-let lastFrame=performance.now();
-function raf(now){
-  const dt=Math.min(.033,(now-lastFrame)/1000||0);
-  lastFrame=now;
-  void dt;
-
-  refreshHostRole();
-
-  const realNow=Date.now();
-
+let lastFrame=performance.now();let lastTurnTick=-1;
+function raf(t){
+  const dt=Math.min(.033,(t-lastFrame)/1000||0);lastFrame=t;void dt;refreshSDK();
+  const now=Date.now();
   if(isHost()){
-    if(state.phase==='COUNTDOWN' && realNow>=state.phaseEndsAt){
-      state.phase='PLAYING';
-      state.phaseEndsAt=realNow+getRoundTimeMs(state.expectedPlayers);
-      state.level=1;
-      buildBoard();
-      lastCountdownSecond=-1;
-      broadcastState(true);
-    }
-
-    if(state.phase==='PLAYING' && realNow>=state.phaseEndsAt){
-      resolveGame();
-    }
-
-    if(state.phase==='COUNTDOWN' || (state.phase==='PLAYING' && state.phaseEndsAt-realNow<5000)){
-      const sec=Math.ceil((state.phaseEndsAt-realNow)/1000);
-      if(sec!==lastCountdownSecond && sec>0){
-        lastCountdownSecond=sec;
-        sfx.tick();
-      }
+    if(state.phase==='COUNTDOWN'&&now>=state.phaseEndsAt)startPlaying();
+    if(state.phase==='PLAYING'){
+      if(now>=state.phaseEndsAt)resolveGame();
+      else if(now>=state.turnEndsAt){const cur=getCurrentTurnPlayer();passTurn('timeout',cur)}
+      const sec=Math.ceil((state.turnEndsAt-now)/1000);if(sec!==lastTurnTick&&sec>0&&sec<=3){lastTurnTick=sec;sfx.tick()}
+      if(now<state.turnEndsAt-3200)lastTurnTick=-1;
     }
   }
-
-  if(state.phase==='RESULT'){
-    maybeCallGameOver();
-    updateResultCloseCountdown();
-  }
-
-  render();
-  requestAnimationFrame(raf);
+  if(state.phase==='RESULT')updateResultCloseCountdown();render();requestAnimationFrame(raf)
 }
 requestAnimationFrame(raf);
 
-/* Initial bootstrap */
+/* bootstrap / delayed SDK support */
 if(!getSDK()){
-  DEMO=true;
-  els.devBadge.style.display='block';
-  setupSDK({user:getSDK()?.getUser?.()||user,isHost:true,roomId:'DEMO',roomPlayers:[{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}]});
-  showToast('開發測試模式：1 人自動開局，不扣款');
+  DEMO=true;els.devBadge.style.display='block';setupSDK({user:initialUser,isHost:true,roomId:'DEMO',roomPlayers:[{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}]});showToast('開發測試模式：單人也會輪流回合測試，不扣款')
 }else{
-  els.devBadge.style.display='none';
-  setupSDK({
-    user:typeof getSDK().getUser==='function'?getSDK().getUser():user,
-    isHost:getSDK().isHost,
-    roomId:getSDK().roomId,
-    roomPlayers:Array.isArray(getSDK().roomPlayers)?getSDK().roomPlayers:[]
-  });
+  els.devBadge.style.display='none';setupSDK({user:typeof getSDK().getUser==='function'?getSDK().getUser():initialUser,isHost:getSDK().isHost,roomId:getSDK().roomId,roomPlayers:Array.isArray(getSDK().roomPlayers)?getSDK().roomPlayers:[]})
 }
-
 })();
 </script>
 </body>
