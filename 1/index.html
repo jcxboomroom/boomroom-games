@@ -1139,6 +1139,10 @@ window.addEventListener(
   }
 );
 
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
 window.onBoomRoomSDKReady = function(){
   if (window.BoomRoomSDK) {
     setupSDK({
