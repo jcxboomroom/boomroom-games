@@ -917,7 +917,7 @@ const el = {
 
   hud:$('hud'),
 
-  start:$('startBtn'),
+  start:$('autoStartNotice'),
 
   wait:$('waitBtn'),
 
@@ -1166,11 +1166,9 @@ setTimeout(
 
     if(DEV){
 
-      el.start.textContent =
-        '開始搶金 (開發模式)';
-
-      el.start.disabled =
-        false;
+      if (el.start) {
+        el.start.textContent = '開始搶金 (開發模式)';
+      }
 
       hello();
 
@@ -6149,21 +6147,23 @@ function handleStart(
 
 }
 
-el.start.addEventListener(
-  'pointerup',
-  handleStart,
-  {
-    passive:false
-  }
-);
+if(el.start){
+  el.start.addEventListener(
+    'pointerup',
+    handleStart,
+    {
+      passive:false
+    }
+  );
 
-el.start.addEventListener(
-  'click',
-  handleStart,
-  {
-    passive:false
-  }
-);
+  el.start.addEventListener(
+    'click',
+    handleStart,
+    {
+      passive:false
+    }
+  );
+}
 
 window.startBoomGold =
   handleStart;
