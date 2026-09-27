@@ -225,7 +225,7 @@ const GAME_INFO = {
   category: '反應挑戰',
   name: '霓虹疊塔：極限巔峰',
   description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '3.0.0',
+  version: '3.0.1',
   entryCost: 0,
   maxPlayers: 10,
   controlModes: ['Tap', 'Pointer'],
@@ -334,6 +334,7 @@ const state = {
   hostRoundStarted: false,
   remoteStartAt: 0,
   lastRoomSignature: '',
+  lastAutoScheduledSignature: '',
   localPlayerReady: false
 };
 
@@ -731,7 +732,7 @@ function calcReward(layers){
   return safeReward(raw);
 }
 
-function gameOver(reason, remoteEnd=false){
+function legacyGameOver(reason, remoteEnd=false){
   if(state.game==='RESULT' || state.gameOverCalled) return;
   state.game='RESULT';
   state.gameOverCalled=true;
@@ -1160,6 +1161,11 @@ function updateRoomPlayers(list, source='sdk'){
   state.roomPlayerCount = next.length;
   seedRoomScorePlayers();
   renderAutoRoomUI();
+
+  // 房間名單改變時，Host 立即重新評估自動開局。
+  if(sdkReady && isHost() && state.game==='LOBBY' && sig !== state.lastAutoScheduledSignature){
+    scheduleAutoStart();
+  }
 }
 
 function onlinePlayers(){
@@ -1395,24 +1401,48 @@ function getStablePlayerSignature(){
 function scheduleAutoStart(){
   if(!isHost() || !sdkReady) return;
   if(state.game==='PLAYING' || state.game==='RESULT') return;
-  if(state.autoRoundState==='COUNTDOWN') return;
+  if(state.autoRoundState==='COUNTDOWN' || state.autoRoundState==='PLAYING') return;
 
   const players=onlinePlayers();
   const count=players.length;
 
   if(count<=0){
+    if(state.autoRoundTimer){
+      clearTimeout(state.autoRoundTimer);
+      state.autoRoundTimer=null;
+    }
     state.autoRoundState='WAITING';
+    state.lastAutoScheduledSignature='';
     renderAutoRoomUI();
     return;
   }
 
   const signature=getStablePlayerSignature();
-  const scheduledAt=Date.now();
+
+  // ⭐ 重大修正：心跳會每 1.2 秒進來一次，不能每次都重設 1.8 秒計時。
+  // 只有「人數/玩家名單真的改變」時才建立新的穩定計時器。
+  if(
+    state.autoRoundState==='STABILIZING' &&
+    state.autoRoundTimer &&
+    state.lastAutoScheduledSignature===signature
+  ){
+    renderAutoRoomUI();
+    return;
+  }
+
+  if(state.autoRoundTimer){
+    clearTimeout(state.autoRoundTimer);
+    state.autoRoundTimer=null;
+  }
 
   state.autoRoundState='STABILIZING';
+  state.lastAutoScheduledSignature=signature;
   renderAutoRoomUI();
 
-  clearTimeout(state.autoRoundTimer);
+  const stableDeadline=Math.max(
+    Date.now()+AUTO_ROUND.STABLE_MS,
+    state.roomPlayersUpdatedAt + AUTO_ROUND.STABLE_MS
+  );
 
   state.autoRoundTimer=setTimeout(()=>{
     state.autoRoundTimer=null;
@@ -1425,14 +1455,17 @@ function scheduleAutoStart(){
     if(
       current.length !== count ||
       currentSig !== signature ||
-      Date.now()-state.roomPlayersUpdatedAt < AUTO_ROUND.STABLE_MS-50
+      Date.now() < state.roomPlayersUpdatedAt + AUTO_ROUND.STABLE_MS - 50
     ){
+      state.autoRoundState='WAITING';
+      state.lastAutoScheduledSignature='';
+      renderAutoRoomUI();
       scheduleAutoStart();
       return;
     }
 
     beginHostCountdown(current);
-  }, Math.max(AUTO_ROUND.STABLE_MS, scheduledAt-Date.now()+AUTO_ROUND.STABLE_MS));
+  }, Math.max(50, stableDeadline-Date.now()));
 }
 
 function beginHostCountdown(players){
