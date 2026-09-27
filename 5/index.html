@@ -47,23 +47,7 @@ html, body {
     gap: 10px;
 }
 
-/* Topbar */
-.topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 10px; background: var(--panel);
-    border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px;
-    box-shadow: 0 0 15px rgba(255, 59, 48, 0.1); flex-shrink: 0;
-}
-.icon-btn {
-    width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-    color: #fff; display: grid; place-items: center;
-    font-size: 18px; cursor: pointer; transition: transform 0.1s;
-}
-.icon-btn:active { transform: scale(0.9); }
-.brand h1 { font-size: 16px; margin: 0; color: var(--red); text-shadow: 0 0 5px var(--red); letter-spacing: 1px; }
-.brand small { display: block; font-size: 9px; color: var(--muted); font-family: sans-serif; }
-
+/* Topbar removed: game content starts directly at the info panel. */
 /* Info Panel */
 .info-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; flex-shrink: 0; }
 .stat-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 6px; text-align: center; }
@@ -219,23 +203,6 @@ html, body {
 <div class="flash" id="flash"></div>
 
 <div id="app">
-    <header class="topbar">
-        <div class="brand">
-            <button class="icon-btn" id="btn-mute">🔊</button>
-            <div>
-                <h1>爆爆左輪</h1>
-                <small>極限扳機 · 比例分贓</small>
-            </div>
-        </div>
-        <div class="brand">
-            <div style="text-align: right;">
-                <div style="font-size:11px; font-weight:bold; color:var(--red);" id="my-username">Player</div>
-                <div style="font-size:9px; color:var(--muted);" id="role-text">連線中</div>
-            </div>
-            <button class="icon-btn" id="btn-help">❓</button>
-        </div>
-    </header>
-
     <div class="info-panel">
         <div class="stat-box">
             <b id="entry-fee-text">100 🪙</b>
@@ -360,7 +327,7 @@ const AUTO_START_DELAY = 3000;
 const COUNTDOWN_MS = 3000;
 const FIRE_MIN_MS = 5000;
 const FIRE_MAX_MS = 18000;
-const RESULT_SHOW_MS = 6000;
+const RESULT_SHOW_MS = 3000;
 const HOST_TIMEOUT_MS = 5500;
 
 const players = new Map();
@@ -373,6 +340,8 @@ let lastStateBroadcast = 0;
 let gameOverCalled = false;
 let purchasePending = false;
 let hasPaid = false;
+let lockedEntrants = new Set();
+let hostHoldStart = new Map();
 
 const state = {
     matchId: 'M_' + Math.random().toString(36).slice(2,10),
@@ -398,8 +367,6 @@ let lastTickSec = -1;
 
 /* DOM */
 const els = {
-    myUsername: document.getElementById('my-username'),
-    roleText: document.getElementById('role-text'),
     totalPool: document.getElementById('total-pool'),
     prizePool: document.getElementById('prize-pool'),
     phaseText: document.getElementById('phase-text'),
@@ -409,8 +376,6 @@ const els = {
     mainBtn: document.getElementById('main-btn'),
     flash: document.getElementById('flash'),
     toast: document.getElementById('toast'),
-    btnMute: document.getElementById('btn-mute'),
-    btnHelp: document.getElementById('btn-help'),
     modalRules: document.getElementById('modal-rules'),
     btnCloseRules: document.getElementById('btn-close-rules'),
     modalResult: document.getElementById('modal-result'),
@@ -476,7 +441,6 @@ const sfx = {
     win:()=>{tone(400,'square',.1,.4);tone(600,'square',.2,.4,.1);tone(800,'square',.3,.4,.3)},
     lose:()=>{tone(300,'sawtooth',.2,.4);tone(200,'sawtooth',.4,.4,.2)}
 };
-els.btnMute.onclick = toggleMute;
 
 /* ================= Multiplayer 基礎 ================= */
 function safeNum(v, fallback=0){
@@ -504,7 +468,21 @@ function onlinePlayers(){
 }
 
 function paidPlayers(){
+    if(lockedEntrants.size){
+        return [...lockedEntrants].map(id=>players.get(id)).filter(Boolean);
+    }
     return [...players.values()].filter(p=>p.hasPaid && p.online);
+}
+
+function roomPlayerCount(){
+    return Math.min(MAX_PLAYERS, onlinePlayers().length);
+}
+
+function survivorCount(){
+    if(state.phase==='RESULT' || state.phase==='CLOSED'){
+        return state.result.filter(r=>r.status==='CASHED_OUT').length;
+    }
+    return paidPlayers().filter(p=>['WAITING','HOLDING','CASHED_OUT'].includes(p.status)).length;
 }
 
 function broadcast(name,payload={}){
@@ -546,6 +524,7 @@ function addOrUpdatePlayer(raw,seen=true){
         if(raw.score != null) p.score=Math.max(0,safeNum(raw.score,0));
         if(raw.status != null && ['WAITING','HOLDING','CASHED_OUT','DEAD'].includes(raw.status)) p.status=raw.status;
         if(raw.winAmount != null) p.winAmount=Math.max(0,safeNum(raw.winAmount,0));
+        if(raw.online != null) p.online=!!raw.online;
     }
 
     if(seen){
@@ -562,6 +541,7 @@ function snapshotState(){
         phase:state.phase,
         phaseEndsAt:state.phaseEndsAt,
         result:state.result.slice(),
+        entrants:[...lockedEntrants],
         players:[...players.values()].map(p=>({
             id:p.id,
             username:p.username,
@@ -578,8 +558,18 @@ function snapshotState(){
 function broadcastState(force=false){
     if(!isHost()) return;
     const now=Date.now();
-    if(!force && now-lastStateBroadcast<150) return;
+    if(!force && now-lastStateBroadcast<120) return;
     lastStateBroadcast=now;
+
+    /* 房主即時更新蓄力時間，所有玩家看到同一份排行榜。 */
+    if(state.phase==='PLAYING'){
+        for(const [id,started] of hostHoldStart){
+            const p=players.get(id);
+            if(p && p.status==='HOLDING'){
+                p.score=Math.min(FIRE_MAX_MS, Math.max(0, now-started));
+            }
+        }
+    }
     broadcast('NDB_STATE',snapshotState());
 }
 
@@ -830,7 +820,9 @@ function hostStartGame(){
         return;
     }
 
-    /* 本局鎖定參賽者；未付款的人只能觀戰 */
+    /* 本局鎖定參賽者；未付款的人只能觀戰。鎖定後不因暫時斷線而消失。 */
+    lockedEntrants = new Set(paid.map(p=>p.id));
+    hostHoldStart.clear();
     paid.forEach(p=>{
         p.score=0;
         p.status='WAITING';
@@ -926,8 +918,9 @@ function hostResolveGame(){
 
     broadcastState(true);
     triggerGunshot();
+    maybeCallGameOver();
 
-    /* RESULT 狀態同步出去後，6 秒自動 CLOSED */
+    /* RESULT 狀態同步出去後，3 秒自動 CLOSED */
     setTimeout(()=>{
         if(isHost() && state.phase==='RESULT'){
             state.phase='CLOSED';
@@ -957,6 +950,9 @@ function applySnapshot(s){
 
     if(Array.isArray(s.players)){
         s.players.forEach(raw=>addOrUpdatePlayer(raw,false));
+    }
+    if(Array.isArray(s.entrants)){
+        lockedEntrants=new Set(s.entrants.map(String));
     }
 
     state.phase=['LOBBY','COUNTDOWN','PLAYING','RESULT','CLOSED'].includes(s.phase)
@@ -1077,14 +1073,20 @@ function handleIncoming(data){
         const p=players.get(id);
         if(!p || !p.hasPaid || p.status==='DEAD' || p.status==='CASHED_OUT') return;
 
+        if(!lockedEntrants.has(id)) return;
+
         if(payload.action==='HOLDING'){
+            if(hostHoldStart.has(id)) return;
+            hostHoldStart.set(id,Date.now());
             p.status='HOLDING';
             p.score=0;
         }else if(payload.action==='CASHED_OUT'){
-            const score=Math.floor(safeNum(payload.score,0));
-            if(score<=0) return;
+            const started=hostHoldStart.get(id);
+            if(!started) return;
+            const score=Math.max(1,Math.min(FIRE_MAX_MS,Date.now()-started));
+            hostHoldStart.delete(id);
             p.status='CASHED_OUT';
-            p.score=Math.min(score,FIRE_MAX_MS);
+            p.score=score;
         }else{
             return;
         }
@@ -1151,12 +1153,11 @@ function riskLabel(r){
 }
 
 function render(){
-    els.myUsername.textContent=ME.username;
-    els.roleText.textContent=isHost()?'👑 市長':'玩家';
 
-    const allOnline=onlinePlayers().length;
-    const entrants=[...players.values()].filter(p=>p.hasPaid);
+    const allOnline=roomPlayerCount();
+    const entrants=paidPlayers();
     const activeCount=entrants.length;
+    const participantCount = (state.phase==='LOBBY') ? allOnline : Math.max(activeCount, lockedEntrants.size);
 
     const totalPool=activeCount*ENTRY_FEE;
     const prizePool=Math.floor(totalPool*(1-PLATFORM_FEE_RATE));
@@ -1165,16 +1166,14 @@ function render(){
     els.prizePool.textContent=prizePool.toLocaleString()+' 🪙';
 
     /* 同步人數與存活 */
-    els.liveCount.textContent=`👥 ${activeCount}/${MAX_PLAYERS}`;
-    const survivors=entrants.filter(p=>
-        p.status==='WAITING' || p.status==='HOLDING' || p.status==='CASHED_OUT'
-    ).length;
-    els.survivorCount.textContent=`❤️ ${Math.max(0,survivors)} 存活`;
+    els.liveCount.textContent=`👥 ${participantCount}/${MAX_PLAYERS}`;
+    els.survivorCount.textContent=`❤️ ${Math.max(0,survivorCount())} 存活`;
 
     /* 玩家列表：最多 10 人 */
     els.playerList.innerHTML='';
 
-    const sorted=entrants.slice().sort((a,b)=>{
+    const listSource = state.phase==='LOBBY' ? onlinePlayers() : entrants;
+    const sorted=listSource.slice().sort((a,b)=>{
         const order={HOLDING:0,WAITING:1,CASHED_OUT:2,DEAD:3};
         return (order[a.status]??9)-(order[b.status]??9) || b.score-a.score;
     });
@@ -1199,8 +1198,8 @@ function render(){
 
     /* 狀態 */
     if(state.phase==='LOBBY'){
-        els.phaseText.textContent=activeCount
-            ? `等待開始 · ${activeCount}/${MAX_PLAYERS} 人`
+        els.phaseText.textContent=allOnline
+            ? `等待入場 · ${allOnline}/${MAX_PLAYERS} 人`
             : '等待入場';
         if(isHost() && activeCount){
             const sec=Math.max(0,Math.ceil((autoStartAt-Date.now())/1000));
@@ -1211,7 +1210,7 @@ function render(){
         els.timerText.style.color='var(--text)';
     }
     else if(state.phase==='COUNTDOWN'){
-        els.phaseText.textContent=`全員就位 · ${activeCount} 人`;
+        els.phaseText.textContent=`全員就位 · ${lockedEntrants.size} 人`;
         const rem=Math.max(0,Math.ceil((state.phaseEndsAt-Date.now())/1000));
         els.timerText.textContent=rem;
         els.timerText.style.color='var(--gold)';
@@ -1495,11 +1494,7 @@ function showToast(msg){
     showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1800);
 }
 
-els.btnHelp.onclick=()=>{
-    initAudio();
-    els.modalRules.classList.add('show');
-};
-els.btnCloseRules.onclick=()=>{
+if(els.btnCloseRules) els.btnCloseRules.onclick=()=>{
     initAudio();
     els.modalRules.classList.remove('show');
 };
