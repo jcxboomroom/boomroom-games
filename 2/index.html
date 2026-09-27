@@ -56,6 +56,20 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .milestoneBanner{position:absolute;left:50%;top:158px;transform:translateX(-50%);z-index:4;padding:6px 11px;border-radius:999px;background:rgba(7,10,20,.78);border:1px solid rgba(69,239,255,.13);color:#aeb7ce;font-size:8px;font-weight:900;letter-spacing:.3px;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.18);}
 .milestoneBanner b{color:var(--cyan);font-size:9px;}
 
+.scoreBoard{position:absolute;right:10px;top:184px;z-index:6;width:150px;padding:8px 9px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid rgba(255,255,255,.09);box-shadow:0 10px 28px rgba(0,0,0,.24);backdrop-filter:blur(9px);pointer-events:none;}
+.scoreBoardHead{display:flex;align-items:center;justify-content:space-between;color:#8f98b3;font-size:7px;font-weight:1000;letter-spacing:.8px;margin-bottom:5px;}
+.scoreBoardHead b{color:var(--gold);font-size:8px;}
+.scoreRows{display:flex;flex-direction:column;gap:3px;}
+.scoreRow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:5px;min-height:18px;font-size:8px;font-weight:900;}
+.scoreRank{color:#737d99;text-align:center;font-size:8px;}
+.scoreName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dfe4f5;}
+.scoreName.me{color:var(--cyan);}
+.scoreNum{font-variant-numeric:tabular-nums;color:#fff;font-size:9px;}
+.scoreEmpty{color:#6f7892;font-size:8px;padding:2px 0;}
+.scoreRow.top .scoreRank{color:var(--gold);}
+.scoreRow.top .scoreNum{color:var(--gold);}
+@media (max-height:650px){.scoreBoard{top:178px;width:138px;padding:7px 8px;}}
+
 .inheritRule{margin-top:4px;color:#7d87a6;font-size:9px;font-weight:800;text-align:center;}
 .statusPill{position:absolute;left:50%;top:140px;transform:translateX(-50%);z-index:4;padding:7px 11px;border-radius:999px;background:rgba(7,10,20,.68);border:1px solid rgba(255,255,255,.08);color:#bec4d8;font-size:9px;font-weight:900;letter-spacing:.4px;pointer-events:none;backdrop-filter:blur(7px);white-space:nowrap;}
 .bottomBar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:end;justify-content:space-between;gap:10px;pointer-events:none;}
@@ -132,6 +146,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
     <div class="milestoneLabels"><span>10 層</span><span>20 層</span><span>30 層</span></div>
   </div>
   <div class="milestoneBanner" id="milestoneBanner">目前 <b id="milestoneNow">18</b> 層 · 下一里程碑 <b id="milestoneNext">20</b> 層</div>
+  <div class="scoreBoard" id="scoreBoard">
+    <div class="scoreBoardHead"><span>同房最高分</span><b>TOP</b></div>
+    <div class="scoreRows" id="scoreRows"><div class="scoreEmpty">等待玩家分數...</div></div>
+  </div>
   <div class="statusPill" id="statusPill">等候落點</div>
 
   <div class="bottomBar" id="bottomBar">
@@ -636,6 +654,7 @@ function placeCurrent(){
   state.layers=state.boxes.length-1;
   const gained=scoreFor(grade);
   state.score=clamp(state.score+gained,0,999999);
+  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
   state.shake=grade==='PERFECT'?3.5:grade==='GREAT'?2.2:1.2;
   hitSound(grade);
   vibrate(grade==='PERFECT'?[8,18,8]:grade==='GREAT'?10:6);
@@ -683,6 +702,7 @@ function gameOver(reason, remoteEnd=false){
   saveBest();
   state.resultReason=state.resultReason || (reason==='MISS'?'落點完全失準。':'挑戰結束。');
   const elapsed=Math.max(0,performance.now()-state.startedAt);
+  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
 
   if(!remoteEnd && isHost()){
     try{
@@ -982,6 +1002,7 @@ let gameRoomId = '';
 let sdkReady = false;
 let waitingForHost = false;
 let lastRemoteRoundId = '';
+let roomScoreMap = new Map();
 
 function isHost(){
   return !!sdkIsHost;
@@ -1061,6 +1082,102 @@ function requestSDKInit(){
       window.BoomRoomSDK.requestInit();
     }
   }catch(_){}
+}
+
+function playerIdOf(player){
+  return String(
+    player?.id ??
+    player?.userId ??
+    player?.uid ??
+    player?.playerId ??
+    ''
+  );
+}
+
+function playerNameOf(player, fallback='玩家'){
+  const name =
+    player?.nickname ??
+    player?.nickName ??
+    player?.displayName ??
+    player?.name ??
+    player?.username ??
+    player?.user?.nickname ??
+    player?.user?.displayName ??
+    '';
+  return String(name || fallback).trim().slice(0,18) || fallback;
+}
+
+function ensureScorePlayer(id, name='玩家'){
+  id = String(id || '');
+  if(!id) return null;
+  const old = roomScoreMap.get(id);
+  if(old){
+    if(name && name !== '玩家') old.name=name;
+    return old;
+  }
+  const item={id,name:name || '玩家',score:0,layers:0,updatedAt:Date.now()};
+  roomScoreMap.set(id,item);
+  return item;
+}
+
+function seedRoomScorePlayers(){
+  for(const player of roomPlayersList){
+    const id=playerIdOf(player);
+    if(id) ensureScorePlayer(id,playerNameOf(player));
+  }
+  const me=getUserId();
+  if(me) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
+  renderScoreBoard();
+}
+
+function updatePlayerScore(id, score, layers, name='玩家', broadcast=false){
+  id=String(id || '');
+  if(!id) return;
+  const item=ensureScorePlayer(id,name);
+  if(!item) return;
+  const nextScore=Math.max(0,Math.floor(finite(score,0)));
+  const nextLayers=Math.max(0,Math.floor(finite(layers,0)));
+  // 顯示「最高分」：同一玩家只保留本局/目前房間收到的最高成績。
+  if(nextScore >= item.score){
+    item.score=nextScore;
+    item.layers=Math.max(item.layers,nextLayers);
+    item.updatedAt=Date.now();
+  }
+  renderScoreBoard();
+
+  if(broadcast){
+    sendGameEvent('NEON_SCORE_UPDATE',{
+      roundId:state.roundId,
+      playerId:id,
+      playerName:item.name,
+      score:item.score,
+      layers:item.layers
+    });
+  }
+}
+
+function renderScoreBoard(){
+  const rows=$('scoreRows');
+  if(!rows) return;
+  const list=[...roomScoreMap.values()]
+    .sort((a,b)=>b.score-a.score || b.layers-a.layers || a.name.localeCompare(b.name,'zh-Hant'))
+    .slice(0,5);
+
+  if(!list.length){
+    rows.innerHTML='<div class="scoreEmpty">等待玩家分數...</div>';
+    return;
+  }
+
+  const me=getUserId();
+  rows.innerHTML=list.map((item,index)=>{
+    const isMe=item.id===me;
+    const safeName=String(item.name || '玩家').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    return `<div class="scoreRow ${index===0?'top':''}">
+      <span class="scoreRank">${index+1}</span>
+      <span class="scoreName ${isMe?'me':''}">${safeName}${isMe?' · 你':''}</span>
+      <span class="scoreNum">${item.score.toLocaleString()}</span>
+    </div>`;
+  }).join('');
 }
 
 function applyHostUI(){
@@ -1146,6 +1263,7 @@ function setupSDK(data){
   }
 
   sdkReady = true;
+  seedRoomScorePlayers();
 
   applyHostUI();
 
@@ -1210,6 +1328,8 @@ function startGame(
   state.reward=0;
   state.resultReason='';
   state.gameOverCalled=false;
+  ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
+  updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
   state.finishToastShown=false;
 
   makeBase();
@@ -1243,6 +1363,7 @@ function startGame(
       }
     );
   }
+  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
 
   waitingForHost = false;
   applyHostUI();
@@ -1350,6 +1471,19 @@ function handleGameEvent(
       true
     );
 
+    return;
+  }
+
+  if(name === 'NEON_SCORE_UPDATE' || name === 'SCORE_UPDATE'){
+    const id=String(payload.playerId || sender || '');
+    if(!id || id===getUserId()) return;
+    updatePlayerScore(
+      id,
+      payload.score,
+      payload.layers,
+      String(payload.playerName || '玩家'),
+      false
+    );
     return;
   }
 
