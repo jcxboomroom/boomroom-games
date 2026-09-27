@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#03050a">
-<title>爆爆搶金 V3</title>
+<title>爆爆搶金 V4</title>
 
 <style>
 :root{
@@ -768,7 +768,7 @@ const GAME_INFO = {
   category:'派對競技',
   name:'爆爆搶金',
   description:'高速多指搶金遊戲',
-  version:'3.0.0',
+  version:'4.0.0',
   entryCost:100,
   maxPlayers:20,
   controlModes:['touch','pointer','keyboard'],
@@ -792,14 +792,25 @@ const CFG = {
   REWARD_CAP:2000,
 
   /*
-   * 同畫面允許的最大物件數
+   * 同畫面允許的最大活躍物件數
+   * 這是安全上限，不再拿來暴力刪除正在掉落的物件。
    */
-  MAX_ITEMS:28,
+  MAX_ITEMS:96,
 
   /*
    * 一顆物件存活時間
    */
   ITEM_LIFE:5200,
+
+  /*
+   * 最後一批物件的最大延遲，保留給收尾階段計算。
+   */
+  MAX_SPAWN_DELAY_MS:500,
+
+  /*
+   * 時間到後的收尾保護時間。
+   */
+  DRAIN_GRACE_MS:6000,
 
   /*
    * 基礎生成間隔
@@ -851,6 +862,8 @@ const STATES = {
   COUNTDOWN:'COUNTDOWN',
 
   PLAYING:'PLAYING',
+
+  DRAINING:'DRAINING',
 
   RESULT:'RESULT',
 
@@ -1258,6 +1271,19 @@ let startAt =
 let phaseEndsAt =
   0;
 
+let drainEndsAt =
+  0;
+
+/*
+ * Host 權威遊戲時鐘偏移。
+ * 所有遊戲物件都使用 gameNow()，避免每台手機自行開始 / 結束。
+ */
+let clockOffsetMs =
+  0;
+
+let clockSynced =
+  false;
+
 let winnerId =
   null;
 
@@ -1456,7 +1482,7 @@ function sortedPlayers(){
 function onlinePlayers(){
 
   const now =
-    Date.now();
+    gameNow();
 
   return sortedPlayers()
     .filter(
@@ -1544,6 +1570,36 @@ function nextAction(){
 
 }
 
+function gameNow(){
+
+  return Date.now() + clockOffsetMs;
+
+}
+
+function syncGameClock(hostNow){
+
+  const n = finite(hostNow, NaN);
+
+  if(!Number.isFinite(n))return;
+
+  const sample = n - Date.now();
+
+  if(!clockSynced){
+
+    clockOffsetMs = sample;
+    clockSynced = true;
+    return;
+
+  }
+
+  /*
+   * 平滑校正，避免網路延遲造成遊戲時間瞬移。
+   */
+  clockOffsetMs +=
+    (sample - clockOffsetMs) * .18;
+
+}
+
 function validRound(r){
 
   return (
@@ -1556,6 +1612,8 @@ function validRound(r){
 function resetRoundData(){
 
   items.clear();
+
+  drainEndsAt = 0;
 
   seenActions.clear();
 
@@ -2241,8 +2299,8 @@ function spawnBatch(now){
 
   if(
     !isHost() ||
-    phase !==
-    STATES.PLAYING
+    (phase !== STATES.PLAYING &&
+     phase !== STATES.DRAINING)
   )return;
 
   if(
@@ -2416,6 +2474,13 @@ function spawnBatch(now){
 
       delay,
 
+      /*
+       * Host 權威時間戳。
+       * 所有手機都用同一個 spawnAt 計算掉落進度。
+       */
+      spawnAt:
+        now + delay,
+
       size:
         type === 'bomb'
           ? .98 +
@@ -2451,6 +2516,7 @@ function spawnBatch(now){
     'BBG_DROP_BATCH',
     {
       roundId,
+      hostNow:now,
       items:arr
     }
   );
@@ -2468,11 +2534,16 @@ function spawnBatch(now){
 function acceptBatch(arr){
 
   if(
-    !Array.isArray(arr)
+    !Array.isArray(arr) ||
+    phase === STATES.RESULT
   )return;
 
-  const clientNow = Date.now();
+  pruneExpiredItems(gameNow());
 
+  /*
+   * 重要：不再使用「收到封包的本機時間」建立物件生命週期。
+   * Host 直接傳 spawnAt，所有裝置以同一條遊戲時間軸繪製。
+   */
   for(
     const raw of arr
   ){
@@ -2492,8 +2563,23 @@ function acceptBatch(arr){
       ? raw.type
       : 'coin';
 
-    const itemDelay = finite(raw.delay, 0);
-    const spawnAt = clientNow + itemDelay;
+    const fallbackNow =
+      gameNow();
+
+    const itemDelay =
+      Math.max(
+        0,
+        finite(
+          raw.delay,
+          0
+        )
+      );
+
+    const spawnAtRaw =
+      finite(
+        raw.spawnAt,
+        fallbackNow + itemDelay
+      );
 
     const safe = {
 
@@ -2510,10 +2596,10 @@ function acceptBatch(arr){
         ),
 
       spawnAt:
-        spawnAt,
+        spawnAtRaw,
 
       expiresAt:
-        spawnAt +
+        spawnAtRaw +
         CFG.ITEM_LIFE,
 
       size:
@@ -2521,26 +2607,6 @@ function acceptBatch(arr){
           raw.size,
           .8,
           1.3
-        ),
-
-      rot:
-        finite(
-          raw.rot,
-          0
-        ),
-
-      startY:
-        clamp(
-          raw.startY,
-          -25,
-          8
-        ),
-
-      drift:
-        clamp(
-          raw.drift,
-          -22,
-          22
         ),
 
       rot:
@@ -2580,8 +2646,12 @@ function acceptBatch(arr){
 
       hitScale:1,
 
+      /*
+       * 入場效果只需要依遊戲時間估算，
+       * 不再把網路收到封包的時間當成物件誕生時間。
+       */
       born:
-        clientNow
+        spawnAtRaw
 
     };
 
@@ -2590,23 +2660,50 @@ function acceptBatch(arr){
       safe
     );
 
+  }
+
+}
+
+/* =========================================================
+   ITEM CLEANUP
+========================================================= */
+
+function pruneExpiredItems(now){
+
+  for(
+    const [
+      id,
+      it
+    ] of items
+  ){
+
     if(
-      items.size >
-      CFG.MAX_ITEMS
+      it.claimed ||
+      now >= it.expiresAt
     ){
 
-      const oldest =
-        items.keys()
-          .next()
-          .value;
-
-      items.delete(
-        oldest
-      );
+      items.delete(id);
 
     }
 
   }
+
+}
+
+function hasLiveItems(now){
+
+  for(
+    const it of items.values()
+  ){
+
+    if(
+      !it.claimed &&
+      now < it.expiresAt
+    )return true;
+
+  }
+
+  return false;
 
 }
 
@@ -3863,7 +3960,7 @@ function findItemAt(
 ){
 
   const now =
-    Date.now();
+    gameNow();
 
   let best =
     null;
@@ -4015,7 +4112,7 @@ function claimEffect(
     const p =
       itemPos(
         it,
-        Date.now()
+        gameNow()
       );
 
     x =
@@ -4218,7 +4315,7 @@ function hostClaim(
   )return;
 
   const now =
-    Date.now();
+    gameNow();
 
   if(
     now <
@@ -4310,8 +4407,8 @@ function playerClaim(
 ){
 
   if(
-    phase !==
-    STATES.PLAYING
+    phase !== STATES.PLAYING &&
+    phase !== STATES.DRAINING
   )return;
 
   if(
@@ -4320,7 +4417,7 @@ function playerClaim(
   )return;
 
   const now =
-    Date.now();
+    gameNow();
 
   /*
    * 每根手指自己的去重
@@ -4677,18 +4774,21 @@ function broadcastState(
 
   if(!isHost())return;
 
-  const now =
+  const wallNow =
     Date.now();
 
   if(
     !force &&
-    now -
+    wallNow -
     lastStateSent <
     CFG.STATE_MS
   )return;
 
   lastStateSent =
-    now;
+    wallNow;
+
+  const now =
+    gameNow();
 
   send(
     'BBG_STATE',
@@ -4706,9 +4806,14 @@ function broadcastState(
       seed:
         roundSeed,
 
+      hostNow:
+        now,
+
       startAt,
 
       phaseEndsAt,
+
+      drainEndsAt,
 
       winnerId,
 
@@ -4909,6 +5014,8 @@ function handleEvent(
     'BBG_STATE'
   ){
 
+    syncGameClock(payload.hostNow);
+
     if(
       !Number.isFinite(
         Number(
@@ -4991,6 +5098,14 @@ function handleEvent(
         0
       );
 
+    drainEndsAt =
+      finite(
+        payload.drainEndsAt,
+        phase === STATES.DRAINING
+          ? phaseEndsAt + CFG.DRAIN_GRACE_MS
+          : 0
+      );
+
     winnerId =
       payload.winnerId
         ? String(
@@ -5034,6 +5149,8 @@ function handleEvent(
     'BBG_ROUND_START'
   ){
 
+    syncGameClock(payload.hostNow);
+
     if(
       !Number.isFinite(
         Number(
@@ -5071,12 +5188,15 @@ function handleEvent(
     startAt =
       finite(
         payload.startAt,
-        Date.now() +
+        gameNow() +
         CFG.COUNTDOWN_MS
       );
 
     phaseEndsAt =
       startAt;
+
+    drainEndsAt =
+      0;
 
     winnerId =
       null;
@@ -5110,6 +5230,8 @@ function handleEvent(
     'BBG_PLAY'
   ){
 
+    syncGameClock(payload.hostNow);
+
     if(
       !validRound(
         payload.roundId
@@ -5122,7 +5244,7 @@ function handleEvent(
     startAt =
       finite(
         payload.startAt,
-        Date.now()
+        gameNow()
       );
 
     phaseEndsAt =
@@ -5130,6 +5252,17 @@ function handleEvent(
         payload.phaseEndsAt,
         startAt +
         CFG.ROUND_MS
+      );
+
+    drainEndsAt =
+      finite(
+        payload.drainEndsAt,
+        phaseEndsAt +
+        Math.max(
+          CFG.DRAIN_GRACE_MS,
+          CFG.ITEM_LIFE +
+          CFG.MAX_SPAWN_DELAY_MS
+        )
       );
 
     showToast(
@@ -5337,8 +5470,43 @@ function handleEvent(
 
   if(
     name ===
+    'BBG_ROUND_DRAIN'
+  ){
+
+    syncGameClock(payload.hostNow);
+
+    if(!validRound(payload.roundId))return;
+
+    if(phase === STATES.RESULT)return;
+
+    phase =
+      STATES.DRAINING;
+
+    phaseEndsAt =
+      finite(
+        payload.phaseEndsAt,
+        phaseEndsAt
+      );
+
+    drainEndsAt =
+      finite(
+        payload.drainEndsAt,
+        phaseEndsAt + CFG.DRAIN_GRACE_MS
+      );
+
+    reason =
+      '時間到：剩餘物件收尾中';
+
+    return;
+
+  }
+
+  if(
+    name ===
     'BBG_ROUND_END'
   ){
+
+    syncGameClock(payload.hostNow);
 
     if(
       !validRound(
@@ -5495,11 +5663,14 @@ function startRoundAfterEntry(){
     STATES.COUNTDOWN;
 
   startAt =
-    Date.now() +
+    gameNow() +
     CFG.COUNTDOWN_MS;
 
   phaseEndsAt =
     startAt;
+
+  drainEndsAt =
+    0;
 
   lastSpawn =
     0;
@@ -5514,6 +5685,9 @@ function startRoundAfterEntry(){
 
       seed:
         roundSeed,
+
+      hostNow:
+        gameNow(),
 
       startAt,
 
@@ -5547,11 +5721,19 @@ function startPlaying(){
     STATES.PLAYING;
 
   startAt =
-    Date.now();
+    gameNow();
 
   phaseEndsAt =
     startAt +
     CFG.ROUND_MS;
+
+  drainEndsAt =
+    phaseEndsAt +
+    Math.max(
+      CFG.DRAIN_GRACE_MS,
+      CFG.ITEM_LIFE +
+      CFG.MAX_SPAWN_DELAY_MS
+    );
 
   lastSpawn =
     0;
@@ -5560,8 +5742,10 @@ function startPlaying(){
     'BBG_PLAY',
     {
       roundId,
+      hostNow:gameNow(),
       startAt,
-      phaseEndsAt
+      phaseEndsAt,
+      drainEndsAt
     }
   );
 
@@ -5712,11 +5896,60 @@ function finishHost(){
     STATES.PLAYING
   )return;
 
+  const now =
+    gameNow();
+
+  /*
+   * 先進入收尾，而不是直接切 RESULT。
+   * 這樣倒數最後幾秒出生的物件還能完整落下 / 被搶。
+   */
   phase =
-    STATES.RESULT;
+    STATES.DRAINING;
 
   reason =
-    '時間到：依最終分數排名';
+    '時間到：剩餘物件收尾中';
+
+  drainEndsAt =
+    Math.max(
+      now + CFG.DRAIN_GRACE_MS,
+      phaseEndsAt +
+      CFG.ITEM_LIFE +
+      CFG.MAX_SPAWN_DELAY_MS
+    );
+
+  send(
+    'BBG_ROUND_DRAIN',
+    {
+      roundId,
+      hostNow:now,
+      phase,
+      phaseEndsAt,
+      drainEndsAt
+    }
+  );
+
+  broadcastState(
+    true
+  );
+
+  showToast(
+    '收尾！',
+    '#ffd45c'
+  );
+
+  sfx(
+    'end'
+  );
+
+}
+
+function finalizeHostRound(){
+
+  if(
+    !isHost() ||
+    phase !==
+    STATES.DRAINING
+  )return;
 
   const rows =
     sortedPlayers()
@@ -5760,18 +5993,23 @@ function finishHost(){
       })
     );
 
+  reason =
+    '時間到：依最終分數排名';
+
+  phase =
+    STATES.RESULT;
+
+  const now =
+    gameNow();
+
   send(
     'BBG_ROUND_END',
     {
       roundId,
-
+      hostNow:now,
       winnerId,
-
       reason,
-
-      result:
-        stateResult
-
+      result:stateResult
     }
   );
 
@@ -5789,7 +6027,6 @@ function finishHost(){
   );
 
 }
-
 /* =========================================================
    RESULT
 ========================================================= */
@@ -5985,6 +6222,9 @@ function syncUI(){
       '0'
     );
 
+  const uiNow =
+    gameNow();
+
   const remain =
     phase ===
     STATES.COUNTDOWN
@@ -5994,7 +6234,7 @@ function syncUI(){
           Math.ceil(
             (
               phaseEndsAt -
-              Date.now()
+              uiNow
             ) /
             1000
           )
@@ -6008,13 +6248,18 @@ function syncUI(){
             Math.ceil(
               (
                 phaseEndsAt -
-                Date.now()
+                uiNow
               ) /
               1000
             )
           )
 
-        : 45;
+        : phase ===
+          STATES.DRAINING
+
+          ? 0
+
+          : 45;
 
   el.timer.textContent =
     String(remain);
@@ -6095,6 +6340,15 @@ function syncUI(){
     el.tip.textContent =
       '多指一起搶也可以｜🪙 金幣直接點｜💣 紅色炸彈不要碰';
 
+  }else
+  if(
+    phase ===
+    STATES.DRAINING
+  ){
+
+    el.tip.textContent =
+      '時間到｜剩餘掉落物仍可搶，正在收尾';
+
   }else{
 
     el.tip.textContent =
@@ -6147,6 +6401,8 @@ function handleStart(
     STATES.COUNTDOWN ||
     phase ===
     STATES.PLAYING ||
+    phase ===
+    STATES.DRAINING ||
     phase ===
     STATES.RESULT
   )return;
@@ -6460,7 +6716,7 @@ function loop(ts){
     ts;
 
   const now =
-    Date.now();
+    gameNow();
 
   /*
    * Background
@@ -6631,10 +6887,10 @@ function loop(ts){
       isHost()
     ){
 
-      spawnBatch(
-        now
-      );
-
+      /*
+       * 先判斷時間，再生成下一批。
+       * 避免 45.000 秒那一幀又多產生一批物件。
+       */
       if(
         now >=
         phaseEndsAt
@@ -6642,17 +6898,31 @@ function loop(ts){
 
         finishHost();
 
-      }
+      }else{
 
-      broadcastState(
-        false
-      );
+        spawnBatch(
+          now
+        );
+
+        broadcastState(
+          false
+        );
+
+      }
 
     }
 
-    /*
-     * 畫掉所有物件
-     */
+  }
+
+  /*
+   * Draining：時間到後仍繼續繪製 / 清理 / 接受搶取，
+   * 不再生成新物件。
+   */
+  if(
+    phase === STATES.PLAYING ||
+    phase === STATES.DRAINING
+  ){
+
     for(
       const it of
       items.values()
@@ -6665,27 +6935,30 @@ function loop(ts){
 
     }
 
-  }
-
-  /*
-   * 清理過期物件
-   */
-  for(
-    const [
-      id,
-      it
-    ] of
-    items
-  ){
+    pruneExpiredItems(now);
 
     if(
-      now >
-      it.expiresAt
+      phase === STATES.DRAINING &&
+      isHost()
     ){
 
-      items.delete(
-        id
-      );
+      if(
+        !hasLiveItems(now) ||
+        now >= drainEndsAt
+      ){
+
+        /*
+         * 只有真正進入 RESULT 前才清空殘留物件。
+         */
+        pruneExpiredItems(now);
+
+        finalizeHostRound();
+
+      }else{
+
+        broadcastState(false);
+
+      }
 
     }
 

@@ -110,6 +110,15 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .toast.show{opacity:1;transform:translate(-50%,0);}
 .flash{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.32),transparent 53%);}
 .flash.play{animation:flash .3s ease-out;}
+
+.autoCountBadge{
+  position:absolute;left:50%;top:205px;transform:translateX(-50%);
+  z-index:7;padding:8px 13px;border-radius:999px;
+  background:rgba(7,10,20,.82);border:1px solid rgba(69,239,255,.16);
+  color:#dfe6f8;font-size:9px;font-weight:1000;pointer-events:none;
+  backdrop-filter:blur(8px);display:none;
+}
+.autoCountBadge.show{display:block;}
 .fpsWarn{position:absolute;right:10px;bottom:10px;z-index:40;display:none;padding:4px 6px;border-radius:7px;background:#280f15;color:#ff8e9f;border:1px solid rgba(255,88,113,.2);font-size:8px;font-weight:900;}
 @keyframes shine{to{transform:translateX(460%) skewX(-20deg);}}
 @keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
@@ -150,7 +159,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
     <div class="scoreBoardHead"><span>同房最高分</span><b>TOP</b></div>
     <div class="scoreRows" id="scoreRows"><div class="scoreEmpty">等待玩家分數...</div></div>
   </div>
-  <div class="statusPill" id="statusPill">等候落點</div>
+  <div class="statusPill" id="statusPill">等待房間</div>
+  <div class="autoCountBadge" id="autoCountBadge">房間玩家 0 / 10</div>
 
   <div class="bottomBar" id="bottomBar">
     <div class="hintCard">
@@ -165,25 +175,29 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 
   <div class="overlay show" id="startOverlay">
     <div class="modal">
-      <div class="modalHead"><div class="kicker">REACTION · TIMING</div><div id="hostStatus" style="font-size:9px;color:#777f97;font-weight:900;">連線中...</div></div>
+      <div class="modalHead"><div class="kicker">AUTO ROOM · MATCH</div><div id="hostStatus" style="font-size:9px;color:#777f97;font-weight:900;">正在同步房間</div></div>
       <div class="h1">霓虹疊塔<br><span style="color:var(--cyan)">極限巔峰</span></div>
       <p class="lead">抓準移動節奏，把每一層穩穩疊上去。越高越快、方塊越窄，高層還要求更高的重疊率；完美落點才能穩住塔勢。</p>
       <div class="metaGrid">
         <div class="meta"><div class="metaLabel">玩法</div><div class="metaValue">點擊放置</div></div>
         <div class="meta"><div class="metaLabel">Entry</div><div class="metaValue">0 銀幣</div></div>
-        <div class="meta"><div class="metaLabel">獎勵</div><div class="metaValue">最高 250</div></div>
+        <div class="meta"><div class="metaLabel">房間</div><div class="metaValue">全員自動參賽</div></div>
       </div>
       <div class="rules">
         <div class="rule"><div class="ruleIcon">🎯</div><div class="ruleTitle">抓準中心</div><div class="ruleText">越接近上一層中心越容易拿到 Perfect；高層的容錯也會逐步下降。</div></div>
         <div class="rule"><div class="ruleIcon">🔥</div><div class="ruleTitle">連擊加分</div><div class="ruleText">連續 Perfect / Great 會提高分數倍率。</div></div>
         <div class="rule"><div class="ruleIcon">⚡</div><div class="ruleTitle">速度遞增</div><div class="ruleText">第 6 層起開始縮窄；10、20、30 層後明顯加速，高層還會提高最低重疊要求。</div></div>
       </div>
-      <button class="primary" id="startBtn">開始挑戰</button>
-      <div class="note">單場結束後不提供快速重玩。請由 BoomRoom 房間重新開啟新的遊戲實例。</div>
+      <div id="autoRoomStatus" style="margin-top:12px;padding:11px 12px;border-radius:14px;background:rgba(69,239,255,.045);border:1px solid rgba(69,239,255,.12);text-align:center;">
+        <div id="roomCountText" style="font-size:11px;font-weight:1000;color:#f7f8ff;">房間玩家 0 / 10</div>
+        <div id="autoRoundText" style="margin-top:4px;font-size:8px;color:#8f98b3;font-weight:900;">正在等待房間同步</div>
+      </div>
+      <button class="primary" id="startBtn" disabled>等待房間同步</button>
+      <div class="note">房間玩家全部自動參賽。人數穩定後自動倒數開始；單場結束後會自動關閉遊戲。</div>
     </div>
   </div>
 
-  <div class="overlay" id="resultOverlay">
+  <div class="overlay" id="resultOverlay" data-locked="true">
     <div class="modal">
       <div class="modalHead"><div class="kicker">ROUND COMPLETE</div><div style="font-size:9px;color:#8b92a8;font-weight:900;">本局已鎖定</div></div>
       <div class="h1" id="resultTitle">高樓倒塌！</div>
@@ -196,8 +210,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
       </div>
       <div class="reward"><div class="rLabel">本局獲得</div><div class="rValue" id="resultReward">0 銀幣</div></div>
       <div class="resultReason" id="resultReason">正式結果已送出一次，不能再次結算。</div>
-      <button class="primary" id="finishBtn">完成本局</button>
-      <div class="note">回到 BoomRoom 房間後，可由房間重新開啟新的遊戲實例。</div>
+      <button class="primary" id="finishBtn" disabled>遊戲將自動關閉</button>
+      <div class="note" id="closeCountdownNote">本局已鎖定，請稍候。</div>
     </div>
   </div>
 </div>
@@ -211,13 +225,24 @@ const GAME_INFO = {
   category: '反應挑戰',
   name: '霓虹疊塔：極限巔峰',
   description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '2.6.0',
+  version: '3.0.0',
   entryCost: 0,
-  maxPlayers: 20,
+  maxPlayers: 10,
   controlModes: ['Tap', 'Pointer'],
   duration: '30~120 秒',
   multiplayer: true,
   rewardEnabled: true
+};
+
+const AUTO_ROUND = {
+  MAX_PLAYERS: GAME_INFO.maxPlayers,
+  STABLE_MS: 1800,          // 房間人數穩定後再開始
+  COUNTDOWN_MS: 3200,       // 3 秒倒數
+  RESULT_MS: 5200,          // 結算畫面停留時間
+  CLOSE_GRACE_MS: 450,      // 關閉前緩衝
+  HEARTBEAT_MS: 1200,
+  SYNC_MS: 900,
+  JOIN_GRACE_MS: 500
 };
 
 const CONFIG = {
@@ -294,7 +319,22 @@ const state = {
   avgFps: 60,
   fpsSamples: 0,
   sdkUser: null,
-  finishToastShown: false
+  finishToastShown: false,
+
+  // Auto-room lifecycle
+  roomPlayerCount: 0,
+  roomPlayersUpdatedAt: 0,
+  autoRoundState: 'WAITING',
+  autoRoundTimer: null,
+  countdownTimer: null,
+  countdownEndsAt: 0,
+  resultCloseTimer: null,
+  closeRequested: false,
+  closeSent: false,
+  hostRoundStarted: false,
+  remoteStartAt: 0,
+  lastRoomSignature: '',
+  localPlayerReady: false
 };
 
 let audioCtx = null;
@@ -737,7 +777,7 @@ function gameOver(reason, remoteEnd=false){
   );
 }
 
-function showResult(){
+function legacy_showResult(){
   $('resultTitle').textContent=state.layers>=40?'超越極限！':state.layers>=30?'巔峰完成！':state.layers>=20?'高塔達成！':'大樓倒塌！';
   $('resultLead').textContent=state.resultReason;
   $('resultLayer').textContent=state.layers;
@@ -752,7 +792,7 @@ function showResult(){
   $('hintSub').textContent='本局結果已鎖定，請返回 BoomRoom 房間重新開啟新的遊戲實例。';
 }
 
-function finishRound(){
+function legacy_finishRound(){
   if(state.finishToastShown) return;
   state.finishToastShown=true;
   $('resultOverlay').classList.remove('show');
@@ -787,6 +827,13 @@ function updateHUD(){
   $('layerValue').textContent=String(state.layers);
   $('comboValue').textContent=`${state.combo}×`;
   $('scoreValue').textContent=String(state.score);
+
+  const badge=$('autoCountBadge');
+  if(badge){
+    badge.textContent=`房間玩家 ${state.roomPlayerCount} / ${GAME_INFO.maxPlayers}`;
+    badge.classList.toggle('show',state.game==='PLAYING');
+  }
+
   updateMilestoneUI();
   if(state.game==='PLAYING'){
     const diffName=getDifficultyName(state.layers);
@@ -931,6 +978,10 @@ function loop(timestamp){
   drawBackground(timestamp);
   updateParticles(dt);
 
+  if(state.autoRoundState==='COUNTDOWN'){
+    renderAutoRoomUI();
+  }
+
   if(state.game==='PLAYING'){
     if(state.currentBox){
       state.currentBox.update(dt);
@@ -985,70 +1036,47 @@ window.addEventListener('keydown',e=>{
 actionSetup();
 
 function actionSetup(){
-  $('startBtn').addEventListener(
-    'click',
-    startGame
-  );
+  // 本版本完全取消手動開始。
+  // 市長/Host 只作為同步權威，實際開始由房間人數穩定後自動觸發。
+  $('startBtn').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
 
-  $('finishBtn').addEventListener(
-    'click',
-    finishRound
-  );
+  $('finishBtn').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
 }
 
+
 let sdkIsHost = false;
-let roomPlayersList = [];
 let gameRoomId = '';
 let sdkReady = false;
 let waitingForHost = false;
 let lastRemoteRoundId = '';
+let roomPlayersList = [];
 let roomScoreMap = new Map();
 
-function isHost(){
-  return !!sdkIsHost;
-}
+function isHost(){ return !!sdkIsHost; }
 
 function getUserId(){
-  return String(
-    state.sdkUser?.id ||
-    state.sdkUser?.userId ||
-    ''
-  );
+  return String(state.sdkUser?.id || state.sdkUser?.userId || '');
 }
 
-function sendGameEvent(
-  eventName,
-  payload={}
-){
-  const message = {
-    action:'sendGameEvent',
-    eventName,
-    payload
-  };
+function sendGameEvent(eventName, payload={}){
+  const message = { action:'sendGameEvent', eventName, payload };
 
   try{
-    if(
-      window.BoomRoomSDK &&
-      typeof window.BoomRoomSDK.sendGameEvent ===
-      'function'
-    ){
-      window.BoomRoomSDK.sendGameEvent(
-        eventName,
-        payload
-      );
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function'){
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
       return true;
     }
   }catch(_){}
 
   try{
-    if(
-      window.parent &&
-      window.parent !== window
-    ){
-      window.parent.postMessage(
-        message,
-        '*'
-      );
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage(message, '*');
       return true;
     }
   }catch(_){}
@@ -1058,40 +1086,24 @@ function sendGameEvent(
 
 function requestSDKInit(){
   try{
-    if(
-      window.parent &&
-      window.parent !== window
-    ){
-      window.parent.postMessage(
-        {
-          action:'requestSDKInit',
-          gameId:GAME_INFO.id,
-          version:GAME_INFO.version
-        },
-        '*'
-      );
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({
+        action:'requestSDKInit',
+        gameId:GAME_INFO.id,
+        version:GAME_INFO.version
+      }, '*');
     }
   }catch(_){}
 
   try{
-    if(
-      window.BoomRoomSDK &&
-      typeof window.BoomRoomSDK.requestInit ===
-      'function'
-    ){
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.requestInit === 'function'){
       window.BoomRoomSDK.requestInit();
     }
   }catch(_){}
 }
 
 function playerIdOf(player){
-  return String(
-    player?.id ??
-    player?.userId ??
-    player?.uid ??
-    player?.playerId ??
-    ''
-  );
+  return String(player?.id ?? player?.userId ?? player?.uid ?? player?.playerId ?? '');
 }
 
 function playerNameOf(player, fallback='玩家'){
@@ -1107,14 +1119,63 @@ function playerNameOf(player, fallback='玩家'){
   return String(name || fallback).trim().slice(0,18) || fallback;
 }
 
+function normalizeRoomPlayers(list){
+  const source = Array.isArray(list) ? list : [];
+  const seen = new Set();
+  const out = [];
+
+  for(const p of source){
+    const id = playerIdOf(p);
+    if(!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push({
+      id,
+      nickname: playerNameOf(p),
+      raw: p
+    });
+  }
+
+  const me = getUserId();
+  if(me && !seen.has(me)){
+    out.push({
+      id: me,
+      nickname: playerNameOf(state.sdkUser,'你'),
+      raw: state.sdkUser
+    });
+  }
+
+  return out.slice(0, GAME_INFO.maxPlayers);
+}
+
+function updateRoomPlayers(list, source='sdk'){
+  const next = normalizeRoomPlayers(list);
+  const sig = next.map(p=>p.id).sort().join('|');
+
+  if(sig !== state.lastRoomSignature){
+    state.lastRoomSignature = sig;
+    state.roomPlayersUpdatedAt = Date.now();
+  }
+
+  roomPlayersList = next;
+  state.roomPlayerCount = next.length;
+  seedRoomScorePlayers();
+  renderAutoRoomUI();
+}
+
+function onlinePlayers(){
+  return normalizeRoomPlayers(roomPlayersList);
+}
+
 function ensureScorePlayer(id, name='玩家'){
   id = String(id || '');
   if(!id) return null;
+
   const old = roomScoreMap.get(id);
   if(old){
     if(name && name !== '玩家') old.name=name;
     return old;
   }
+
   const item={id,name:name || '玩家',score:0,layers:0,updatedAt:Date.now()};
   roomScoreMap.set(id,item);
   return item;
@@ -1125,24 +1186,29 @@ function seedRoomScorePlayers(){
     const id=playerIdOf(player);
     if(id) ensureScorePlayer(id,playerNameOf(player));
   }
+
   const me=getUserId();
   if(me) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
+
   renderScoreBoard();
 }
 
 function updatePlayerScore(id, score, layers, name='玩家', broadcast=false){
   id=String(id || '');
   if(!id) return;
+
   const item=ensureScorePlayer(id,name);
   if(!item) return;
+
   const nextScore=Math.max(0,Math.floor(finite(score,0)));
   const nextLayers=Math.max(0,Math.floor(finite(layers,0)));
-  // 顯示「最高分」：同一玩家只保留本局/目前房間收到的最高成績。
+
   if(nextScore >= item.score){
     item.score=nextScore;
     item.layers=Math.max(item.layers,nextLayers);
     item.updatedAt=Date.now();
   }
+
   renderScoreBoard();
 
   if(broadcast){
@@ -1159,6 +1225,7 @@ function updatePlayerScore(id, score, layers, name='玩家', broadcast=false){
 function renderScoreBoard(){
   const rows=$('scoreRows');
   if(!rows) return;
+
   const list=[...roomScoreMap.values()]
     .sort((a,b)=>b.score-a.score || b.layers-a.layers || a.name.localeCompare(b.name,'zh-Hant'))
     .slice(0,5);
@@ -1169,9 +1236,13 @@ function renderScoreBoard(){
   }
 
   const me=getUserId();
+
   rows.innerHTML=list.map((item,index)=>{
     const isMe=item.id===me;
-    const safeName=String(item.name || '玩家').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const safeName=String(item.name || '玩家').replace(/[&<>"]/g,c=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+    }[c]));
+
     return `<div class="scoreRow ${index===0?'top':''}">
       <span class="scoreRank">${index+1}</span>
       <span class="scoreName ${isMe?'me':''}">${safeName}${isMe?' · 你':''}</span>
@@ -1180,303 +1251,465 @@ function renderScoreBoard(){
   }).join('');
 }
 
-function applyHostUI(){
-  const startBtn = $('startBtn');
-  const hostStatus = $('hostStatus');
+function renderAutoRoomUI(){
+  const count = state.roomPlayerCount;
+  const max = GAME_INFO.maxPlayers;
 
-  if(!startBtn)return;
+  const roomCount = $('roomCountText');
+  const autoText = $('autoRoundText');
+  const status = $('hostStatus');
+  const startBtn = $('startBtn');
+
+  if(roomCount) roomCount.textContent=`房間玩家 ${count} / ${max}`;
 
   if(!sdkReady){
-    startBtn.disabled = true;
-    startBtn.textContent = '連線中...';
-    if(hostStatus) hostStatus.textContent = '連線中...';
-    return;
-  }
-
-  if(isHost()){
-    startBtn.disabled =
-      state.game === 'PLAYING' ||
-      state.game === 'RESULT';
-
-    startBtn.textContent =
-      state.game === 'PLAYING'
-        ? '遊戲進行中'
-        : '市長：開始極限疊塔';
-
-    if(hostStatus){
-      hostStatus.textContent =
-        state.game === 'PLAYING'
-          ? '市長已開始'
-          : '你是本局市長';
+    if(autoText) autoText.textContent='正在連接 BoomRoom...';
+    if(status) status.textContent='正在同步房間';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent='等待房間同步';
     }
-
     return;
   }
 
-  startBtn.disabled = true;
-  startBtn.textContent =
-    state.game === 'PLAYING'
-      ? '市長已開始'
-      : '等待市長開始遊戲...';
+  if(state.game === 'PLAYING'){
+    if(autoText) autoText.textContent=`本局進行中 · ${count} 人參賽`;
+    if(status) status.textContent='遊戲進行中';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent='遊戲進行中';
+    }
+    return;
+  }
 
-  if(hostStatus){
-    hostStatus.textContent =
-      state.game === 'PLAYING'
-        ? '市長已開始'
-        : '等待市長開始';
+  if(state.game === 'RESULT'){
+    if(autoText) autoText.textContent='本局已結束 · 正在準備關閉';
+    if(status) status.textContent='本局已鎖定';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent='遊戲將自動關閉';
+    }
+    return;
+  }
+
+  if(state.autoRoundState === 'COUNTDOWN'){
+    const remain=Math.max(0,state.countdownEndsAt-Date.now());
+    const sec=Math.max(1,Math.ceil(remain/1000));
+
+    if(autoText) autoText.textContent=`${count} 人已就緒 · ${sec} 秒後開始`;
+    if(status) status.textContent='自動倒數中';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent=`${sec} 秒後開始`;
+    }
+    return;
+  }
+
+  if(count > 0){
+    if(autoText) autoText.textContent=`${count} 人已進入 · 人數穩定後自動開始`;
+    if(status) status.textContent='等待房間穩定';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent='等待自動開始';
+    }
+  }else{
+    if(autoText) autoText.textContent='等待玩家進入房間';
+    if(status) status.textContent='等待玩家';
+    if(startBtn){
+      startBtn.disabled=true;
+      startBtn.textContent='等待玩家';
+    }
   }
 }
 
 function setupSDK(data){
-  if(!data)return;
+  if(!data) return;
 
   const nested =
-    data.data &&
-    typeof data.data === 'object'
+    data.data && typeof data.data === 'object'
       ? data.data
       : data;
 
-  if(nested.user){
-    state.sdkUser =
-      nested.user;
-  }
+  if(nested.user) state.sdkUser=nested.user;
 
-  sdkIsHost =
-    !!(
-      nested.isHost === true ||
-      nested.isHost === 1 ||
-      nested.isHost === 'true'
-    );
+  sdkIsHost = !!(
+    nested.isHost === true ||
+    nested.isHost === 1 ||
+    nested.isHost === 'true'
+  );
 
   gameRoomId =
     nested.roomId != null
       ? String(nested.roomId)
       : gameRoomId;
 
-  if(
-    Array.isArray(
-      nested.roomPlayers
-    )
-  ){
-    roomPlayersList =
-      nested.roomPlayers;
+  if(Array.isArray(nested.roomPlayers)){
+    updateRoomPlayers(nested.roomPlayers,'sdk');
+  }else if(Array.isArray(nested.players)){
+    updateRoomPlayers(nested.players,'sdk.players');
+  }else{
+    updateRoomPlayers(roomPlayersList,'existing');
   }
 
-  sdkReady = true;
+  sdkReady=true;
+  state.localPlayerReady=!!getUserId();
   seedRoomScorePlayers();
+  renderAutoRoomUI();
 
-  applyHostUI();
+  // 每個玩家都告知 Host 自己已進入房間。
+  sendGameEvent('NEON_ROOM_HELLO',{
+    playerId:getUserId(),
+    playerName:playerNameOf(state.sdkUser,'玩家'),
+    roomId:gameRoomId,
+    timestamp:Date.now()
+  });
 
-  if(
-    !isHost()
-  ){
-    waitingForHost = true;
-    sendGameEvent(
-      'NEON_HELLO',
-      {
-        playerId:getUserId(),
-        requestState:true
-      }
-    );
+  if(!isHost()){
+    waitingForHost=true;
+    sendGameEvent('NEON_HELLO',{
+      playerId:getUserId(),
+      requestState:true,
+      requestRoster:true
+    });
+  }else{
+    waitingForHost=false;
+    scheduleAutoStart();
   }
 }
 
-function startGame(
-  remoteRoundId = null,
-  remote = false
-){
-  if(
-    state.game === 'PLAYING' ||
-    state.game === 'RESULT'
-  ){
+function clearAutoRoundTimers(){
+  if(state.autoRoundTimer){
+    clearTimeout(state.autoRoundTimer);
+    state.autoRoundTimer=null;
+  }
+  if(state.countdownTimer){
+    clearInterval(state.countdownTimer);
+    state.countdownTimer=null;
+  }
+}
+
+function getStablePlayerSignature(){
+  return onlinePlayers().map(p=>p.id).sort().join('|');
+}
+
+function scheduleAutoStart(){
+  if(!isHost() || !sdkReady) return;
+  if(state.game==='PLAYING' || state.game==='RESULT') return;
+  if(state.autoRoundState==='COUNTDOWN') return;
+
+  const players=onlinePlayers();
+  const count=players.length;
+
+  if(count<=0){
+    state.autoRoundState='WAITING';
+    renderAutoRoomUI();
     return;
   }
+
+  const signature=getStablePlayerSignature();
+  const scheduledAt=Date.now();
+
+  state.autoRoundState='STABILIZING';
+  renderAutoRoomUI();
+
+  clearTimeout(state.autoRoundTimer);
+
+  state.autoRoundTimer=setTimeout(()=>{
+    state.autoRoundTimer=null;
+
+    if(state.game!=='LOBBY') return;
+
+    const current=onlinePlayers();
+    const currentSig=getStablePlayerSignature();
+
+    if(
+      current.length !== count ||
+      currentSig !== signature ||
+      Date.now()-state.roomPlayersUpdatedAt < AUTO_ROUND.STABLE_MS-50
+    ){
+      scheduleAutoStart();
+      return;
+    }
+
+    beginHostCountdown(current);
+  }, Math.max(AUTO_ROUND.STABLE_MS, scheduledAt-Date.now()+AUTO_ROUND.STABLE_MS));
+}
+
+function beginHostCountdown(players){
+  if(!isHost()) return;
+  if(state.game!=='LOBBY') return;
+  if(!players.length) return;
+
+  clearAutoRoundTimers();
+
+  state.autoRoundState='COUNTDOWN';
+  state.countdownEndsAt=Date.now()+AUTO_ROUND.COUNTDOWN_MS;
+  state.hostRoundStarted=false;
+
+  const roundId=uid();
+
+  sendGameEvent('NEON_COUNTDOWN',{
+    roundId,
+    endsAt:state.countdownEndsAt,
+    playerCount:players.length,
+    playerIds:players.map(p=>p.id),
+    version:GAME_INFO.version
+  });
+
+  renderAutoRoomUI();
+  playStart();
+  vibrate([10,25,10]);
+
+  state.countdownTimer=setInterval(()=>{
+    const remain=state.countdownEndsAt-Date.now();
+
+    if(remain<=0){
+      clearInterval(state.countdownTimer);
+      state.countdownTimer=null;
+
+      const latest=onlinePlayers();
+      const latestSig=getStablePlayerSignature();
+
+      if(
+        latest.length !== players.length ||
+        latestSig !== players.map(p=>p.id).sort().join('|')
+      ){
+        state.autoRoundState='WAITING';
+        renderAutoRoomUI();
+        scheduleAutoStart();
+        return;
+      }
+
+      launchHostRound(roundId,latest);
+      return;
+    }
+
+    renderAutoRoomUI();
+  },80);
+
+  renderAutoRoomUI();
+}
+
+function launchHostRound(roundId,players){
+  if(!isHost()) return;
+  if(state.game!=='LOBBY') return;
+
+  state.autoRoundState='PLAYING';
+  state.hostRoundStarted=true;
+
+  const startAt=Date.now()+180;
+
+  sendGameEvent('NEON_ROUND_START',{
+    roundId,
+    startAt,
+    startedAt:startAt,
+    hostId:getUserId(),
+    playerCount:players.length,
+    playerIds:players.map(p=>p.id),
+    version:GAME_INFO.version
+  });
+
+  // Host 自己也走同一套啟動流程。
+  startGame(roundId,false,startAt,players.length);
+}
+
+function startGame(remoteRoundId=null, remote=false, remoteStartAt=0, forcedPlayerCount=0){
+  if(state.game==='PLAYING' || state.game==='RESULT') return;
+
+  // 非 Host 禁止自己手動建立新局。
+  if(!remote && !isHost()) return;
 
   resumeAudio();
-  playStart();
-  vibrate(
-    [12,30,12]
-  );
 
-  state.game =
-    'PLAYING';
+  const startDelay=Math.max(0,remoteStartAt ? remoteStartAt-Date.now() : 0);
 
-  state.roundId =
-    remoteRoundId ||
-    uid();
+  const actuallyStart=()=>{
+    if(state.game==='PLAYING' || state.game==='RESULT') return;
 
-  state.score=0;
-  state.layers=0;
-  state.combo=0;
-  state.bestCombo=0;
-  state.perfects=0;
-  state.greats=0;
-  state.goods=0;
-  state.cameraY=0;
-  state.targetCameraY=0;
-  state.hue=190;
-  state.shake=0;
-  state.boxes=[];
-  state.debris=[];
-  state.particles=[];
-  state.trail=[];
-  state.currentBox=null;
-  state.nextEntryAt=0;
-  state.inputLockedUntil=0;
-  state.startedAt=
-    performance.now();
-  state.reward=0;
-  state.resultReason='';
-  state.gameOverCalled=false;
-  ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
-  updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
-  state.finishToastShown=false;
+    playStart();
+    vibrate([12,30,12]);
 
-  makeBase();
-  spawnBox();
-  updateCameraTarget();
-  state.cameraY =
-    state.targetCameraY;
+    state.game='PLAYING';
+    state.autoRoundState='PLAYING';
+    state.roundId=remoteRoundId || uid();
 
-  $('startOverlay')
-    .classList.remove('show');
+    state.score=0;
+    state.layers=0;
+    state.combo=0;
+    state.bestCombo=0;
+    state.perfects=0;
+    state.greats=0;
+    state.goods=0;
+    state.cameraY=0;
+    state.targetCameraY=0;
+    state.hue=190;
+    state.shake=0;
+    state.boxes=[];
+    state.debris=[];
+    state.particles=[];
+    state.trail=[];
+    state.currentBox=null;
+    state.nextEntryAt=0;
+    state.inputLockedUntil=0;
+    state.startedAt=performance.now();
+    state.reward=0;
+    state.resultReason='';
+    state.gameOverCalled=false;
+    state.finishToastShown=false;
+    state.closeRequested=false;
+    state.closeSent=false;
+    state.resultCloseTimer=null;
+    state.remoteStartAt=remoteStartAt || Date.now();
 
-  $('resultOverlay')
-    .classList.remove('show');
+    ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
+    updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
 
-  updateHUD();
+    makeBase();
+    spawnBox();
+    updateCameraTarget();
+    state.cameraY=state.targetCameraY;
 
-  showToast(
-    remote
-      ? '市長已開始 · 準備！'
-      : '開局！準備疊塔'
-  );
+    $('startOverlay').classList.remove('show');
+    $('resultOverlay').classList.remove('show');
 
-  if(!remote){
-    sendGameEvent(
-      'NEON_ROUND_START',
-      {
-        roundId:state.roundId,
-        startedAt:Date.now(),
-        hostId:getUserId(),
-        version:GAME_INFO.version
-      }
+    updateHUD();
+    renderAutoRoomUI();
+
+    showToast(
+      remote
+        ? '全房同步開始！'
+        : `自動開局 · ${forcedPlayerCount || state.roomPlayerCount} 人`
     );
-  }
-  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
 
-  waitingForHost = false;
-  applyHostUI();
-}
-
-function handleGameEvent(
-  name,
-  payload,
-  sender
-){
-  payload =
-    payload &&
-    typeof payload === 'object'
-      ? payload
-      : {};
-
-  if(
-    name === 'NEON_HELLO'
-  ){
-    if(
-      isHost() &&
-      payload.requestState
-    ){
-      sendGameEvent(
-        'NEON_STATE',
-        {
-          roundId:
-            state.roundId,
-          game:
-            state.game,
-          hostId:
-            getUserId()
-        }
-      );
-    }
-    return;
-  }
-
-  if(
-    name === 'NEON_STATE'
-  ){
-    if(
-      isHost()
-    ){
-      return;
-    }
-
-    const incomingRound =
-      String(
-        payload.roundId ||
-        ''
-      );
-
-    if(
-      payload.game === 'PLAYING' &&
-      incomingRound
-    ){
-      if(
-        incomingRound !==
-        lastRemoteRoundId
-      ){
-        lastRemoteRoundId =
-          incomingRound;
-
-        startGame(
-          incomingRound,
-          true
-        );
-      }else{
-        waitingForHost =
-          false;
-
-        applyHostUI();
-      }
-    }
-
-    return;
-  }
-
-  if(
-    name === 'NEON_ROUND_START' ||
-    name === 'ROUND_START'
-  ){
-    if(
-      isHost()
-    ){
-      return;
-    }
-
-    const incomingRound =
-      String(
-        payload.roundId ||
-        ''
-      );
-
-    if(!incomingRound){
-      return;
-    }
-
-    lastRemoteRoundId =
-      incomingRound;
-
-    startGame(
-      incomingRound,
+    updatePlayerScore(
+      getUserId(),
+      state.score,
+      state.layers,
+      playerNameOf(state.sdkUser,'你'),
       true
     );
 
+    waitingForHost=false;
+    lastRemoteRoundId=state.roundId;
+    renderAutoRoomUI();
+  };
+
+  if(startDelay>0){
+    setTimeout(actuallyStart,startDelay);
+  }else{
+    actuallyStart();
+  }
+}
+
+function sendRoomRosterToRequester(){
+  if(!isHost()) return;
+
+  const players=onlinePlayers();
+
+  sendGameEvent('NEON_ROOM_ROSTER',{
+    roomId:gameRoomId,
+    playerCount:players.length,
+    players:players.map(p=>({
+      id:p.id,
+      nickname:p.nickname
+    })),
+    game:state.game,
+    roundId:state.roundId,
+    autoRoundState:state.autoRoundState,
+    version:GAME_INFO.version
+  });
+}
+
+function handleGameEvent(name,payload,sender){
+  payload =
+    payload && typeof payload === 'object'
+      ? payload
+      : {};
+
+  if(name==='NEON_ROOM_HELLO'){
+    if(isHost()){
+      // Host 收到玩家存在訊號後，立即回傳目前房間名單。
+      sendRoomRosterToRequester();
+      scheduleAutoStart();
+    }
     return;
   }
 
-  if(name === 'NEON_SCORE_UPDATE' || name === 'SCORE_UPDATE'){
+  if(name==='NEON_ROOM_ROSTER'){
+    if(isHost()) return;
+
+    if(Array.isArray(payload.players)){
+      updateRoomPlayers(payload.players,'event');
+    }
+
+    if(payload.game==='PLAYING' && payload.roundId){
+      if(String(payload.roundId)!==lastRemoteRoundId){
+        lastRemoteRoundId=String(payload.roundId);
+        startGame(
+          String(payload.roundId),
+          true,
+          Number(payload.startAt || 0),
+          Number(payload.playerCount || state.roomPlayerCount)
+        );
+      }
+    }
+
+    renderAutoRoomUI();
+    return;
+  }
+
+  if(name==='NEON_HELLO'){
+    if(isHost() && payload.requestRoster){
+      sendRoomRosterToRequester();
+    }
+    return;
+  }
+
+  if(name==='NEON_COUNTDOWN'){
+    if(isHost()) return;
+
+    const incomingRound=String(payload.roundId || '');
+    if(!incomingRound) return;
+
+    lastRemoteRoundId=incomingRound;
+    state.autoRoundState='COUNTDOWN';
+    state.countdownEndsAt=Number(payload.endsAt || Date.now()+AUTO_ROUND.COUNTDOWN_MS);
+
+    if(Array.isArray(payload.playerIds) && payload.playerIds.length){
+      const roster=payload.playerIds.map(id=>({id,nickname:'玩家'}));
+      const existing=new Map(roomPlayersList.map(p=>[p.id,p]));
+      updateRoomPlayers(
+        roster.map(p=>existing.get(p.id)||p),
+        'countdown'
+      );
+    }
+
+    renderAutoRoomUI();
+    return;
+  }
+
+  if(name==='NEON_ROUND_START' || name==='ROUND_START'){
+    if(isHost()) return;
+
+    const incomingRound=String(payload.roundId || '');
+    if(!incomingRound) return;
+
+    lastRemoteRoundId=incomingRound;
+
+    startGame(
+      incomingRound,
+      true,
+      Number(payload.startAt || payload.startedAt || 0),
+      Number(payload.playerCount || state.roomPlayerCount)
+    );
+
+    return;
+  }
+
+  if(name==='NEON_SCORE_UPDATE' || name==='SCORE_UPDATE'){
     const id=String(payload.playerId || sender || '');
     if(!id || id===getUserId()) return;
+
     updatePlayerScore(
       id,
       payload.score,
@@ -1487,102 +1720,291 @@ function handleGameEvent(
     return;
   }
 
-  if(
-    name === 'NEON_ROUND_END' ||
-    name === 'ROUND_END'
-  ){
-    if(
-      state.game === 'PLAYING'
-    ){
-      state.resultReason =
-        String(
-          payload.reason ||
-          '市長已結束本局。'
-        );
+  if(name==='NEON_ROUND_END' || name==='ROUND_END'){
+    const incomingRound=String(payload.roundId || '');
 
-      gameOver(
-        'REMOTE_END',
-        true
+    if(
+      incomingRound &&
+      state.roundId &&
+      incomingRound!==state.roundId
+    ){
+      return;
+    }
+
+    if(state.game==='PLAYING'){
+      state.resultReason=String(
+        payload.reason || '本局已完成結算。'
       );
+
+      gameOver('REMOTE_END',true);
     }
 
     return;
   }
+
+  if(name==='NEON_GAME_CLOSE'){
+    const incomingRound=String(payload.roundId || '');
+
+    if(
+      incomingRound &&
+      state.roundId &&
+      incomingRound!==state.roundId
+    ){
+      return;
+    }
+
+    closeGameInstance(true);
+  }
 }
 
-window.addEventListener(
-  'message',
-  e => {
+function gameOver(reason,remoteEnd=false){
+  if(state.game==='RESULT' || state.gameOverCalled) return;
+
+  state.game='RESULT';
+  state.autoRoundState='RESULT';
+  state.gameOverCalled=true;
+
+  if(state.currentBox) state.currentBox.moving=false;
+
+  state.reward=calcReward(state.layers);
+
+  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
+  if(state.score>state.bestScore) state.bestScore=state.score;
+
+  saveBest();
+
+  state.resultReason =
+    state.resultReason ||
+    (reason==='MISS'?'落點完全失準。':'挑戰結束。');
+
+  const elapsed=Math.max(
+    0,
+    performance.now()-state.startedAt
+  );
+
+  updatePlayerScore(
+    getUserId(),
+    state.score,
+    state.layers,
+    playerNameOf(state.sdkUser,'你'),
+    true
+  );
+
+  // 只有 Host 做正式結算與廣播。
+  if(!remoteEnd && isHost()){
     try{
-      const d =
-        typeof e.data === 'string'
-          ? JSON.parse(e.data)
-          : e.data;
-
-      if(!d)return;
-
       if(
-        d.action === 'initSDK'
+        window.BoomRoomSDK &&
+        typeof window.BoomRoomSDK.gameOver==='function'
       ){
-        setupSDK(d);
-        return;
-      }
-
-      if(
-        d.action === 'sdkReady' ||
-        d.action === 'boomroom:sdkReady'
-      ){
-        setupSDK(
-          d.data ||
-          d
-        );
-        return;
-      }
-
-      if(
-        d.action === 'gameEventReceived' ||
-        d.action === 'gameEvent'
-      ){
-        handleGameEvent(
-          String(
-            d.eventName ||
-            d.name ||
-            d.event ||
-            ''
-          ),
-          d.payload ||
-          d.data ||
-          {},
-          d.userId != null
-            ? String(d.userId)
-            : null
-        );
+        window.BoomRoomSDK.gameOver(state.reward);
       }
     }catch(_){}
-  }
-);
 
-window.onBoomRoomSDKReady =
-function(){
+    sendGameEvent('NEON_ROUND_END',{
+      roundId:state.roundId,
+      status:'FINISHED',
+      score:state.score,
+      reward:state.reward,
+      reason:state.resultReason,
+      layers:state.layers,
+      durationMs:Math.round(elapsed),
+      playerCount:state.roomPlayerCount
+    });
+  }
+
+  setTimeout(showResult,520);
+}
+
+function showResult(){
+  $('resultTitle').textContent =
+    state.layers>=40
+      ? '超越極限！'
+      : state.layers>=30
+        ? '巔峰完成！'
+        : state.layers>=20
+          ? '高塔達成！'
+          : '大樓倒塌！';
+
+  $('resultLead').textContent=state.resultReason;
+  $('resultLayer').textContent=state.layers;
+  $('resultScore').textContent=state.score;
+  $('resultBest').textContent=state.bestLayers;
+  $('resultCombo').textContent=`${state.bestCombo}×`;
+  $('resultReward').textContent=`${state.reward} 銀幣`;
+
+  $('resultReason').textContent =
+    state.reward>0
+      ? '本局獎勵已鎖定並完成一次結算。'
+      : '本局結果已完成結算。';
+
+  $('resultOverlay').classList.add('show');
+  $('statusPill').textContent='本局已結束';
+  $('hintTitle').textContent='結算完成';
+  $('hintSub').textContent='本局已鎖定，遊戲將自動關閉。';
+
+  startAutoCloseCountdown();
+}
+
+function startAutoCloseCountdown(){
+  if(state.resultCloseTimer){
+    clearInterval(state.resultCloseTimer);
+  }
+
+  const endAt=Date.now()+AUTO_ROUND.RESULT_MS;
+
+  const tick=()=>{
+    const remain=Math.max(0,endAt-Date.now());
+    const sec=Math.ceil(remain/1000);
+
+    $('finishBtn').textContent =
+      remain>0
+        ? `遊戲將於 ${sec} 秒後關閉`
+        : '正在關閉遊戲';
+
+    $('closeCountdownNote').textContent =
+      remain>0
+        ? `本局已鎖定 · ${sec} 秒後自動返回 BoomRoom`
+        : '正在返回 BoomRoom...';
+
+    if(remain<=0){
+      clearInterval(state.resultCloseTimer);
+      state.resultCloseTimer=null;
+
+      if(isHost()){
+        sendGameEvent('NEON_GAME_CLOSE',{
+          roundId:state.roundId,
+          reason:'RESULT_TIMEOUT'
+        });
+      }
+
+      setTimeout(()=>closeGameInstance(false),AUTO_ROUND.CLOSE_GRACE_MS);
+    }
+  };
+
+  tick();
+  state.resultCloseTimer=setInterval(tick,120);
+}
+
+function closeGameInstance(remote=false){
+  if(state.closeRequested) return;
+
+  state.closeRequested=true;
+  state.autoRoundState='CLOSING';
+  state.game='RESULT';
+
+  if(state.resultCloseTimer){
+    clearInterval(state.resultCloseTimer);
+    state.resultCloseTimer=null;
+  }
+
+  if(remote){
+    $('closeCountdownNote').textContent='房間已完成結算，正在關閉遊戲...';
+  }
+
   try{
+    if(window.BoomRoomSDK){
+      if(typeof window.BoomRoomSDK.closeGame==='function'){
+        window.BoomRoomSDK.closeGame({
+          gameId:GAME_INFO.id,
+          roundId:state.roundId
+        });
+        state.closeSent=true;
+        return;
+      }
+
+      if(typeof window.BoomRoomSDK.finishGame==='function'){
+        window.BoomRoomSDK.finishGame({
+          gameId:GAME_INFO.id,
+          roundId:state.roundId
+        });
+        state.closeSent=true;
+        return;
+      }
+    }
+  }catch(_){}
+
+  try{
+    if(window.parent && window.parent!==window){
+      window.parent.postMessage({
+        action:'closeGame',
+        gameId:GAME_INFO.id,
+        roundId:state.roundId,
+        reason:'RESULT_TIMEOUT'
+      },'*');
+      state.closeSent=true;
+    }
+  }catch(_){}
+
+  // 沒有宿主 close API 時，只停留在結算鎖定狀態，
+  // 絕不自行重新開始下一局。
+  $('finishBtn').textContent='本局已完成';
+  $('closeCountdownNote').textContent='請由 BoomRoom 房間重新開啟新的遊戲實例。';
+}
+
+function finishRound(){
+  // 保留函式名稱以相容舊 UI，但禁止手動重玩。
+  showToast('本局已完成，請返回 BoomRoom 房間。');
+}
+
+window.addEventListener('message',e=>{
+  try{
+    const d=typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+    if(!d) return;
+
+    if(d.action==='initSDK'){
+      setupSDK(d);
+      return;
+    }
+
+    if(d.action==='sdkReady' || d.action==='boomroom:sdkReady'){
+      setupSDK(d.data || d);
+      return;
+    }
+
+    // 某些宿主會直接推送 room/player 更新。
     if(
-      window.BoomRoomSDK
+      d.action==='roomPlayersUpdated' ||
+      d.action==='roomRoster' ||
+      d.action==='playersUpdated'
     ){
+      const list =
+        d.roomPlayers ||
+        d.players ||
+        d.data?.roomPlayers ||
+        d.data?.players;
+
+      if(Array.isArray(list)){
+        updateRoomPlayers(list,'postMessage');
+      }
+
+      if(isHost()) scheduleAutoStart();
+      return;
+    }
+
+    if(d.action==='gameEventReceived' || d.action==='gameEvent'){
+      handleGameEvent(
+        String(d.eventName || d.name || d.event || ''),
+        d.payload || d.data || {},
+        d.userId!=null ? String(d.userId) : null
+      );
+    }
+  }catch(_){}
+});
+
+window.onBoomRoomSDKReady=function(){
+  try{
+    if(window.BoomRoomSDK){
       setupSDK({
         user:
-          typeof window.BoomRoomSDK.getUser ===
-          'function'
+          typeof window.BoomRoomSDK.getUser==='function'
             ? window.BoomRoomSDK.getUser()
             : null,
-
-        isHost:
-          window.BoomRoomSDK.isHost,
-
-        roomId:
-          window.BoomRoomSDK.roomId,
-
+        isHost:window.BoomRoomSDK.isHost,
+        roomId:window.BoomRoomSDK.roomId,
         roomPlayers:
           window.BoomRoomSDK.roomPlayers ||
+          window.BoomRoomSDK.players ||
           []
       });
     }
@@ -1592,38 +2014,58 @@ function(){
 try{
   if(
     window.BoomRoomSDK &&
-    typeof window.BoomRoomSDK.getUser ===
-    'function'
+    typeof window.BoomRoomSDK.getUser==='function'
   ){
-    state.sdkUser =
-      window.BoomRoomSDK.getUser() ||
-      null;
+    state.sdkUser=window.BoomRoomSDK.getUser() || null;
   }
 }catch(_){}
 
 requestSDKInit();
 
-setTimeout(
-  () => {
-    if(
-      window.BoomRoomSDK
-    ){
-      window.onBoomRoomSDKReady();
-    }
-  },
-  100
-);
+setTimeout(()=>{
+  if(window.BoomRoomSDK){
+    window.onBoomRoomSDKReady();
+  }
+},100);
 
-setTimeout(
-  () => {
-    if(!sdkReady){
-      sdkReady = true;
-      sdkIsHost = true;
-      applyHostUI();
+// 開發環境：若沒有 SDK，使用本地單機 Host 模式。
+// 不會在 SDK 已存在時搶走 Host 權限。
+setTimeout(()=>{
+  if(!sdkReady){
+    sdkReady=true;
+    sdkIsHost=true;
+
+    if(!state.sdkUser){
+      state.sdkUser={
+        id:'dev_host',
+        nickname:'開發玩家'
+      };
     }
-  },
-  1800
-);
+
+    updateRoomPlayers([state.sdkUser],'dev-fallback');
+    renderAutoRoomUI();
+    scheduleAutoStart();
+  }
+},1800);
+
+// 房間同步心跳：Host 定期廣播名單；非 Host 定期要求名單。
+setInterval(()=>{
+  if(!sdkReady) return;
+
+  if(isHost()){
+    sendRoomRosterToRequester();
+    scheduleAutoStart();
+  }else{
+    sendGameEvent('NEON_ROOM_HELLO',{
+      playerId:getUserId(),
+      playerName:playerNameOf(state.sdkUser,'玩家'),
+      roomId:gameRoomId,
+      timestamp:Date.now()
+    });
+  }
+
+  renderAutoRoomUI();
+},AUTO_ROUND.HEARTBEAT_MS);
 
 // Development diagnostics only.
 if(DEBUG){
