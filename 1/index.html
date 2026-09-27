@@ -2399,9 +2399,7 @@ function spawnBatch(now){
         94
       );
 
-    const spawnAt =
-      now +
-      i*(18+r()*58);
+    const delay = Math.round(i * (18 + r() * 58));
 
     arr.push({
 
@@ -2416,11 +2414,7 @@ function spawnBatch(now){
 
       x,
 
-      spawnAt,
-
-      expiresAt:
-        spawnAt +
-        CFG.ITEM_LIFE,
+      delay,
 
       size:
         type === 'bomb'
@@ -2477,6 +2471,8 @@ function acceptBatch(arr){
     !Array.isArray(arr)
   )return;
 
+  const clientNow = Date.now();
+
   for(
     const raw of arr
   ){
@@ -2496,6 +2492,9 @@ function acceptBatch(arr){
       ? raw.type
       : 'coin';
 
+    const itemDelay = finite(raw.delay, 0);
+    const spawnAt = clientNow + itemDelay;
+
     const safe = {
 
       id:
@@ -2511,23 +2510,37 @@ function acceptBatch(arr){
         ),
 
       spawnAt:
-        finite(
-          raw.spawnAt,
-          Date.now()
-        ),
+        spawnAt,
 
       expiresAt:
-        finite(
-          raw.expiresAt,
-          Date.now() +
-          CFG.ITEM_LIFE
-        ),
+        spawnAt +
+        CFG.ITEM_LIFE,
 
       size:
         clamp(
           raw.size,
           .8,
           1.3
+        ),
+
+      rot:
+        finite(
+          raw.rot,
+          0
+        ),
+
+      startY:
+        clamp(
+          raw.startY,
+          -25,
+          8
+        ),
+
+      drift:
+        clamp(
+          raw.drift,
+          -22,
+          22
         ),
 
       rot:
@@ -2568,7 +2581,7 @@ function acceptBatch(arr){
       hitScale:1,
 
       born:
-        Date.now()
+        clientNow
 
     };
 
