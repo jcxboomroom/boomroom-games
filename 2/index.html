@@ -225,7 +225,7 @@ const GAME_INFO = {
   category: '反應挑戰',
   name: '霓虹疊塔：極限巔峰',
   description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '3.0.1',
+  version: '3.0.2',
   entryCost: 0,
   maxPlayers: 10,
   controlModes: ['Tap', 'Pointer'],
@@ -236,7 +236,7 @@ const GAME_INFO = {
 
 const AUTO_ROUND = {
   MAX_PLAYERS: GAME_INFO.maxPlayers,
-  STABLE_MS: 1800,          // 房間人數穩定後再開始
+  STABLE_MS: 1200,          // 房間人數穩定後再開始
   COUNTDOWN_MS: 3200,       // 3 秒倒數
   RESULT_MS: 5200,          // 結算畫面停留時間
   CLOSE_GRACE_MS: 450,      // 關閉前緩衝
@@ -1052,6 +1052,7 @@ function actionSetup(){
 
 
 let sdkIsHost = false;
+let hostFlagExplicit = false;
 let gameRoomId = '';
 let sdkReady = false;
 let waitingForHost = false;
@@ -1059,7 +1060,40 @@ let lastRemoteRoundId = '';
 let roomPlayersList = [];
 let roomScoreMap = new Map();
 
-function isHost(){ return !!sdkIsHost; }
+function toHostBoolean(value){
+  return value === true || value === 1 || value === 'true';
+}
+
+function hasHostFlag(obj){
+  return !!obj && Object.prototype.hasOwnProperty.call(obj,'isHost');
+}
+
+function applyHostFlag(nested){
+  if(!nested || !hasHostFlag(nested)) return;
+
+  // Flutter 的 initSDK 是目前房間實際房主狀態的明確來源。
+  // 一旦已收到明確 true，後續 SDK ready 回呼不得用 undefined/false 覆蓋。
+  const next=toHostBoolean(nested.isHost);
+
+  if(next){
+    sdkIsHost=true;
+    hostFlagExplicit=true;
+  }else if(!hostFlagExplicit){
+    sdkIsHost=false;
+    hostFlagExplicit=true;
+  }
+}
+
+function deterministicCoordinator(){
+  if(hostFlagExplicit) return false;
+  const players=normalizeRoomPlayers(roomPlayersList);
+  if(!players.length) return false;
+  const me=getUserId();
+  const leader=players.map(p=>p.id).filter(Boolean).sort()[0];
+  return !!me && me===leader;
+}
+
+function isHost(){ return !!sdkIsHost || deterministicCoordinator(); }
 
 function getUserId(){
   return String(state.sdkUser?.id || state.sdkUser?.userId || '');
@@ -1312,8 +1346,13 @@ function renderAutoRoomUI(){
   }
 
   if(count > 0){
-    if(autoText) autoText.textContent=`${count} 人已進入 · 人數穩定後自動開始`;
-    if(status) status.textContent='等待房間穩定';
+    if(state.autoRoundState==='STABILIZING'){
+      if(autoText) autoText.textContent=`${count} 人已進入 · 自動開局準備中`;
+      if(status) status.textContent=isHost()?'房主已接管 · 自動開局中':'等待房主同步';
+    }else{
+      if(autoText) autoText.textContent=`${count} 人已進入 · 人數穩定後自動開始`;
+      if(status) status.textContent=isHost()?'房主已接管 · 等待穩定':'等待房主同步';
+    }
     if(startBtn){
       startBtn.disabled=true;
       startBtn.textContent='等待自動開始';
@@ -1338,11 +1377,7 @@ function setupSDK(data){
 
   if(nested.user) state.sdkUser=nested.user;
 
-  sdkIsHost = !!(
-    nested.isHost === true ||
-    nested.isHost === 1 ||
-    nested.isHost === 'true'
-  );
+  applyHostFlag(nested);
 
   gameRoomId =
     nested.roomId != null
@@ -2028,18 +2063,34 @@ window.addEventListener('message',e=>{
 window.onBoomRoomSDKReady=function(){
   try{
     if(window.BoomRoomSDK){
-      setupSDK({
+      const sdkPayload={
         user:
           typeof window.BoomRoomSDK.getUser==='function'
             ? window.BoomRoomSDK.getUser()
             : null,
-        isHost:window.BoomRoomSDK.isHost,
         roomId:window.BoomRoomSDK.roomId,
         roomPlayers:
           window.BoomRoomSDK.roomPlayers ||
           window.BoomRoomSDK.players ||
           []
-      });
+      };
+
+      // 只有 SDK 真正提供 isHost 時才把它交給 setupSDK。
+      // 缺少 isHost 時絕不能產生一個「undefined 但存在」的欄位，避免把
+      // Flutter initSDK 已傳入的 isHost:true 錯誤覆蓋掉。
+      const sdkHost=window.BoomRoomSDK.isHost;
+      if(
+        sdkHost===true ||
+        sdkHost===false ||
+        sdkHost===1 ||
+        sdkHost===0 ||
+        sdkHost==='true' ||
+        sdkHost==='false'
+      ){
+        sdkPayload.isHost=sdkHost;
+      }
+
+      setupSDK(sdkPayload);
     }
   }catch(_){}
 };
@@ -2067,6 +2118,7 @@ setTimeout(()=>{
   if(!sdkReady){
     sdkReady=true;
     sdkIsHost=true;
+    hostFlagExplicit=true;
 
     if(!state.sdkUser){
       state.sdkUser={
