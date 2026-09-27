@@ -194,6 +194,23 @@ html, body {
     30%, 50%, 70% { transform: translate3d(-12px, 0, 0); }
     40%, 60% { transform: translate3d(12px, 0, 0); }
 }
+
+/* Multiplayer HUD / risk feedback */
+.multiplayer-hud {
+    position:absolute; top:8px; left:8px; right:8px; z-index:3;
+    display:flex; justify-content:space-between; gap:8px; pointer-events:none;
+}
+.hud-pill {
+    padding:7px 10px; border-radius:999px; background:rgba(0,0,0,.65);
+    border:1px solid rgba(255,255,255,.14); font-size:10px; color:#dfe4f5;
+    backdrop-filter:blur(8px);
+}
+.risk-wrap { width:min(260px,70vw); margin-top:10px; }
+.risk-bar { height:8px; border-radius:99px; overflow:hidden; background:#17171b; border:1px solid rgba(255,255,255,.1); }
+.risk-fill { height:100%; width:0%; background:linear-gradient(90deg,#34c759,#ffcc00,#ff3b30); transition:width .08s linear; }
+.risk-label { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); margin-top:4px; }
+.auto-close-note { animation: pulseBtn .8s infinite alternate; }
+
 </style>
 </head>
 <body>
@@ -221,7 +238,7 @@ html, body {
 
     <div class="info-panel">
         <div class="stat-box">
-            <b>100 🪙</b>
+            <b id="entry-fee-text">100 🪙</b>
             <span>固定入場費</span>
         </div>
         <div class="stat-box">
@@ -240,12 +257,20 @@ html, body {
     </div>
 
     <div class="game-area" id="game-area">
+        <div class="multiplayer-hud">
+            <div class="hud-pill" id="live-count">👥 0/10</div>
+            <div class="hud-pill" id="survivor-count">❤️ 0 存活</div>
+        </div>
         <div class="cylinder-wrapper">
             <div class="cylinder" id="cylinder">
                 <div class="chamber"></div><div class="chamber"></div><div class="chamber"></div>
                 <div class="chamber"></div><div class="chamber"></div><div class="chamber"></div>
                 <div class="center-pin"></div>
             </div>
+        </div>
+        <div class="risk-wrap">
+            <div class="risk-bar"><div class="risk-fill" id="risk-fill"></div></div>
+            <div class="risk-label"><span>扳機壓力</span><span id="risk-text">安全</span></div>
         </div>
     </div>
 
@@ -255,7 +280,7 @@ html, body {
 
     <div class="control-panel">
         <button class="main-btn btn-entry" id="main-btn">支付 100 🪙 入場</button>
-        <div style="text-align:center; font-size:9px; color:var(--muted); font-family:sans-serif;">本遊戲為單局決戰，結束後需由市長重新開房</div>
+        <div style="text-align:center; font-size:9px; color:var(--muted); font-family:sans-serif;">1～10 人自動成局 · 最後一位入場後自動倒數 · 結算後數秒自動關閉</div>
     </div>
 </div>
 
@@ -299,30 +324,79 @@ html, body {
 (()=>{
 'use strict';
 
-/* ==============================
-   BoomRoom SDK & User
-   ============================== */
+/* =========================================================
+   BoomRoom：爆爆左輪 — 1～10 人多人同步版
+   核心：
+   1. 房內最多 10 人
+   2. 不需要市長手動開始：有人完成入場後自動等待 3 秒
+   3. 房主是唯一權威：開始、走火、結算由房主決定並廣播
+   4. 每位玩家在同一局、同一個走火事件中遊玩
+   5. 結算後 6 秒自動要求主 App 關閉遊戲
+   ========================================================= */
+
 const SDK = window.BoomRoomSDK || null;
-let user;
-try {
-    user = SDK && typeof SDK.getUser === 'function' ? SDK.getUser() : {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
-} catch(e) {
-    user = {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
-}
-const ME = {
-    id: String(user?.id || ('demo-'+Math.random().toString(36).slice(2))),
-    username: String(user?.username || '玩家').slice(0,12),
-    joinedAt: Date.now()
-};
 const DEMO = !SDK;
 
-/* ==============================
-   Constants & Config
-   ============================== */
-const ENTRY_FEE = 100;
-const PLATFORM_FEE_RATE = 0.1;
-const HOST_TIMEOUT_MS = 5000;
+let rawUser = null;
+try {
+    rawUser = SDK && typeof SDK.getUser === 'function'
+        ? SDK.getUser()
+        : {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
+} catch(e) {
+    rawUser = {id:'demo-'+Math.random().toString(36).slice(2), username:'體驗玩家'};
+}
 
+/* 注意：物件本身可在 SDK ready 後更新 */
+const ME = {
+    id: String(rawUser?.id || ('demo-'+Math.random().toString(36).slice(2))),
+    username: String(rawUser?.username || '玩家').slice(0,12),
+    joinedAt: Date.now()
+};
+
+const ENTRY_FEE = 100;
+const PLATFORM_FEE_RATE = 0.10;
+const MAX_PLAYERS = 10;
+const AUTO_START_DELAY = 3000;
+const COUNTDOWN_MS = 3000;
+const FIRE_MIN_MS = 5000;
+const FIRE_MAX_MS = 18000;
+const RESULT_SHOW_MS = 6000;
+const HOST_TIMEOUT_MS = 5500;
+
+const players = new Map();
+let hostId = null;
+let initialElectionDone = false;
+let autoStartAt = 0;
+let autoCloseAt = 0;
+let gameClosedSent = false;
+let lastStateBroadcast = 0;
+let gameOverCalled = false;
+let purchasePending = false;
+let hasPaid = false;
+
+const state = {
+    matchId: 'M_' + Math.random().toString(36).slice(2,10),
+    phase: 'LOBBY', // LOBBY -> COUNTDOWN -> PLAYING -> RESULT -> CLOSED
+    phaseEndsAt: 0,
+    result: []
+};
+
+/* 玩家自己的操作狀態 */
+let localStatus = 'WAITING'; // WAITING / HOLDING / CASHED_OUT
+let holdStartTime = 0;
+let localScore = 0;
+
+/* 房主私有：不廣播，避免玩家知道精確走火時間 */
+let hostFireTime = 0;
+
+/* 視覺 */
+let cylinderRot = 0;
+let cylinderSpeed = 0;
+let lastTime = performance.now();
+let lastTickAngle = 0;
+let lastTickSec = -1;
+
+/* DOM */
 const els = {
     myUsername: document.getElementById('my-username'),
     roleText: document.getElementById('role-text'),
@@ -344,583 +418,1067 @@ const els = {
     resultAmount: document.getElementById('result-amount'),
     resultDesc: document.getElementById('result-desc'),
     winnersList: document.getElementById('winners-list'),
-    btnCloseResult: document.getElementById('btn-close-result')
+    btnCloseResult: document.getElementById('btn-close-result'),
+    liveCount: document.getElementById('live-count'),
+    survivorCount: document.getElementById('survivor-count'),
+    riskFill: document.getElementById('risk-fill'),
+    riskText: document.getElementById('risk-text'),
+    closeCountdown: document.getElementById('close-countdown')
 };
 
-/* ==============================
-   Audio System
-   ============================== */
-let audioCtx = null, masterGain = null;
-let isMuted = false;
+/* ================= Audio ================= */
+let audioCtx = null, masterGain = null, isMuted = false;
 
-function initAudio() {
+function initAudio(){
     if(isMuted) return;
-    if(audioCtx) { if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{}); return; }
-    try {
+    try{
+        if(audioCtx){
+            if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+            return;
+        }
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         masterGain = audioCtx.createGain();
         masterGain.gain.value = 0.08;
         masterGain.connect(audioCtx.destination);
-    } catch(e){}
+    }catch(e){}
 }
-function toggleMute() {
+
+function toggleMute(){
     isMuted = !isMuted;
     els.btnMute.textContent = isMuted ? '🔇' : '🔊';
-    if(isMuted && masterGain) masterGain.gain.value = 0;
-    else if(!isMuted && masterGain) masterGain.gain.value = 0.08;
+    if(masterGain) masterGain.gain.value = isMuted ? 0 : 0.08;
 }
-els.btnMute.onclick = toggleMute;
 
-function tone(freq, type, duration, vol=0.5, delay=0) {
+function tone(freq,type,duration,vol=.5,delay=0){
     if(!audioCtx || !masterGain || isMuted) return;
     const now = audioCtx.currentTime + delay;
-    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc.type = type; osc.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.001, vol), now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(now); osc.stop(now + duration + 0.05);
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq,now);
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(.001,vol),now+.01);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+    osc.connect(gain); gain.connect(masterGain);
+    osc.start(now); osc.stop(now+duration+.05);
 }
+
 const sfx = {
-    pay: () => { tone(600, 'sine', 0.1, 0.4); tone(900, 'sine', 0.15, 0.4, 0.08); },
-    tick: () => tone(800, 'square', 0.02, 0.1),
-    hold: () => tone(300, 'sawtooth', 0.1, 0.2),
-    cashout: () => { tone(1200, 'sine', 0.1, 0.3); tone(1600, 'sine', 0.2, 0.3, 0.1); },
-    gunshot: () => { 
-        tone(100, 'sawtooth', 0.5, 0.8); 
-        tone(50, 'square', 0.6, 0.8, 0.05); 
-        // Noise burst simulation
-        for(let i=0; i<10; i++) tone(Math.random()*500+100, 'square', 0.1, 0.5, Math.random()*0.1);
+    pay:()=>{tone(600,'sine',.1,.4);tone(900,'sine',.15,.4,.08)},
+    tick:()=>tone(800,'square',.02,.1),
+    hold:()=>tone(300,'sawtooth',.1,.2),
+    cashout:()=>{tone(1200,'sine',.1,.3);tone(1600,'sine',.2,.3,.1)},
+    gunshot:()=>{
+        tone(100,'sawtooth',.5,.8);
+        tone(50,'square',.6,.8,.05);
+        for(let i=0;i<10;i++) tone(Math.random()*500+100,'square',.1,.5,Math.random()*.1);
     },
-    win: () => { tone(400, 'square', 0.1, 0.4); tone(600, 'square', 0.2, 0.4, 0.1); tone(800, 'square', 0.3, 0.4, 0.3); },
-    lose: () => { tone(300, 'sawtooth', 0.2, 0.4); tone(200, 'sawtooth', 0.4, 0.4, 0.2); }
+    win:()=>{tone(400,'square',.1,.4);tone(600,'square',.2,.4,.1);tone(800,'square',.3,.4,.3)},
+    lose:()=>{tone(300,'sawtooth',.2,.4);tone(200,'sawtooth',.4,.4,.2)}
 };
+els.btnMute.onclick = toggleMute;
 
-/* ==============================
-   State & Multiplayer
-   ============================== */
-const players = new Map();
-let hostId = null;
-let initialElectionDone = false;
-
-// ONE-SHOT GAME STATE
-const state = {
-    matchId: 'M_' + Math.random().toString(36).slice(2,10),
-    phase: 'LOBBY', // LOBBY -> COUNTDOWN -> PLAYING -> RESULT -> CLOSED
-    phaseEndsAt: 0,
-    result: []
-};
-
-let hasPaid = false;
-let purchasePending = false;
-let gameOverCalled = false;
-let lastStateBroadcast = 0;
-
-// Local Client State
-let localStatus = 'WAITING'; // WAITING -> HOLDING -> CASHED_OUT
-let holdStartTime = 0;
-let localScore = 0;
-
-// Cylinder Animation
-let cylinderRot = 0;
-let cylinderSpeed = 0;
-let lastTime = performance.now();
-let lastTickAngle = 0;
-
-// Host Secret State (Not broadcasted to prevent cheating)
-let hostFireTime = 0;
-
-function rankKey(p) { return Number(p.joinedAt) || 0; }
-function isHost() { return hostId === ME.id; }
-function currentHostOnline() { const p = players.get(hostId); return !!(p && p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS); }
-function onlinePlayers() { return [...players.values()].filter(p => p.online && Date.now() - p.lastSeen < HOST_TIMEOUT_MS).sort((a,b) => rankKey(a) - rankKey(b) || a.id.localeCompare(b.id)); }
-
-function electInitialHost() {
-    if(initialElectionDone) return;
-    const a = onlinePlayers(); if(!a.length) return;
-    hostId = a[0].id; initialElectionDone = true;
-    if(isHost()) broadcastState(true);
-    render();
-}
-function maybeTakeoverHost() {
-    if(!initialElectionDone || currentHostOnline()) return;
-    const a = onlinePlayers(); if(!a.length) return;
-    const next = a[0].id;
-    if(next !== hostId) {
-        hostId = next; showToast('市長離開，已自動接管房間');
-        // If taking over during PLAYING, generate a new fire time just in case
-        if(state.phase === 'PLAYING') hostFireTime = Date.now() + 2000 + Math.random() * 5000;
-        broadcast('NDB_HOST', {hostId}); broadcastState(true); render();
-    }
+/* ================= Multiplayer 基礎 ================= */
+function safeNum(v, fallback=0){
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
 }
 
-function addOrUpdatePlayer(raw, seen=true) {
+function rankKey(p){
+    return safeNum(p.joinedAt, 0);
+}
+
+function isHost(){
+    return hostId === ME.id;
+}
+
+function currentHostOnline(){
+    const p = players.get(hostId);
+    return !!(p && p.online && Date.now()-p.lastSeen < HOST_TIMEOUT_MS);
+}
+
+function onlinePlayers(){
+    return [...players.values()]
+        .filter(p => p.online && Date.now()-p.lastSeen < HOST_TIMEOUT_MS)
+        .sort((a,b)=>rankKey(a)-rankKey(b) || a.id.localeCompare(b.id));
+}
+
+function paidPlayers(){
+    return [...players.values()].filter(p=>p.hasPaid && p.online);
+}
+
+function broadcast(name,payload={}){
+    try{
+        if(SDK && typeof SDK.sendGameEvent === 'function'){
+            SDK.sendGameEvent(name,payload);
+        }else if(window.parent !== window){
+            window.parent.postMessage(JSON.stringify({
+                action:'sendGameEvent',
+                eventName:name,
+                payload
+            }),'*');
+        }
+    }catch(e){}
+}
+
+function addOrUpdatePlayer(raw,seen=true){
     if(!raw || raw.id == null) return null;
     const id = String(raw.id);
     let p = players.get(id);
-    if(!p) {
-        p = { id, username: String(raw.username||'玩家').slice(0,12), joinedAt: Number(raw.joinedAt)||Date.now(), hasPaid: false, score: 0, status: 'WAITING', online: true, lastSeen: Date.now() };
-        players.set(id, p);
-    } else {
-        if(raw.username != null) p.username = String(raw.username).slice(0,12);
-        if(raw.hasPaid != null) p.hasPaid = !!raw.hasPaid;
-        if(raw.score != null) p.score = Number(raw.score);
-        if(raw.status != null) p.status = raw.status;
-        if(seen) { p.lastSeen = Date.now(); p.online = true; }
+
+    if(!p){
+        p = {
+            id,
+            username:String(raw.username || '玩家').slice(0,12),
+            joinedAt:safeNum(raw.joinedAt,Date.now()),
+            hasPaid:!!raw.hasPaid,
+            score:Math.max(0,safeNum(raw.score,0)),
+            status:['WAITING','HOLDING','CASHED_OUT','DEAD'].includes(raw.status) ? raw.status : 'WAITING',
+            online:true,
+            lastSeen:Date.now(),
+            winAmount:Math.max(0,safeNum(raw.winAmount,0))
+        };
+        players.set(id,p);
+    }else{
+        if(raw.username != null) p.username=String(raw.username).slice(0,12);
+        if(raw.joinedAt != null) p.joinedAt=safeNum(raw.joinedAt,p.joinedAt);
+        if(raw.hasPaid != null) p.hasPaid=!!raw.hasPaid;
+        if(raw.score != null) p.score=Math.max(0,safeNum(raw.score,0));
+        if(raw.status != null && ['WAITING','HOLDING','CASHED_OUT','DEAD'].includes(raw.status)) p.status=raw.status;
+        if(raw.winAmount != null) p.winAmount=Math.max(0,safeNum(raw.winAmount,0));
+    }
+
+    if(seen){
+        p.online=true;
+        p.lastSeen=Date.now();
     }
     return p;
 }
 
-function broadcast(name, payload) {
-    try { if(SDK && typeof SDK.sendGameEvent === 'function') SDK.sendGameEvent(name, payload || {}); } catch(e){}
-}
-function snapshotState() {
+function snapshotState(){
     return {
-        hostId, matchId: state.matchId, phase: state.phase, phaseEndsAt: state.phaseEndsAt,
-        result: state.result.slice(),
-        players: [...players.values()].map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, score: p.score, status: p.status, online: p.online}))
+        hostId,
+        matchId:state.matchId,
+        phase:state.phase,
+        phaseEndsAt:state.phaseEndsAt,
+        result:state.result.slice(),
+        players:[...players.values()].map(p=>({
+            id:p.id,
+            username:p.username,
+            joinedAt:p.joinedAt,
+            hasPaid:p.hasPaid,
+            score:p.score,
+            status:p.status,
+            online:p.online,
+            winAmount:p.winAmount
+        }))
     };
 }
-function broadcastState(force=false) {
-    if(!isHost()) return;
-    const now = Date.now();
-    if(!force && now - lastStateBroadcast < 200) return;
-    lastStateBroadcast = now;
-    broadcast('NDB_STATE', snapshotState());
-}
-function applySnapshot(s) {
-    if(!s || typeof s !== 'object') return;
-    if(s.hostId != null) { hostId = String(s.hostId); initialElectionDone = true; }
-    if(Array.isArray(s.players)) for(const raw of s.players) addOrUpdatePlayer(raw, false);
-    
-    if(s.matchId && s.matchId !== state.matchId) state.matchId = s.matchId;
 
-    const oldPhase = state.phase;
-    state.phase = s.phase || state.phase;
-    state.phaseEndsAt = Number(s.phaseEndsAt) || 0;
-    state.result = Array.isArray(s.result) ? s.result : [];
-    
-    const me = players.get(ME.id);
-    if(me) { hasPaid = me.hasPaid; }
-    
-    if(oldPhase === 'PLAYING' && state.phase === 'RESULT') {
-        triggerGunshot();
+function broadcastState(force=false){
+    if(!isHost()) return;
+    const now=Date.now();
+    if(!force && now-lastStateBroadcast<150) return;
+    lastStateBroadcast=now;
+    broadcast('NDB_STATE',snapshotState());
+}
+
+/* ================= Host 選舉 ================= */
+function electInitialHost(){
+    if(initialElectionDone) return;
+    const list=onlinePlayers();
+    if(!list.length) return;
+
+    hostId=list[0].id;
+    initialElectionDone=true;
+
+    if(isHost()){
+        showToast('你是本局市長');
+        broadcast('NDB_HOST',{hostId});
+        broadcastState(true);
     }
-    
+    render();
+}
+
+function maybeTakeoverHost(){
+    if(!initialElectionDone || currentHostOnline()) return;
+    const list=onlinePlayers();
+    if(!list.length) return;
+
+    const next=list[0].id;
+    if(next===hostId) return;
+
+    hostId=next;
+    showToast('市長離開，已自動接管房間');
+
+    /* 接管時重新建立未公開的走火時間 */
+    if(state.phase==='PLAYING'){
+        hostFireTime=Date.now()+3000+Math.random()*7000;
+    }
+
+    broadcast('NDB_HOST',{hostId});
+    broadcastState(true);
+}
+
+/* ================= SDK 初始化 ================= */
+function setupSDK(data){
+    if(data && data.user){
+        const u=data.user;
+        ME.id=String(u.id ?? ME.id);
+        ME.username=String(u.username || ME.username || '玩家').slice(0,12);
+    }
+
+    addOrUpdatePlayer({
+        id:ME.id,
+        username:ME.username,
+        joinedAt:ME.joinedAt,
+        hasPaid
+    },true);
+
+    /*
+      SDK 已直接告知房主時，不等待本地選舉。
+      非房主則等待 NDB_STATE 取得真正 hostId。
+    */
+    if(data && data.isHost===true){
+        hostId=ME.id;
+        initialElectionDone=true;
+    }else if(data && data.isHost===false){
+        initialElectionDone=true;
+        if(hostId===ME.id) hostId=null;
+    }
+
+    if(Array.isArray(data?.roomPlayers)){
+        data.roomPlayers.slice(0,MAX_PLAYERS).forEach((rp,index)=>{
+            if(!rp || rp.id==null) return;
+            addOrUpdatePlayer({
+                id:String(rp.id),
+                username:String(rp.username || '玩家').slice(0,12),
+                joinedAt:safeNum(rp.joinedAt,ME.joinedAt+index+1),
+                hasPaid:false
+            },true);
+        });
+    }
+
+    render();
+
+    if(isHost()) broadcastState(true);
+}
+
+window.onBoomRoomSDKReady=function(){
+    try{
+        if(window.BoomRoomSDK){
+            setupSDK({
+                user:window.BoomRoomSDK.getUser(),
+                isHost:window.BoomRoomSDK.isHost,
+                roomId:window.BoomRoomSDK.roomId,
+                roomPlayers:window.BoomRoomSDK.roomPlayers || []
+            });
+        }
+    }catch(e){}
+};
+
+/* ================= Entry ================= */
+function requestEntry(){
+    initAudio();
+
+    if(state.phase!=='LOBBY' || hasPaid || purchasePending) return;
+
+    const onlineCount=onlinePlayers().length;
+    if(onlineCount>MAX_PLAYERS){
+        showToast('本房間超過 10 人，無法入場');
+        return;
+    }
+    if(!players.has(ME.id) && onlineCount>=MAX_PLAYERS){
+        showToast('本局已滿 10 人');
+        return;
+    }
+
+    purchasePending=true;
+    render();
+
+    if(DEMO){
+        setTimeout(()=>window.onPurchaseSuccess('roulette_entry'),350);
+        return;
+    }
+
+    try{
+        if(typeof window.BoomRoomSDK?.requestPurchase==='function'){
+            window.BoomRoomSDK.requestPurchase('roulette_entry',ENTRY_FEE);
+        }else{
+            throw new Error('requestPurchase unavailable');
+        }
+    }catch(e){
+        purchasePending=false;
+        render();
+        showToast('入場請求失敗');
+    }
+}
+
+window.onPurchaseSuccess=function(itemId){
+    if(itemId!=='roulette_entry') return;
+
+    purchasePending=false;
+    hasPaid=true;
+
+    const p=players.get(ME.id) || addOrUpdatePlayer({
+        id:ME.id,username:ME.username,joinedAt:ME.joinedAt
+    },true);
+
+    if(p){
+        p.hasPaid=true;
+        p.online=true;
+        p.lastSeen=Date.now();
+    }
+
+    sfx.pay();
+    showToast(`成功加入！ ${paidPlayers().length}/${MAX_PLAYERS} 人`);
+
+    broadcast('NDB_PAID',{
+        playerId:ME.id,
+        matchId:state.matchId,
+        username:ME.username
+    });
+
+    /* 每次有人完成付款，都讓自動開局計時重新倒數 */
+    if(isHost() && state.phase==='LOBBY'){
+        autoStartAt=Date.now()+AUTO_START_DELAY;
+        broadcastState(true);
+    }
+
+    render();
+};
+
+window.onPurchaseFailed=function(itemId){
+    if(itemId!=='roulette_entry') return;
+    purchasePending=false;
+    showToast('支付取消或失敗');
+    render();
+};
+
+/* ================= 玩家操作 ================= */
+function handlePointerDown(e){
+    if(e) e.preventDefault();
+    initAudio();
+
+    if(state.phase!=='PLAYING' || !hasPaid || localStatus!=='WAITING') return;
+
+    localStatus='HOLDING';
+    holdStartTime=Date.now();
+    localScore=0;
+
+    sfx.hold();
+
+    const p=players.get(ME.id);
+    if(p){
+        p.status='HOLDING';
+        p.score=0;
+        p.lastSeen=Date.now();
+        p.online=true;
+    }
+
+    broadcast('NDB_ACTION',{
+        playerId:ME.id,
+        action:'HOLDING',
+        matchId:state.matchId
+    });
+
+    if(isHost()) broadcastState(false);
+    render();
+}
+
+function handlePointerUp(e){
+    if(e) e.preventDefault();
+
+    if(state.phase!=='PLAYING' || !hasPaid || localStatus!=='HOLDING') return;
+
+    localStatus='CASHED_OUT';
+    localScore=Math.max(1,Date.now()-holdStartTime);
+
+    const p=players.get(ME.id);
+    if(p){
+        p.status='CASHED_OUT';
+        p.score=localScore;
+        p.lastSeen=Date.now();
+        p.online=true;
+    }
+
+    sfx.cashout();
+
+    broadcast('NDB_ACTION',{
+        playerId:ME.id,
+        action:'CASHED_OUT',
+        score:localScore,
+        matchId:state.matchId
+    });
+
+    if(isHost()) broadcastState(true);
+    render();
+}
+
+els.mainBtn.addEventListener('pointerdown',handlePointerDown,{passive:false});
+els.mainBtn.addEventListener('pointerup',handlePointerUp,{passive:false});
+els.mainBtn.addEventListener('pointercancel',handlePointerUp,{passive:false});
+els.mainBtn.addEventListener('pointerleave',handlePointerUp,{passive:false});
+
+/* ================= Host 遊戲流程 ================= */
+function hostStartGame(){
+    if(!isHost() || state.phase!=='LOBBY') return;
+
+    const paid=paidPlayers().slice(0,MAX_PLAYERS);
+    if(!paid.length){
+        autoStartAt=0;
+        return;
+    }
+
+    /* 本局鎖定參賽者；未付款的人只能觀戰 */
+    paid.forEach(p=>{
+        p.score=0;
+        p.status='WAITING';
+        p.winAmount=0;
+    });
+
+    state.phase='COUNTDOWN';
+    state.phaseEndsAt=Date.now()+COUNTDOWN_MS;
+    autoStartAt=0;
+
+    localStatus='WAITING';
+    localScore=0;
+    holdStartTime=0;
+
+    sfx.tick();
+    broadcastState(true);
+}
+
+function hostBeginPlaying(){
+    if(!isHost() || state.phase!=='COUNTDOWN') return;
+
+    state.phase='PLAYING';
+    state.phaseEndsAt=0;
+
+    /*
+      每局真正走火時間由房主私有計時器決定。
+      其他玩家只收到「PLAYING」，不知道精確時間。
+    */
+    hostFireTime=Date.now()+FIRE_MIN_MS+Math.random()*(FIRE_MAX_MS-FIRE_MIN_MS);
+
+    paidPlayers().forEach(p=>{
+        p.status='WAITING';
+        p.score=0;
+    });
+
+    localStatus='WAITING';
+    localScore=0;
+
+    broadcastState(true);
+}
+
+function hostResolveGame(){
+    if(!isHost() || state.phase!=='PLAYING') return;
+
+    state.phase='RESULT';
+
+    const entrants=[...players.values()]
+        .filter(p=>p.hasPaid)
+        .slice(0,MAX_PLAYERS);
+
+    const prizePool=Math.floor(
+        entrants.length*ENTRY_FEE*(1-PLATFORM_FEE_RATE)
+    );
+
+    /* 還在等／蓄力的人 = 走火淘汰 */
+    entrants.forEach(p=>{
+        if(p.status==='WAITING' || p.status==='HOLDING'){
+            p.status='DEAD';
+            p.score=0;
+        }
+    });
+
+    const survivors=entrants.filter(p=>p.status==='CASHED_OUT');
+    const totalScore=survivors.reduce((sum,p)=>sum+Math.max(0,p.score),0);
+
+    entrants.forEach(p=>{
+        p.winAmount=0;
+
+        if(p.status==='CASHED_OUT' && totalScore>0){
+            p.winAmount=Math.floor(
+                prizePool*(Math.max(0,p.score)/totalScore)
+            );
+        }
+    });
+
+    /* 若全員走火，獎池平均退回 */
+    if(survivors.length===0 && entrants.length>0){
+        const split=Math.floor(prizePool/entrants.length);
+        entrants.forEach(p=>p.winAmount=split);
+    }
+
+    state.result=entrants
+        .map(p=>({
+            id:p.id,
+            username:p.username,
+            score:p.score,
+            status:p.status,
+            winAmount:p.winAmount
+        }))
+        .sort((a,b)=>b.winAmount-a.winAmount || b.score-a.score);
+
+    autoCloseAt=Date.now()+RESULT_SHOW_MS;
+
+    broadcastState(true);
+    triggerGunshot();
+
+    /* RESULT 狀態同步出去後，6 秒自動 CLOSED */
+    setTimeout(()=>{
+        if(isHost() && state.phase==='RESULT'){
+            state.phase='CLOSED';
+            state.phaseEndsAt=0;
+            broadcastState(true);
+            requestCloseGame();
+        }
+    },RESULT_SHOW_MS);
+}
+
+/* ================= Incoming Events ================= */
+function applySnapshot(s){
+    if(!s || typeof s!=='object') return;
+
+    const oldPhase=state.phase;
+
+    if(s.hostId!=null){
+        hostId=String(s.hostId);
+        initialElectionDone=true;
+    }
+
+    if(s.matchId && s.matchId!==state.matchId){
+        state.matchId=String(s.matchId);
+        gameOverCalled=false;
+        gameClosedSent=false;
+    }
+
+    if(Array.isArray(s.players)){
+        s.players.forEach(raw=>addOrUpdatePlayer(raw,false));
+    }
+
+    state.phase=['LOBBY','COUNTDOWN','PLAYING','RESULT','CLOSED'].includes(s.phase)
+        ? s.phase
+        : state.phase;
+
+    state.phaseEndsAt=safeNum(s.phaseEndsAt,0);
+    state.result=Array.isArray(s.result)?s.result:[];
+
+    const me=players.get(ME.id);
+    if(me) hasPaid=!!me.hasPaid;
+
+    /* 遊戲由大廳進入倒數／開始時，本地狀態一定重新歸零 */
+    if(oldPhase==='LOBBY' && state.phase==='COUNTDOWN'){
+        localStatus='WAITING';
+        localScore=0;
+        holdStartTime=0;
+        gameOverCalled=false;
+    }
+
+    if(oldPhase==='COUNTDOWN' && state.phase==='PLAYING'){
+        localStatus='WAITING';
+        localScore=0;
+        holdStartTime=0;
+        gameOverCalled=false;
+    }
+
+    if(oldPhase==='PLAYING' && state.phase==='RESULT'){
+        triggerGunshot();
+        autoCloseAt=Date.now()+RESULT_SHOW_MS;
+    }
+
+    /* 主房主已結束時，其他 WebView 也跟著自動離開 */
+    if(oldPhase==='RESULT' && state.phase==='CLOSED'){
+        requestCloseGame();
+    }
+
     maybeCallGameOver();
     render();
 }
 
-/* ==============================
-   Economy & Actions
-   ============================== */
-function requestEntry() {
-    initAudio();
-    if(state.phase !== 'LOBBY' || hasPaid || purchasePending) return;
-    purchasePending = true; render();
-    
-    if(DEMO) { setTimeout(() => window.onPurchaseSuccess('roulette_entry'), 300); return; }
-    try { window.BoomRoomSDK.requestPurchase('roulette_entry', ENTRY_FEE); } 
-    catch(e) { purchasePending = false; render(); showToast('入場請求失敗'); }
-}
+function handleIncoming(data){
+    if(!data) return;
 
-window.onPurchaseSuccess = function(itemId) {
-    if(itemId !== 'roulette_entry') return;
-    purchasePending = false; hasPaid = true;
-    
-    const me = players.get(ME.id);
-    if(me) { me.hasPaid = true; me.lastSeen = Date.now(); me.online = true; }
-    
-    sfx.pay(); showToast(`成功加入賭局！`);
-    broadcast('NDB_PAID', {playerId: ME.id, matchId: state.matchId});
-    if(isHost()) broadcastState(true);
-    render();
-};
-
-window.onPurchaseFailed = function(itemId) {
-    if(itemId === 'roulette_entry') { purchasePending = false; showToast('支付取消或失敗'); render(); }
-};
-
-// Client Input Handling
-function handlePointerDown(e) {
-    if(e) e.preventDefault();
-    initAudio();
-    if(state.phase !== 'PLAYING' || !hasPaid || localStatus !== 'WAITING') return;
-    
-    localStatus = 'HOLDING';
-    holdStartTime = Date.now();
-    sfx.hold();
-    
-    if(isHost()) {
-        const p = players.get(ME.id); if(p) p.status = 'HOLDING';
-        broadcastState(false);
-    } else {
-        broadcast('NDB_ACTION', {playerId: ME.id, action: 'HOLDING', matchId: state.matchId});
+    if(data.action==='initSDK'){
+        setupSDK(data);
+        return;
     }
-    render();
-}
 
-function handlePointerUp(e) {
-    if(e) e.preventDefault();
-    if(state.phase !== 'PLAYING' || !hasPaid || localStatus !== 'HOLDING') return;
-    
-    localStatus = 'CASHED_OUT';
-    localScore = Date.now() - holdStartTime;
-    sfx.cashout();
-    
-    if(isHost()) {
-        const p = players.get(ME.id); 
-        if(p) { p.status = 'CASHED_OUT'; p.score = localScore; }
-        broadcastState(false);
-    } else {
-        broadcast('NDB_ACTION', {playerId: ME.id, action: 'CASHED_OUT', score: localScore, matchId: state.matchId});
-    }
-    render();
-}
+    if(data.action!=='gameEventReceived') return;
 
-els.mainBtn.addEventListener('pointerdown', handlePointerDown);
-els.mainBtn.addEventListener('pointerup', handlePointerUp);
-els.mainBtn.addEventListener('pointercancel', handlePointerUp);
-els.mainBtn.addEventListener('pointerleave', handlePointerUp);
+    const eventName=data.eventName;
+    const payload=data.payload || {};
 
-/* ==============================
-   Host Logic
-   ============================== */
-function hostStartGame() {
-    if(!isHost() || state.phase !== 'LOBBY') return;
-    const paidPlayers = [...players.values()].filter(p => p.online && p.hasPaid);
-    if(paidPlayers.length < 1) { showToast('沒有玩家入場'); return; }
-    
-    paidPlayers.forEach(p => { p.score = 0; p.status = 'WAITING'; });
-    
-    state.phase = 'COUNTDOWN';
-    state.phaseEndsAt = Date.now() + 3000;
-    broadcastState(true);
-}
+    /*
+      HELLO / PAID / ACTION 在房主第一次 STATE 廣播前，
+      各裝置的本地 matchId 可能不同；不能在這裡先丟封包。
+      真正的 matchId 由房主 NDB_STATE 統一後，再以 state.phase 控制。
+    */
 
-function hostResolveGame() {
-    if(state.phase !== 'PLAYING') return;
-    
-    state.phase = 'RESULT';
-    
-    const paidPlayers = [...players.values()].filter(p => p.hasPaid);
-    const prizePool = Math.floor(paidPlayers.length * ENTRY_FEE * (1 - PLATFORM_FEE_RATE));
-    
-    // Mark HOLDING or WAITING as DEAD
-    paidPlayers.forEach(p => {
-        if(p.status === 'HOLDING' || p.status === 'WAITING') {
-            p.status = 'DEAD';
-            p.score = 0;
+    if(eventName==='NDB_HELLO'){
+        if(payload.player) addOrUpdatePlayer(payload.player,true);
+
+        if(isHost() && state.phase==='LOBBY' && paidPlayers().length){
+            autoStartAt=Date.now()+AUTO_START_DELAY;
         }
-    });
-    
-    const survivors = paidPlayers.filter(p => p.status === 'CASHED_OUT');
-    const totalScore = survivors.reduce((sum, p) => sum + p.score, 0);
-    
-    paidPlayers.forEach(p => {
-        if(p.status === 'DEAD') {
-            p.winAmount = 0;
-        } else {
-            if(totalScore > 0) {
-                p.winAmount = Math.floor(prizePool * (p.score / totalScore));
-            } else {
-                p.winAmount = 0;
-            }
-        }
-    });
-    
-    // Tie Rule: If everyone died, refund/split equally
-    if(survivors.length === 0 && paidPlayers.length > 0) {
-        const split = Math.floor(prizePool / paidPlayers.length);
-        paidPlayers.forEach(p => p.winAmount = split);
-    }
-    
-    state.result = paidPlayers.map(p => ({
-        id: p.id,
-        username: p.username,
-        score: p.score,
-        status: p.status,
-        winAmount: p.winAmount
-    })).sort((a,b) => b.winAmount - a.winAmount);
 
-    broadcastState(true);
-    triggerGunshot();
-    
-    setTimeout(() => {
-        if(isHost() && state.phase === 'RESULT') {
-            state.phase = 'CLOSED';
+        if(isHost()) broadcastState(true);
+        return;
+    }
+
+    if(eventName==='NDB_PING'){
+        if(payload.player) addOrUpdatePlayer(payload.player,true);
+        if(isHost() && payload.requestState) broadcastState(true);
+        return;
+    }
+
+    if(eventName==='NDB_PAID'){
+        const id=String(payload.playerId || '');
+        if(!id) return;
+
+        /*
+          不允許第 11 人進入正式參賽名單。
+          若已經進入 COUNTDOWN，付款也不會插隊進本局。
+        */
+        if(state.phase!=='LOBBY'){
+            showToast('本局已開始，無法加入');
+            return;
+        }
+
+        if(!players.has(id) && players.size>=MAX_PLAYERS) return;
+
+        const p=players.get(id) || addOrUpdatePlayer({
+            id,
+            username:String(payload.username || '玩家').slice(0,12),
+            joinedAt:Date.now()
+        },true);
+
+        if(p){
+            p.hasPaid=true;
+            p.online=true;
+            p.lastSeen=Date.now();
+        }
+
+        if(isHost()){
+            autoStartAt=Date.now()+AUTO_START_DELAY;
             broadcastState(true);
         }
-    }, 5000);
-}
 
-/* ==============================
-   Incoming Events
-   ============================== */
-function setupSDK(data){
-    if(data && data.user){
-        const u = data.user;
-        ME.id = String(u.id);
-        ME.username = String(u.username || '玩家').slice(0,12);
-        addOrUpdatePlayer({ id: ME.id, username: ME.username, joinedAt: ME.joinedAt }, true);
+        render();
+        return;
     }
-    initialElectionDone = true;
-    if(data && data.isHost){
-        hostId = ME.id;
-    } else if(data && data.isHost === false) {
-        if(hostId === ME.id) hostId = null;
-    }
-    if(data && Array.isArray(data.roomPlayers)){
-        data.roomPlayers.forEach(rp => {
-            if(rp && rp.id != null){
-                addOrUpdatePlayer({ id: String(rp.id), username: String(rp.username || '玩家').slice(0,12), joinedAt: Date.now() }, true);
-            }
-        });
-    }
-    if(els.devBanner) els.devBanner.style.display = 'none';
-    render();
-}
 
-window.onBoomRoomSDKReady = function(){
-    if(window.BoomRoomSDK){
-        setupSDK({
-            user: window.BoomRoomSDK.getUser(),
-            isHost: window.BoomRoomSDK.isHost,
-            roomId: window.BoomRoomSDK.roomId,
-            roomPlayers: window.BoomRoomSDK.roomPlayers || []
-        });
-    }
-};
+    if(eventName==='NDB_ACTION'){
+        if(!isHost() || state.phase!=='PLAYING') return;
 
-function handleIncoming(data) {
-    if(!data) return;
-    if(data.action === 'initSDK') { setupSDK(data); return; }
-    if(data.action !== 'gameEventReceived') return;
-    const eventName = data.eventName, payload = data.payload || {};
-    
-    if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;
+        const id=String(payload.playerId || '');
+        const p=players.get(id);
+        if(!p || !p.hasPaid || p.status==='DEAD' || p.status==='CASHED_OUT') return;
 
-    if(eventName === 'NDB_HELLO') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost()) broadcastState(true); return; }
-    if(eventName === 'NDB_PING') { if(payload.player) addOrUpdatePlayer(payload.player, true); if(isHost() && payload.requestState) broadcastState(true); return; }
-    if(eventName === 'NDB_PAID') { 
-        const p = players.get(payload.playerId); 
-        if(p) { p.hasPaid = true; p.lastSeen = Date.now(); p.online = true; }
-        if(isHost()) broadcastState(true); render(); return; 
+        if(payload.action==='HOLDING'){
+            p.status='HOLDING';
+            p.score=0;
+        }else if(payload.action==='CASHED_OUT'){
+            const score=Math.floor(safeNum(payload.score,0));
+            if(score<=0) return;
+            p.status='CASHED_OUT';
+            p.score=Math.min(score,FIRE_MAX_MS);
+        }else{
+            return;
+        }
+
+        p.lastSeen=Date.now();
+        p.online=true;
+        broadcastState(true);
+        return;
     }
-    if(eventName === 'NDB_ACTION') {
-        if(isHost() && state.phase === 'PLAYING') {
-            const p = players.get(payload.playerId);
-            if(p && p.status !== 'DEAD' && p.status !== 'CASHED_OUT') {
-                p.status = payload.action;
-                if(payload.action === 'CASHED_OUT') p.score = Number(payload.score) || 0;
-                broadcastState(false);
-            }
+
+    if(eventName==='NDB_STATE'){
+        applySnapshot(payload);
+        return;
+    }
+
+    if(eventName==='NDB_HOST'){
+        if(payload.hostId!=null){
+            hostId=String(payload.hostId);
+            initialElectionDone=true;
+            render();
         }
         return;
     }
-    if(eventName === 'NDB_STATE') { applySnapshot(payload); return; }
-    if(eventName === 'NDB_HOST') { if(payload.hostId != null) { hostId = String(payload.hostId); initialElectionDone = true; render(); } return; }
 }
-window.addEventListener('message', e => { try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; handleIncoming(d); } catch(err){} });
 
-/* ==============================
-   UI & Rendering
-   ============================== */
-function triggerGunshot() {
+window.addEventListener('message',e=>{
+    try{
+        const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
+        handleIncoming(d);
+    }catch(err){}
+});
+
+/* ================= 視覺 ================= */
+function triggerGunshot(){
     sfx.gunshot();
+
     els.flash.classList.remove('fire');
     void els.flash.offsetWidth;
     els.flash.classList.add('fire');
-    
-    document.getElementById('app').classList.remove('shake');
-    void document.getElementById('app').offsetWidth;
-    document.getElementById('app').classList.add('shake');
-    
-    if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
-    cylinderSpeed = 0; // Stop spinning
+
+    const app=document.getElementById('app');
+    app.classList.remove('shake');
+    void app.offsetWidth;
+    app.classList.add('shake');
+
+    if(navigator.vibrate){
+        try{navigator.vibrate([300,100,300]);}catch(e){}
+    }
+
+    cylinderSpeed=0;
 }
 
-function render() {
-    els.myUsername.textContent = ME.username;
-    els.roleText.textContent = isHost() ? '👑 市長' : '玩家';
-    
-    const paidPlayers = [...players.values()].filter(p=>p.hasPaid);
-    const paidCount = state.phase === 'LOBBY' ? paidPlayers.length : state.result.length || paidPlayers.length;
-    const totalPool = paidCount * ENTRY_FEE;
-    const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
-    els.totalPool.textContent = totalPool.toLocaleString() + ' 🪙';
-    els.prizePool.textContent = prizePool.toLocaleString() + ' 🪙';
+function getRisk(){
+    if(state.phase!=='PLAYING' || localStatus!=='HOLDING') return 0;
+    const elapsed=Date.now()-holdStartTime;
+    return Math.min(100,elapsed/FIRE_MAX_MS*100);
+}
 
-    // Player List
-    els.playerList.innerHTML = '';
-    const sortedPlayers = paidPlayers.sort((a,b) => b.score - a.score);
-    sortedPlayers.forEach(p => {
-        const chip = document.createElement('div');
-        chip.className = `player-chip ${p.id === ME.id ? 'me' : ''}`;
-        
-        let statusHtml = '';
-        if(p.status === 'WAITING') statusHtml = `<span class="status-waiting">觀望中</span>`;
-        else if(p.status === 'HOLDING') statusHtml = `<span class="status-holding">蓄力中...</span>`;
-        else if(p.status === 'CASHED_OUT') statusHtml = `<span class="status-cashed">安全下莊</span> <span class="score">${p.score}</span>`;
-        else if(p.status === 'DEAD') statusHtml = `<span class="status-dead">💀 淘汰</span>`;
-        
-        chip.innerHTML = `<span>${p.username}</span> ${statusHtml}`;
+function riskLabel(r){
+    if(r<30) return '安全';
+    if(r<55) return '危險';
+    if(r<75) return '極危險';
+    return '隨時走火！';
+}
+
+function render(){
+    els.myUsername.textContent=ME.username;
+    els.roleText.textContent=isHost()?'👑 市長':'玩家';
+
+    const allOnline=onlinePlayers().length;
+    const entrants=[...players.values()].filter(p=>p.hasPaid);
+    const activeCount=entrants.length;
+
+    const totalPool=activeCount*ENTRY_FEE;
+    const prizePool=Math.floor(totalPool*(1-PLATFORM_FEE_RATE));
+
+    els.totalPool.textContent=totalPool.toLocaleString()+' 🪙';
+    els.prizePool.textContent=prizePool.toLocaleString()+' 🪙';
+
+    /* 同步人數與存活 */
+    els.liveCount.textContent=`👥 ${activeCount}/${MAX_PLAYERS}`;
+    const survivors=entrants.filter(p=>
+        p.status==='WAITING' || p.status==='HOLDING' || p.status==='CASHED_OUT'
+    ).length;
+    els.survivorCount.textContent=`❤️ ${Math.max(0,survivors)} 存活`;
+
+    /* 玩家列表：最多 10 人 */
+    els.playerList.innerHTML='';
+
+    const sorted=entrants.slice().sort((a,b)=>{
+        const order={HOLDING:0,WAITING:1,CASHED_OUT:2,DEAD:3};
+        return (order[a.status]??9)-(order[b.status]??9) || b.score-a.score;
+    });
+
+    sorted.slice(0,MAX_PLAYERS).forEach(p=>{
+        const chip=document.createElement('div');
+        chip.className=`player-chip ${p.id===ME.id?'me':''}`;
+
+        let statusHtml='';
+        if(p.status==='WAITING')
+            statusHtml='<span class="status-waiting">觀望</span>';
+        else if(p.status==='HOLDING')
+            statusHtml='<span class="status-holding">🔥 蓄力</span>';
+        else if(p.status==='CASHED_OUT')
+            statusHtml=`<span class="status-cashed">✓ 安全 ${Math.round(p.score)}ms</span>`;
+        else if(p.status==='DEAD')
+            statusHtml='<span class="status-dead">💀 淘汰</span>';
+
+        chip.innerHTML=`<span>${escapeHtml(p.username)}${p.id===ME.id?' <b>你</b>':''}</span>${statusHtml}`;
         els.playerList.appendChild(chip);
     });
 
-    // Phase Text & Timer
-    if(state.phase === 'LOBBY') {
-        els.phaseText.textContent = '等待入場';
-        els.timerText.textContent = 'READY';
-    } else if(state.phase === 'COUNTDOWN') {
-        els.phaseText.textContent = '準備開始';
-        const rem = Math.max(0, Math.ceil((state.phaseEndsAt - Date.now())/1000));
-        els.timerText.textContent = rem;
-    } else if(state.phase === 'PLAYING') {
-        els.phaseText.textContent = `極限蓄力中`;
-        // Show local score if holding
-        if(localStatus === 'HOLDING') {
-            els.timerText.textContent = (Date.now() - holdStartTime);
-            els.timerText.style.color = 'var(--orange)';
-        } else if(localStatus === 'CASHED_OUT') {
-            els.timerText.textContent = localScore;
-            els.timerText.style.color = 'var(--green)';
-        } else {
-            els.timerText.textContent = '---';
-            els.timerText.style.color = 'var(--text)';
+    /* 狀態 */
+    if(state.phase==='LOBBY'){
+        els.phaseText.textContent=activeCount
+            ? `等待開始 · ${activeCount}/${MAX_PLAYERS} 人`
+            : '等待入場';
+        if(isHost() && activeCount){
+            const sec=Math.max(0,Math.ceil((autoStartAt-Date.now())/1000));
+            els.timerText.textContent=sec>0?`AUTO ${sec}`:'START';
+        }else{
+            els.timerText.textContent='READY';
         }
-    } else {
-        els.phaseText.textContent = '本局已結束';
-        els.timerText.textContent = 'BANG!';
-        els.timerText.style.color = 'var(--red)';
+        els.timerText.style.color='var(--text)';
+    }
+    else if(state.phase==='COUNTDOWN'){
+        els.phaseText.textContent=`全員就位 · ${activeCount} 人`;
+        const rem=Math.max(0,Math.ceil((state.phaseEndsAt-Date.now())/1000));
+        els.timerText.textContent=rem;
+        els.timerText.style.color='var(--gold)';
+    }
+    else if(state.phase==='PLAYING'){
+        els.phaseText.textContent='💥 極限扳機 · 同步對戰';
+
+        if(localStatus==='HOLDING'){
+            els.timerText.textContent=Math.floor(Date.now()-holdStartTime)+' ms';
+            els.timerText.style.color='var(--orange)';
+        }else if(localStatus==='CASHED_OUT'){
+            els.timerText.textContent=Math.floor(localScore)+' ms';
+            els.timerText.style.color='var(--green)';
+        }else{
+            els.timerText.textContent='READY';
+            els.timerText.style.color='var(--text)';
+        }
+    }
+    else if(state.phase==='RESULT'){
+        els.phaseText.textContent='💥 BANG！本局結算';
+        els.timerText.textContent='RESULT';
+        els.timerText.style.color='var(--red)';
+    }
+    else{
+        els.phaseText.textContent='遊戲已關閉';
+        els.timerText.textContent='CLOSED';
+        els.timerText.style.color='var(--muted)';
     }
 
-    // Main Button
-    if(state.phase === 'LOBBY') {
-        els.mainBtn.className = 'main-btn btn-entry';
-        if(!hasPaid) {
-            els.mainBtn.textContent = '支付 100 🪙 入場';
-            els.mainBtn.disabled = purchasePending;
-            els.mainBtn.onclick = requestEntry;
-        } else if(isHost()) {
-            els.mainBtn.textContent = '開始賭局 (市長)';
-            els.mainBtn.disabled = paidCount < 1;
-            els.mainBtn.onclick = () => { initAudio(); hostStartGame(); };
-        } else {
-            els.mainBtn.textContent = '已入場，等待市長開始';
-            els.mainBtn.disabled = true;
-        }
-    } else if(state.phase === 'PLAYING') {
-        if(hasPaid) {
-            els.mainBtn.disabled = false;
-            if(localStatus === 'WAITING') {
-                els.mainBtn.className = 'main-btn btn-hold';
-                els.mainBtn.textContent = '👇 長按開始蓄力';
-            } else if(localStatus === 'HOLDING') {
-                els.mainBtn.className = 'main-btn btn-holding';
-                els.mainBtn.textContent = '⚠️ 鬆開安全下莊！';
-            } else if(localStatus === 'CASHED_OUT') {
-                els.mainBtn.className = 'main-btn btn-cashed';
-                els.mainBtn.textContent = '✅ 已安全下莊';
-                els.mainBtn.disabled = true;
+    /* 主按鈕 */
+    if(state.phase==='LOBBY'){
+        els.mainBtn.className='main-btn btn-entry';
+
+        if(!hasPaid){
+            if(activeCount>=MAX_PLAYERS){
+                els.mainBtn.textContent='🔒 本局已滿 10 人';
+                els.mainBtn.disabled=true;
+            }else{
+                els.mainBtn.textContent=`支付 ${ENTRY_FEE} 🪙 入場`;
+                els.mainBtn.disabled=purchasePending;
+                els.mainBtn.onclick=requestEntry;
             }
-        } else {
-            els.mainBtn.className = 'main-btn btn-hold';
-            els.mainBtn.textContent = '觀戰中';
-            els.mainBtn.disabled = true;
+        }else{
+            els.mainBtn.className='main-btn btn-cashed';
+            els.mainBtn.textContent=isHost()
+                ? `✓ 已入場 · ${Math.max(0,Math.ceil((autoStartAt-Date.now())/1000))} 秒後自動開始`
+                : '✓ 已入場 · 等待自動開始';
+            els.mainBtn.disabled=true;
         }
-    } else {
-        els.mainBtn.className = 'main-btn btn-hold';
-        els.mainBtn.textContent = '鎖定中';
-        els.mainBtn.disabled = true;
+    }
+    else if(state.phase==='COUNTDOWN'){
+        els.mainBtn.className='main-btn btn-holding';
+        els.mainBtn.textContent=hasPaid?'🔥 準備扳機！':'👀 觀戰中';
+        els.mainBtn.disabled=true;
+    }
+    else if(state.phase==='PLAYING'){
+        if(hasPaid){
+            if(localStatus==='WAITING'){
+                els.mainBtn.className='main-btn btn-hold';
+                els.mainBtn.textContent='👇 按住蓄力 · 放開安全下莊';
+                els.mainBtn.disabled=false;
+            }else if(localStatus==='HOLDING'){
+                els.mainBtn.className='main-btn btn-holding';
+                els.mainBtn.textContent='⚠️ 放開！現在下莊';
+                els.mainBtn.disabled=false;
+            }else{
+                els.mainBtn.className='main-btn btn-cashed';
+                els.mainBtn.textContent=`✅ 已下莊 ${Math.round(localScore)}ms`;
+                els.mainBtn.disabled=true;
+            }
+        }else{
+            els.mainBtn.className='main-btn btn-hold';
+            els.mainBtn.textContent='👀 觀戰中';
+            els.mainBtn.disabled=true;
+        }
+    }
+    else{
+        els.mainBtn.className='main-btn btn-hold';
+        els.mainBtn.textContent=state.phase==='CLOSED'?'遊戲已關閉':'結算中…';
+        els.mainBtn.disabled=true;
+    }
+
+    /* 壓力條 */
+    const risk=getRisk();
+    els.riskFill.style.width=risk.toFixed(1)+'%';
+    els.riskText.textContent=localStatus==='CASHED_OUT'
+        ? '已安全'
+        : riskLabel(risk);
+
+    /* 結算倒數 */
+    if(state.phase==='RESULT'){
+        const sec=Math.max(0,Math.ceil((autoCloseAt-Date.now())/1000));
+        els.closeCountdown.textContent=`遊戲將在 ${sec} 秒後自動關閉`;
     }
 }
 
-function maybeCallGameOver() {
-    if(gameOverCalled || !['RESULT', 'CLOSED'].includes(state.phase)) return;
-    if(!state.result || state.result.length === 0) return;
-    
-    const myResult = state.result.find(r => r.id === ME.id);
+function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g,m=>({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+}
+
+/* ================= 結算 / 自動關閉 ================= */
+function maybeCallGameOver(){
+    if(gameOverCalled || !['RESULT','CLOSED'].includes(state.phase)) return;
+    if(!state.result.length) return;
+
+    const myResult=state.result.find(r=>String(r.id)===ME.id);
     if(!myResult || !hasPaid) return;
 
-    gameOverCalled = true;
-    const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
-    
-    try { if(SDK && typeof SDK.gameOver === 'function') window.BoomRoomSDK.gameOver(reward); } catch(e){}
+    gameOverCalled=true;
 
-    // Show Result UI
-    if(reward > 0) {
-        els.resultWinnerText.textContent = `🎉 恭喜存活！`;
-        els.resultWinnerText.style.color = 'var(--green)';
+    const reward=Math.max(0,Math.floor(safeNum(myResult.winAmount,0)));
+
+    try{
+        if(SDK && typeof SDK.gameOver==='function'){
+            SDK.gameOver(reward);
+        }
+    }catch(e){}
+
+    if(reward>0){
+        els.resultWinnerText.textContent='🎉 恭喜安全下莊！';
+        els.resultWinnerText.style.color='var(--green)';
         sfx.win();
-    } else {
-        els.resultWinnerText.textContent = `💀 遭到淘汰！`;
-        els.resultWinnerText.style.color = 'var(--red)';
+    }else{
+        els.resultWinnerText.textContent=
+            myResult.status==='DEAD' ? '💀 走火淘汰' : '結算完成';
+        els.resultWinnerText.style.color='var(--red)';
         sfx.lose();
     }
-    
-    els.resultAmount.textContent = '+' + reward.toLocaleString() + ' 🪙';
-    els.resultAmount.className = 'result-big ' + (reward > 0 ? 'win' : 'lose');
-    els.resultDesc.textContent = reward > 0 ? '你成功安全下莊，依分數比例獲得獎金！' : '你未能及時鬆手，獎金歸零。';
-    
-    els.winnersList.innerHTML = '';
-    state.result.forEach((r) => {
-        if(r.winAmount > 0) {
-            const d = document.createElement('div');
-            d.innerHTML = `<span>${r.username} (${r.score})</span> <span style="color:var(--gold)">+${r.winAmount} 🪙</span>`;
-            els.winnersList.appendChild(d);
-        }
+
+    els.resultAmount.textContent='+'+reward.toLocaleString()+' 🪙';
+    els.resultAmount.className='result-big '+(reward>0?'win':'lose');
+
+    els.resultDesc.textContent=reward>0
+        ? `你的蓄力 ${Math.round(myResult.score)}ms，依比例取得獎池。`
+        : '本局獎勵為 0 銀幣。';
+
+    els.winnersList.innerHTML='';
+
+    state.result.forEach(r=>{
+        const d=document.createElement('div');
+        d.style.display='flex';
+        d.style.justifyContent='space-between';
+        d.style.gap='8px';
+
+        const amount=Math.max(0,Math.floor(safeNum(r.winAmount,0)));
+        const status=r.status==='DEAD'?'💀':r.status==='CASHED_OUT'?'✓':'—';
+
+        d.innerHTML=
+            `<span>${status} ${escapeHtml(r.username)} · ${Math.round(r.score)}ms</span>`+
+            `<span style="color:var(--gold)">+${amount} 🪙</span>`;
+
+        els.winnersList.appendChild(d);
     });
-    if(els.winnersList.innerHTML === '') els.winnersList.innerHTML = '<div style="color:var(--muted)">全軍覆沒，平分退回。</div>';
-    
+
     els.modalResult.classList.add('show');
+    autoCloseAt=autoCloseAt || Date.now()+RESULT_SHOW_MS;
 }
 
-/* ==============================
-   Main Loop & Utils
-   ============================== */
-let lastTickSec = -1;
-function raf() {
-    const now = performance.now();
-    const dt = (now - lastTime) / 1000;
-    lastTime = now;
+function requestCloseGame(){
+    if(gameClosedSent) return;
+    gameClosedSent=true;
 
-    // Cylinder Animation
-    if(state.phase === 'PLAYING') {
-        // Accelerate spin
-        cylinderSpeed = Math.min(cylinderSpeed + 100 * dt, 1000);
-        cylinderRot += cylinderSpeed * dt;
-        els.cylinder.style.transform = `rotate(${cylinderRot}deg)`;
-        
-        // Tick sound based on rotation
-        if(cylinderRot - lastTickAngle > 60) {
-            lastTickAngle = cylinderRot;
+    /* BoomRoom 未在提供的 SDK 指南中定義 close API，
+       因此使用 postMessage 通知外層 App 關閉 WebView。 */
+    const closeMessages=[
+        {action:'closeGame'},
+        {action:'close_game'},
+        {type:'closeGame'}
+    ];
+
+    closeMessages.forEach(msg=>{
+        try{ window.parent.postMessage(msg,'*'); }catch(e){}
+    });
+
+    try{
+        broadcast('NDB_GAME_CLOSED',{matchId:state.matchId});
+    }catch(e){}
+
+    els.modalResult.classList.remove('show');
+
+    /* 若瀏覽器允許自行關閉則嘗試；一般 WebView 會由外層 App 接手 */
+    try{ window.close(); }catch(e){}
+
+    document.body.classList.add('game-closing');
+}
+
+/* 手動離開也走同一個關閉流程 */
+els.btnCloseResult.onclick=()=>{
+    initAudio();
+    requestCloseGame();
+};
+
+/* ================= Main Loop ================= */
+function raf(){
+    const now=performance.now();
+    const dt=Math.min(.05,(now-lastTime)/1000);
+    lastTime=now;
+
+    /* 左輪動畫 */
+    if(state.phase==='PLAYING'){
+        cylinderSpeed=Math.min(cylinderSpeed+180*dt,1000);
+        cylinderRot+=cylinderSpeed*dt;
+        els.cylinder.style.transform=`rotate(${cylinderRot}deg)`;
+
+        if(cylinderRot-lastTickAngle>60){
+            lastTickAngle=cylinderRot;
             sfx.tick();
         }
-    } else if(state.phase === 'LOBBY' || state.phase === 'COUNTDOWN') {
-        cylinderSpeed = 30;
-        cylinderRot += cylinderSpeed * dt;
-        els.cylinder.style.transform = `rotate(${cylinderRot}deg)`;
+    }else if(state.phase==='LOBBY' || state.phase==='COUNTDOWN'){
+        cylinderSpeed=45;
+        cylinderRot+=cylinderSpeed*dt;
+        els.cylinder.style.transform=`rotate(${cylinderRot}deg)`;
     }
 
-    // Host Logic
-    if(isHost()) {
-        const realNow = Date.now();
-        if(state.phase === 'COUNTDOWN' && realNow >= state.phaseEndsAt) {
-            state.phase = 'PLAYING';
-            // Random fire time between 5s and 20s
-            hostFireTime = realNow + 5000 + Math.random() * 15000;
-            broadcastState(true);
+    if(isHost()){
+        const t=Date.now();
+
+        /* 自動開始：1～10 人只要有人完成入場，就開始 3 秒準備倒數 */
+        if(state.phase==='LOBBY'){
+            const count=paidPlayers().length;
+
+            if(count>0 && count<=MAX_PLAYERS){
+                if(!autoStartAt) autoStartAt=t+AUTO_START_DELAY;
+
+                if(t>=autoStartAt){
+                    hostStartGame();
+                }
+            }else{
+                autoStartAt=0;
+            }
         }
-        if(state.phase === 'PLAYING' && realNow >= hostFireTime) {
+
+        if(state.phase==='COUNTDOWN' && t>=state.phaseEndsAt){
+            hostBeginPlaying();
+        }
+
+        if(state.phase==='PLAYING' && t>=hostFireTime){
             hostResolveGame();
         }
-        
-        // Tick sound for countdown
-        if(state.phase === 'COUNTDOWN') {
-            const sec = Math.ceil((state.phaseEndsAt - realNow)/1000);
-            if(sec !== lastTickSec && sec > 0) { lastTickSec = sec; sfx.tick(); }
+
+        if(state.phase==='COUNTDOWN'){
+            const sec=Math.ceil((state.phaseEndsAt-t)/1000);
+            if(sec!==lastTickSec && sec>0){
+                lastTickSec=sec;
+                sfx.tick();
+            }
+        }
+    }
+
+    if(state.phase==='RESULT' && autoCloseAt){
+        const remain=autoCloseAt-Date.now();
+        if(remain<=0 && !gameClosedSent){
+            if(isHost()){
+                state.phase='CLOSED';
+                broadcastState(true);
+            }
+            requestCloseGame();
+        }
+    }
+
+    /* 自己蓄力中的即時分數 */
+    if(state.phase==='PLAYING' && localStatus==='HOLDING'){
+        const p=players.get(ME.id);
+        if(p){
+            p.score=Math.min(FIRE_MAX_MS,Date.now()-holdStartTime);
         }
     }
 
@@ -929,50 +1487,101 @@ function raf() {
 }
 requestAnimationFrame(raf);
 
-function showToast(msg) {
-    els.toast.textContent = msg; els.toast.classList.add('show');
-    clearTimeout(showToast.t); showToast.t = setTimeout(() => els.toast.classList.remove('show'), 1500);
+/* ================= Utils / Init ================= */
+function showToast(msg){
+    els.toast.textContent=msg;
+    els.toast.classList.add('show');
+    clearTimeout(showToast.t);
+    showToast.t=setTimeout(()=>els.toast.classList.remove('show'),1800);
 }
 
-/* ==============================
-   Init & Bindings
-   ============================== */
-els.btnHelp.onclick = () => { initAudio(); els.modalRules.classList.add('show'); };
-els.btnCloseRules.onclick = () => { initAudio(); els.modalRules.classList.remove('show'); };
-els.btnCloseResult.onclick = () => { initAudio(); els.modalResult.classList.remove('show'); };
-document.addEventListener('pointerdown', initAudio, {once:true, passive:true});
+els.btnHelp.onclick=()=>{
+    initAudio();
+    els.modalRules.classList.add('show');
+};
+els.btnCloseRules.onclick=()=>{
+    initAudio();
+    els.modalRules.classList.remove('show');
+};
+document.addEventListener('pointerdown',initAudio,{once:true,passive:true});
 
-function announceHello() {
-    broadcast('NDB_HELLO', {player: {...ME, hasPaid}});
-    broadcast('NDB_PING', {player: {...ME, hasPaid}, requestState: true});
+function announceHello(){
+    const me=players.get(ME.id);
+    if(me){
+        me.online=true;
+        me.lastSeen=Date.now();
+    }
+
+    broadcast('NDB_HELLO',{
+        player:{
+            id:ME.id,
+            username:ME.username,
+            joinedAt:ME.joinedAt,
+            hasPaid,
+            status:localStatus,
+            score:localScore
+        }
+    });
+
+    broadcast('NDB_PING',{
+        player:{
+            id:ME.id,
+            username:ME.username,
+            joinedAt:ME.joinedAt,
+            hasPaid
+        },
+        requestState:true
+    });
 }
 
 announceHello();
-setTimeout(electInitialHost, 800);
 
-setInterval(() => {
-    const me = players.get(ME.id);
-    if(me) { me.online = true; me.lastSeen = Date.now(); }
-    broadcast('NDB_PING', {player: {...ME, hasPaid}});
-    if(isHost()) broadcastState(true);
-}, 2000);
+setTimeout(()=>{
+    if(!initialElectionDone) electInitialHost();
+},800);
 
-setInterval(() => {
-    const now = Date.now();
-    for(const p of players.values()) if(now - p.lastSeen > HOST_TIMEOUT_MS) p.online = false;
-    maybeTakeoverHost();
-}, 1000);
-
-if(DEMO) showToast('預覽模式：未偵測到 BoomRoom SDK');
-render();
-
-window.addEventListener('visibilitychange', () => {
-    if(!document.hidden) {
-        const p = players.get(ME.id);
-        if(p) { p.lastSeen = Date.now(); p.online = true; }
-        announceHello();
+setInterval(()=>{
+    const me=players.get(ME.id);
+    if(me){
+        me.online=true;
+        me.lastSeen=Date.now();
+        me.hasPaid=hasPaid;
     }
+
+    broadcast('NDB_PING',{
+        player:{
+            id:ME.id,
+            username:ME.username,
+            joinedAt:ME.joinedAt,
+            hasPaid
+        },
+        requestState:false
+    });
+
+    if(isHost()) broadcastState(true);
+},2000);
+
+setInterval(()=>{
+    const now=Date.now();
+
+    for(const p of players.values()){
+        if(now-p.lastSeen>HOST_TIMEOUT_MS){
+            p.online=false;
+        }
+    }
+
+    maybeTakeoverHost();
+},1000);
+
+window.addEventListener('visibilitychange',()=>{
+    if(!document.hidden) announceHello();
 });
+
+if(DEMO){
+    showToast('預覽模式：可在瀏覽器測試多人同步邏輯');
+}
+
+render();
 
 })();
 </script>
