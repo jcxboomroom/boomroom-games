@@ -955,122 +955,203 @@ const el = {
 ========================================================= */
 
 let DEV = true;
-
+let sdkInitialized = false;
 let sdkIsHost = false;
-
 let gameRoomId = '';
 
 let rawUser = {
-
-  id:'dev-'+
-    Math.random()
-      .toString(36)
-      .slice(2),
-
+  id:'dev-'+Math.random().toString(36).slice(2),
   username:'開發玩家',
-
   avatar:''
-
 };
 
 let ME = {
-
   id:rawUser.id,
-
   username:rawUser.username,
-
   avatar:rawUser.avatar,
-
   joinedAt:Date.now()
-
 };
 
-const players =
-  new Map();
-
-const items =
-  new Map();
-
-const seenActions =
-  new Map();
+const players = new Map();
+const items = new Map();
+const seenActions = new Map();
 
 addPlayer(ME);
 
 /* =========================================================
-   SDK INIT
+   SDK INIT / BRIDGE
+   支援：
+   1. window.BoomRoomSDK 已存在
+   2. onBoomRoomSDKReady
+   3. Flutter / WebView postMessage
+   4. 沒有 SDK 時自動 DEV fallback
 ========================================================= */
 
-function setupSDK(data){
+function getSdkSnapshot(){
+  const sdk = window.BoomRoomSDK;
 
+  if(!sdk) return null;
+
+  let user = null;
+
+  try{
+    if(typeof sdk.getUser === 'function'){
+      user = sdk.getUser();
+    }else if(sdk.user){
+      user = sdk.user;
+    }
+  }catch(_){}
+
+  const roomId =
+    sdk.roomId != null
+      ? String(sdk.roomId)
+      : '';
+
+  const isHost =
+    !!sdk.isHost;
+
+  const roomPlayers =
+    Array.isArray(sdk.roomPlayers)
+      ? sdk.roomPlayers
+      : [];
+
+  /*
+   * SDK 至少要能提供 user / roomId / isHost
+   * 其中任一項即可視為「已掛載」。
+   */
+  if(!user && !roomId && !isHost && !roomPlayers.length){
+    return null;
+  }
+
+  return {
+    user,
+    isHost,
+    roomId,
+    roomPlayers
+  };
+}
+
+function setupSDK(data){
+  /*
+   * 不要因為空 initSDK 就把 DEV 關掉。
+   * 否則 Flutter 只送 {action:'initSDK'} 時，
+   * 遊戲會進入「非 DEV、又沒有 SDK」的死區。
+   */
+  if(!data || typeof data !== 'object'){
+    return false;
+  }
+
+  const hasUsefulData =
+    !!data.user ||
+    data.roomId != null ||
+    data.isHost != null ||
+    Array.isArray(data.roomPlayers);
+
+  if(!hasUsefulData){
+    return false;
+  }
+
+  sdkInitialized = true;
   DEV = false;
 
-  if(data && data.user){
-
+  if(data.user){
     rawUser = data.user;
 
-    ME.id =
-      String(rawUser.id);
+    const nextId =
+      rawUser.id != null
+        ? String(rawUser.id)
+        : ME.id;
+
+    ME.id = nextId;
 
     ME.username =
       String(
         rawUser.username ||
+        rawUser.name ||
         '玩家'
       ).slice(0,22);
 
     ME.avatar =
       String(
         rawUser.avatar ||
+        rawUser.avatarUrl ||
         ''
       );
-
   }
 
-  sdkIsHost =
-    !!(data && data.isHost);
+  sdkIsHost = !!data.isHost;
 
   gameRoomId =
-    data && data.roomId
+    data.roomId != null
       ? String(data.roomId)
       : '';
 
   if(sdkIsHost){
-
-    hostId =
-      ME.id;
-
+    hostId = ME.id;
   }
 
   players.clear();
-
   addPlayer(ME);
 
-  if(data && Array.isArray(data.roomPlayers)){
+  if(Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {
-      if(rp && rp.id != null) {
+      if(rp && rp.id != null){
         addPlayer({
-          id: String(rp.id),
-          username: String(rp.username || '玩家').slice(0, 22),
-          avatar: String(rp.avatar || ''),
-          joinedAt: Date.now()
+          id:String(rp.id),
+          username:String(
+            rp.username ||
+            rp.name ||
+            '玩家'
+          ).slice(0,22),
+          avatar:String(
+            rp.avatar ||
+            rp.avatarUrl ||
+            ''
+          ),
+          joinedAt:
+            finite(
+              rp.joinedAt,
+              Date.now()
+            )
         });
       }
     });
   }
 
-  el.devBadge.style.display =
-    'none';
-
-  el.start.textContent =
-    '開始搶金';
-
-  el.start.disabled =
-    false;
+  el.devBadge.style.display = 'none';
+  el.start.textContent = '開始搶金';
+  el.start.disabled = false;
 
   syncUI();
-
   hello();
 
+  return true;
 }
+
+function tryInitFromSDK(){
+  if(sdkInitialized) return true;
+
+  const snapshot = getSdkSnapshot();
+
+  if(!snapshot) return false;
+
+  return setupSDK(snapshot);
+}
+
+/*
+ * 一定先註冊 callback，再檢查 SDK。
+ * 避免 SDK 在頁面載入前就 ready，
+ * 導致 onBoomRoomSDKReady 永遠收不到。
+ */
+window.onBoomRoomSDKReady = function(){
+  tryInitFromSDK();
+};
+
+/*
+ * 某些 WebView 會把 SDK 直接掛上 window，
+ * 但不會呼叫 callback，所以立即檢查。
+ */
+tryInitFromSDK();
 
 /* =========================================================
    FLUTTER / WEB MESSAGE
@@ -1079,114 +1160,138 @@ function setupSDK(data){
 window.addEventListener(
   'message',
   e => {
-
     let d;
 
     try{
-
       d =
         typeof e.data === 'string'
           ? JSON.parse(e.data)
           : e.data;
-
-    }catch(err){
-
+    }catch(_){
       return;
-
     }
 
-    if(!d)return;
+    if(!d || typeof d !== 'object') return;
 
-    if(d.action === 'initSDK'){
+    /*
+     * 兼容：
+     * {action:'initSDK', ...}
+     * {type:'initSDK', ...}
+     */
+    const action =
+      String(
+        d.action ||
+        d.type ||
+        ''
+      );
 
+    if(
+      action === 'initSDK' ||
+      action === 'boomroom:initSDK' ||
+      action === 'sdkReady'
+    ){
       setupSDK(d);
+      return;
+    }
 
-    }else
-    if(d.action === 'gameEventReceived'){
-
+    if(action === 'gameEventReceived'){
       handleEvent(
-        String(
-          d.eventName ||
-          ''
-        ),
+        String(d.eventName || ''),
         d.payload || {},
         d.userId != null
           ? String(d.userId)
           : null
       );
-
+      return;
     }
 
-    /*
-     * Flutter purchase callback
-     */
-    if(d.action === 'purchaseSuccess'){
-
+    if(action === 'purchaseSuccess'){
       window.onPurchaseSuccess(
         String(d.itemId || '')
       );
-
+      return;
     }
 
-    if(d.action === 'purchaseFailed'){
-
+    if(action === 'purchaseFailed'){
       window.onPurchaseFailed(
         String(d.itemId || '')
       );
-
+      return;
     }
-
   }
 );
-
-window.onBoomRoomSDKReady =
-function(){
-
-  if(
-    window.BoomRoomSDK
-  ){
-
-    setupSDK({
-
-      user:
-        window.BoomRoomSDK.getUser(),
-
-      isHost:
-        window.BoomRoomSDK.isHost,
-
-      roomId:
-        window.BoomRoomSDK.roomId,
-
-      roomPlayers:
-        window.BoomRoomSDK.roomPlayers || []
-
-    });
-
-  }
-
-};
 
 /*
- * 沒 SDK → 開發模式
+ * 告訴 Flutter / 父頁面：
+ * 「HTML 遊戲已經準備好，可以把 SDK 初始化資料送進來」。
  */
-setTimeout(
-  () => {
+function requestSDKInit(){
+  const msg = {
+    action:'requestSDKInit',
+    gameId:GAME_INFO.id,
+    version:GAME_INFO.version
+  };
 
-    if(DEV){
+  try{
+    if(window.parent !== window){
+      window.parent.postMessage(msg, '*');
+    }
+  }catch(_){}
 
-      el.start.textContent =
-        '開始搶金 (開發模式)';
+  try{
+    if(window.BoomRoomSDK &&
+       typeof window.BoomRoomSDK.requestInit === 'function'){
+      window.BoomRoomSDK.requestInit();
+    }
+  }catch(_){}
+}
 
-      el.start.disabled =
-        false;
+/*
+ * 給 WebView 足夠時間接 SDK。
+ * 沒 SDK 才進 DEV；DEV 模式永遠可以直接玩。
+ */
+let sdkBootTimer = 0;
 
+function bootSDKBridge(){
+  tryInitFromSDK();
+
+  requestSDKInit();
+
+  window.setTimeout(() => {
+    tryInitFromSDK();
+
+    if(!sdkInitialized && !window.BoomRoomSDK){
+      DEV = true;
+      el.devBadge.style.display = 'inline-flex';
+      el.start.textContent = '開始搶金（開發模式）';
+      el.start.disabled = false;
+      syncUI();
       hello();
+    }
+  }, 1500);
 
+  /*
+   * 某些 App 比較慢，繼續容許到 8 秒才完成 SDK 初始化。
+   * 但 DEV 已啟動也不會阻止正式 SDK 接管。
+   */
+  sdkBootTimer = window.setInterval(() => {
+    if(sdkInitialized){
+      window.clearInterval(sdkBootTimer);
+      return;
     }
 
-  },
-  1500
-);
+    tryInitFromSDK();
+
+    if(
+      sdkInitialized ||
+      window.BoomRoomSDK
+    ){
+      window.clearInterval(sdkBootTimer);
+    }
+  }, 500);
+}
+
+bootSDKBridge();
 
 /* =========================================================
    NETWORK
@@ -1196,56 +1301,45 @@ function send(
   name,
   payload
 ){
+  const safePayload =
+    payload && typeof payload === 'object'
+      ? payload
+      : {};
 
-  if(DEV)return;
-
-  const eventData = {
-
-    action:
-      'sendGameEvent',
-
-    eventName:
-      name,
-
-    payload:
-      payload
-
-  };
-
+  /*
+   * 正式 SDK 優先。
+   * DEV 模式仍允許 parent postMessage，
+   * 方便在 BoomRoom WebView shell 裡做聯調。
+   */
   if(
     window.BoomRoomSDK &&
-    typeof
-      window.BoomRoomSDK
-        .sendGameEvent ===
-      'function'
+    typeof window.BoomRoomSDK.sendGameEvent === 'function'
   ){
-
-    window.BoomRoomSDK
-      .sendGameEvent(
+    try{
+      window.BoomRoomSDK.sendGameEvent(
         name,
-        payload
+        safePayload
       );
-
-  }else
-  if(
-    window.parent !==
-    window
-  ){
-
-    window.parent.postMessage(
-      JSON.stringify(
-        eventData
-      ),
-      '*'
-    );
-
+    }catch(_){}
+    return;
   }
 
+  if(window.parent !== window){
+    try{
+      window.parent.postMessage({
+        action:'sendGameEvent',
+        eventName:name,
+        payload:safePayload
+      }, '*');
+    }catch(_){}
+  }
 }
 
 /* =========================================================
    GAME STATE
-========================================================= */
+=========================================================
+
+ */
 
 let phase =
   STATES.MENU;
@@ -5253,17 +5347,93 @@ function handleEvent(
 ========================================================= */
 
 function requestEntry(){
-  currentPaid = true;
-  startRoundAfterEntry();
+  if(
+    currentPaid ||
+    purchasing
+  ){
+    return;
+  }
+
+  /*
+   * 獨立瀏覽器 / DEV：不扣銀幣，直接開始。
+   */
+  if(DEV && !window.BoomRoomSDK){
+    currentPaid = true;
+    startRoundAfterEntry();
+    return;
+  }
+
+  const itemId =
+    'entry_' +
+    String(selectedEntry);
+
+  pendingPurchase = itemId;
+  purchasing = true;
+  phase = STATES.PURCHASING;
+  syncUI();
+
+  const sdk =
+    window.BoomRoomSDK;
+
+  /*
+   * 正式 SDK。
+   */
+  if(
+    sdk &&
+    typeof sdk.requestPurchase === 'function'
+  ){
+    try{
+      sdk.requestPurchase(
+        itemId,
+        selectedEntry
+      );
+      return;
+    }catch(_){}
+  }
+
+  /*
+   * Flutter / WebView bridge fallback。
+   */
+  if(window.parent !== window){
+    try{
+      window.parent.postMessage({
+        action:'requestPurchase',
+        itemId,
+        cost:selectedEntry
+      }, '*');
+      return;
+    }catch(_){}
+  }
+
+  /*
+   * 完全沒有支付橋接時，不要永久卡在 PURCHASING。
+   */
+  purchasing = false;
+  pendingPurchase = '';
+  phase = STATES.MENU;
+  syncUI();
+
+  showToast(
+    '找不到支付 SDK',
+    '#ff7b92'
+  );
 }
 
 window.onPurchaseSuccess =
 function(itemId){
 
+  itemId =
+    String(
+      itemId ||
+      pendingPurchase ||
+      ''
+    );
+
+  if(!purchasing) return;
+
   if(
-    !purchasing ||
-    itemId !==
-    pendingPurchase
+    pendingPurchase &&
+    itemId !== pendingPurchase
   )return;
 
   purchasing =
@@ -5282,9 +5452,16 @@ function(itemId){
 window.onPurchaseFailed =
 function(itemId){
 
+  itemId =
+    String(
+      itemId ||
+      pendingPurchase ||
+      ''
+    );
+
   if(
-    itemId !==
-    pendingPurchase
+    pendingPurchase &&
+    itemId !== pendingPurchase
   )return;
 
   purchasing =
@@ -5386,17 +5563,6 @@ function startRoundAfterEntry(){
   syncUI();
 
   if(!loopActive) startLoop();
-
-}
-
-  showToast(
-    '3',
-    '#ffd45c'
-  );
-
-  sfx(
-    'start'
-  );
 
 }
 
@@ -6492,8 +6658,15 @@ requestAnimationFrame(
    INITIAL
 ========================================================= */
 
-el.lobby.style.display =
-  'grid';
+el.lobby.style.display = 'grid';
+
+/*
+ * 明確初始化 UI。
+ * 如果 SDK 尚未到，顯示「連線中」；
+ * bootSDKBridge() 成功後會切換成可按鈕。
+ */
+el.start.disabled = true;
+el.start.textContent = '連線中...';
 
 })();
 </script>
