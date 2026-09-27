@@ -799,7 +799,7 @@ const CFG = {
   /*
    * 一顆物件存活時間
    */
-  ITEM_LIFE:3000,
+  ITEM_LIFE:5200,
 
   /*
    * 基礎生成間隔
@@ -877,7 +877,7 @@ const VALUE = {
 
   gem:90,
 
-  bomb:-35
+  bomb:-250
 
 };
 
@@ -2173,6 +2173,10 @@ function itemPos(
   now
 ){
 
+  if (now < it.spawnAt) {
+    return { x: (it.x / 100) * W, y: -200, offscreen: true };
+  }
+
   const p =
     clamp(
       (
@@ -2219,9 +2223,11 @@ function itemPos(
     y:
       (
         it.startY +
-        124*e
+        138*e
       ) /
-      100*H
+      100*H,
+
+    offscreen: false
 
   };
 
@@ -3180,10 +3186,11 @@ function drawItem(
     );
 
   if(
+    p.offscreen ||
     p.y <
       -100 ||
     p.y >
-      H+100
+      H+120
   )return;
 
   /*
@@ -3872,10 +3879,11 @@ function findItemAt(
       );
 
     if(
+      p.offscreen ||
       p.y <
         -80 ||
       p.y >
-        H+80
+        H+120
     )continue;
 
     const radius =
