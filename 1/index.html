@@ -5424,6 +5424,7 @@ function(itemId){
 function startRoundAfterEntry(){
 
   autoStarted = false;
+  try { initAudio(); } catch(_) {}
 
   electHost();
 
@@ -6079,6 +6080,16 @@ function syncUI(){
       '本局結束後等待房主重新開局';
 
   }
+
+  el.lobby.style.display =
+    (
+      phase ===
+      STATES.MENU ||
+      phase ===
+      STATES.WAIT_HOST
+    )
+      ? 'flex'
+      : 'none';
 
   el.hud.style.display =
     (
