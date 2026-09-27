@@ -38,15 +38,6 @@ button:active{transform:scale(.975);}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
 .backdrop{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,6,13,.02),rgba(4,5,10,.34));z-index:1;}
 .grid{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(69,239,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(69,239,255,.06) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(to bottom,transparent 0,black 18%,black 88%,transparent 100%);}
-.topbar{position:absolute;left:0;right:0;top:0;z-index:5;padding:12px 12px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;}
-.brand{display:flex;align-items:center;gap:9px;pointer-events:auto;min-width:0;}
-.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:linear-gradient(145deg,rgba(69,239,255,.14),rgba(155,108,255,.22)),#111528;border:1px solid var(--line2);box-shadow:0 0 26px rgba(155,108,255,.14),inset 0 0 16px rgba(255,255,255,.025);}
-.brandText{min-width:0;}
-.title{font-weight:1000;font-size:16px;line-height:1;letter-spacing:.3px;white-space:nowrap;}
-.sub{margin-top:4px;font-size:8px;color:var(--muted);letter-spacing:1.1px;white-space:nowrap;}
-.actions{display:flex;gap:7px;pointer-events:auto;}
-.iconBtn{width:40px;height:40px;border-radius:12px;background:rgba(10,13,26,.72);border:1px solid var(--line);display:grid;place-items:center;font-size:17px;box-shadow:0 8px 24px rgba(0,0,0,.24);backdrop-filter:blur(8px);}
-.iconBtn.muted{color:#7f879e;}
 .hud{position:absolute;left:10px;right:10px;top:67px;z-index:4;display:grid;grid-template-columns:1fr auto 1fr;gap:7px;pointer-events:none;}
 .hudCard{min-width:0;padding:9px 10px;border-radius:15px;background:rgba(7,10,20,.7);border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.2);backdrop-filter:blur(8px);}
 .hudCard.center{text-align:center;border-color:rgba(155,108,255,.17);min-width:112px;}
@@ -117,22 +108,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
   <canvas id="gameCanvas"></canvas>
   <div class="backdrop"></div>
   <div class="flash" id="flash"></div>
-
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">🏗️</div>
-      <div class="brandText">
-        <div class="title">霓虹疊塔</div>
-        <div class="sub">極限巔峰 · BOOMROOM ARCADE</div>
-      </div>
-    </div>
-    <div class="actions">
-      <button class="iconBtn" id="soundBtn" aria-label="切換音效">🔊</button>
-      <button class="iconBtn" id="helpBtn" aria-label="查看玩法">?</button>
-    </div>
-  </header>
-
-  <section class="hud" id="hud" aria-hidden="true">
+<section class="hud" id="hud" aria-hidden="true">
     <div class="hudCard">
       <div class="hudLabel">HEIGHT</div>
       <div class="hudValue" id="layerValue">0</div>
@@ -171,7 +147,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 
   <div class="overlay show" id="startOverlay">
     <div class="modal">
-      <div class="modalHead"><div class="kicker">REACTION · TIMING</div><div style="font-size:9px;color:#777f97;font-weight:900;">開發測試模式</div></div>
+      <div class="modalHead"><div class="kicker">REACTION · TIMING</div><div id="hostStatus" style="font-size:9px;color:#777f97;font-weight:900;">連線中...</div></div>
       <div class="h1">霓虹疊塔<br><span style="color:var(--cyan)">極限巔峰</span></div>
       <p class="lead">抓準移動節奏，把每一層穩穩疊上去。越高越快、方塊越窄，高層還要求更高的重疊率；完美落點才能穩住塔勢。</p>
       <div class="metaGrid">
@@ -206,19 +182,6 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
       <div class="note">回到 BoomRoom 房間後，可由房間重新開啟新的遊戲實例。</div>
     </div>
   </div>
-
-  <div class="overlay" id="helpOverlay">
-    <div class="modal">
-      <div class="modalHead"><div class="kicker">HOW TO PLAY</div><button class="secondary" id="closeHelp" style="width:auto;padding:0 16px;margin:0;height:34px;">關閉</button></div>
-      <div class="h1" style="font-size:27px;">三件事就能玩</div>
-      <div class="rules" style="grid-template-columns:1fr;">
-        <div class="rule"><div class="ruleTitle">① 看移動方向</div><div class="ruleText">方塊會從左側或右側進場；每個方塊都會先以明確方向進入畫面，速度用時間制計算，不會因邊界判定卡住。塔越高鏡頭會持續跟隨，並把正在疊的那一層維持在畫面中央安全區；第 20、30、40 層以上也會繼續追蹤，不會被原始底部位置限制而跑出畫面。</div></div>
-        <div class="rule"><div class="ruleTitle">② 看塔頂，再點一下</div><div class="ruleText">重疊越大越安全。落下後每一層都會回到同一條中央垂直軸，避免塔身左右漂移；Perfect 會鎖定完整寬度並增加連擊，Great 也能續連擊，Good 會讓塔身變窄。</div></div>
-        <div class="rule"><div class="ruleTitle">③ 越高越快</div><div class="ruleText">第 6 層起方塊逐步縮窄，速度會以更陡的曲線上升；越高要求的有效重疊也越多。畫面會標示 10、20、30 層里程碑。</div></div>
-      </div>
-      <button class="primary" id="closeHelp2">知道了</button>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -232,10 +195,10 @@ const GAME_INFO = {
   description: '點擊落下方塊，對準塔頂並保持節奏。',
   version: '2.6.0',
   entryCost: 0,
-  maxPlayers: 1,
+  maxPlayers: 20,
   controlModes: ['Tap', 'Pointer'],
   duration: '30~120 秒',
-  multiplayer: false,
+  multiplayer: true,
   rewardEnabled: true
 };
 
@@ -598,24 +561,6 @@ function updateCameraTarget(){
   state.targetCameraY = desiredCamera * blend;
 }
 
-function startGame(){
-  resumeAudio(); playStart();
-  state.game='PLAYING';
-  state.roundId=uid();
-  state.score=0; state.layers=0; state.combo=0; state.bestCombo=0;
-  state.perfects=0; state.greats=0; state.goods=0;
-  state.cameraY=0; state.targetCameraY=0; state.hue=190; state.shake=0;
-  state.boxes=[]; state.debris=[]; state.particles=[]; state.trail=[];
-  state.currentBox=null; state.nextEntryAt=0; state.inputLockedUntil=0;
-  state.startedAt=performance.now(); state.reward=0; state.resultReason=''; state.gameOverCalled=false; state.finishToastShown=false;
-  makeBase(); spawnBox();
-  updateCameraTarget();
-  state.cameraY=state.targetCameraY;
-  $('startOverlay').classList.remove('show'); $('resultOverlay').classList.remove('show');
-  updateHUD();
-  showToast('準備！新方塊與塔頂同寬 · 10 層後加速 · 20 層高壓');
-}
-
 function classifyPlacement(diff, overlap, w){
   const overlapRatio=overlap/Math.max(1,w);
   const centerDelta=Math.abs((state.currentBox.x+state.currentBox.w/2)-(state.boxes[state.boxes.length-1].x+state.boxes[state.boxes.length-1].w/2));
@@ -727,7 +672,7 @@ function calcReward(layers){
   return safeReward(raw);
 }
 
-function gameOver(reason){
+function gameOver(reason, remoteEnd=false){
   if(state.game==='RESULT' || state.gameOverCalled) return;
   state.game='RESULT';
   state.gameOverCalled=true;
@@ -739,15 +684,22 @@ function gameOver(reason){
   state.resultReason=state.resultReason || (reason==='MISS'?'落點完全失準。':'挑戰結束。');
   const elapsed=Math.max(0,performance.now()-state.startedAt);
 
-  // Official BoomRoom API only. gameOver is called exactly once.
-  try{
-    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-      window.BoomRoomSDK.gameOver(state.reward);
-    }
-  }catch{}
-  try{
-    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==='function'){
-      window.BoomRoomSDK.sendGameEvent('PLAYER_END',{
+  if(!remoteEnd && isHost()){
+    try{
+      if(
+        window.BoomRoomSDK &&
+        typeof window.BoomRoomSDK.gameOver ===
+        'function'
+      ){
+        window.BoomRoomSDK.gameOver(
+          state.reward
+        );
+      }
+    }catch(_){}
+
+    sendGameEvent(
+      'NEON_ROUND_END',
+      {
         roundId:state.roundId,
         status:'FINISHED',
         score:state.score,
@@ -755,11 +707,14 @@ function gameOver(reason){
         reason:state.resultReason,
         layers:state.layers,
         durationMs:Math.round(elapsed)
-      });
-    }
-  }catch{}
+      }
+    );
+  }
 
-  setTimeout(showResult,520);
+  setTimeout(
+    showResult,
+    520
+  );
 }
 
 function showResult(){
@@ -821,10 +776,6 @@ function updateHUD(){
   }
 }
 
-function updateAudioButton(){
-  $('soundBtn').textContent=state.soundEnabled?'🔊':'🔇';
-  $('soundBtn').classList.toggle('muted',!state.soundEnabled);
-}
 
 function drawBackground(t){
   ctx.fillStyle='#05060e'; ctx.fillRect(0,0,width,height);
@@ -1012,66 +963,533 @@ window.addEventListener('keydown',e=>{
 });
 
 actionSetup();
+
 function actionSetup(){
-  $('startBtn').addEventListener('click',startGame);
-  $('finishBtn').addEventListener('click',finishRound);
-  $('soundBtn').addEventListener('click',()=>{ state.soundEnabled=!state.soundEnabled; updateAudioButton(); if(state.soundEnabled) {resumeAudio(); tone(620,.07,'sine',.03);} });
-  $('helpBtn').addEventListener('click',()=>{$('helpOverlay').classList.add('show'); resumeAudio();});
-  $('closeHelp').addEventListener('click',()=>$('helpOverlay').classList.remove('show'));
-  $('closeHelp2').addEventListener('click',()=>$('helpOverlay').classList.remove('show'));
-  updateAudioButton();
+  $('startBtn').addEventListener(
+    'click',
+    startGame
+  );
+
+  $('finishBtn').addEventListener(
+    'click',
+    finishRound
+  );
 }
 
 let sdkIsHost = false;
 let roomPlayersList = [];
+let gameRoomId = '';
+let sdkReady = false;
+let waitingForHost = false;
+let lastRemoteRoundId = '';
 
-function isHost() {
-  return sdkIsHost;
+function isHost(){
+  return !!sdkIsHost;
+}
+
+function getUserId(){
+  return String(
+    state.sdkUser?.id ||
+    state.sdkUser?.userId ||
+    ''
+  );
+}
+
+function sendGameEvent(
+  eventName,
+  payload={}
+){
+  const message = {
+    action:'sendGameEvent',
+    eventName,
+    payload
+  };
+
+  try{
+    if(
+      window.BoomRoomSDK &&
+      typeof window.BoomRoomSDK.sendGameEvent ===
+      'function'
+    ){
+      window.BoomRoomSDK.sendGameEvent(
+        eventName,
+        payload
+      );
+      return true;
+    }
+  }catch(_){}
+
+  try{
+    if(
+      window.parent &&
+      window.parent !== window
+    ){
+      window.parent.postMessage(
+        message,
+        '*'
+      );
+      return true;
+    }
+  }catch(_){}
+
+  return false;
+}
+
+function requestSDKInit(){
+  try{
+    if(
+      window.parent &&
+      window.parent !== window
+    ){
+      window.parent.postMessage(
+        {
+          action:'requestSDKInit',
+          gameId:GAME_INFO.id,
+          version:GAME_INFO.version
+        },
+        '*'
+      );
+    }
+  }catch(_){}
+
+  try{
+    if(
+      window.BoomRoomSDK &&
+      typeof window.BoomRoomSDK.requestInit ===
+      'function'
+    ){
+      window.BoomRoomSDK.requestInit();
+    }
+  }catch(_){}
+}
+
+function applyHostUI(){
+  const startBtn = $('startBtn');
+  const hostStatus = $('hostStatus');
+
+  if(!startBtn)return;
+
+  if(!sdkReady){
+    startBtn.disabled = true;
+    startBtn.textContent = '連線中...';
+    if(hostStatus) hostStatus.textContent = '連線中...';
+    return;
+  }
+
+  if(isHost()){
+    startBtn.disabled =
+      state.game === 'PLAYING' ||
+      state.game === 'RESULT';
+
+    startBtn.textContent =
+      state.game === 'PLAYING'
+        ? '遊戲進行中'
+        : '市長：開始極限疊塔';
+
+    if(hostStatus){
+      hostStatus.textContent =
+        state.game === 'PLAYING'
+          ? '市長已開始'
+          : '你是本局市長';
+    }
+
+    return;
+  }
+
+  startBtn.disabled = true;
+  startBtn.textContent =
+    state.game === 'PLAYING'
+      ? '市長已開始'
+      : '等待市長開始遊戲...';
+
+  if(hostStatus){
+    hostStatus.textContent =
+      state.game === 'PLAYING'
+        ? '市長已開始'
+        : '等待市長開始';
+  }
 }
 
 function setupSDK(data){
-  if(data && data.user){
-    state.sdkUser = data.user;
+  if(!data)return;
+
+  const nested =
+    data.data &&
+    typeof data.data === 'object'
+      ? data.data
+      : data;
+
+  if(nested.user){
+    state.sdkUser =
+      nested.user;
   }
-  sdkIsHost = !!(data && data.isHost);
-  if(data && Array.isArray(data.roomPlayers)){
-    roomPlayersList = data.roomPlayers;
+
+  sdkIsHost =
+    !!(
+      nested.isHost === true ||
+      nested.isHost === 1 ||
+      nested.isHost === 'true'
+    );
+
+  gameRoomId =
+    nested.roomId != null
+      ? String(nested.roomId)
+      : gameRoomId;
+
+  if(
+    Array.isArray(
+      nested.roomPlayers
+    )
+  ){
+    roomPlayersList =
+      nested.roomPlayers;
   }
-  const startBtn = $('startBtn');
-  if(startBtn) {
-    if(!isHost()) {
-      startBtn.disabled = true;
-      startBtn.textContent = '等待室長開始遊戲...';
-    } else {
-      startBtn.disabled = false;
-      startBtn.textContent = '👑 室長：開始極限疊塔';
-    }
+
+  sdkReady = true;
+
+  applyHostUI();
+
+  if(
+    !isHost()
+  ){
+    waitingForHost = true;
+    sendGameEvent(
+      'NEON_HELLO',
+      {
+        playerId:getUserId(),
+        requestState:true
+      }
+    );
   }
 }
 
-window.addEventListener('message', e => {
-  try {
-    const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-    if (d && d.action === 'initSDK') setupSDK(d);
-  } catch (_) {}
-});
-
-window.onBoomRoomSDKReady = function(){
-  if(window.BoomRoomSDK){
-    setupSDK({
-      user: window.BoomRoomSDK.getUser(),
-      isHost: window.BoomRoomSDK.isHost,
-      roomId: window.BoomRoomSDK.roomId,
-      roomPlayers: window.BoomRoomSDK.roomPlayers || []
-    });
+function startGame(
+  remoteRoundId = null,
+  remote = false
+){
+  if(
+    state.game === 'PLAYING' ||
+    state.game === 'RESULT'
+  ){
+    return;
   }
+
+  resumeAudio();
+  playStart();
+  vibrate(
+    [12,30,12]
+  );
+
+  state.game =
+    'PLAYING';
+
+  state.roundId =
+    remoteRoundId ||
+    uid();
+
+  state.score=0;
+  state.layers=0;
+  state.combo=0;
+  state.bestCombo=0;
+  state.perfects=0;
+  state.greats=0;
+  state.goods=0;
+  state.cameraY=0;
+  state.targetCameraY=0;
+  state.hue=190;
+  state.shake=0;
+  state.boxes=[];
+  state.debris=[];
+  state.particles=[];
+  state.trail=[];
+  state.currentBox=null;
+  state.nextEntryAt=0;
+  state.inputLockedUntil=0;
+  state.startedAt=
+    performance.now();
+  state.reward=0;
+  state.resultReason='';
+  state.gameOverCalled=false;
+  state.finishToastShown=false;
+
+  makeBase();
+  spawnBox();
+  updateCameraTarget();
+  state.cameraY =
+    state.targetCameraY;
+
+  $('startOverlay')
+    .classList.remove('show');
+
+  $('resultOverlay')
+    .classList.remove('show');
+
+  updateHUD();
+
+  showToast(
+    remote
+      ? '市長已開始 · 準備！'
+      : '開局！準備疊塔'
+  );
+
+  if(!remote){
+    sendGameEvent(
+      'NEON_ROUND_START',
+      {
+        roundId:state.roundId,
+        startedAt:Date.now(),
+        hostId:getUserId(),
+        version:GAME_INFO.version
+      }
+    );
+  }
+
+  waitingForHost = false;
+  applyHostUI();
+}
+
+function handleGameEvent(
+  name,
+  payload,
+  sender
+){
+  payload =
+    payload &&
+    typeof payload === 'object'
+      ? payload
+      : {};
+
+  if(
+    name === 'NEON_HELLO'
+  ){
+    if(
+      isHost() &&
+      payload.requestState
+    ){
+      sendGameEvent(
+        'NEON_STATE',
+        {
+          roundId:
+            state.roundId,
+          game:
+            state.game,
+          hostId:
+            getUserId()
+        }
+      );
+    }
+    return;
+  }
+
+  if(
+    name === 'NEON_STATE'
+  ){
+    if(
+      isHost()
+    ){
+      return;
+    }
+
+    const incomingRound =
+      String(
+        payload.roundId ||
+        ''
+      );
+
+    if(
+      payload.game === 'PLAYING' &&
+      incomingRound
+    ){
+      if(
+        incomingRound !==
+        lastRemoteRoundId
+      ){
+        lastRemoteRoundId =
+          incomingRound;
+
+        startGame(
+          incomingRound,
+          true
+        );
+      }else{
+        waitingForHost =
+          false;
+
+        applyHostUI();
+      }
+    }
+
+    return;
+  }
+
+  if(
+    name === 'NEON_ROUND_START' ||
+    name === 'ROUND_START'
+  ){
+    if(
+      isHost()
+    ){
+      return;
+    }
+
+    const incomingRound =
+      String(
+        payload.roundId ||
+        ''
+      );
+
+    if(!incomingRound){
+      return;
+    }
+
+    lastRemoteRoundId =
+      incomingRound;
+
+    startGame(
+      incomingRound,
+      true
+    );
+
+    return;
+  }
+
+  if(
+    name === 'NEON_ROUND_END' ||
+    name === 'ROUND_END'
+  ){
+    if(
+      state.game === 'PLAYING'
+    ){
+      state.resultReason =
+        String(
+          payload.reason ||
+          '市長已結束本局。'
+        );
+
+      gameOver(
+        'REMOTE_END',
+        true
+      );
+    }
+
+    return;
+  }
+}
+
+window.addEventListener(
+  'message',
+  e => {
+    try{
+      const d =
+        typeof e.data === 'string'
+          ? JSON.parse(e.data)
+          : e.data;
+
+      if(!d)return;
+
+      if(
+        d.action === 'initSDK'
+      ){
+        setupSDK(d);
+        return;
+      }
+
+      if(
+        d.action === 'sdkReady' ||
+        d.action === 'boomroom:sdkReady'
+      ){
+        setupSDK(
+          d.data ||
+          d
+        );
+        return;
+      }
+
+      if(
+        d.action === 'gameEventReceived' ||
+        d.action === 'gameEvent'
+      ){
+        handleGameEvent(
+          String(
+            d.eventName ||
+            d.name ||
+            d.event ||
+            ''
+          ),
+          d.payload ||
+          d.data ||
+          {},
+          d.userId != null
+            ? String(d.userId)
+            : null
+        );
+      }
+    }catch(_){}
+  }
+);
+
+window.onBoomRoomSDKReady =
+function(){
+  try{
+    if(
+      window.BoomRoomSDK
+    ){
+      setupSDK({
+        user:
+          typeof window.BoomRoomSDK.getUser ===
+          'function'
+            ? window.BoomRoomSDK.getUser()
+            : null,
+
+        isHost:
+          window.BoomRoomSDK.isHost,
+
+        roomId:
+          window.BoomRoomSDK.roomId,
+
+        roomPlayers:
+          window.BoomRoomSDK.roomPlayers ||
+          []
+      });
+    }
+  }catch(_){}
 };
 
 try{
-  if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
-    state.sdkUser=window.BoomRoomSDK.getUser() || null;
+  if(
+    window.BoomRoomSDK &&
+    typeof window.BoomRoomSDK.getUser ===
+    'function'
+  ){
+    state.sdkUser =
+      window.BoomRoomSDK.getUser() ||
+      null;
   }
-}catch{}
+}catch(_){}
+
+requestSDKInit();
+
+setTimeout(
+  () => {
+    if(
+      window.BoomRoomSDK
+    ){
+      window.onBoomRoomSDKReady();
+    }
+  },
+  100
+);
+
+setTimeout(
+  () => {
+    if(!sdkReady){
+      sdkReady = true;
+      sdkIsHost = true;
+      applyHostUI();
+    }
+  },
+  1800
+);
 
 // Development diagnostics only.
 if(DEBUG){
