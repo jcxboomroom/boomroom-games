@@ -22,8 +22,9 @@ const MATCH_SECONDS = 32;
 const OVERTIME_SECONDS = 8;
 const SERIES_BATTLES = 5;
 const MAX_PLAYERS = 10;
-const AUTO_START_STABLE_MS = 1200;
+const AUTO_START_STABLE_MS = 900;
 const HEARTBEAT_MS = 1200;
+const SDK_RECOVERY_MS = 2200;
 const BOT_COUNT_FOR_SOLO = 5;
 const BOT_NAMES = ["碰碰", "閃閃", "豆包", "小彈珠", "泡泡", "阿蹦", "蘑菇", "麻糬", "火花"];
 const MAPS = [
@@ -57,6 +58,8 @@ let sdkSignalSeen = false;
 let hostFlag = null;
 let parentEmbedded = window.parent && window.parent !== window;
 let devFallbackUsed = false;
+let fallbackTimer = null;
+let boundSdk = null;
 const mockSdk = {
   isHost: true,
   roomId: "mock-room",
@@ -110,6 +113,9 @@ let rosterStableSince = 0;
 let autoStartTimer = null;
 let battleTransitionTimer = null;
 let seriesFinished = false;
+let currentRoundId = "";
+let roundStartAt = 0;
+let countdownEndsAt = 0;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const length = (x, y) => Math.hypot(x, y);
@@ -240,6 +246,7 @@ function makeBotRoster() {
 
 function buildParticipants(humans) {
   const realHumans = normalizeRawPlayers(humans).filter((p) => !p.isBot).slice(0, MAX_PLAYERS);
+  // 只有房內真的只有 1 位真人時才補 AI。2～10 位真人完全不補假玩家。
   if (realHumans.length === 1) return [...realHumans, ...makeBotRoster()];
   return realHumans;
 }
@@ -341,6 +348,7 @@ async function boot() {
   resetTilesForMap(getMapForBattle(1));
   renderRoomHud();
 
+  // BoomRoom 標準：SDK 存在時優先使用真實玩家；沒有 SDK 時也必須可以完整遊玩。
   if (window.BoomRoomSDK) {
     sdkSignalSeen = true;
     adoptSdk(window.BoomRoomSDK);
@@ -355,20 +363,46 @@ async function boot() {
     return;
   }
 
-  // Embedded BoomRoom game: give the host bridge enough time to deliver initSDK.
-  // Only a true standalone page gets the local AI fallback.
-  setTimeout(() => {
-    if (sdkReady || devFallbackUsed || sdkSignalSeen || parentEmbedded || window.BoomRoomSDK) return;
-    devFallbackUsed = true;
-    sdk = mockSdk;
-    mockMode = true;
-    sdkReady = true;
-    user = { id: "mock-you", username: "你", avatar: null };
-    roomId = "mock-room";
-    setRoomHumans([user], "dev-fallback");
-    showCallout("開發模式 · 1 人 + 5 AI");
-    scheduleSeriesAutoStart();
-  }, 2600);
+  // 主頁可能在 HTML 之後才把 SDK bridge 注入，所以主動要求初始化。
+  requestParentSdkInit();
+
+  // 沒有任何 SDK 訊號時，進入真正可玩的 Mock 模式；若之後 SDK 抵達會立即接管。
+  fallbackTimer = setTimeout(() => {
+    if (sdkReady || window.BoomRoomSDK || sdkSignalSeen) return;
+    startMockFallback();
+  }, SDK_RECOVERY_MS);
+}
+
+function requestParentSdkInit() {
+  try { window.BoomRoomSDK?.requestInit?.(); } catch {}
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "requestInitSDK", gameId: "floor_brawl" }), "*");
+      window.parent.postMessage(JSON.stringify({ action: "getRoomState", gameId: "floor_brawl" }), "*");
+    }
+  } catch {}
+}
+
+function startMockFallback() {
+  if (sdkReady || window.BoomRoomSDK) return;
+  devFallbackUsed = true;
+  sdk = mockSdk;
+  mockMode = true;
+  sdkReady = true;
+  hostFlag = true;
+  const queryCount = Number.parseInt(new URLSearchParams(window.location.search).get("mockPlayers") || "1", 10);
+  const mockCount = clamp(Number.isFinite(queryCount) ? queryCount : 1, 1, MAX_PLAYERS);
+  user = { id: "mock-you", username: "你", avatar: null };
+  roomId = "mock-room";
+  const mockHumans = Array.from({ length: mockCount }, (_, index) => ({
+    id: index === 0 ? "mock-you" : `mock-player-${index + 1}`,
+    username: index === 0 ? "你" : `測試真人 ${index + 1}`,
+    avatar: null,
+    isBot: false,
+  }));
+  setRoomHumans(mockHumans, "mock-fallback");
+  showCallout("3");
+  scheduleSeriesAutoStart();
 }
 
 function adoptSdk(realSdk) {
@@ -376,10 +410,27 @@ function adoptSdk(realSdk) {
   sdk = realSdk;
   mockMode = false;
   sdkReady = true;
+  if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
   const flag = realSdk.isHost;
   if (flag !== undefined && flag !== null) hostFlag = flag;
   if (realSdk.roomId != null) roomId = String(realSdk.roomId);
+  bindSdkEventBridge(realSdk);
   return true;
+}
+
+function bindSdkEventBridge(realSdk) {
+  if (!realSdk || boundSdk === realSdk) return;
+  boundSdk = realSdk;
+  const listener = (detail) => {
+    const d = detail?.detail ?? detail ?? {};
+    const eventName = d?.eventName ?? d?.name ?? d?.event ?? d?.type;
+    if (!eventName) return;
+    const payload = d?.payload ?? d?.data ?? {};
+    const senderId = d?.userId ?? d?.senderId ?? payload?.sourceId ?? payload?.playerId ?? null;
+    handleGameEvent({ eventName, payload, senderId });
+  };
+  try { realSdk.addEventListener?.("gameEventReceived", listener); } catch {}
+  try { realSdk.on?.("gameEventReceived", listener); } catch {}
 }
 
 function resizeCanvas() {
@@ -466,7 +517,7 @@ function installNetworkEvents() {
     try {
       const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       if (!data || typeof data !== "object") return;
-      if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady") {
+      if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady" || data.user || data.roomPlayers || data.roomId) {
         sdkSignalSeen = true;
         setupSDK(data.data && typeof data.data === "object" ? data.data : data);
         return;
@@ -490,19 +541,43 @@ function installNetworkEvents() {
   try { sdk.addEventListener?.("gameEventReceived", listener); } catch {}
   try { sdk.on?.("gameEventReceived", listener); } catch {}
 
+  window.initBoomRoomSDK = function(data) {
+    sdkSignalSeen = true;
+    setupSDK(data || {});
+  };
+
   window.onBoomRoomSDKReady = async () => {
     if (!window.BoomRoomSDK) return;
+    sdkSignalSeen = true;
     adoptSdk(window.BoomRoomSDK);
     let sdkUser = null;
     try { sdkUser = typeof sdk.getUser === "function" ? await Promise.resolve(sdk.getUser()) : null; } catch {}
     setupSDK({ user: sdkUser, isHost: sdk.isHost, roomId: sdk.roomId, roomPlayers: sdk.roomPlayers || sdk.players || [] });
   };
+
+  // SDK 已存在時，不等待任何外部按鈕或主持人。
+  if (window.BoomRoomSDK) window.onBoomRoomSDKReady();
 }
 
 function setupSDK(data = {}) {
   sdkSignalSeen = true;
+  const wasMock = mockMode;
   adoptSdk(window.BoomRoomSDK || sdk);
   const nested = data?.data && typeof data.data === "object" ? data.data : data;
+  if (wasMock && !mockMode) {
+    // 真正 SDK 抵達後，捨棄暫時 Mock 場，不讓假玩家殘留。
+    state = GAME_STATE.LOADING;
+    seriesFinished = false;
+    battleNumber = 1;
+    currentMapIndex = 0;
+    currentRoundId = "";
+    roundStartAt = 0;
+    countdownEndsAt = 0;
+    seriesParticipants = [];
+    players = [];
+    localPlayer = null;
+    resultNode.classList.remove("show");
+  }
   if (nested.user) user = nested.user;
   if (nested.roomId != null) roomId = String(nested.roomId);
   if (nested.isHost !== undefined && nested.isHost !== null) {
@@ -519,7 +594,7 @@ function setupSDK(data = {}) {
     sendRoomSync("WAITING");
     scheduleSeriesAutoStart();
   } else {
-    showCallout(roomHumans.length > 1 ? "等待房間同步" : "等待房間玩家");
+    showCallout("等待房間同步");
   }
 }
 
@@ -560,10 +635,10 @@ function sendRoomSync(phase = "WAITING") {
     playerCount: roomHumans.length,
     battleNumber,
     mapIndex: currentMapIndex,
-    roundId: state.roundId || "",
+    roundId: currentRoundId,
     participants: exportParticipants(),
-    startAt: Number(state.remoteStartAt || 0),
-    countdownEndsAt: Number(state.countdownEndsAt || 0),
+    startAt: Number(roundStartAt || 0),
+    countdownEndsAt: Number(countdownEndsAt || 0),
   });
 }
 
@@ -590,8 +665,9 @@ function startSeries() {
   seriesParticipants.forEach((p) => { p.seriesPoints = 0; p.battleWins = 0; });
   const startAt = Date.now() + 900;
   const roundId = `${roomId}-${Date.now()}-B1`;
-  sendEvent("FLOOR_ROUND_START", { roundId, battleNumber, mapIndex: 0, startAt, participants: exportParticipants() });
-  beginCountdown(startAt, { roundId, participants: exportParticipants(), battleNumber: 1, mapIndex: 0, broadcast: false });
+  const startPayload = { roundId, battleNumber, mapIndex: 0, startAt, participants: exportParticipants() };
+  sendEvent("FLOOR_ROUND_START", startPayload);
+  beginCountdown(startAt, { roundId, participants: startPayload.participants, battleNumber: 1, mapIndex: 0, broadcast: true });
 }
 
 function resetBattleState(participants, mapIndex = 0, number = 1) {
@@ -636,9 +712,9 @@ function beginCountdown(startAt, meta = {}) {
     : (seriesParticipants.length ? seriesParticipants.map((p) => ({ id: p.id, username: p.name, avatar: null, isBot: p.isBot })) : buildParticipants(roomHumans));
   seriesParticipants = createGameplayPlayers(participants);
   resetBattleState(participants, meta.mapIndex ?? ((Number(meta.battleNumber || battleNumber) - 1) % MAPS.length), meta.battleNumber || battleNumber);
-  state.remoteStartAt = Number(startAt || Date.now() + 700);
-  state.countdownEndsAt = state.remoteStartAt;
-  state.roundId = String(meta.roundId || state.roundId || `${roomId}-${Date.now()}-B${battleNumber}`);
+  roundStartAt = Number(startAt || Date.now() + 700);
+  countdownEndsAt = roundStartAt;
+  currentRoundId = String(meta.roundId || currentRoundId || `${roomId}-${Date.now()}-B${battleNumber}`);
   showCallout(`第 ${battleNumber} 戰 · ${getMapForBattle(battleNumber).name}`);
   matchStartedAt = 0;
   safeRadius = getMapForBattle(battleNumber).radius;
@@ -704,6 +780,7 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
         seriesParticipants = createGameplayPlayers(payload.participants);
       }
       if (payload.phase === "COUNTDOWN") {
+        currentRoundId = String(payload.roundId || currentRoundId || `${roomId}-${Date.now()}-B${battleNumber}`);
         beginCountdown(Number(payload.startAt || payload.countdownEndsAt || Date.now() + 700), {
           roundId: payload.roundId,
           participants: payload.participants,
@@ -712,7 +789,8 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
           broadcast: false,
         });
       } else if (payload.phase === "PLAYING" && state !== GAME_STATE.PLAYING) {
-        beginCountdown(Date.now(), {
+        currentRoundId = String(payload.roundId || currentRoundId || `${roomId}-${Date.now()}-B${battleNumber}`);
+        beginCountdown(Number(payload.startAt || Date.now()), {
           roundId: payload.roundId,
           participants: payload.participants,
           battleNumber: Number(payload.battleNumber || battleNumber),
@@ -724,6 +802,7 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
       break;
     }
     case "FLOOR_ROUND_START":
+      currentRoundId = String(payload.roundId || currentRoundId || `${roomId}-${Date.now()}-B${battleNumber}`);
       beginCountdown(Number(payload.startAt || Date.now() + 700), {
         roundId: payload.roundId,
         participants: Array.isArray(payload.participants) ? payload.participants : buildParticipants(roomHumans),
@@ -754,6 +833,17 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
     }
     case "PLAYER_HIT": applyHit(payload); break;
     case "PLAYER_OUT": eliminatePlayer(String(payload.targetId), payload.reason || "落進裂縫", payload.attackerId); break;
+    case "PLAYER_ABANDONED": {
+      const abandonedId = String(payload.playerId ?? sender);
+      if (isHost() && abandonedId && abandonedId !== me) {
+        const player = players.find((candidate) => candidate.id === abandonedId);
+        if (player?.alive) {
+          eliminatePlayer(abandonedId, "離開遊戲", "");
+          sendEvent("PLAYER_OUT", { targetId: abandonedId, reason: "離開遊戲", attackerId: "" });
+        }
+      }
+      break;
+    }
     case "TILE_STATE": applyTileState(payload); break;
     case "ORB_STATE": orb = payload.active ? { id: payload.id, x: payload.x, y: payload.y, until: payload.until } : null; break;
     case "ORB_PICKUP": applyOrbPickup(payload); break;
@@ -1104,6 +1194,9 @@ function finishRound(winnerId, reason = "最後站著的人") {
 
 function applyBattleEnd(payload) {
   if (Number(payload.battleNumber) !== Number(battleNumber) || !Array.isArray(payload.standings)) return;
+  // 非 Host 收到 BATTLE_END 時也必須切入 RESULT，否則下一戰事件會被 PLAYING guard 擋掉。
+  state = GAME_STATE.RESULT;
+  stateStartedAt = now();
   payload.standings.forEach((row) => {
     const player = players.find((p) => p.id === String(row.id));
     if (!player) return;
@@ -1116,6 +1209,8 @@ function applyBattleEnd(payload) {
 
 function applySeriesEnd(payload) {
   seriesFinished = true;
+  state = GAME_STATE.RESULT;
+  stateStartedAt = now();
   if (Array.isArray(payload.standings)) {
     payload.standings.forEach((row) => {
       const player = players.find((p) => p.id === String(row.id));
@@ -1167,11 +1262,17 @@ function showResults(winner, reason, rows = [], final = false) {
       state = GAME_STATE.EXIT;
       if (!exitSent) {
         exitSent = true;
-        try { window.parent?.postMessage({ action: "leaveGame", reason: "SERIES_COMPLETE" }, "*"); } catch {}
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: "leaveGame", reason: "SERIES_COMPLETE" }, "*");
+          } else {
+            window.location.href = "../room.html";
+          }
+        } catch {}
       }
       resultNode.classList.remove("show");
       showCallout("五戰結束 · 返回房間");
-    }, 4200);
+    }, 3000);
   }
 }
 
@@ -1286,7 +1387,7 @@ function hostResolveBotHit(attacker) {
 
 function update(dt, timestamp) {
   if (state === GAME_STATE.COUNTDOWN) {
-    const remain = Math.max(0, Number(state.remoteStartAt || state.countdownEndsAt || Date.now()) - Date.now());
+    const remain = Math.max(0, Number(roundStartAt || countdownEndsAt || Date.now()) - Date.now());
     const number = Math.ceil(remain / 1000);
     if (number <= 0) startPlaying();
     else if (number !== Math.ceil(Math.max(0, remain + dt * 1000) / 1000)) {
@@ -1785,9 +1886,15 @@ function frame(timestamp) {
   requestAnimationFrame(frame);
 }
 
-// 啟動唯一的主遊戲迴圈。
-// V1.2 漏掉第一次 requestAnimationFrame，造成 UI 正常但 Canvas 永遠沒有繪製。
+window.addEventListener("pagehide", () => {
+  if (state === GAME_STATE.PLAYING && localPlayer?.alive && !seriesFinished) {
+    sendEvent("PLAYER_ABANDONED", { playerId: localPlayer.id, battleNumber, roundId: currentRoundId });
+  }
+});
+
+// 啟動唯一主遊戲迴圈；並立即畫第一幀，避免 WebView 首畫面只有 UI。
 requestAnimationFrame(frame);
+requestAnimationFrame((t) => draw(t));
 
 setInterval(() => {
   if (!sdkReady) return;
@@ -1795,19 +1902,11 @@ setInterval(() => {
   if (isHost()) {
     const phase = state === GAME_STATE.PLAYING ? "PLAYING" : state === GAME_STATE.COUNTDOWN ? "COUNTDOWN" : "WAITING";
     sendRoomSync(phase);
-    if (state === GAME_STATE.LOADING) scheduleSeriesAutoStart();
+    if (state !== GAME_STATE.PLAYING && state !== GAME_STATE.RESULT && state !== GAME_STATE.EXIT) scheduleSeriesAutoStart();
   }
 }, HEARTBEAT_MS);
 
 boot().catch((error) => {
   console.error("Game initialization failed", error);
-  try {
-    sdk = mockSdk;
-    mockMode = true;
-    sdkReady = true;
-    user = user || { id: "offline-player", username: "你", avatar: null };
-    roomId = roomId || "mock-room";
-    setRoomHumans([user], "offline-fallback");
-    scheduleSeriesAutoStart();
-  } catch {}
+  try { startMockFallback(); } catch {}
 });
