@@ -220,6 +220,46 @@ function readUser(){
   $('modeNote').textContent = window.BoomRoomSDK ? 'BoomRoom SDK 已連接 · 免費挑戰' : '開發測試模式 · 不會真的扣除銀幣';
 }
 
+function setupSDK(data){
+  if(data && data.user){
+    const u = data.user;
+    user = { id: String(u.id), username: String(u.username || '玩家'), avatar: String(u.avatar || '') };
+  }
+  if(data && Array.isArray(data.roomPlayers)){
+    data.roomPlayers.forEach(rp => {
+      if(rp && rp.id != null){
+        observedPlayers.set(String(rp.id), { username: String(rp.username || '玩家'), score: 0, status: 'READY', timestamp: Date.now() });
+      }
+    });
+  }
+  $('modeNote').textContent = 'BoomRoom SDK 已連接 · 免費挑戰';
+
+  setTimeout(() => {
+    if(gameState === 'LOBBY'){
+      startGame();
+    }
+  }, 300);
+}
+
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
+window.onBoomRoomSDKReady = function(){
+  if(window.BoomRoomSDK){
+    setupSDK({
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
+
 function sendEvent(eventName,payload){
   try{
     if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==='function'){
@@ -316,7 +356,6 @@ function makeBoard(){
     tile.dataset.color=colorIdx; tile.dataset.shape=shapeIdx; tile.dataset.num=num;
     tile.style.setProperty('--glow',COLORS[colorIdx].hex);
     tile.innerHTML='<span class="glyph" style="color:'+COLORS[colorIdx].hex+'">'+SHAPES[shapeIdx]+'</span><span class="num">'+num+'</span>';
-    if(i===targetIndex) tile.classList.add('target');
     tile.addEventListener('pointerdown',handleTilePointer,{passive:false});
     cells.push(tile); grid.appendChild(tile);
   }
@@ -449,6 +488,14 @@ function finishGame(reason){
   $('resultReason').textContent=reason+' · 連擊 '+bestCombo+' · 共命中 '+hits+' 次';
   $('resultOverlay').classList.remove('hidden');
   soundMilestone(); buzz([30,30,60]);
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 
 $('startBtn').addEventListener('pointerdown',(e)=>{e.preventDefault();startGame();});
