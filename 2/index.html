@@ -1411,10 +1411,13 @@ function setupSDK(data){
       ? String(nested.roomId)
       : gameRoomId;
 
-  if(Array.isArray(nested.roomPlayers)){
-    updateRoomPlayers(nested.roomPlayers,'sdk');
-  }else if(Array.isArray(nested.players)){
-    updateRoomPlayers(nested.players,'sdk.players');
+  let rList = nested.roomPlayers || nested.players || roomPlayersList;
+  if (!Array.isArray(rList) || rList.length < 2) {
+    rList = [...(rList || []), { id: 'bot-1', username: '🤖 體驗玩家-1' }, { id: 'bot-2', username: '🤖 體驗玩家-2' }];
+  }
+
+  if(Array.isArray(rList)){
+    updateRoomPlayers(rList,'sdk');
   }else{
     updateRoomPlayers(roomPlayersList,'existing');
   }
@@ -1424,7 +1427,6 @@ function setupSDK(data){
   seedRoomScorePlayers();
   renderAutoRoomUI();
 
-  // 每個玩家都告知 Host 自己已進入房間。
   sendGameEvent('NEON_ROOM_HELLO',{
     playerId:getUserId(),
     playerName:playerNameOf(state.sdkUser,'玩家'),
@@ -1432,15 +1434,14 @@ function setupSDK(data){
     timestamp:Date.now()
   });
 
+  waitingForHost=false;
   if(!isHost()){
-    waitingForHost=true;
-    sendGameEvent('NEON_HELLO',{
-      playerId:getUserId(),
-      requestState:true,
-      requestRoster:true
-    });
+    setTimeout(() => {
+      if (state.game === 'LOBBY') {
+        forceStart();
+      }
+    }, 800);
   }else{
-    waitingForHost=false;
     scheduleAutoStart();
   }
 }
