@@ -355,12 +355,14 @@ function makeBoard(){
     if(i===targetIndex){ colorIdx=target.color; shapeIdx=target.shape; num=target.num; }
     else{
       colorIdx=Math.floor(rnd()*COLORS.length); shapeIdx=Math.floor(rnd()*SHAPES.length); num=1+Math.floor(rnd()*9);
-      // 高難度下，有些干擾只差一個屬性；但保證不是完整匹配
-      const mode=Math.floor(rnd()*3);
+      // 高難度干擾：可以有相同顏色或相同形狀，但嚴格保證【顏色+形狀】組合絕對不重複！
+      const mode=Math.floor(rnd()*2);
       if(mode===0 && rnd()<diff.sim) colorIdx=target.color;
       if(mode===1 && rnd()<diff.sim) shapeIdx=target.shape;
-      if(mode===2 && rnd()<diff.sim) num=target.num;
-      if(colorIdx===target.color && shapeIdx===target.shape && num===target.num){ num=num%9+1; }
+      // 🌟 嚴格保證：若【顏色+形狀】完全相同，強制替換為不同形狀！
+      if(colorIdx===target.color && shapeIdx===target.shape){
+        shapeIdx=(target.shape + 1 + Math.floor(rnd() * (SHAPES.length - 1))) % SHAPES.length;
+      }
     }
     tile.dataset.color=colorIdx; tile.dataset.shape=shapeIdx; tile.dataset.num=num;
     tile.style.setProperty('--glow',COLORS[colorIdx].hex);
