@@ -8,6 +8,7 @@ const ui = {
   playerCounter: document.getElementById('playerCounter'),
   turnStone: document.getElementById('turnStone'),
   turnText: document.getElementById('turnText'),
+  matchScore: document.getElementById('matchScore'),
   moveCount: document.getElementById('moveCount'),
   autoStartNotice: document.getElementById('autoStartNotice'),
   rosterList: document.getElementById('rosterList'),
@@ -19,6 +20,7 @@ const ui = {
   btnUndo: document.getElementById('btnUndo'),
   btnResign: document.getElementById('btnResign'),
   btnRestart: document.getElementById('btnRestart'),
+  aiDifficultyBar: document.getElementById('aiDifficultyBar'),
 };
 
 const ctx = ui.canvas.getContext('2d');
@@ -32,9 +34,9 @@ let totalRoomPlayersCount = 1;
 let autoStarted = false;
 let autoStartTimer = null;
 
-// Game State
-let board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0)); // 0: empty, 1: black, 2: white
-let moveHistory = []; // [[row, col, color], ...]
+// Game State & Match Score (三勝制)
+let board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+let moveHistory = [];
 let currentTurn = 1; // 1: black, 2: white
 let isPlaying = false;
 let gameOverCalled = false;
@@ -44,18 +46,17 @@ let audioCtx = null;
 
 let playerBlack = null;
 let playerWhite = null;
+let scoreBlackWins = 0;
+let scoreWhiteWins = 0;
+let aiDifficulty = 'normal';
 
 /* =========================================================
    AUDIO & SFX
 ========================================================= */
 
 function ensureAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 function playStoneSound() {
@@ -112,8 +113,7 @@ function setupSDK(data) {
   roomPlayersMap.set(me.id, me);
 
   if (data && Array.isArray(data.roomPlayers)) {
-    totalRoomPlayersCount = Math.max(1, data.roomPlayers.length);
-    data.roomPlayers.slice(0, 10).forEach((rp, i) => {
+    data.roomPlayers.forEach((rp, i) => {
       if (rp && rp.id != null) {
         const id = String(rp.id);
         roomPlayersMap.set(id, {
@@ -125,15 +125,25 @@ function setupSDK(data) {
     });
   }
 
+  totalRoomPlayersCount = Math.max(1, roomPlayersMap.size);
   readyPlayersSet.add(me.id);
   assignRoles();
   updateRosterUI();
   updateAutoStartNotice();
-  scheduleAutoStartFallback();
+
+  // 🌟 單人模式自動快速開局
+  if (totalRoomPlayersCount === 1) {
+    setTimeout(() => {
+      if (!isPlaying && !autoStarted) triggerAutoStart();
+    }, 500);
+  } else {
+    scheduleAutoStartFallback();
+  }
+
   bindGameEvents();
 }
 
-// 🌟 定期同步房間最新玩家清單（防止房主端漏接其他玩家）
+// 定期同步房間最新玩家清單
 setInterval(() => {
   if (window.BoomRoomSDK && Array.isArray(window.BoomRoomSDK.roomPlayers)) {
     if (window.BoomRoomSDK.roomPlayers.length > 0) {
@@ -157,10 +167,13 @@ setInterval(() => {
         assignRoles();
         updateRosterUI();
         updateAutoStartNotice();
+        if (roomPlayersMap.size >= 2 && !isPlaying && !autoStarted) {
+          triggerAutoStart();
+        }
       }
     }
   }
-}, 1000);
+}, 800);
 
 function assignRoles() {
   const pList = [...roomPlayersMap.values()];
@@ -168,9 +181,12 @@ function assignRoles() {
 
   if (pList.length > 1) {
     playerWhite = pList[1];
+    // 多人遊玩隱藏 AI 難度選擇列
+    ui.aiDifficultyBar?.classList.add('hidden');
   } else {
-    // 🌟 單人模式：自動分配智能 AI「🤖 智勝 AI」為白子！
+    // 單人模式：分配智能 AI
     playerWhite = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
+    ui.aiDifficultyBar?.classList.remove('hidden');
   }
 }
 
@@ -193,7 +209,7 @@ function updateAutoStartNotice() {
   const count = readyPlayersSet.size;
   ui.autoStartNotice.textContent = `⏱️ 房間人數 ${count}/${totalRoomPlayersCount}，準備自動開始...`;
 
-  if (count >= totalRoomPlayersCount && !autoStarted && !isPlaying) {
+  if ((count >= totalRoomPlayersCount || roomPlayersMap.size >= 2) && !autoStarted && !isPlaying) {
     triggerAutoStart();
   }
 }
@@ -205,7 +221,7 @@ function triggerAutoStart() {
   ui.autoStartNotice.textContent = '🚀 人數已齊全，自動開局！';
   setTimeout(() => {
     startGomokuRound();
-  }, 600);
+  }, 500);
 }
 
 function scheduleAutoStartFallback() {
@@ -214,7 +230,7 @@ function scheduleAutoStartFallback() {
     if (!autoStarted && !isPlaying) {
       triggerAutoStart();
     }
-  }, 3500);
+  }, 2500);
 }
 
 function startGomokuRound() {
@@ -226,13 +242,14 @@ function startGomokuRound() {
   winningStones = [];
   hintPos = null;
 
-  ui.autoStartNotice.textContent = playerWhite?.isBot ? '🎮 單人 AI 對決中 · 點擊棋盤落子' : '🎮 房間多人對局中 · 點擊棋盤落子';
+  ui.autoStartNotice.textContent = playerWhite?.isBot ? '🎮 單人 AI 對決中 · 三勝制' : '🎮 多人對局中 · 三勝制';
   updateTurnUI();
   drawBoard();
 }
 
 function updateTurnUI() {
   ui.moveCount.textContent = `第 ${moveHistory.length} 步`;
+  ui.matchScore.textContent = `黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝)`;
 
   if (currentTurn === 1) {
     ui.turnStone.className = 'stone-badge black';
@@ -242,9 +259,8 @@ function updateTurnUI() {
     ui.turnText.textContent = `白子（${playerWhite?.username || '白棋'}）落子中`;
   }
 
-  // 🌟 單人 AI 回合自動觸發 AI 計算落子
   if (isPlaying && currentTurn === 2 && playerWhite?.isBot) {
-    setTimeout(triggerAiMove, 450);
+    setTimeout(triggerAiMove, 400);
   }
 }
 
@@ -266,44 +282,36 @@ function drawBoard() {
   const h = ui.canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
 
-  const margin = 26; // Margin for A-O & 1-15 labels
+  const margin = 26;
   const cell = (w - margin * 2) / (BOARD_SIZE - 1);
 
-  // 1. Draw Grid Coordinate Labels (A-O, 1-15)
   ctx.font = 'bold 9px sans-serif';
   ctx.fillStyle = '#6a4220';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   for (let i = 0; i < BOARD_SIZE; i++) {
-    // Top & Bottom A-O
     ctx.fillText(COLS_LABELS[i], margin + i * cell, margin / 2);
     ctx.fillText(COLS_LABELS[i], margin + i * cell, h - margin / 2);
-
-    // Left & Right 1-15
     ctx.fillText(String(i + 1), margin / 2, margin + i * cell);
     ctx.fillText(String(i + 1), w - margin / 2, margin + i * cell);
   }
 
-  // 2. Draw Grid Lines
   ctx.strokeStyle = '#5c3a1e';
   ctx.lineWidth = 1.2;
 
   for (let i = 0; i < BOARD_SIZE; i++) {
-    // Horizontal
     ctx.beginPath();
     ctx.moveTo(margin, margin + i * cell);
     ctx.lineTo(w - margin, margin + i * cell);
     ctx.stroke();
 
-    // Vertical
     ctx.beginPath();
     ctx.moveTo(margin + i * cell, margin);
     ctx.lineTo(margin + i * cell, h - margin);
     ctx.stroke();
   }
 
-  // 3. Draw Star Points (天元, 4角)
   const stars = [3, 7, 11];
   ctx.fillStyle = '#5c3a1e';
   stars.forEach(r => {
@@ -314,7 +322,6 @@ function drawBoard() {
     });
   });
 
-  // 4. Draw Stones
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const stone = board[r][c];
@@ -324,7 +331,6 @@ function drawBoard() {
     }
   }
 
-  // 5. Highlight Last Move Marker (紅色環形最新落子標記)
   if (moveHistory.length > 0) {
     const [lastR, lastC, lastColor] = moveHistory[moveHistory.length - 1];
     ctx.strokeStyle = lastColor === 1 ? '#ff3a9d' : '#35e6ff';
@@ -334,7 +340,6 @@ function drawBoard() {
     ctx.stroke();
   }
 
-  // 6. Highlight Hint Position (💡 提示亮圈)
   if (hintPos && isPlaying) {
     const [hR, hC] = hintPos;
     ctx.strokeStyle = '#35e6ff';
@@ -346,7 +351,6 @@ function drawBoard() {
     ctx.setLineDash([]);
   }
 
-  // 7. Highlight Winning 5 Stones
   if (winningStones.length > 0) {
     ctx.strokeStyle = '#4ee08a';
     ctx.lineWidth = 3.5;
@@ -368,7 +372,6 @@ function drawStone(c, r, stone, margin, cell) {
   ctx.arc(x, y, radius, 0, Math.PI * 2);
 
   if (stone === 1) {
-    // 3D Metallic Black Stone
     const grad = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
     grad.addColorStop(0, '#777777');
     grad.addColorStop(0.5, '#222222');
@@ -378,7 +381,6 @@ function drawStone(c, r, stone, margin, cell) {
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 3;
   } else {
-    // Glossy Pearl White Stone
     const grad = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
     grad.addColorStop(0, '#ffffff');
     grad.addColorStop(0.7, '#ececec');
@@ -400,7 +402,6 @@ function drawStone(c, r, stone, margin, cell) {
 function handleCanvasClick(e) {
   if (!isPlaying) return;
 
-  // Permission Check
   const isMyTurn = (currentTurn === 1 && me.id === playerBlack?.id) ||
                    (currentTurn === 2 && (playerWhite?.isBot ? false : me.id === playerWhite?.id));
 
@@ -435,7 +436,7 @@ function placeMove(row, col, stoneColor, isLocalAction) {
   drawBoard();
 
   if (checkWin(row, col, stoneColor)) {
-    finishGomokuRound(stoneColor);
+    finishRound(stoneColor);
   } else {
     currentTurn = currentTurn === 1 ? 2 : 1;
     updateTurnUI();
@@ -444,15 +445,14 @@ function placeMove(row, col, stoneColor, isLocalAction) {
 
 function checkWin(row, col, color) {
   const directions = [
-    [[0, 1], [0, -1]],   // Horizontal
-    [[1, 0], [-1, 0]],   // Vertical
-    [[1, 1], [-1, -1]],  // Diagonal \
-    [[1, -1], [-1, 1]]   // Anti-Diagonal /
+    [[0, 1], [0, -1]],
+    [[1, 0], [-1, 0]],
+    [[1, 1], [-1, -1]],
+    [[1, -1], [-1, 1]]
   ];
 
   for (const dirPair of directions) {
     let line = [[row, col]];
-
     for (const [dr, dc] of dirPair) {
       let r = row + dr;
       let c = col + dc;
@@ -462,7 +462,6 @@ function checkWin(row, col, color) {
         c += dc;
       }
     }
-
     if (line.length >= 5) {
       winningStones = line;
       return true;
@@ -481,15 +480,6 @@ function triggerAiMove() {
   if (bestMove) {
     placeMove(bestMove[0], bestMove[1], 2, false);
   }
-}
-
-let aiDifficulty = 'normal';
-
-function setAiDifficulty(diff) {
-  aiDifficulty = diff;
-  document.getElementById('diffEasy')?.classList.toggle('active', diff === 'easy');
-  document.getElementById('diffNormal')?.classList.toggle('active', diff === 'normal');
-  document.getElementById('diffMaster')?.classList.toggle('active', diff === 'master');
 }
 
 function getBestAiMove() {
@@ -591,7 +581,6 @@ function handleUndo() {
   if (!isPlaying || moveHistory.length === 0) return;
   ensureAudio();
 
-  // In AI mode, undo 2 moves (your move + AI move)
   const steps = (playerWhite?.isBot && moveHistory.length >= 2) ? 2 : 1;
 
   for (let i = 0; i < steps; i++) {
@@ -612,46 +601,58 @@ function handleResign() {
   if (!isPlaying) return;
   ensureAudio();
   const winnerColor = currentTurn === 1 ? 2 : 1;
-  finishGomokuRound(winnerColor);
+  finishRound(winnerColor);
 }
 
 function handleRestart() {
   ensureAudio();
+  scoreBlackWins = 0;
+  scoreWhiteWins = 0;
   startGomokuRound();
 }
 
 /* =========================================================
-   RESULT & SETTLEMENT
+   MATCH FINISH & BEST OF 3 (三勝制)
 ========================================================= */
 
-function finishGomokuRound(winnerColor) {
+function finishRound(winnerColor) {
   isPlaying = false;
   playWinSound();
   drawBoard();
 
-  const winner = winnerColor === 1 ? playerBlack : (playerWhite || { username: '白棋' });
-  const isWinner = winner?.id === me.id;
+  if (winnerColor === 1) scoreBlackWins++;
+  else scoreWhiteWins++;
 
-  ui.resultTitle.textContent = isWinner ? '🏆 恭喜獲勝！' : `🏆 ${winner?.username || '對手'} 獲勝！`;
-  ui.resultSubtitle.textContent = '完成 5 子連珠連擊對決！';
-  ui.resultReward.textContent = isWinner ? '+100 銀幣' : '+0 銀幣';
+  const isMatchOver = scoreBlackWins >= 3 || scoreWhiteWins >= 3;
+  const roundWinnerName = winnerColor === 1 ? (playerBlack?.username || '黑子') : (playerWhite?.username || '白子');
+
+  ui.resultTitle.textContent = isMatchOver ? (winnerColor === 1 ? '🏆 黑棋奪得三勝總冠軍！' : '🏆 白棋奪得三勝總冠軍！') : `🎉 本局由 ${roundWinnerName} 獲勝！`;
+  ui.resultSubtitle.textContent = `當前比分：黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝制)`;
+  ui.resultReward.textContent = isMatchOver ? '+100 銀幣' : '準備進入下一局…';
 
   ui.resultOverlay.classList.remove('hidden');
 
-  if (!gameOverCalled) {
-    gameOverCalled = true;
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
-      try {
-        window.BoomRoomSDK.gameOver(isWinner ? 100 : 0);
-      } catch (err) {
-        console.warn('gameOver callback failed', err);
+  if (isMatchOver) {
+    const isWinner = (winnerColor === 1 && playerBlack?.id === me.id) || (winnerColor === 2 && playerWhite?.id === me.id);
+    if (!gameOverCalled) {
+      gameOverCalled = true;
+      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
+        try {
+          window.BoomRoomSDK.gameOver(isWinner ? 100 : 0);
+        } catch (_) {}
       }
     }
-  }
 
-  setTimeout(() => {
-    returnToRoom();
-  }, 3000);
+    setTimeout(() => {
+      returnToRoom();
+    }, 3000);
+  } else {
+    // Automatically start next round after 2 seconds
+    setTimeout(() => {
+      ui.resultOverlay.classList.add('hidden');
+      startGomokuRound();
+    }, 2000);
+  }
 }
 
 function returnToRoom() {
@@ -702,6 +703,17 @@ function handleNetworkEvent(eventName, payload, senderId) {
    INIT & EVENT BINDINGS
 ========================================================= */
 
+function setAiDifficulty(diff) {
+  aiDifficulty = diff;
+  document.getElementById('diffEasy')?.classList.toggle('active', diff === 'easy');
+  document.getElementById('diffNormal')?.classList.toggle('active', diff === 'normal');
+  document.getElementById('diffMaster')?.classList.toggle('active', diff === 'master');
+}
+
+document.getElementById('diffEasy')?.addEventListener('click', () => setAiDifficulty('easy'));
+document.getElementById('diffNormal')?.addEventListener('click', () => setAiDifficulty('normal'));
+document.getElementById('diffMaster')?.addEventListener('click', () => setAiDifficulty('master'));
+
 window.initBoomRoomSDK = function(data) {
   setupSDK(data);
 };
@@ -727,9 +739,5 @@ ui.btnHint.addEventListener('click', handleHint);
 ui.btnUndo.addEventListener('click', handleUndo);
 ui.btnResign.addEventListener('click', handleResign);
 ui.btnRestart.addEventListener('click', handleRestart);
-
-document.getElementById('diffEasy')?.addEventListener('click', () => setAiDifficulty('easy'));
-document.getElementById('diffNormal')?.addEventListener('click', () => setAiDifficulty('normal'));
-document.getElementById('diffMaster')?.addEventListener('click', () => setAiDifficulty('master'));
 
 resizeCanvas();

@@ -89,6 +89,19 @@ body, html {
   background: rgba(0, 0, 0, 0.4);
 }
 
+.ai-difficulty-bar.hidden {
+  display: none !important;
+}
+
+.match-score {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
 .diff-btn {
   font-size: 11px;
   font-weight: 800;
