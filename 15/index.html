@@ -1649,14 +1649,14 @@ function sendEvent(
     ){
 
       window.parent.postMessage(
-        {
+        JSON.stringify({
           action:
             "sendGameEvent",
 
           eventName,
 
           payload:copy
-        },
+        }),
         "*"
       );
 

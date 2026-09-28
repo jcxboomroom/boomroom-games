@@ -200,7 +200,7 @@ function assignTeams(){
 
 function send(eventName,payload={}){
   if(SDK&&typeof SDK.sendGameEvent==='function'){try{SDK.sendGameEvent(eventName,payload);return true}catch(e){}}
-  if(window.parent&&window.parent!==window){try{window.parent.postMessage({action:'sendGameEvent',eventName,payload},'*');return true}catch(e){}}
+  if(window.parent&&window.parent!==window){try{window.parent.postMessage(JSON.stringify({action:'sendGameEvent',eventName,payload}),'*');return true}catch(e){}}
   return false;
 }
 let lastRoomBroadcast=0,lastStateBroadcast=0;
