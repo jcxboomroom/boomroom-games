@@ -708,11 +708,29 @@ function raf(t){
 requestAnimationFrame(raf);
 
 /* bootstrap / delayed SDK support */
-if(!getSDK()){
-  DEMO=true;els.devBadge.style.display='block';setupSDK({user:initialUser,isHost:true,roomId:'DEMO',roomPlayers:[{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}]});showToast('開發測試模式：單人也會輪流回合測試，不扣款')
-}else{
-  els.devBadge.style.display='none';setupSDK({user:typeof getSDK().getUser==='function'?getSDK().getUser():initialUser,isHost:getSDK().isHost,roomId:getSDK().roomId,roomPlayers:Array.isArray(getSDK().roomPlayers)?getSDK().roomPlayers:[]})
-}
+const pollSdk = setInterval(() => {
+  const sdk = getSDK();
+  if (sdk) {
+    clearInterval(pollSdk);
+    DEMO = false;
+    els.devBadge.style.display = 'none';
+    setupSDK({
+      user: typeof sdk.getUser === 'function' ? sdk.getUser() : { id: 'user-' + Math.random(), username: '玩家' },
+      isHost: sdk.isHost,
+      roomId: sdk.roomId,
+      roomPlayers: Array.isArray(sdk.roomPlayers) ? sdk.roomPlayers : []
+    });
+  }
+}, 100);
+
+setTimeout(() => {
+  clearInterval(pollSdk);
+  if (!refreshSDK()) {
+    DEMO = true;
+    els.devBadge.style.display = 'block';
+    setupSDK({ user: initialUser, isHost: true, roomId: 'DEMO', roomPlayers: [{ id: initialUser.id, username: initialUser.username }] });
+  }
+}, 1500);
 })();
 </script>
 </body>

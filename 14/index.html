@@ -478,28 +478,66 @@ function calculateReward(){
 function finishGame(reason){
   if(gameState!=='PLAYING') return;
   setGameState('RESULT'); inputLocked=true;
-  const reward=calculateReward();
+
   const finalScore=safeInt(score,0,99999999);
-  sendEvent('PLAYER_END',{roundId,username:user.username,status:'FINISHED',score:finalScore,reward,reason});
+  observedPlayers.set(String(user.id), { username: user.username, score: finalScore, status: 'FINISHED', timestamp: Date.now() });
+
+  const allPlayers = [...observedPlayers.entries()].map(([id, p]) => ({
+    id,
+    username: p.username || '玩家',
+    score: p.score || 0
+  })).sort((a, b) => b.score - a.score);
+
+  const myRank = allPlayers.findIndex(p => p.id === String(user.id)) + 1;
+  const reward = myRank === 1 ? 100 : myRank === 2 ? 50 : 20;
+  const finalReward = safeInt(reward, 0, 100);
+
+  sendEvent('PLAYER_END',{roundId,username:user.username,status:'FINISHED',score:finalScore,reward:finalReward,reason});
+
   if(!gameOverCalled){
     gameOverCalled=true;
     try{
       if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-        window.BoomRoomSDK.gameOver(reward);
+        window.BoomRoomSDK.gameOver(finalReward);
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward }), '*');
       }
     }catch(e){}
   }
-  $('resultScore').textContent=finalScore.toLocaleString(); $('resultHits').textContent=hits; $('resultBest').textContent=bestCombo; $('resultReward').textContent=reward;
-  $('resultReason').textContent=reason+' · 連擊 '+bestCombo+' · 共命中 '+hits+' 次';
+
+  $('resultScore').textContent=finalScore.toLocaleString();
+  $('resultHits').textContent=hits;
+  $('resultBest').textContent=bestCombo;
+  $('resultReward').textContent=finalReward;
+  $('resultReason').textContent=`第 ${myRank} 名 · 命中 ${hits} 次 · 連擊 ${bestCombo}`;
+
+  let rankHtml = '<div style="margin-top:10px;text-align:left;max-height:130px;overflow-y:auto;">';
+  allPlayers.forEach((p, idx) => {
+    const isMe = p.id === String(user.id);
+    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}`;
+    rankHtml += `<div style="display:flex;justify-content:space-between;padding:4px 8px;margin-bottom:3px;border-radius:6px;background:${isMe?'rgba(53,230,255,0.2)':'rgba(255,255,255,0.03)'};color:${isMe?'#35e6ff':'#fff'};font-size:11px;font-weight:bold;"><span>${medal} ${esc(p.username)}${isMe?' (你)':''}</span><span>${p.score.toLocaleString()} 分</span></div>`;
+  });
+  rankHtml += '</div>';
+
+  let listEl = document.getElementById('multiRankList');
+  if (!listEl) {
+    listEl = document.createElement('div');
+    listEl.id = 'multiRankList';
+    $('resultReason').parentNode.insertBefore(listEl, $('resultReason').nextSibling);
+  }
+  listEl.innerHTML = rankHtml;
+
   $('resultOverlay').classList.remove('hidden');
   soundMilestone(); buzz([30,30,60]);
 
   setTimeout(() => {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ action: 'leaveGame' }, '*');
-    } else {
-      try { window.close(); } catch(e){}
-    }
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({ action: 'leaveGame' }), '*');
+      } else {
+        window.close();
+      }
+    } catch(e){}
   }, 3000);
 }
 
