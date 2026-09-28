@@ -122,16 +122,24 @@ window.addEventListener("message", e => {
   } catch (_) {}
 });
 
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
 window.onBoomRoomSDKReady = function() {
   if (window.BoomRoomSDK) {
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 function sendEvent(eventName, payload) {
   try {

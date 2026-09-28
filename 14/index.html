@@ -324,16 +324,8 @@ function startGame(){
   rafId=requestAnimationFrame(loop);
 }
 
-function chooseRule(){
-  const next=(RULES.findIndex(r=>r.id===currentRule.id)+1)%RULES.length;
-  currentRule=RULES[next];
-  updateRuleUI();
-  toast('規則切換：'+currentRule.title);
-  tone(420,.05,'square',.018); tone(640,.05,'square',.018,.05);
-}
-function updateRuleUI(){
-  $('ruleIcon').textContent=currentRule.icon; $('ruleTitle').textContent=currentRule.title; $('ruleDesc').textContent=currentRule.desc;
-}
+function chooseRule(){}
+function updateRuleUI(){}
 
 function difficulty(){
   const t=elapsed;
@@ -456,7 +448,6 @@ function updateHUD(now){
   $('timeText').textContent=remaining.toFixed(1);
   $('timerBar').style.width=(remaining/GAME_INFO.duration*100).toFixed(2)+'%';
   if(remaining<=5) $('timeText').style.color='var(--red)'; else $('timeText').style.color='';
-  if(elapsed>=nextRuleChangeAt){ chooseRule(); nextRuleChangeAt+=7.0; }
   const d=difficulty(); $('paceText').textContent=feverActive?'FEVER ×2':(d.d<.33?'穩定':d.d<.66?'加速':'極限');
 }
 
