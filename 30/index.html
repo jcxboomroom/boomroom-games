@@ -10,17 +10,34 @@
 <body>
   <main class="game-shell">
     <header class="topbar">
-      <div class="brand">✳ BOOM<span style="color:#fff;">ROOM</span> 五子棋</div>
+      <div class="brand"><span>✳</span> BOOM<span style="color:#fff;">ROOM</span> 五子棋</div>
       <div class="player-counter" id="playerCounter">👥 1/10 人</div>
     </header>
 
-    <section class="turn-banner" id="turnBanner">
-      <div class="stone-indicator black" id="turnStone"></div>
-      <span id="turnText">黑子（黑棋先行）回合</span>
+    <section class="status-bar">
+      <div class="turn-indicator">
+        <div class="stone-badge black" id="turnStone"></div>
+        <span id="turnText">黑子（黑棋先行）落子中</span>
+      </div>
+      <div class="move-count" id="moveCount">第 0 步</div>
+    </section>
+
+    <section class="ai-difficulty-bar" id="aiDifficultyBar">
+      <span style="font-size:11px;color:var(--text-muted);font-weight:800;">AI 難度:</span>
+      <button class="diff-btn" id="diffEasy" type="button" data-diff="easy">🌱 簡單</button>
+      <button class="diff-btn active" id="diffNormal" type="button" data-diff="normal">⚔️ 中等</button>
+      <button class="diff-btn" id="diffMaster" type="button" data-diff="master">👑 大師</button>
     </section>
 
     <section class="board-container">
       <canvas id="boardCanvas"></canvas>
+    </section>
+
+    <section class="action-toolbar">
+      <button class="tool-btn" id="btnHint" type="button">💡 提示</button>
+      <button class="tool-btn" id="btnUndo" type="button">↩️ 悔棋</button>
+      <button class="tool-btn danger" id="btnResign" type="button">🏳️ 認輸</button>
+      <button class="tool-btn" id="btnRestart" type="button">🔄 重來</button>
     </section>
 
     <footer class="footer-notice">

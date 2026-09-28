@@ -1,23 +1,29 @@
 const BOARD_SIZE = 15;
+const COLS_LABELS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'];
+
 let sdk = window.BoomRoomSDK || null;
 
 const ui = {
   canvas: document.getElementById('boardCanvas'),
   playerCounter: document.getElementById('playerCounter'),
-  turnBanner: document.getElementById('turnBanner'),
   turnStone: document.getElementById('turnStone'),
   turnText: document.getElementById('turnText'),
+  moveCount: document.getElementById('moveCount'),
   autoStartNotice: document.getElementById('autoStartNotice'),
   rosterList: document.getElementById('rosterList'),
   resultOverlay: document.getElementById('resultOverlay'),
   resultTitle: document.getElementById('resultTitle'),
   resultSubtitle: document.getElementById('resultSubtitle'),
   resultReward: document.getElementById('resultReward'),
+  btnHint: document.getElementById('btnHint'),
+  btnUndo: document.getElementById('btnUndo'),
+  btnResign: document.getElementById('btnResign'),
+  btnRestart: document.getElementById('btnRestart'),
 };
 
 const ctx = ui.canvas.getContext('2d');
 
-let me = { id: `local-${Math.random().toString(36).slice(2, 8)}`, username: '玩家', avatar: '' };
+let me = { id: `local-${Math.random().toString(36).slice(2, 8)}`, username: '你', avatar: '' };
 let isHost = sdk ? !!sdk.isHost : true;
 let roomId = sdk ? (sdk.roomId || '') : '';
 let roomPlayersMap = new Map();
@@ -28,18 +34,75 @@ let autoStartTimer = null;
 
 // Game State
 let board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0)); // 0: empty, 1: black, 2: white
+let moveHistory = []; // [[row, col, color], ...]
 let currentTurn = 1; // 1: black, 2: white
 let isPlaying = false;
 let gameOverCalled = false;
 let winningStones = [];
+let hintPos = null;
+let audioCtx = null;
 
 let playerBlack = null;
 let playerWhite = null;
 
+/* =========================================================
+   AUDIO & SFX
+========================================================= */
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playStoneSound() {
+  try {
+    ensureAudio();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320 + Math.random() * 40, now);
+    osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } catch (_) {}
+}
+
+function playWinSound() {
+  try {
+    ensureAudio();
+    const now = audioCtx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + i * 0.1);
+      gain.gain.setValueAtTime(0.2, now + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + i * 0.1);
+      osc.stop(now + i * 0.1 + 0.25);
+    });
+  } catch (_) {}
+}
+
+/* =========================================================
+   SDK INIT & MULTIPLAYER
+========================================================= */
+
 function setupSDK(data) {
   if (data && data.user) {
     me.id = String(data.user.id || me.id);
-    me.username = String(data.user.username || '玩家').slice(0, 16);
+    me.username = String(data.user.username || '你').slice(0, 16);
     me.avatar = String(data.user.avatar || '');
   }
   isHost = !!(data && data.isHost);
@@ -73,13 +136,21 @@ function setupSDK(data) {
 function assignRoles() {
   const pList = [...roomPlayersMap.values()];
   playerBlack = pList[0] || me;
-  playerWhite = pList[1] || null;
+
+  if (pList.length > 1) {
+    playerWhite = pList[1];
+  } else {
+    // 🌟 單人模式：自動分配智能 AI「🤖 智勝 AI」為白子！
+    playerWhite = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
+  }
 }
 
 function updateRosterUI() {
   ui.playerCounter.textContent = `👥 ${roomPlayersMap.size}/10 人`;
   ui.rosterList.innerHTML = '';
-  [...roomPlayersMap.values()].forEach((p, idx) => {
+
+  const pList = [playerBlack, playerWhite, ...[...roomPlayersMap.values()].filter(p => p !== playerBlack && p !== playerWhite)];
+  pList.filter(Boolean).forEach((p, idx) => {
     const chip = document.createElement('div');
     chip.className = `roster-chip${p.id === me.id ? ' active' : ''}`;
     const roleTag = idx === 0 ? ' (黑子)' : idx === 1 ? ' (白子)' : ' (觀戰)';
@@ -119,22 +190,32 @@ function scheduleAutoStartFallback() {
 
 function startGomokuRound() {
   board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+  moveHistory = [];
   currentTurn = 1;
   isPlaying = true;
   gameOverCalled = false;
   winningStones = [];
-  ui.autoStartNotice.textContent = '🎮 對局進行中 · 點擊棋盤落子';
+  hintPos = null;
+
+  ui.autoStartNotice.textContent = playerWhite?.isBot ? '🎮 單人 AI 對決中 · 點擊棋盤落子' : '🎮 房間多人對局中 · 點擊棋盤落子';
   updateTurnUI();
   drawBoard();
 }
 
 function updateTurnUI() {
+  ui.moveCount.textContent = `第 ${moveHistory.length} 步`;
+
   if (currentTurn === 1) {
-    ui.turnStone.className = 'stone-indicator black';
+    ui.turnStone.className = 'stone-badge black';
     ui.turnText.textContent = `黑子（${playerBlack?.username || '黑棋'}）落子中`;
   } else {
-    ui.turnStone.className = 'stone-indicator white';
+    ui.turnStone.className = 'stone-badge white';
     ui.turnText.textContent = `白子（${playerWhite?.username || '白棋'}）落子中`;
+  }
+
+  // 🌟 單人 AI 回合自動觸發 AI 計算落子
+  if (isPlaying && currentTurn === 2 && playerWhite?.isBot) {
+    setTimeout(triggerAiMove, 450);
   }
 }
 
@@ -156,85 +237,125 @@ function drawBoard() {
   const h = ui.canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
 
-  const padding = 20;
-  const cell = (w - padding * 2) / (BOARD_SIZE - 1);
+  const margin = 26; // Margin for A-O & 1-15 labels
+  const cell = (w - margin * 2) / (BOARD_SIZE - 1);
 
-  // 1. Draw Grid Lines
+  // 1. Draw Grid Coordinate Labels (A-O, 1-15)
+  ctx.font = 'bold 9px sans-serif';
+  ctx.fillStyle = '#6a4220';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let i = 0; i < BOARD_SIZE; i++) {
+    // Top & Bottom A-O
+    ctx.fillText(COLS_LABELS[i], margin + i * cell, margin / 2);
+    ctx.fillText(COLS_LABELS[i], margin + i * cell, h - margin / 2);
+
+    // Left & Right 1-15
+    ctx.fillText(String(i + 1), margin / 2, margin + i * cell);
+    ctx.fillText(String(i + 1), w - margin / 2, margin + i * cell);
+  }
+
+  // 2. Draw Grid Lines
   ctx.strokeStyle = '#5c3a1e';
   ctx.lineWidth = 1.2;
 
   for (let i = 0; i < BOARD_SIZE; i++) {
     // Horizontal
     ctx.beginPath();
-    ctx.moveTo(padding, padding + i * cell);
-    ctx.lineTo(w - padding, padding + i * cell);
+    ctx.moveTo(margin, margin + i * cell);
+    ctx.lineTo(w - margin, margin + i * cell);
     ctx.stroke();
 
     // Vertical
     ctx.beginPath();
-    ctx.moveTo(padding + i * cell, padding);
-    ctx.lineTo(padding + i * cell, h - padding);
+    ctx.moveTo(margin + i * cell, margin);
+    ctx.lineTo(margin + i * cell, h - margin);
     ctx.stroke();
   }
 
-  // 2. Draw Star Points (天元, 4角)
+  // 3. Draw Star Points (天元, 4角)
   const stars = [3, 7, 11];
   ctx.fillStyle = '#5c3a1e';
   stars.forEach(r => {
     stars.forEach(c => {
       ctx.beginPath();
-      ctx.arc(padding + c * cell, padding + r * cell, 3.5, 0, Math.PI * 2);
+      ctx.arc(margin + c * cell, margin + r * cell, 3.5, 0, Math.PI * 2);
       ctx.fill();
     });
   });
 
-  // 3. Draw Stones
+  // 4. Draw Stones
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const stone = board[r][c];
       if (stone !== 0) {
-        drawStone(c, r, stone, padding, cell);
+        drawStone(c, r, stone, margin, cell);
       }
     }
   }
 
-  // 4. Highlight Winning Stones
-  if (winningStones.length > 0) {
+  // 5. Highlight Last Move Marker (紅色環形最新落子標記)
+  if (moveHistory.length > 0) {
+    const [lastR, lastC, lastColor] = moveHistory[moveHistory.length - 1];
+    ctx.strokeStyle = lastColor === 1 ? '#ff3a9d' : '#35e6ff';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(margin + lastC * cell, margin + lastR * cell, cell * 0.22, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 6. Highlight Hint Position (💡 提示亮圈)
+  if (hintPos && isPlaying) {
+    const [hR, hC] = hintPos;
     ctx.strokeStyle = '#35e6ff';
     ctx.lineWidth = 3;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(margin + hC * cell, margin + hR * cell, cell * 0.45, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // 7. Highlight Winning 5 Stones
+  if (winningStones.length > 0) {
+    ctx.strokeStyle = '#4ee08a';
+    ctx.lineWidth = 3.5;
     winningStones.forEach(([r, c]) => {
       ctx.beginPath();
-      ctx.arc(padding + c * cell, padding + r * cell, cell * 0.42, 0, Math.PI * 2);
+      ctx.arc(margin + c * cell, margin + r * cell, cell * 0.45, 0, Math.PI * 2);
       ctx.stroke();
     });
   }
 }
 
-function drawStone(c, r, stone, padding, cell) {
-  const x = padding + c * cell;
-  const y = padding + r * cell;
-  const radius = cell * 0.42;
+function drawStone(c, r, stone, margin, cell) {
+  const x = margin + c * cell;
+  const y = margin + r * cell;
+  const radius = cell * 0.43;
 
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
 
   if (stone === 1) {
-    // Black Stone
-    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
-    grad.addColorStop(0, '#666');
-    grad.addColorStop(1, '#000');
+    // 3D Metallic Black Stone
+    const grad = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
+    grad.addColorStop(0, '#777777');
+    grad.addColorStop(0.5, '#222222');
+    grad.addColorStop(1, '#050505');
     ctx.fillStyle = grad;
-    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowColor = 'rgba(0,0,0,0.65)';
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 3;
   } else {
-    // White Stone
-    const grad = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+    // Glossy Pearl White Stone
+    const grad = ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
     grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(1, '#dddddd');
+    grad.addColorStop(0.7, '#ececec');
+    grad.addColorStop(1, '#b5b5b5');
     ctx.fillStyle = grad;
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 3;
   }
@@ -250,9 +371,9 @@ function drawStone(c, r, stone, padding, cell) {
 function handleCanvasClick(e) {
   if (!isPlaying) return;
 
-  // Check turn permission
+  // Permission Check
   const isMyTurn = (currentTurn === 1 && me.id === playerBlack?.id) ||
-                   (currentTurn === 2 && (playerWhite ? me.id === playerWhite.id : true));
+                   (currentTurn === 2 && (playerWhite?.isBot ? false : me.id === playerWhite?.id));
 
   if (!isMyTurn) return;
 
@@ -260,11 +381,11 @@ function handleCanvasClick(e) {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  const padding = 20;
-  const cell = (rect.width - padding * 2) / (BOARD_SIZE - 1);
+  const margin = 26;
+  const cell = (rect.width - margin * 2) / (BOARD_SIZE - 1);
 
-  const col = Math.round((x - padding) / cell);
-  const row = Math.round((y - padding) / cell);
+  const col = Math.round((x - margin) / cell);
+  const row = Math.round((y - margin) / cell);
 
   if (col >= 0 && col < BOARD_SIZE && row >= 0 && row < BOARD_SIZE && board[row][col] === 0) {
     placeMove(row, col, currentTurn, true);
@@ -273,6 +394,10 @@ function handleCanvasClick(e) {
 
 function placeMove(row, col, stoneColor, isLocalAction) {
   board[row][col] = stoneColor;
+  moveHistory.push([row, col, stoneColor]);
+  hintPos = null;
+
+  playStoneSound();
 
   if (isLocalAction) {
     sendGameEvent('GOMOKU_MOVE', { row, col, stoneColor, userId: me.id });
@@ -317,8 +442,162 @@ function checkWin(row, col, color) {
   return false;
 }
 
+/* =========================================================
+   SMART GOMOKU AI ENGINE
+========================================================= */
+
+function triggerAiMove() {
+  if (!isPlaying || currentTurn !== 2) return;
+  const bestMove = getBestAiMove();
+  if (bestMove) {
+    placeMove(bestMove[0], bestMove[1], 2, false);
+  }
+}
+
+let aiDifficulty = 'normal';
+
+function setAiDifficulty(diff) {
+  aiDifficulty = diff;
+  document.getElementById('diffEasy')?.classList.toggle('active', diff === 'easy');
+  document.getElementById('diffNormal')?.classList.toggle('active', diff === 'normal');
+  document.getElementById('diffMaster')?.classList.toggle('active', diff === 'master');
+}
+
+function getBestAiMove() {
+  const scoredCandidates = [];
+
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      if (board[r][c] === 0) {
+        const centerDist = Math.abs(r - 7) + Math.abs(c - 7);
+        const centerBonus = (14 - centerDist) * 3;
+
+        const attack = evaluatePos(r, c, 2);
+        const defense = evaluatePos(r, c, 1);
+
+        let totalScore = attack * 1.15 + defense + centerBonus;
+
+        if (attack >= 100000) totalScore += 1000000;
+        if (defense >= 100000) totalScore += 800000;
+
+        scoredCandidates.push({ r, c, score: totalScore });
+      }
+    }
+  }
+
+  if (scoredCandidates.length === 0) return [7, 7];
+
+  scoredCandidates.sort((a, b) => b.score - a.score);
+
+  if (aiDifficulty === 'easy') {
+    if (Math.random() < 0.35 && scoredCandidates.length >= 4) {
+      const pick = scoredCandidates[Math.floor(Math.random() * Math.min(4, scoredCandidates.length))];
+      return [pick.r, pick.c];
+    }
+  } else if (aiDifficulty === 'normal') {
+    if (Math.random() < 0.10 && scoredCandidates.length >= 2) {
+      const pick = scoredCandidates[Math.floor(Math.random() * Math.min(2, scoredCandidates.length))];
+      return [pick.r, pick.c];
+    }
+  }
+
+  return [scoredCandidates[0].r, scoredCandidates[0].c];
+}
+
+function evaluatePos(row, col, color) {
+  board[row][col] = color;
+  let score = 0;
+
+  const directions = [
+    [[0, 1], [0, -1]],
+    [[1, 0], [-1, 0]],
+    [[1, 1], [-1, -1]],
+    [[1, -1], [-1, 1]]
+  ];
+
+  for (const dirPair of directions) {
+    let count = 1;
+    let openEnds = 0;
+
+    for (const [dr, dc] of dirPair) {
+      let r = row + dr;
+      let c = col + dc;
+      while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === color) {
+        count++;
+        r += dr;
+        c += dc;
+      }
+      if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === 0) {
+        openEnds++;
+      }
+    }
+
+    if (count >= 5) score += 100000;
+    else if (count === 4 && openEnds === 2) score += 10000;
+    else if (count === 4 && openEnds === 1) score += 2500;
+    else if (count === 3 && openEnds === 2) score += 1000;
+    else if (count === 3 && openEnds === 1) score += 200;
+    else if (count === 2 && openEnds === 2) score += 100;
+  }
+
+  board[row][col] = 0;
+  return score;
+}
+
+/* =========================================================
+   TOOLKITS (提示, 悔棋, 認輸, 重來)
+========================================================= */
+
+function handleHint() {
+  if (!isPlaying) return;
+  ensureAudio();
+  const move = getBestAiMove();
+  if (move) {
+    hintPos = move;
+    drawBoard();
+  }
+}
+
+function handleUndo() {
+  if (!isPlaying || moveHistory.length === 0) return;
+  ensureAudio();
+
+  // In AI mode, undo 2 moves (your move + AI move)
+  const steps = (playerWhite?.isBot && moveHistory.length >= 2) ? 2 : 1;
+
+  for (let i = 0; i < steps; i++) {
+    if (moveHistory.length > 0) {
+      const [r, c] = moveHistory.pop();
+      board[r][c] = 0;
+    }
+  }
+
+  currentTurn = (moveHistory.length % 2 === 0) ? 1 : 2;
+  winningStones = [];
+  hintPos = null;
+  updateTurnUI();
+  drawBoard();
+}
+
+function handleResign() {
+  if (!isPlaying) return;
+  ensureAudio();
+  const winnerColor = currentTurn === 1 ? 2 : 1;
+  finishGomokuRound(winnerColor);
+}
+
+function handleRestart() {
+  ensureAudio();
+  startGomokuRound();
+}
+
+/* =========================================================
+   RESULT & SETTLEMENT
+========================================================= */
+
 function finishGomokuRound(winnerColor) {
   isPlaying = false;
+  playWinSound();
   drawBoard();
 
   const winner = winnerColor === 1 ? playerBlack : (playerWhite || { username: '白棋' });
@@ -391,7 +670,7 @@ function handleNetworkEvent(eventName, payload, senderId) {
 }
 
 /* =========================================================
-   INIT & EVENT BINDING
+   INIT & EVENT BINDINGS
 ========================================================= */
 
 window.initBoomRoomSDK = function(data) {
@@ -415,4 +694,13 @@ if (window.BoomRoomSDK) {
 
 window.addEventListener('resize', resizeCanvas);
 ui.canvas.addEventListener('click', handleCanvasClick);
+ui.btnHint.addEventListener('click', handleHint);
+ui.btnUndo.addEventListener('click', handleUndo);
+ui.btnResign.addEventListener('click', handleResign);
+ui.btnRestart.addEventListener('click', handleRestart);
+
+document.getElementById('diffEasy')?.addEventListener('click', () => setAiDifficulty('easy'));
+document.getElementById('diffNormal')?.addEventListener('click', () => setAiDifficulty('normal'));
+document.getElementById('diffMaster')?.addEventListener('click', () => setAiDifficulty('master'));
+
 resizeCanvas();
