@@ -675,7 +675,7 @@ function bindGameEvents() {
   window.addEventListener('message', e => {
     const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
     if (!data) return;
-    if (data.action === 'initSDK') {
+    if (data.action === 'initSDK' || data.user || data.roomPlayers || data.roomId) {
       setupSDK(data);
     } else if (data.action === 'gameEventReceived') {
       handleNetworkEvent(data.eventName, data.payload, data.userId);
