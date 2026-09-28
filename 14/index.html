@@ -163,7 +163,7 @@ const COLORS = [
   {name:'金',hex:'#ffd65a',h:45},
   {name:'橙',hex:'#ff9c57',h:24}
 ];
-const SHAPES = ['●','◆','▲','■','✦'];
+const SHAPES = ['👑', '⭐', '💎', '🔥', '⚡', '🌙'];
 const RULES = [
   {id:'color',title:'找同色',desc:'找到和目標顏色完全相同的唯一方塊',icon:'🎨'},
   {id:'shape',title:'找同形',desc:'找到和目標形狀完全相同的唯一方塊',icon:'🔷'},
@@ -325,7 +325,7 @@ function updateRuleUI(){
 function difficulty(){
   const t=elapsed;
   const d=clamp(t/30,0,1);
-  return {d, window:clamp(1.75 - d*0.70 - Math.max(0,combo-8)*0.025,0.72,1.75), sim:clamp(0.18+d*0.60,0.18,0.78), refresh:clamp(0.12+d*0.10,0.12,0.22)};
+  return {d, window:clamp(4.5 - d*1.0 - Math.max(0,combo-8)*0.05, 3.2, 4.5), sim:clamp(0.18+d*0.50,0.18,0.68), refresh:clamp(0.12+d*0.10,0.12,0.22)};
 }
 
 function makeBoard(){
@@ -337,6 +337,15 @@ function makeBoard(){
   const rnd=mulberry32(seed);
   const target={color:Math.floor(rnd()*COLORS.length),shape:Math.floor(rnd()*SHAPES.length),num:1+Math.floor(rnd()*9)};
   targetIndex=Math.floor(rnd()*12);
+
+  const targetColorName = COLORS[target.color].name;
+  const targetColorHex = COLORS[target.color].hex;
+  const targetShapeSymbol = SHAPES[target.shape];
+
+  $('ruleIcon').innerHTML = `<span style="color:${targetColorHex};font-weight:bold;font-size:22px;">${targetShapeSymbol}</span>`;
+  $('ruleTitle').innerHTML = `尋找：<span style="color:${targetColorHex};">${targetColorName}色</span> ${targetShapeSymbol}`;
+  $('ruleDesc').textContent = `在下方 12 格中點選 ${targetColorName}色的 ${targetShapeSymbol}`;
+
   grid.innerHTML='';
   const cells=[];
   for(let i=0;i<12;i++){
