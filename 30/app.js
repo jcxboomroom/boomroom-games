@@ -174,15 +174,15 @@ setInterval(() => {
 }, 800);
 
 function assignRoles() {
-  const pList = [...roomPlayersMap.values()];
+  const pList = [...roomPlayersMap.values()].sort((a, b) => {
+    return String(a.id).localeCompare(String(b.id));
+  });
   playerBlack = pList[0] || me;
 
   if (pList.length > 1) {
     playerWhite = pList[1];
-    // 多人遊玩隱藏 AI 難度選擇列
     ui.aiDifficultyBar?.classList.add('hidden');
   } else {
-    // 單人模式：分配智能 AI
     playerWhite = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
     ui.aiDifficultyBar?.classList.remove('hidden');
   }
