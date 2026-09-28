@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#10131d">
+  <title>跳跳球</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="game">
+    <canvas id="game-canvas" aria-label="跳跳球競技場"></canvas>
+
+    <header class="hud">
+      <div class="brand">
+        <span class="brand-mark">✦</span>
+        <span>JUMP<span class="brand-accent">BALL</span></span>
+      </div>
+      <div class="round-clock" aria-live="polite">
+        <span class="clock-caption" id="match-round">第 1 / 5 戰</span>
+        <span class="map-caption" id="map-name">迷你地圖</span>
+        <strong id="timer">60</strong>
+      </div>
+      <div class="score-card">
+        <span class="score-label">你的能量</span>
+        <strong id="my-score">0</strong>
+      </div>
+    </header>
+
+    <div class="event-toast" id="event-toast" aria-live="polite"></div>
+    <div class="leaderboard" id="leaderboard" aria-label="即時排名"></div>
+
+    <div class="countdown" id="countdown">
+      <span class="countdown-kicker">浮空競技場</span>
+      <strong id="countdown-number">3</strong>
+      <span class="countdown-tip">移動躲避　·　蓄力跳起　·　踩中對手</span>
+    </div>
+
+    <div class="result-screen" id="result-screen">
+      <div class="result-card">
+        <span class="result-kicker">競技結束</span>
+        <h1 id="result-title">太精彩了！</h1>
+        <div class="result-scoreline">
+          <span id="result-score-label">本戰能量</span>
+          <strong id="result-score">0</strong>
+        </div>
+        <div class="result-ranking" id="result-ranking"></div>
+        <div class="result-exit" id="result-next">下一戰準備中</div>
+      </div>
+    </div>
+
+    <div class="touch-controls" aria-hidden="true">
+      <div class="joystick" id="joystick">
+        <div class="joystick-ring"><div class="joystick-knob" id="joystick-knob"></div></div>
+      </div>
+      <div class="jump-control" id="jump-control">
+        <div class="jump-meter"><i id="jump-meter-fill"></i></div>
+        <span class="jump-icon">↟</span>
+        <span class="jump-label">按住蓄力<br>放開跳躍</span>
+      </div>
+    </div>
+
+    <div class="desktop-hint">方向鍵移動 <b>·</b> 按住空白鍵蓄力，放開跳躍</div>
+    <div class="round-banner" id="round-banner">最後衝刺！</div>
+  </main>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

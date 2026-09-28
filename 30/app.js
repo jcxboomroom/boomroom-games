@@ -131,14 +131,12 @@ function setupSDK(data) {
   updateRosterUI();
   updateAutoStartNotice();
 
-  // 🌟 單人模式自動快速開局
-  if (totalRoomPlayersCount === 1) {
-    setTimeout(() => {
-      if (!isPlaying && !autoStarted) triggerAutoStart();
-    }, 500);
-  } else {
-    scheduleAutoStartFallback();
-  }
+  // 🌟 無論單人或多人，初始化後 600ms 內強制自動開局，絕不卡在 1/1
+  setTimeout(() => {
+    if (!isPlaying && !autoStarted) {
+      triggerAutoStart();
+    }
+  }, 600);
 
   bindGameEvents();
 }
