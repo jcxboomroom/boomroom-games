@@ -241,42 +241,32 @@ function setupSDK(data) {
   setNotice("已連接 BoomRoom，等待室長開始。");
   sendEvent("PLAYER_HELLO", { roundId: roundId || "LOBBY", userId: ME.id, username: ME.username, avatar: ME.avatar, joinedAt: ME.joinedAt, paid: !!purchaseConfirmed });
   render();
+
+  setTimeout(() => {
+    if (!purchaseConfirmed && state === STATES.LOBBY) {
+      requestEntry();
+    }
+  }, 300);
 }
 
-window.addEventListener("message", e => {
-  try {
-    const data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    if (!data) return;
-    if (data.action === "initSDK") { setupSDK(data); return; }
-    if (data.action !== "gameEventReceived") return;
-    const userId = safeString(data.userId, "", 64);
-    const eventName = safeString(data.eventName, "", 40);
-    const payload = data.payload;
-    if (eventName === "PURCHASE_SUCCESS" && payload && payload.itemId === entryItemId()) {
-      if (window.onPurchaseSuccess) window.onPurchaseSuccess(payload.itemId, payload.silverCoins);
-      return;
-    }
-    if (!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload !== "object") return;
-    const round = safeString(payload.roundId, "LOBBY", 100);
-    const eventId = safeString(payload.eventId, "", 80);
-    const key = eventName + "|" + userId + "|" + round + "|" + (eventId || stableHash(JSON.stringify(payload)).toString(36));
-    if (seenEvents.has(key)) return;
-    seenEvents.add(key);
-    if (seenEvents.size > CONFIG.EVENT_DEDUPE_MAX) seenEvents.delete(seenEvents.values().next().value);
-    handleEvent(userId, eventName, payload);
-  } catch (_) {}
-});
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
 
 window.onBoomRoomSDKReady = function () {
   if (window.BoomRoomSDK) {
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === "function" ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 setTimeout(() => {
   if (DEV) {
@@ -401,7 +391,16 @@ function buildChart(seed) {
     if (lane === lastLane && rng() < 0.55) lane = (lane + 1 + Math.floor(rng() * 3)) % 4;
     const hold = i > 6 && rng() < (i > 40 ? 0.28 : 0.16);
     const len = hold ? 1.35 + rng() * 1.7 : 0.92;
-    out.push({ i, lane, pos, type: hold ? "hold" : "tap", len, hit: false, missed: false, holding: false });
+
+    const specRnd = rng();
+    let special = null;
+    if (i > 5 && !hold) {
+      if (specRnd < 0.08) special = 'gold';
+      else if (specRnd < 0.14) special = 'fever';
+      else if (specRnd < 0.20) special = 'bomb';
+    }
+
+    out.push({ i, lane, pos, type: hold ? "hold" : "tap", len, special, hit: false, missed: false, holding: false });
     pos += hold ? len + 0.42 : 0.78 + rng() * 0.22;
     lastLane = lane;
     if (pos > 78) break;
@@ -657,9 +656,28 @@ function handleEvent(userId, eventName, payload) {
 function hitNote(note) {
   if (note.hit) return;
   note.hit = true;
-  hits++; combo++; maxCombo = Math.max(maxCombo, combo);
-  flashLane = note.lane; flashUntil = performance.now() + 90;
-  playTone(note.type === "hold" ? 720 : 640 + (note.lane * 40), 0.05);
+
+  if (note.special === 'gold') {
+    hits += 10;
+    combo += 2;
+    playTone(980, 0.12, 'sine', 0.08);
+  } else if (note.special === 'fever') {
+    hits += 5;
+    combo += 3;
+    playTone(1200, 0.15, 'triangle', 0.09);
+  } else if (note.special === 'bomb') {
+    hits = Math.max(0, hits - 15);
+    combo = 0;
+    playTone(200, 0.2, 'sawtooth', 0.1);
+  } else {
+    hits++;
+    combo++;
+    playTone(note.type === "hold" ? 720 : 640 + (note.lane * 40), 0.05);
+  }
+
+  maxCombo = Math.max(maxCombo, combo);
+  flashLane = note.lane;
+  flashUntil = performance.now() + 90;
   const me = players.get(ME.id);
   if (me) { me.hits = hits; me.combo = combo; me.maxCombo = maxCombo; }
 }
@@ -783,10 +801,45 @@ function drawBoard() {
       ctx.fillStyle = g;
       roundRect(ctx, x, top, tw, height, 12); ctx.fill();
     } else {
-      ctx.fillStyle = dead ? "#2a3348" : "#151b2b";
-      roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
-      ctx.fillStyle = dead ? "#44506a" : "#f4f7ff";
-      roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+      if (n.special === 'gold') {
+        ctx.fillStyle = dead ? "#2a3348" : "#ffd700";
+        roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
+        ctx.fillStyle = dead ? "#44506a" : "#fff8a6";
+        roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+        if (!dead) {
+          ctx.font = "bold 20px sans-serif";
+          ctx.fillStyle = "#a87100";
+          ctx.textAlign = "center";
+          ctx.fillText("🪙", x + tw / 2, y - 18);
+        }
+      } else if (n.special === 'fever') {
+        ctx.fillStyle = dead ? "#2a3348" : "#ff007f";
+        roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
+        ctx.fillStyle = dead ? "#44506a" : "#00ffff";
+        roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+        if (!dead) {
+          ctx.font = "bold 20px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText("🔥", x + tw / 2, y - 18);
+        }
+      } else if (n.special === 'bomb') {
+        ctx.fillStyle = dead ? "#2a3348" : "#ff3b30";
+        roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
+        ctx.fillStyle = dead ? "#44506a" : "#220000";
+        roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+        if (!dead) {
+          ctx.font = "bold 20px sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.fillText("💣", x + tw / 2, y - 18);
+        }
+      } else {
+        ctx.fillStyle = dead ? "#2a3348" : "#151b2b";
+        roundRect(ctx, x, y - 52, tw, 56, 12); ctx.fill();
+        ctx.fillStyle = dead ? "#44506a" : "#f4f7ff";
+        roundRect(ctx, x + 3, y - 49, tw - 6, 50, 10); ctx.fill();
+      }
     }
   }
   if (failFlash > 0) {
@@ -926,6 +979,14 @@ function renderResult(main) {
       <div class="rankList">${all.map((p, i) => `<div class="rankRow"><div class="rankNo">${i + 1}</div><div class="rankName">${esc(p.username)}${p.id === ME.id ? " · 你" : ""}</div><div class="rankScore">${(p.survivedMs / 1000).toFixed(1)}s</div><div class="rankReward">+${intClamp(p.reward, 0, 99999)} 銀幣 · ${intClamp(p.hits, 0, 9999)} 塊 · 連擊 ${intClamp(p.maxCombo, 0, 9999)}${p.failReason ? " · " + esc(p.failReason) : ""}</div></div>`).join("")}</div>
     </section>
     <section class="panel"><p class="tiny muted">參賽 ${all.length} 人 · 總投入 ${totalPool} · 平台費 ${platformFee} · 單人保底上限 ${CONFIG.SOLO_REWARD_CAP}</p><div class="notice">等待室長關閉遊戲後再開下一局</div></section>`;
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 
 function gameLoop(ts) {
