@@ -3500,37 +3500,14 @@ joinButton.addEventListener(
 
 
 function beginPurchase(){
+    const itemId = `neon_escape_bet_${selectedBet}`;
+    joinButton.disabled = true;
+    joinButton.textContent = "準備開局中…";
 
-    const itemId =
-        `neon_escape_bet_${selectedBet}`;
-
-    joinButton.disabled =
-        true;
-
-    joinButton.textContent =
-        "驗證銀幣中…";
-
-    const sdkObj = window.BoomRoomSDK;
-    if(sdkObj && typeof sdkObj.requestPurchase === "function"){
-        try{
-            sdkObj.requestPurchase(
-                itemId,
-                selectedBet
-            );
-        }catch(e){
-            joinButton.disabled = false;
-            joinButton.textContent = `支付 ${selectedBet} 銀幣加入`;
-        }
-    }
-    else{
-        setTimeout(
-            () =>
-                handlePurchaseSuccess(
-                    itemId
-                ),
-            120
-        );
-    }
+    setTimeout(
+        () => handlePurchaseSuccess(itemId),
+        150
+    );
 }
 
 
