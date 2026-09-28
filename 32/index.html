@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#10132d">
+    <title>Floor Brawl</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main id="game" aria-label="最後一塊地板">
+      <canvas id="scene" aria-label="浮空地板競技場"></canvas>
+
+      <header class="hud">
+        <div class="brand"><span class="brand-mark">✦</span><span>最後一塊地板</span></div>
+        <div class="timer-wrap"><span id="timer">45</span><small>秒</small></div>
+        <div class="alive-pill"><span class="alive-dot"></span><span id="alive">6</span><small>存活</small></div>
+      </header>
+
+      <div class="status-row">
+        <div class="place-pill" id="place">準備落地</div>
+        <div class="charge-pill" id="charge">✦ 強撞未充能</div>
+      </div>
+
+      <div class="center-callout" id="callout" aria-live="polite"></div>
+
+      <div class="controls">
+        <div class="stick-wrap">
+          <div class="stick" id="joystick" aria-label="移動方向">
+            <span class="stick-ring"></span>
+            <span class="stick-knob" id="stickKnob"></span>
+          </div>
+          <span class="control-caption">移動</span>
+        </div>
+        <button class="dash-button" id="dashButton" aria-label="短衝撞擊">
+          <span class="dash-icon">➤</span>
+          <span class="dash-label">撞！</span>
+          <span class="dash-cooldown" id="cooldown"></span>
+        </button>
+      </div>
+      <div class="keyboard-hint">方向鍵移動　空白鍵撞擊</div>
+      <div class="round-result" id="result" aria-live="polite">
+        <div class="result-card">
+          <div class="result-kicker" id="resultKicker">本局結果</div>
+          <div class="result-title" id="resultTitle">最後站著的人</div>
+          <div class="result-list" id="resultList"></div>
+          <div class="result-foot">下一局即將開始…</div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
