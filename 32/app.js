@@ -18,9 +18,21 @@ const GAME_STATE = Object.freeze({
   EXIT: "EXIT",
 });
 
-const MATCH_SECONDS = 45;
-const OVERTIME_SECONDS = 12;
-const GRID_SIZE = 9;
+const MATCH_SECONDS = 32;
+const OVERTIME_SECONDS = 8;
+const SERIES_BATTLES = 5;
+const MAX_PLAYERS = 10;
+const AUTO_START_STABLE_MS = 1200;
+const HEARTBEAT_MS = 1200;
+const BOT_COUNT_FOR_SOLO = 5;
+const BOT_NAMES = ["碰碰", "閃閃", "豆包", "小彈珠", "泡泡", "阿蹦", "蘑菇", "麻糬", "火花"];
+const MAPS = [
+  { id: "courtyard", name: "小型庭院", tag: "7×7 小圖", grid: 7, radius: 1.04 },
+  { id: "neon-square", name: "霓虹方陣", tag: "8×8 中圖", grid: 8, radius: 1.03 },
+  { id: "wide-arena", name: "寬域競技場", tag: "9×9 大圖", grid: 9, radius: 1.02 },
+  { id: "fracture", name: "裂谷平台", tag: "8×8 窄場", grid: 8, radius: 0.92 },
+  { id: "final-ring", name: "終局圓環", tag: "10×10 極限", grid: 10, radius: 0.84 },
+];
 const PLAYER_COLORS = ["#6ef0ce", "#ff628d", "#ffcf57", "#8f8bff", "#ff956b", "#57c9ff", "#d987ff", "#a9e45d", "#f6a4c7", "#b8c4ff"];
 const SOUND_FILES = {
   bump: "./sfx/bump.wav",
@@ -39,21 +51,23 @@ music.preload = "auto";
 
 let state = GAME_STATE.LOADING;
 let sdk = window.BoomRoomSDK || null;
-const mockMode = !sdk;
+let mockMode = !sdk;
+let sdkReady = Boolean(sdk);
+let devFallbackUsed = false;
 const mockSdk = {
   isHost: true,
   roomId: "mock-room",
   roomPlayers: [],
   async getUser() { return { id: "mock-you", username: "你", avatar_url: null }; },
   sendGameEvent(eventName, payload) {
-    if (mockMode) handleGameEvent({ eventName, payload: { ...payload, sourceId: payload?.sourceId || localPlayer?.id } });
+    queueMicrotask(() => handleGameEvent({ eventName, payload: { ...payload, sourceId: payload?.sourceId || localPlayer?.id }, senderId: payload?.sourceId || localPlayer?.id }));
   },
   async requestPurchase() { return { success: false, mock: true }; },
   gameOver(winAmount) { console.info("[Floor Brawl] Mock gameOver:", winAmount); },
 };
 if (!sdk) sdk = mockSdk;
 
-const roomId = String(sdk.roomId || "room");
+let roomId = String(sdk.roomId || "room");
 let user = null;
 let localPlayer = null;
 let players = [];
@@ -84,6 +98,16 @@ let floaters = [];
 let screenShake = 0;
 let soundReady = false;
 let cachedTimeLeft = MATCH_SECONDS;
+let gridSize = MAPS[0].grid;
+let currentMapIndex = 0;
+let battleNumber = 1;
+let seriesParticipants = [];
+let roomHumans = [];
+let lastRoomSignature = "";
+let rosterStableSince = 0;
+let autoStartTimer = null;
+let battleTransitionTimer = null;
+let seriesFinished = false;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const length = (x, y) => Math.hypot(x, y);
@@ -164,85 +188,169 @@ function makePlayer(raw, index, isLocal = false, isBot = false) {
     flash: 0,
     trail: [],
     koReason: "",
+    seriesPoints: Number(raw?.seriesPoints) || 0,
+    battleWins: Number(raw?.battleWins) || 0,
   };
 }
 
-function normalizeRoster(rawPlayers, currentUser) {
-  const roster = Array.isArray(rawPlayers) ? rawPlayers : Array.isArray(rawPlayers?.players) ? rawPlayers.players : [];
-  const currentId = String(currentUser?.id ?? currentUser?.userId ?? "");
+function getMapForBattle(number = battleNumber) {
+  return MAPS[(Math.max(1, number) - 1) % MAPS.length];
+}
+
+function normalizeRawPlayers(rawPlayers) {
+  const roster = Array.isArray(rawPlayers)
+    ? rawPlayers
+    : Array.isArray(rawPlayers?.players) ? rawPlayers.players : [];
+  const currentId = String(user?.id ?? user?.userId ?? "");
   const normalized = [];
   const seen = new Set();
-
   roster.forEach((raw) => {
     if (!raw) return;
-    const id = String(raw.id ?? raw.userId ?? raw.user_id ?? "");
+    const id = String(raw.id ?? raw.userId ?? raw.user_id ?? raw.uid ?? "");
     if (!id || seen.has(id)) return;
     seen.add(id);
-    normalized.push(makePlayer(raw, normalized.length, id === currentId, false));
+    normalized.push({
+      id,
+      username: String(raw.username ?? raw.name ?? raw.displayName ?? raw.nickname ?? `玩家 ${normalized.length + 1}`).slice(0, 14),
+      avatar: raw.avatar ?? raw.avatar_url ?? raw.avatarStyle ?? null,
+      isBot: Boolean(raw.isBot ?? raw.bot ?? false),
+    });
   });
-
-  if (currentUser && !seen.has(currentId)) {
-    normalized.unshift(makePlayer(currentUser, 0, true, false));
-    normalized.forEach((player, index) => {
-      player.color = PLAYER_COLORS[index % PLAYER_COLORS.length];
+  if (user && currentId && !seen.has(currentId)) {
+    normalized.unshift({
+      id: currentId,
+      username: String(user.username ?? user.name ?? "你").slice(0, 14),
+      avatar: user.avatar ?? user.avatar_url ?? null,
+      isBot: false,
     });
   }
+  return normalized.slice(0, MAX_PLAYERS);
+}
 
-  if (!normalized.length) normalized.push(makePlayer({ id: "local-player", username: "你" }, 0, true, false));
-  if (!normalized.some((player) => player.isLocal)) normalized[0].isLocal = true;
+function makeBotRoster() {
+  return Array.from({ length: BOT_COUNT_FOR_SOLO }, (_, i) => ({
+    id: `bot-${roomId}-${i + 1}`,
+    username: BOT_NAMES[i] || `AI ${i + 1}`,
+    avatar: null,
+    isBot: true,
+  }));
+}
 
-  const targetCount = Math.min(10, mockMode ? 6 : 4);
-  while (normalized.length < targetCount) {
-    const index = normalized.length;
-    normalized.push(makePlayer({
-      id: `bot-${roomId}-${index}`,
-      username: ["碰碰", "閃閃", "豆包", "小彈珠", "泡泡", "阿蹦", "蘑菇", "麻糬", "火花"][index - 1] || `AI ${index}`,
-    }, index, false, true));
+function buildParticipants(humans) {
+  const realHumans = normalizeRawPlayers(humans).filter((p) => !p.isBot).slice(0, MAX_PLAYERS);
+  if (realHumans.length === 1) return [...realHumans, ...makeBotRoster()];
+  return realHumans;
+}
+
+function createGameplayPlayers(participants) {
+  return (Array.isArray(participants) ? participants : []).slice(0, MAX_PLAYERS)
+    .map((raw, index) => makePlayer(raw, index, raw.id === String(user?.id ?? ""), Boolean(raw.isBot)));
+}
+
+function resetTilesForMap(map) {
+  gridSize = map.grid;
+  safeRadius = map.radius;
+  tiles = [];
+  for (let row = 0; row < gridSize; row += 1) {
+    for (let col = 0; col < gridSize; col += 1) {
+      const x = ((col + 0.5) / gridSize) * 2 - 1;
+      const y = ((row + 0.5) / gridSize) * 2 - 1;
+      if (Math.hypot(x, y) < 1.055) {
+        tiles.push({ col, row, x, y, level: 0, collapseAt: 0, key: `${col}:${row}` });
+      }
+    }
   }
+}
 
-  return normalized.slice(0, 10);
+function setRoomHumans(list, source = "sdk") {
+  const next = normalizeRawPlayers(list).filter((p) => !p.isBot);
+  if (user?.id && !next.some((p) => p.id === String(user.id))) {
+    next.unshift({ id: String(user.id), username: String(user.username ?? "你").slice(0, 14), avatar: user.avatar ?? null, isBot: false });
+  }
+  const limited = next.slice(0, MAX_PLAYERS);
+  const signature = limited.map((p) => p.id).sort().join("|");
+  if (signature !== lastRoomSignature) {
+    lastRoomSignature = signature;
+    rosterStableSince = Date.now();
+  }
+  roomHumans = limited;
+  if (state === GAME_STATE.LOADING || state === GAME_STATE.RESULT) {
+    const current = seriesParticipants.length ? seriesParticipants : buildParticipants(roomHumans);
+    players = createGameplayPlayers(current);
+    localPlayer = players.find((p) => p.isLocal) || players[0] || null;
+  }
+  renderRoomHud();
+}
+
+function exportRoster() {
+  return roomHumans.map((p) => ({ id: p.id, username: p.username, avatar: p.avatar ?? null, isBot: false }));
+}
+
+function exportParticipants() {
+  return seriesParticipants.map((p) => ({
+    id: p.id,
+    username: p.name,
+    avatar: p.avatar ?? null,
+    isBot: Boolean(p.isBot),
+    seriesPoints: Number(p.seriesPoints || 0),
+    battleWins: Number(p.battleWins || 0),
+  }));
+}
+
+function renderRoomHud() {
+  const count = roomHumans.length;
+  const roomText = $("#roomCountText");
+  if (roomText) roomText.textContent = `房間真人 ${count} / ${MAX_PLAYERS}`;
+  const battleNode = $("#battle");
+  if (battleNode) battleNode.textContent = `${Math.min(SERIES_BATTLES, battleNumber)} / ${SERIES_BATTLES}`;
+  const mapNode = $("#mapInfo");
+  if (mapNode) {
+    const map = getMapForBattle(battleNumber);
+    mapNode.textContent = `第 ${battleNumber} 戰 · ${map.name} · ${map.tag}`;
+  }
 }
 
 async function boot() {
-  const userPromise = typeof sdk.getUser === "function"
-    ? Promise.resolve().then(() => sdk.getUser()).catch(() => null)
-    : Promise.resolve(null);
-  const currentUser = await Promise.race([userPromise, new Promise((resolve) => setTimeout(() => resolve(null), 900))]);
-  user = currentUser;
-  const roster = sdk.roomPlayers ?? [];
-  players = normalizeRoster(roster, currentUser);
-  localPlayer = players.find((player) => player.isLocal) || players[0];
-
-  if (mockMode) {
-    sdk.roomPlayers = players.map(({ id, name }) => ({ id, username: name }));
-  }
-
-  tiles = [];
-  for (let row = 0; row < GRID_SIZE; row += 1) {
-    for (let col = 0; col < GRID_SIZE; col += 1) {
-      const x = ((col + 0.5) / GRID_SIZE) * 2 - 1;
-      const y = ((row + 0.5) / GRID_SIZE) * 2 - 1;
-      if (Math.hypot(x, y) < 1.055) tiles.push({ col, row, x, y, level: 0, collapseAt: 0, key: `${col}:${row}` });
-    }
-  }
-
   installNetworkEvents();
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas, { passive: true });
   window.addEventListener("orientationchange", resizeCanvas, { passive: true });
   installControls();
+  resetTilesForMap(getMapForBattle(1));
 
-  const hostByRoster = players[0]?.id === localPlayer.id;
-  const isHost = sdk.isHost == null ? hostByRoster : Boolean(sdk.isHost);
-  if (isHost) beginCountdown();
-  else {
-    showCallout("等一下就開打");
-    setTimeout(() => {
-      if (state === GAME_STATE.LOADING) beginCountdown();
-    }, 2100);
+  if (window.BoomRoomSDK) {
+    adoptSdk(window.BoomRoomSDK);
+    let currentUser = null;
+    try { currentUser = typeof sdk.getUser === "function" ? await Promise.resolve(sdk.getUser()) : null; } catch {}
+    setupSDK({
+      user: currentUser,
+      isHost: sdk.isHost,
+      roomId: sdk.roomId,
+      roomPlayers: sdk.roomPlayers || sdk.players || [],
+    });
+    return;
   }
 
-  requestAnimationFrame(frame);
+  // 只有在真的沒有 SDK 時才進入開發單機模式。
+  setTimeout(() => {
+    if (sdkReady || devFallbackUsed) return;
+    devFallbackUsed = true;
+    sdk = mockSdk;
+    mockMode = true;
+    sdkReady = true;
+    user = { id: "mock-you", username: "你", avatar: null };
+    roomId = "mock-room";
+    setRoomHumans([user], "dev-fallback");
+    showCallout("開發模式 · 1 人 + 5 AI");
+    scheduleSeriesAutoStart();
+  }, 1800);
+}
+
+function adoptSdk(realSdk) {
+  if (!realSdk || typeof realSdk !== "object") return;
+  sdk = realSdk;
+  mockMode = false;
+  sdkReady = true;
 }
 
 function resizeCanvas() {
@@ -253,8 +361,17 @@ function resizeCanvas() {
   canvas.width = Math.round(canvasWidth * dpr);
   canvas.height = Math.round(canvasHeight * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const side = Math.min(canvasWidth * 0.91, canvasHeight * 0.62, 760);
-  board = { side, x: canvasWidth / 2, y: canvasHeight * 0.485 };
+  // 優先把可用垂直空間交給棋盤；上方 HUD / 下方操控區只留必要安全距離。
+  const side = Math.min(canvasWidth * 0.99, canvasHeight * 0.82, 980);
+  const topReserve = Math.max(74, canvasHeight * 0.09);
+  const bottomReserve = Math.max(112, canvasHeight * 0.13);
+  const usableTop = topReserve;
+  const usableBottom = canvasHeight - bottomReserve;
+  board = {
+    side,
+    x: canvasWidth / 2,
+    y: Math.min(usableBottom - side * 0.02, Math.max(usableTop + side * 0.50, canvasHeight * 0.48)),
+  };
 }
 
 function installControls() {
@@ -310,166 +427,204 @@ function installControls() {
 function installNetworkEvents() {
   const listener = (event) => {
     const detail = event?.detail ?? event;
-    const eventName = detail?.eventName ?? detail?.name ?? detail?.type;
-    const payload = detail?.payload ?? detail?.data ?? detail;
-    if (eventName) handleGameEvent({ eventName, payload });
+    const eventName = detail?.eventName ?? detail?.name ?? detail?.event ?? detail?.type;
+    const payload = detail?.payload ?? detail?.data ?? {};
+    const senderId = detail?.userId ?? detail?.senderId ?? payload?.sourceId ?? payload?.playerId ?? null;
+    if (eventName) handleGameEvent({ eventName, payload, senderId });
   };
   window.addEventListener("gameEventReceived", listener);
   document.addEventListener("gameEventReceived", listener);
-  try { sdk.addEventListener?.("gameEventReceived", listener); } catch {}
-  try { sdk.on?.("gameEventReceived", listener); } catch {}
-}
-
-function sendEvent(eventName, payload = {}) {
-  const event = { ...payload, sourceId: localPlayer?.id, roomId, at: Date.now() };
-  try { sdk.sendGameEvent?.(eventName, event); } catch (error) { console.warn("BoomRoom event send failed", error); }
-  if (mockMode) handleGameEvent({ eventName, payload: event });
-}
-
-function handleGameEvent({ eventName, payload = {} }) {
-  if (!payload || payload.sourceId === localPlayer?.id) return;
-  const player = players.find((candidate) => candidate.id === String(payload.playerId ?? payload.sourceId ?? payload.userId));
-
-  switch (eventName) {
-    case "ROUND_START":
-      if (state === GAME_STATE.LOADING) beginCountdown(payload.startAt);
-      break;
-    case "PLAYER_MOVE":
-      if (player && !player.isLocal) {
-        const nextX = Number(payload.x);
-        const nextY = Number(payload.y);
-        if (Number.isFinite(nextX) && Number.isFinite(nextY)) {
-          if (sdk.isHost && player.networkAt) {
-            const elapsed = clamp((Date.now() - player.networkAt) / 1000, 0.03, 0.4);
-            const limit = 0.88 * elapsed + (payload.dashing ? 0.55 : 0.06);
-            const dx = nextX - player.x;
-            const dy = nextY - player.y;
-            const distance = length(dx, dy);
-            if (distance > limit) {
-              player.x += (dx / distance) * limit;
-              player.y += (dy / distance) * limit;
-            } else {
-              player.x = nextX;
-              player.y = nextY;
-            }
-          } else {
-            player.x = nextX;
-            player.y = nextY;
-          }
-          player.vx = clamp(Number(payload.vx) || 0, -2.8, 2.8);
-          player.vy = clamp(Number(payload.vy) || 0, -2.8, 2.8);
-          player.faceX = Number(payload.faceX) || player.faceX;
-          player.faceY = Number(payload.faceY) || player.faceY;
-          if (payload.dashing) {
-            player.dashX = player.faceX;
-            player.dashY = player.faceY;
-          }
-          player.dashUntil = payload.dashing ? now() + 180 : Math.min(player.dashUntil, now());
-          player.networkAt = Date.now();
-        }
+  window.addEventListener("message", (event) => {
+    try {
+      const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+      if (!data || typeof data !== "object") return;
+      if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady") {
+        setupSDK(data.data && typeof data.data === "object" ? data.data : data);
+        return;
       }
-      break;
-    case "NPC_MOVES":
-      if (Array.isArray(payload.players)) {
-        payload.players.forEach((move) => {
-          const npc = players.find((candidate) => candidate.id === move.id);
-          if (!npc || npc.isLocal || !npc.isBot) return;
-          npc.x = Number(move.x) || 0;
-          npc.y = Number(move.y) || 0;
-          npc.vx = Number(move.vx) || 0;
-          npc.vy = Number(move.vy) || 0;
-          npc.faceX = Number(move.faceX) || npc.faceX;
-          npc.faceY = Number(move.faceY) || npc.faceY;
-          if (move.dashing) {
-            npc.dashX = npc.faceX;
-            npc.dashY = npc.faceY;
-          }
-          npc.dashUntil = move.dashing ? now() + 180 : Math.min(npc.dashUntil, now());
+      if (data.action === "roomPlayersUpdated" || data.action === "roomRoster" || data.action === "playersUpdated") {
+        const list = data.roomPlayers || data.players || data.data?.roomPlayers || data.data?.players;
+        if (Array.isArray(list)) setRoomHumans(list, "postMessage-roster");
+        if (isHost()) { sendRoomSync(state === GAME_STATE.PLAYING ? "PLAYING" : "WAITING"); scheduleSeriesAutoStart(); }
+        return;
+      }
+      if (data.action === "gameEventReceived" || data.action === "gameEvent") {
+        handleGameEvent({
+          eventName: data.eventName || data.name || data.event || "",
+          payload: data.payload || data.data || {},
+          senderId: data.userId ?? data.senderId ?? data.payload?.sourceId ?? null,
         });
       }
-      break;
-    case "SHOVE_REQUEST":
-      if (sdk.isHost || mockMode) hostResolveShove(payload);
-      break;
-    case "PLAYER_HIT":
-      applyHit(payload);
-      break;
-    case "PLAYER_OUT":
-      eliminatePlayer(String(payload.targetId), payload.reason || "落進裂縫", payload.attackerId);
-      break;
-    case "PLAYER_JOINED":
-      addRoomPlayer(payload.player || payload);
-      break;
-    case "PLAYER_LEFT":
-    case "PLAYER_DISCONNECTED":
-      eliminatePlayer(String(payload.playerId ?? payload.userId ?? payload.sourceId), "離開競技場");
-      break;
-    case "TILE_STATE":
-      applyTileState(payload);
-      break;
-    case "ORB_STATE":
-      orb = payload.active ? { id: payload.id, x: payload.x, y: payload.y, until: payload.until } : null;
-      break;
-    case "ORB_PICKUP_REQUEST":
-      handleOrbRequest(payload);
-      break;
-    case "ORB_PICKUP":
-      applyOrbPickup(payload);
-      break;
-    case "GAME_STATE":
-      applySnapshot(payload);
-      break;
-    case "GAME_FINISH":
-      if (state === GAME_STATE.PLAYING) finishRound(payload.winnerId, payload.reason || "最後站著的人");
-      break;
-    default:
-      break;
+    } catch {}
+  });
+  try { sdk.addEventListener?.("gameEventReceived", listener); } catch {}
+  try { sdk.on?.("gameEventReceived", listener); } catch {}
+
+  window.onBoomRoomSDKReady = async () => {
+    if (!window.BoomRoomSDK) return;
+    adoptSdk(window.BoomRoomSDK);
+    let sdkUser = null;
+    try { sdkUser = typeof sdk.getUser === "function" ? await Promise.resolve(sdk.getUser()) : null; } catch {}
+    setupSDK({ user: sdkUser, isHost: sdk.isHost, roomId: sdk.roomId, roomPlayers: sdk.roomPlayers || sdk.players || [] });
+  };
+}
+
+function setupSDK(data = {}) {
+  adoptSdk(window.BoomRoomSDK || sdk);
+  const nested = data?.data && typeof data.data === "object" ? data.data : data;
+  if (nested.user) user = nested.user;
+  if (nested.roomId != null) roomId = String(nested.roomId);
+  if (nested.isHost !== undefined) {
+    try { sdk.isHost = nested.isHost; } catch {}
+  }
+  sdkReady = true;
+  mockMode = false;
+  if (Array.isArray(nested.roomPlayers)) setRoomHumans(nested.roomPlayers, "initSDK");
+  else if (Array.isArray(nested.players)) setRoomHumans(nested.players, "initSDK.players");
+  else setRoomHumans(roomHumans, "initSDK-existing");
+  sendRoomHello();
+  if (isHost()) {
+    sendRoomSync("WAITING");
+    scheduleSeriesAutoStart();
+  } else {
+    showCallout(roomHumans.length > 1 ? "等待房間同步" : "等待房間玩家");
   }
 }
 
-function beginCountdown(startAt) {
-  if (state !== GAME_STATE.LOADING) return;
-  state = GAME_STATE.COUNTDOWN;
-  stateStartedAt = now();
-  const host = sdk.isHost == null ? players[0]?.id === localPlayer.id : Boolean(sdk.isHost);
-  if (host && !mockMode) sendEvent("ROUND_START", { startAt: Date.now() + 500 });
-  showCallout("準備落地");
-  matchStartedAt = 0;
-  safeRadius = 1.03;
-  orb = null;
-  tiles.forEach((tile) => { tile.level = 0; tile.collapseAt = 0; });
-  players.forEach((player) => {
+function sendEvent(eventName, payload = {}) {
+  const sourceId = String(localPlayer?.id ?? user?.id ?? payload?.sourceId ?? "");
+  const event = { ...payload, sourceId, roomId, at: Date.now() };
+  try {
+    if (sdk && typeof sdk.sendGameEvent === "function") {
+      sdk.sendGameEvent(eventName, event);
+      return true;
+    }
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload: event }), "*");
+      return true;
+    }
+  } catch (error) {
+    console.warn("BoomRoom event send failed", error);
+  }
+  return false;
+}
+
+function sendRoomHello() {
+  const id = String(user?.id ?? localPlayer?.id ?? "");
+  if (!id) return;
+  sendEvent("FLOOR_ROOM_HELLO", {
+    playerId: id,
+    player: { id, username: String(user?.username ?? user?.name ?? "玩家").slice(0, 14), avatar: user?.avatar ?? user?.avatar_url ?? null },
+  });
+}
+
+function sendRoomSync(phase = "WAITING") {
+  if (!isHost()) return;
+  sendEvent("FLOOR_ROOM_SYNC", {
+    hostId: String(localPlayer?.id ?? user?.id ?? ""),
+    phase,
+    roomPlayers: exportRoster(),
+    playerCount: roomHumans.length,
+    battleNumber,
+    mapIndex: currentMapIndex,
+    roundId: state.roundId || "",
+    participants: exportParticipants(),
+    startAt: Number(state.remoteStartAt || 0),
+    countdownEndsAt: Number(state.countdownEndsAt || 0),
+  });
+}
+
+function scheduleSeriesAutoStart() {
+  if (!sdkReady || !isHost()) return;
+  if (state === GAME_STATE.PLAYING || state === GAME_STATE.COUNTDOWN || state === GAME_STATE.RESULT) return;
+  if (seriesFinished) return;
+  if (autoStartTimer) clearTimeout(autoStartTimer);
+  autoStartTimer = setTimeout(() => {
+    autoStartTimer = null;
+    if (roomHumans.length <= 0) return;
+    const age = Date.now() - (rosterStableSince || Date.now());
+    if (age < AUTO_START_STABLE_MS) { scheduleSeriesAutoStart(); return; }
+    startSeries();
+  }, AUTO_START_STABLE_MS);
+}
+
+function startSeries() {
+  if (!isHost() || roomHumans.length <= 0 || state === GAME_STATE.PLAYING || state === GAME_STATE.COUNTDOWN) return;
+  seriesFinished = false;
+  battleNumber = 1;
+  currentMapIndex = 0;
+  seriesParticipants = createGameplayPlayers(buildParticipants(roomHumans));
+  seriesParticipants.forEach((p) => { p.seriesPoints = 0; p.battleWins = 0; });
+  const startAt = Date.now() + 900;
+  const roundId = `${roomId}-${Date.now()}-B1`;
+  sendEvent("FLOOR_ROUND_START", { roundId, battleNumber, mapIndex: 0, startAt, participants: exportParticipants() });
+  beginCountdown(startAt, { roundId, participants: exportParticipants(), battleNumber: 1, mapIndex: 0, broadcast: false });
+}
+
+function resetBattleState(participants, mapIndex = 0, number = 1) {
+  battleNumber = Math.max(1, Math.min(SERIES_BATTLES, Number(number) || 1));
+  currentMapIndex = Math.max(0, Math.min(MAPS.length - 1, Number(mapIndex) || ((battleNumber - 1) % MAPS.length)));
+  resetTilesForMap(MAPS[currentMapIndex]);
+  players = createGameplayPlayers(participants);
+  localPlayer = players.find((p) => p.isLocal) || players[0] || null;
+  players.forEach((player, index) => {
+    const angle = index * 2.3999632297 + 0.28;
+    const radius = index === 0 ? 0.10 : 0.43 + (index % 3) * 0.065;
     player.alive = true;
     player.charged = false;
-    player.vx = 0;
-    player.vy = 0;
+    player.vx = 0; player.vy = 0;
     player.lastDashAt = -99;
     player.lastTile = "";
     player.survival = MATCH_SECONDS;
     player.knockouts = 0;
     player.orbs = 0;
     player.koReason = "";
-    player.x = Math.cos(players.indexOf(player) * 2.3999632297 + 0.28) * (players.indexOf(player) === 0 ? 0.12 : 0.45);
-    player.y = Math.sin(players.indexOf(player) * 2.3999632297 + 0.28) * (players.indexOf(player) === 0 ? 0.12 : 0.45);
+    player.seriesPoints = Number(player.seriesPoints) || 0;
+    player.battleWins = Number(player.battleWins) || 0;
+    player.x = Math.cos(angle) * radius * MAPS[currentMapIndex].radius;
+    player.y = Math.sin(angle) * radius * MAPS[currentMapIndex].radius;
   });
-  gameOverCalled = false;
-  exitSent = false;
-  overtimeAt = 0;
   cachedTimeLeft = MATCH_SECONDS;
+  safeRadius = MAPS[currentMapIndex].radius;
+  orb = null;
+  lastOrbAt = 0;
+  overtimeAt = 0;
+  gameOverCalled = false;
+  resultNode.classList.remove("show");
+  renderRoomHud();
+}
+
+function beginCountdown(startAt, meta = {}) {
+  if (state === GAME_STATE.COUNTDOWN || state === GAME_STATE.PLAYING) return;
+  state = GAME_STATE.COUNTDOWN;
+  stateStartedAt = now();
+  const participants = Array.isArray(meta.participants) && meta.participants.length
+    ? meta.participants
+    : (seriesParticipants.length ? seriesParticipants.map((p) => ({ id: p.id, username: p.name, avatar: null, isBot: p.isBot })) : buildParticipants(roomHumans));
+  seriesParticipants = createGameplayPlayers(participants);
+  resetBattleState(participants, meta.mapIndex ?? ((Number(meta.battleNumber || battleNumber) - 1) % MAPS.length), meta.battleNumber || battleNumber);
+  state.remoteStartAt = Number(startAt || Date.now() + 700);
+  state.countdownEndsAt = state.remoteStartAt;
+  state.roundId = String(meta.roundId || state.roundId || `${roomId}-${Date.now()}-B${battleNumber}`);
+  showCallout(`第 ${battleNumber} 戰 · ${getMapForBattle(battleNumber).name}`);
+  matchStartedAt = 0;
+  safeRadius = getMapForBattle(battleNumber).radius;
+  renderRoomHud();
+  if (isHost() && !mockMode && meta.broadcast !== false) sendRoomSync("COUNTDOWN");
 }
 
 function addRoomPlayer(raw) {
   const id = String(raw?.id ?? raw?.userId ?? raw?.user_id ?? "");
-  if (!id || players.some((player) => player.id === id) || players.length >= 10) return;
-  const player = makePlayer(raw, players.length, false, false);
-  player.x = (Math.random() - 0.5) * 0.62;
-  player.y = (Math.random() - 0.5) * 0.62;
-  player.invulnerableUntil = state === GAME_STATE.PLAYING ? now() + 1200 : 0;
-  if (state === GAME_STATE.PLAYING) player.survival = Math.max(0, (now() - matchStartedAt) / 1000);
-  players.push(player);
+  if (!id || roomHumans.some((player) => player.id === id) || roomHumans.length >= MAX_PLAYERS) return;
+  setRoomHumans([...roomHumans, {
+    id,
+    username: String(raw?.username ?? raw?.name ?? raw?.displayName ?? raw?.nickname ?? `玩家 ${roomHumans.length + 1}`).slice(0, 14),
+    avatar: raw?.avatar ?? raw?.avatar_url ?? null,
+    isBot: false,
+  }], "hello");
   if (isHost()) {
-    if (!mockMode) sendEvent("GAME_STATE", makeSnapshot());
-    callout(`${player.name} 加入混戰！`);
+    sendRoomSync(state === GAME_STATE.PLAYING ? "PLAYING" : "WAITING");
+    scheduleSeriesAutoStart();
   }
 }
 
@@ -478,14 +633,95 @@ function startPlaying() {
   state = GAME_STATE.PLAYING;
   matchStartedAt = now();
   stateStartedAt = matchStartedAt;
-  lastOrbAt = matchStartedAt + 3600;
-  showCallout("撞！淘汰他們！");
-  if (isHost() && !mockMode) sendEvent("GAME_STATE", makeSnapshot());
+  lastOrbAt = matchStartedAt + 2600;
+  resultNode.classList.remove("show");
+  showCallout("撞！把對手撞下去！");
+  renderRoomHud();
+  if (isHost() && !mockMode) sendRoomSync("PLAYING");
 }
 
 function isHost() {
-  if (sdk.isHost != null) return Boolean(sdk.isHost);
-  return players[0]?.id === localPlayer?.id;
+  const flag = sdk?.isHost;
+  if (flag !== undefined && flag !== null) return flag === true || flag === 1 || flag === "true";
+  return players[0]?.id === String(user?.id ?? localPlayer?.id ?? "");
+}
+
+function handleGameEvent({ eventName, payload = {}, senderId = null }) {
+  const event = String(eventName || "");
+  if (!payload || typeof payload !== "object") return;
+  const sender = senderId != null ? String(senderId) : String(payload.sourceId ?? payload.playerId ?? "");
+  const me = String(localPlayer?.id ?? user?.id ?? "");
+  if (sender && sender === me && !mockMode) return;
+
+  switch (event) {
+    case "FLOOR_ROOM_HELLO": {
+      const p = payload.player || { id: payload.playerId || sender, username: payload.playerName || "玩家", avatar: payload.avatar || null };
+      if (isHost() && p?.id && String(p.id) !== me) {
+        addRoomPlayer(p);
+        sendRoomSync(state === GAME_STATE.PLAYING ? "PLAYING" : state === GAME_STATE.COUNTDOWN ? "COUNTDOWN" : "WAITING");
+      }
+      break;
+    }
+    case "FLOOR_ROOM_SYNC": {
+      const hostId = String(payload.hostId || "");
+      if (hostId && hostId === me) return;
+      if (Array.isArray(payload.roomPlayers)) setRoomHumans(payload.roomPlayers, "remote-sync");
+      if (Array.isArray(payload.participants) && payload.participants.length) {
+        seriesParticipants = createGameplayPlayers(payload.participants);
+      }
+      if (payload.phase === "COUNTDOWN") {
+        beginCountdown(Number(payload.startAt || payload.countdownEndsAt || Date.now() + 700), {
+          roundId: payload.roundId,
+          participants: payload.participants,
+          battleNumber: Number(payload.battleNumber || battleNumber),
+          mapIndex: Number(payload.mapIndex ?? ((Number(payload.battleNumber || battleNumber) - 1) % MAPS.length)),
+          broadcast: false,
+        });
+      } else if (payload.phase === "PLAYING" && state !== GAME_STATE.PLAYING) {
+        beginCountdown(Date.now(), {
+          roundId: payload.roundId,
+          participants: payload.participants,
+          battleNumber: Number(payload.battleNumber || battleNumber),
+          mapIndex: Number(payload.mapIndex ?? ((Number(payload.battleNumber || battleNumber) - 1) % MAPS.length)),
+          broadcast: false,
+        });
+        startPlaying();
+      }
+      break;
+    }
+    case "FLOOR_ROUND_START":
+      beginCountdown(Number(payload.startAt || Date.now() + 700), {
+        roundId: payload.roundId,
+        participants: Array.isArray(payload.participants) ? payload.participants : buildParticipants(roomHumans),
+        battleNumber: Number(payload.battleNumber || battleNumber),
+        mapIndex: Number(payload.mapIndex ?? ((Number(payload.battleNumber || battleNumber) - 1) % MAPS.length)),
+        broadcast: false,
+      });
+      break;
+    case "PLAYER_MOVE": {
+      const player = players.find((candidate) => candidate.id === String(payload.playerId ?? sender));
+      if (!player || player.isLocal) break;
+      const nextX = Number(payload.x), nextY = Number(payload.y);
+      if (!Number.isFinite(nextX) || !Number.isFinite(nextY)) break;
+      player.x += (nextX - player.x) * 0.42;
+      player.y += (nextY - player.y) * 0.42;
+      player.vx = clamp(Number(payload.vx) || 0, -2.8, 2.8);
+      player.vy = clamp(Number(payload.vy) || 0, -2.8, 2.8);
+      player.faceX = Number(payload.faceX) || player.faceX;
+      player.faceY = Number(payload.faceY) || player.faceY;
+      if (payload.dashing) { player.dashX = player.faceX; player.dashY = player.faceY; player.dashUntil = now() + 180; }
+      break;
+    }
+    case "PLAYER_HIT": applyHit(payload); break;
+    case "PLAYER_OUT": eliminatePlayer(String(payload.targetId), payload.reason || "落進裂縫", payload.attackerId); break;
+    case "TILE_STATE": applyTileState(payload); break;
+    case "ORB_STATE": orb = payload.active ? { id: payload.id, x: payload.x, y: payload.y, until: payload.until } : null; break;
+    case "ORB_PICKUP": applyOrbPickup(payload); break;
+    case "GAME_STATE": applySnapshot(payload); break;
+    case "BATTLE_END": applyBattleEnd(payload); break;
+    case "SERIES_END": applySeriesEnd(payload); break;
+    default: break;
+  }
 }
 
 function currentMoveInput() {
@@ -641,9 +877,9 @@ function applyTileState(payload) {
 }
 
 function tileAt(x, y) {
-  const col = Math.floor(((x + 1) / 2) * GRID_SIZE);
-  const row = Math.floor(((y + 1) / 2) * GRID_SIZE);
-  if (col < 0 || col >= GRID_SIZE || row < 0 || row >= GRID_SIZE) return null;
+  const col = Math.floor(((x + 1) / 2) * gridSize);
+  const row = Math.floor(((y + 1) / 2) * gridSize);
+  if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) return null;
   return tiles.find((tile) => tile.col === col && tile.row === row) || null;
 }
 
@@ -739,7 +975,7 @@ function eliminatePlayer(id, reason = "落進裂縫", attackerId = "") {
 function applySnapshot(payload) {
   if (!Array.isArray(payload.players)) return;
   payload.players.forEach((snap) => {
-    const player = players.find((candidate) => candidate.id === snap.id);
+    const player = players.find((candidate) => candidate.id === String(snap.id));
     if (!player || player.isLocal) return;
     player.x = Number(snap.x) || 0;
     player.y = Number(snap.y) || 0;
@@ -749,25 +985,19 @@ function applySnapshot(payload) {
     player.charged = Boolean(snap.charged);
     player.knockouts = Number(snap.knockouts) || 0;
     player.orbs = Number(snap.orbs) || 0;
+    player.seriesPoints = Number(snap.seriesPoints) || Number(player.seriesPoints) || 0;
+    player.battleWins = Number(snap.battleWins) || Number(player.battleWins) || 0;
   });
-  if (Array.isArray(payload.tiles)) {
-    payload.tiles.forEach((snap) => {
-      const tile = tiles.find((candidate) => candidate.key === snap.key);
-      if (tile) {
-        tile.level = clamp(Number(snap.level) || 0, 0, 3);
-        tile.collapseAt = tile.level === 2 ? now() + 450 : 0;
-      }
-    });
-  }
-  if (Number.isFinite(payload.safeRadius)) safeRadius = payload.safeRadius;
-  if (Object.hasOwn(payload, "orb")) orb = payload.orb ? { ...payload.orb } : null;
 }
 
 function makeSnapshot() {
   return {
+    battleNumber,
+    mapIndex: currentMapIndex,
     players: players.map((player) => ({
       id: player.id, x: player.x, y: player.y, vx: player.vx, vy: player.vy,
       alive: player.alive, charged: player.charged, knockouts: player.knockouts, orbs: player.orbs,
+      seriesPoints: player.seriesPoints, battleWins: player.battleWins,
     })),
     tiles: tiles.filter((tile) => tile.level > 0).map((tile) => ({ key: tile.key, level: tile.level })),
     safeRadius,
@@ -775,20 +1005,87 @@ function makeSnapshot() {
   };
 }
 
+function awardBattleSeriesPoints() {
+  const standings = getStandings();
+  const points = [5, 3, 2, 1];
+  standings.forEach((player, index) => {
+    player.seriesPoints = Number(player.seriesPoints || 0) + (points[index] || 0);
+    if (index === 0) player.battleWins = Number(player.battleWins || 0) + 1;
+  });
+  return standings;
+}
+
 function finishRound(winnerId, reason = "最後站著的人") {
-  if (state === GAME_STATE.RESULT || state === GAME_STATE.EXIT) return;
+  if (state === GAME_STATE.RESULT || state === GAME_STATE.EXIT || seriesFinished) return;
   state = GAME_STATE.RESULT;
   stateStartedAt = now();
   players.forEach((player) => {
     if (player.alive) player.survival = Math.max(player.survival, (now() - matchStartedAt) / 1000);
   });
-  const winner = players.find((player) => player.id === winnerId) || getStandings()[0];
-  showResults(winner, reason);
-  if (!gameOverCalled) {
-    gameOverCalled = true;
-    const reward = winner?.id === localPlayer?.id ? 10 : localPlayer?.alive ? 4 : 2;
-    try { sdk.gameOver?.(reward); } catch (error) { console.warn("BoomRoom gameOver failed", error); }
+  const standings = isHost() ? awardBattleSeriesPoints() : getStandings();
+  // Host 在本戰結算後，把累積中的系列賽分數寫回下一戰的參賽名單。
+  // 否則第二戰開始時會重新建立玩家，導致前一戰的分數遺失。
+  if (isHost()) seriesParticipants = [...players];
+  const winner = standings.find((p) => p.id === winnerId) || standings[0];
+  const resultRows = standings.slice(0, 10).map((player, index) => ({
+    id: player.id, name: player.name, rank: index + 1,
+    seriesPoints: Number(player.seriesPoints || 0), battleWins: Number(player.battleWins || 0),
+    knockouts: Number(player.knockouts || 0), survival: Math.floor(player.survival || 0),
+  }));
+  const final = battleNumber >= SERIES_BATTLES;
+  showResults(winner, reason, resultRows, final);
+
+  if (!isHost()) return;
+  const battlePayload = { battleNumber, winnerId: winner?.id || null, reason, standings: resultRows, nextBattleNumber: battleNumber + 1, nextMapIndex: battleNumber % MAPS.length };
+  if (!mockMode) sendEvent("BATTLE_END", battlePayload);
+
+  if (!final) {
+    if (battleTransitionTimer) clearTimeout(battleTransitionTimer);
+    battleTransitionTimer = setTimeout(() => {
+      battleTransitionTimer = null;
+      battleNumber += 1;
+      currentMapIndex = (battleNumber - 1) % MAPS.length;
+      const roundId = `${roomId}-${Date.now()}-B${battleNumber}`;
+      const startAt = Date.now() + 1100;
+      const participants = exportParticipants();
+      sendEvent("FLOOR_ROUND_START", { roundId, battleNumber, mapIndex: currentMapIndex, startAt, participants });
+      beginCountdown(startAt, { roundId, participants, battleNumber, mapIndex: currentMapIndex, broadcast: false });
+    }, 3000);
+  } else {
+    seriesFinished = true;
+    const seriesStanding = [...players].sort((a, b) => Number(b.seriesPoints || 0) - Number(a.seriesPoints || 0) || Number(b.battleWins || 0) - Number(a.battleWins || 0));
+    const endPayload = {
+      winnerId: seriesStanding[0]?.id || null,
+      standings: seriesStanding.map((player, index) => ({ id: player.id, name: player.name, rank: index + 1, seriesPoints: Number(player.seriesPoints || 0), battleWins: Number(player.battleWins || 0) })).slice(0, 10),
+    };
+    if (!mockMode) sendEvent("SERIES_END", endPayload);
   }
+}
+
+function applyBattleEnd(payload) {
+  if (Number(payload.battleNumber) !== Number(battleNumber) || !Array.isArray(payload.standings)) return;
+  payload.standings.forEach((row) => {
+    const player = players.find((p) => p.id === String(row.id));
+    if (!player) return;
+    player.seriesPoints = Number(row.seriesPoints) || player.seriesPoints || 0;
+    player.battleWins = Number(row.battleWins) || player.battleWins || 0;
+  });
+  const winner = players.find((p) => p.id === String(payload.winnerId)) || getStandings()[0];
+  showResults(winner, payload.reason || "本戰結束", payload.standings, battleNumber >= SERIES_BATTLES);
+}
+
+function applySeriesEnd(payload) {
+  seriesFinished = true;
+  if (Array.isArray(payload.standings)) {
+    payload.standings.forEach((row) => {
+      const player = players.find((p) => p.id === String(row.id));
+      if (!player) return;
+      player.seriesPoints = Number(row.seriesPoints) || player.seriesPoints || 0;
+      player.battleWins = Number(row.battleWins) || player.battleWins || 0;
+    });
+  }
+  const winner = players.find((p) => p.id === String(payload.winnerId)) || [...players].sort((a, b) => Number(b.seriesPoints || 0) - Number(a.seriesPoints || 0) || Number(b.battleWins || 0) - Number(a.battleWins || 0))[0];
+  showResults(winner, "五戰總冠軍", payload.standings || [], true);
 }
 
 function getStandings() {
@@ -800,38 +1097,42 @@ function getStandings() {
   });
 }
 
-function showResults(winner, reason) {
-  $("#resultKicker").textContent = reason === "時間到" ? "加時結束" : "本局冠軍";
-  $("#resultTitle").textContent = winner?.id === localPlayer?.id ? "你是最後一塊地板！" : `${winner?.name || "無人"} 獲勝`;
-  const standings = getStandings().slice(0, 4);
-  $("#resultList").innerHTML = standings.map((player, index) => `
+function showResults(winner, reason, rows = [], final = false) {
+  $("#resultKicker").textContent = final ? "五戰總結" : `第 ${battleNumber} 戰結算`;
+  $("#resultTitle").textContent = final
+    ? (winner?.id === localPlayer?.id ? "你拿下五戰總冠軍！" : `${winner?.name || "無人"} 拿下五戰總冠軍`)
+    : (winner?.id === localPlayer?.id ? "你贏下這一戰！" : `${winner?.name || "無人"} 拿下本戰`);
+  const list = (Array.isArray(rows) && rows.length ? rows : getStandings().slice(0, 6).map((player, index) => ({
+    id: player.id, name: player.name, rank: index + 1, seriesPoints: player.seriesPoints || 0, battleWins: player.battleWins || 0,
+  }))).slice(0, 6);
+  $("#resultList").innerHTML = list.map((row, index) => `
     <div class="result-row">
-      <span class="result-rank">0${index + 1}</span>
-      <span class="result-name">${escapeHtml(player.name)}${player.id === localPlayer?.id ? "（你）" : ""}</span>
-      <span class="result-meta">${player.knockouts} 淘汰 · ${Math.floor(player.survival)}秒</span>
+      <span class="result-rank">0${Number(row.rank || index + 1)}</span>
+      <span class="result-name">${escapeHtml(row.name || "玩家")}${String(row.id) === String(localPlayer?.id) ? "（你）" : ""}</span>
+      <span class="result-meta">${Number(row.seriesPoints || 0)} 分 · ${Number(row.battleWins || 0)} 勝</span>
     </div>`).join("");
+  $(".result-foot").textContent = final ? "五戰完成 · 正在結算並返回房間" : `下一戰：${getMapForBattle(battleNumber + 1).name} · 3 秒後開始`;
   resultNode.classList.add("show");
-  if (winner?.id === localPlayer?.id) {
-    pingSound("pickup", 0.9, 1.18);
-    vibrate([35, 25, 55]);
-  }
-  setTimeout(() => {
-    state = GAME_STATE.EXIT;
-    if (!exitSent) {
-      exitSent = true;
-      try { window.parent?.postMessage({ action: "leaveGame" }, "*"); } catch {}
-    }
-    if (window.parent === window && window.location.pathname !== "/") {
-      window.location.href = "../room.html";
-    } else {
+  renderRoomHud();
+  if (winner?.id === localPlayer?.id) { pingSound("pickup", 0.9, 1.18); vibrate([35, 25, 55]); }
+
+  if (final) {
+    setTimeout(() => {
+      if (state !== GAME_STATE.RESULT || !seriesFinished) return;
+      if (!gameOverCalled) {
+        gameOverCalled = true;
+        const reward = winner?.id === localPlayer?.id ? 10 : localPlayer?.alive ? 4 : 2;
+        try { sdk.gameOver?.(reward); } catch (error) { console.warn("BoomRoom gameOver failed", error); }
+      }
+      state = GAME_STATE.EXIT;
+      if (!exitSent) {
+        exitSent = true;
+        try { window.parent?.postMessage({ action: "leaveGame", reason: "SERIES_COMPLETE" }, "*"); } catch {}
+      }
       resultNode.classList.remove("show");
-      state = GAME_STATE.LOADING;
-      stateStartedAt = now();
-      setTimeout(() => {
-        if (state === GAME_STATE.LOADING) beginCountdown();
-      }, 450);
-    }
-  }, 2700);
+      showCallout("五戰結束 · 返回房間");
+    }, 4200);
+  }
 }
 
 function escapeHtml(text) {
@@ -945,18 +1246,14 @@ function hostResolveBotHit(attacker) {
 
 function update(dt, timestamp) {
   if (state === GAME_STATE.COUNTDOWN) {
-    const elapsed = (timestamp - stateStartedAt) / 1000;
-    const number = Math.ceil(3 - elapsed);
-    if (number > 0) {
-      if (Math.floor(3 - elapsed) !== Math.floor(3 - elapsed - dt)) {
-        showCallout(String(number));
-        pingSound("crack", 0.17, number === 1 ? 1.3 : 1);
-      }
-    } else {
-      startPlaying();
+    const remain = Math.max(0, Number(state.remoteStartAt || state.countdownEndsAt || Date.now()) - Date.now());
+    const number = Math.ceil(remain / 1000);
+    if (number <= 0) startPlaying();
+    else if (number !== Math.ceil(Math.max(0, remain + dt * 1000) / 1000)) {
+      showCallout(String(number));
+      pingSound("crack", 0.17, number === 1 ? 1.3 : 1);
     }
   }
-
   if (state !== GAME_STATE.PLAYING) {
     updateParticles(dt);
     updateUi(timestamp);
@@ -966,29 +1263,20 @@ function update(dt, timestamp) {
   const elapsed = (timestamp - matchStartedAt) / 1000;
   const timeLeft = Math.max(0, MATCH_SECONDS - elapsed);
   cachedTimeLeft = timeLeft;
-
-  if (timeLeft <= 12) {
-    const progress = (12 - timeLeft) / 12;
-    safeRadius = 1.03 - progress * 0.34;
+  const map = getMapForBattle(battleNumber);
+  if (timeLeft <= 10 && !overtimeAt) {
+    const progress = (10 - timeLeft) / 10;
+    safeRadius = Math.max(0.48, map.radius - progress * 0.34);
   }
-  if (timeLeft === 0 && !overtimeAt) {
-    overtimeAt = timestamp;
-    showCallout("加時！撐住！");
-  }
-  if (overtimeAt) {
-    const over = (timestamp - overtimeAt) / 1000;
-    safeRadius = Math.max(0.28, 0.69 - over * 0.034);
-  }
+  if (timeLeft === 0 && !overtimeAt) { overtimeAt = timestamp; showCallout("加時！撐住！"); }
+  if (overtimeAt) safeRadius = Math.max(0.28, map.radius - 0.34 - ((timestamp - overtimeAt) / 1000) * 0.034);
 
   const host = isHost();
   const input = currentMoveInput();
   players.forEach((player) => {
     if (!player.alive) return;
     if (player.isLocal) {
-      if (length(input.x, input.y) > 0.08) {
-        player.faceX = input.x;
-        player.faceY = input.y;
-      }
+      if (length(input.x, input.y) > 0.08) { player.faceX = input.x; player.faceY = input.y; }
       const onHit = now() < player.hitUntil;
       if (!onHit && now() >= player.dashUntil) {
         player.vx += (input.x * 0.72 - player.vx) * Math.min(1, dt * 8);
@@ -996,30 +1284,20 @@ function update(dt, timestamp) {
       }
     } else if (player.isBot) {
       if (host) updateBot(player, timestamp / 1000);
-    } else {
-      if (player.targetX != null) {
-        player.x += (player.targetX - player.x) * 0.18;
-        player.y += (player.targetY - player.y) * 0.18;
-      }
+    } else if (player.targetX != null) {
+      player.x += (player.targetX - player.x) * 0.18;
+      player.y += (player.targetY - player.y) * 0.18;
     }
 
-    if (now() < player.dashUntil) {
-      player.vx = player.dashX * 2.45;
-      player.vy = player.dashY * 2.45;
-    } else if (now() >= player.hitUntil) {
-      player.vx *= Math.pow(0.08, dt);
-      player.vy *= Math.pow(0.08, dt);
-    } else {
-      player.vx *= Math.pow(0.22, dt);
-      player.vy *= Math.pow(0.22, dt);
-    }
+    if (now() < player.dashUntil) { player.vx = player.dashX * 2.45; player.vy = player.dashY * 2.45; }
+    else if (now() >= player.hitUntil) { player.vx *= Math.pow(0.08, dt); player.vy *= Math.pow(0.08, dt); }
+    else { player.vx *= Math.pow(0.22, dt); player.vy *= Math.pow(0.22, dt); }
 
     player.x += player.vx * dt;
     player.y += player.vy * dt;
     player.flash = Math.max(0, player.flash - dt * 2.6);
     player.trail.push({ x: player.x, y: player.y, at: timestamp });
     while (player.trail.length && timestamp - player.trail[0].at > 220) player.trail.shift();
-
     if (player.isLocal && orb) collectOrb(player);
     if (host && player.isBot && orb) collectOrb(player);
   });
@@ -1028,14 +1306,8 @@ function update(dt, timestamp) {
   if (host) {
     resolveDashHits();
     maybeCrackUnderPlayers();
-    if (!orb && timestamp - lastOrbAt > 7100) {
-      lastOrbAt = timestamp;
-      spawnOrb();
-    }
-    if (orb && Date.now() > orb.until) {
-      orb = null;
-      sendEvent("ORB_STATE", { active: false });
-    }
+    if (!orb && timestamp - lastOrbAt > 6400) { lastOrbAt = timestamp; spawnOrb(); }
+    if (orb && Date.now() > orb.until) { orb = null; sendEvent("ORB_STATE", { active: false }); }
     players.forEach((player) => {
       if (!player.alive) return;
       const tile = tileAt(player.x, player.y);
@@ -1051,42 +1323,28 @@ function update(dt, timestamp) {
     });
     const living = players.filter((player) => player.alive);
     if (living.length <= 1) {
-      const winnerId = living[0]?.id || getStandings()[0]?.id;
-      sendEvent("GAME_FINISH", { winnerId, reason: "最後站著的人" });
-      finishRound(winnerId, "最後站著的人");
+      finishRound(living[0]?.id || getStandings()[0]?.id, "最後站著的人");
     } else if (overtimeAt && timestamp - overtimeAt > OVERTIME_SECONDS * 1000) {
-      const winner = getStandings()[0];
-      sendEvent("GAME_FINISH", { winnerId: winner?.id, reason: "時間到" });
-      finishRound(winner?.id, "時間到");
+      finishRound(getStandings()[0]?.id, "時間到");
     }
   }
 
-  if (host && timestamp - lastSnapshotAt > 1600) {
+  if (host && timestamp - lastSnapshotAt > 1000 && !mockMode) {
     lastSnapshotAt = timestamp;
-    if (!mockMode) sendEvent("GAME_STATE", makeSnapshot());
+    sendEvent("GAME_STATE", makeSnapshot());
   }
 
-  if (timestamp - lastNetAt > 110) {
+  if (timestamp - lastNetAt > 95 && localPlayer) {
     lastNetAt = timestamp;
-    if (localPlayer) {
-      const dashing = timestamp < localPlayer.dashUntil;
-      sendEvent("PLAYER_MOVE", {
-        playerId: localPlayer.id,
-        x: localPlayer.x, y: localPlayer.y,
-        vx: localPlayer.vx, vy: localPlayer.vy,
-        faceX: localPlayer.faceX, faceY: localPlayer.faceY,
-        dashing,
-      });
-    }
-    if (host) {
-      const botMoves = players.filter((player) => player.isBot && player.alive).map((player) => ({
-        id: player.id, x: player.x, y: player.y, vx: player.vx, vy: player.vy,
-        faceX: player.faceX, faceY: player.faceY, dashing: timestamp < player.dashUntil,
-      }));
-      if (botMoves.length && !mockMode) sendEvent("NPC_MOVES", { players: botMoves });
-    }
+    sendEvent("PLAYER_MOVE", {
+      playerId: localPlayer.id,
+      battleNumber,
+      x: localPlayer.x, y: localPlayer.y,
+      vx: localPlayer.vx, vy: localPlayer.vy,
+      faceX: localPlayer.faceX, faceY: localPlayer.faceY,
+      dashing: timestamp < localPlayer.dashUntil,
+    });
   }
-
   if (timeLeft <= 10 && timeLeft > 0 && Math.ceil(timeLeft) !== Math.ceil(timeLeft + dt)) {
     showCallout(String(Math.ceil(timeLeft)));
     pingSound("crack", 0.3, 1.15);
@@ -1133,22 +1391,22 @@ function updateParticles(dt) {
 function updateUi(timestamp) {
   if (timestamp - lastUiAt < 100) return;
   lastUiAt = timestamp;
+  renderRoomHud();
   const alive = players.filter((player) => player.alive);
   aliveNode.textContent = String(alive.length);
   timerNode.textContent = overtimeAt
     ? `+${Math.max(0, OVERTIME_SECONDS - Math.floor((timestamp - overtimeAt) / 1000))}`
     : String(Math.max(0, Math.ceil(cachedTimeLeft)));
-  timerNode.parentElement.classList.toggle("urgent", cachedTimeLeft <= 10 || Boolean(overtimeAt));
-
-  if (state === GAME_STATE.COUNTDOWN) placeNode.textContent = "即將開打";
+  timerNode.parentElement.classList.toggle("urgent", cachedTimeLeft <= 8 || Boolean(overtimeAt));
+  if (state === GAME_STATE.COUNTDOWN) placeNode.textContent = `第 ${battleNumber} 戰 · 進場`;
   else if (state === GAME_STATE.PLAYING) {
-    const livingSorted = [...alive].sort((a, b) => b.knockouts - a.knockouts || b.survival - a.survival);
-    const position = livingSorted.findIndex((player) => player.id === localPlayer?.id);
-    placeNode.textContent = localPlayer?.alive ? `存活第 ${Math.max(1, position + 1)} 名` : "已出局";
+    const position = getStandings().findIndex((player) => player.id === localPlayer?.id);
+    placeNode.textContent = localPlayer?.alive ? `本戰第 ${Math.max(1, position + 1)} 名` : "已出局";
+  } else if (state === GAME_STATE.RESULT) {
+    placeNode.textContent = seriesFinished ? "五戰已完成" : `第 ${battleNumber} 戰結束`;
   }
   chargeNode.classList.toggle("ready", Boolean(localPlayer?.charged));
   chargeNode.textContent = localPlayer?.charged ? "✦ 強撞已充能" : "✦ 強撞未充能";
-
   const remaining = Math.max(0, 2.55 - (timestamp / 1000 - (localPlayer?.lastDashAt ?? -99)));
   dashButton.classList.toggle("cooling", remaining > 0);
   cooldownNode.style.borderTopColor = remaining > 0 ? "rgba(112, 72, 69, .9)" : "transparent";
@@ -1167,7 +1425,7 @@ function roundedRect(context, x, y, width, height, radius) {
 }
 
 function worldToScreen(x, y) {
-  const radius = board.side * 0.44;
+  const radius = board.side * 0.44 * (getMapForBattle(battleNumber).radius / 1.03);
   return { x: board.x + x * radius, y: board.y + y * radius };
 }
 
@@ -1194,8 +1452,8 @@ function drawBackground() {
 
 function drawBoard(timestamp) {
   const side = board.side;
-  const unit = side * 0.88;
-  const tileSize = unit / GRID_SIZE;
+  const unit = side * 0.93;
+  const tileSize = unit / gridSize;
   ctx.save();
 
   ctx.beginPath();
@@ -1461,21 +1719,25 @@ function frame(timestamp) {
   requestAnimationFrame(frame);
 }
 
-boot().catch((error) => {
-  console.error("Game initialization failed; starting offline fallback.", error);
-  if (!players.length) {
-    players = normalizeRoster([], null);
-    localPlayer = players[0];
-    for (let row = 0; row < GRID_SIZE; row += 1) {
-      for (let col = 0; col < GRID_SIZE; col += 1) {
-        const x = ((col + 0.5) / GRID_SIZE) * 2 - 1;
-        const y = ((row + 0.5) / GRID_SIZE) * 2 - 1;
-        if (Math.hypot(x, y) < 1.055) tiles.push({ col, row, x, y, level: 0, collapseAt: 0, key: `${col}:${row}` });
-      }
-    }
+setInterval(() => {
+  if (!sdkReady) return;
+  sendRoomHello();
+  if (isHost()) {
+    const phase = state === GAME_STATE.PLAYING ? "PLAYING" : state === GAME_STATE.COUNTDOWN ? "COUNTDOWN" : "WAITING";
+    sendRoomSync(phase);
+    if (state === GAME_STATE.LOADING) scheduleSeriesAutoStart();
   }
-  installControls();
-  resizeCanvas();
-  beginCountdown();
-  requestAnimationFrame(frame);
+}, HEARTBEAT_MS);
+
+boot().catch((error) => {
+  console.error("Game initialization failed", error);
+  try {
+    sdk = mockSdk;
+    mockMode = true;
+    sdkReady = true;
+    user = user || { id: "offline-player", username: "你", avatar: null };
+    roomId = roomId || "mock-room";
+    setRoomHumans([user], "offline-fallback");
+    scheduleSeriesAutoStart();
+  } catch {}
 });

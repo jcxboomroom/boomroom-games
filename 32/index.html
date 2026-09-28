@@ -14,13 +14,20 @@
 
       <header class="hud">
         <div class="brand"><span class="brand-mark">✦</span><span>最後一塊地板</span></div>
-        <div class="timer-wrap"><span id="timer">45</span><small>秒</small></div>
-        <div class="alive-pill"><span class="alive-dot"></span><span id="alive">6</span><small>存活</small></div>
+        <div class="series-pill"><strong id="battle">1 / 5</strong><small>戰</small></div>
+        <div class="timer-wrap"><span id="timer">32</span><small>秒</small></div>
+        <div class="alive-pill"><span class="alive-dot"></span><span id="alive">0</span><small>存活</small></div>
       </header>
 
       <div class="status-row">
-        <div class="place-pill" id="place">準備落地</div>
-        <div class="charge-pill" id="charge">✦ 強撞未充能</div>
+        <div class="status-left">
+          <div class="place-pill" id="place">準備落地</div>
+          <div class="room-pill" id="roomCountText">房間真人 0 / 10</div>
+        </div>
+        <div class="status-right">
+          <div class="map-pill" id="mapInfo">第 1 戰 · 小型庭院 · 7×7 小圖</div>
+          <div class="charge-pill" id="charge">✦ 強撞未充能</div>
+        </div>
       </div>
 
       <div class="center-callout" id="callout" aria-live="polite"></div>
@@ -45,7 +52,7 @@
           <div class="result-kicker" id="resultKicker">本局結果</div>
           <div class="result-title" id="resultTitle">最後站著的人</div>
           <div class="result-list" id="resultList"></div>
-          <div class="result-foot">下一局即將開始…</div>
+          <div class="result-foot">下一戰即將開始…</div>
         </div>
       </div>
     </main>
