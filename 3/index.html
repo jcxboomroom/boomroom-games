@@ -523,6 +523,27 @@ else{
   const poll=setInterval(()=>{if(window.BoomRoomSDK&&!SDK){clearInterval(poll);setupSDK({user:window.BoomRoomSDK.getUser(),isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:Array.isArray(window.BoomRoomSDK.roomPlayers)?window.BoomRoomSDK.roomPlayers:[]})}},250);setTimeout(()=>clearInterval(poll),30000);
 }
 
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
+window.onBoomRoomSDKReady = function() {
+  try {
+    if (window.BoomRoomSDK) {
+      setupSDK({
+        user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+        isHost: window.BoomRoomSDK.isHost,
+        roomId: window.BoomRoomSDK.roomId,
+        roomPlayers: Array.isArray(window.BoomRoomSDK.roomPlayers) ? window.BoomRoomSDK.roomPlayers : []
+      });
+    }
+  } catch(_) {}
+};
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
+
 setInterval(()=>{
   if(!SDK||IS_DEV)return;
   if(typeof SDK.isHost==='boolean')sdkHostFlag=SDK.isHost;
