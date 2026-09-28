@@ -2372,6 +2372,10 @@ window.addEventListener('message',e=>{
   }catch(_){ }
 });
 
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
 window.onBoomRoomSDKReady=function(){
   try{
     if(!window.BoomRoomSDK) return;
