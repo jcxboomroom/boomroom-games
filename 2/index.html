@@ -2243,6 +2243,7 @@ function finishAndLeave(){
 }
 
 function handleGameEvent(name,payload,sender){
+  window.handleGameEvent = handleGameEvent;
   payload=payload && typeof payload==='object' ? payload : {};
   const event=String(name||'');
   const senderId=sender!=null ? String(sender) : String(payload.playerId||'');
