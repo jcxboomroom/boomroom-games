@@ -1852,31 +1852,20 @@ function applyRemoteRoomSync(payload){
   const startAt=Number(payload.startAt||payload.startedAt||0);
   const countdownEndsAt=Number(payload.countdownEndsAt||payload.endsAt||startAt||0);
 
-  if(incomingPhase==='COUNTDOWN'){
-    state.autoRoundState='COUNTDOWN';
-    state.countdownEndsAt=countdownEndsAt || Date.now()+AUTO_ROUND.COUNTDOWN_MS;
-    state.remoteStartAt=startAt || state.countdownEndsAt;
+  if(incomingPhase==='COUNTDOWN' || incomingPhase==='PLAYING'){
+    state.autoRoundState=incomingPhase;
+    state.remoteStartAt=startAt || Date.now();
     renderAutoRoomUI();
 
-    if(state.game==='LOBBY'){
-      const target=state.remoteStartAt || state.countdownEndsAt;
-      const delay=Math.max(0,target-Date.now());
+    if(state.game==='LOBBY' || state.game==='MENU'){
       if(state.remoteStartTimer) clearTimeout(state.remoteStartTimer);
       state.remoteStartTimer=setTimeout(()=>{
         state.remoteStartTimer=null;
-        if(state.game==='LOBBY') startGame(incomingRound,true,target,state.roundPlayerCount,state.roundPlayerIds);
-      },delay);
+        if(state.game==='LOBBY' || state.game==='MENU'){
+          startGame(incomingRound,true,state.remoteStartAt,state.roundPlayerCount,state.roundPlayerIds);
+        }
+      },50);
     }
-    return;
-  }
-
-  if(incomingPhase==='PLAYING'){
-    state.autoRoundState='PLAYING';
-    state.remoteStartAt=startAt || state.remoteStartAt || Date.now();
-    if(state.game!=='PLAYING' && state.game!=='RESULT'){
-      startGame(incomingRound,true,state.remoteStartAt,state.roundPlayerCount,state.roundPlayerIds);
-    }
-    renderAutoRoomUI();
     return;
   }
 
