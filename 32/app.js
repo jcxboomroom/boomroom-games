@@ -50,9 +50,12 @@ music.volume = 0.24;
 music.preload = "auto";
 
 let state = GAME_STATE.LOADING;
-let sdk = window.BoomRoomSDK || null;
-let mockMode = !sdk;
-let sdkReady = Boolean(sdk);
+let sdk = null;
+let mockMode = false;
+let sdkReady = false;
+let sdkSignalSeen = false;
+let hostFlag = null;
+let parentEmbedded = window.parent && window.parent !== window;
 let devFallbackUsed = false;
 const mockSdk = {
   isHost: true,
@@ -65,9 +68,8 @@ const mockSdk = {
   async requestPurchase() { return { success: false, mock: true }; },
   gameOver(winAmount) { console.info("[Floor Brawl] Mock gameOver:", winAmount); },
 };
-if (!sdk) sdk = mockSdk;
 
-let roomId = String(sdk.roomId || "room");
+let roomId = "room";
 let user = null;
 let localPlayer = null;
 let players = [];
@@ -300,13 +302,33 @@ function exportParticipants() {
 function renderRoomHud() {
   const count = roomHumans.length;
   const roomText = $("#roomCountText");
-  if (roomText) roomText.textContent = `房間真人 ${count} / ${MAX_PLAYERS}`;
+  const participantCount = seriesParticipants.length || (count === 1 ? 6 : count);
+  if (roomText) {
+    roomText.textContent = state === GAME_STATE.PLAYING || state === GAME_STATE.COUNTDOWN
+      ? `參賽 ${participantCount} 人 · 真人 ${count}`
+      : `房內真人 ${count} / ${MAX_PLAYERS}`;
+  }
   const battleNode = $("#battle");
   if (battleNode) battleNode.textContent = `${Math.min(SERIES_BATTLES, battleNumber)} / ${SERIES_BATTLES}`;
   const mapNode = $("#mapInfo");
   if (mapNode) {
     const map = getMapForBattle(battleNumber);
     mapNode.textContent = `第 ${battleNumber} 戰 · ${map.name} · ${map.tag}`;
+  }
+
+  const chips = $("#playerChips");
+  if (chips) {
+    const visible = (seriesParticipants.length ? seriesParticipants : buildParticipants(roomHumans)).slice(0, MAX_PLAYERS);
+    chips.innerHTML = visible.map((player) => {
+      const bot = Boolean(player.isBot);
+      const name = escapeHtml(player.name || player.username || "玩家");
+      return `<span class="player-chip ${bot ? 'bot' : ''}">` +
+        `<span class="dot"></span><span class="chip-name">${name}</span>` +
+        `<span class="chip-tag">${bot ? 'AI' : (String(player.id) === String(user?.id ?? '') ? '你' : '真人')}</span>` +
+        `</span>`;
+    }).join(
+      visible.length ? '' : '<span class="player-chip"><span class="dot"></span><span class="chip-name">等待玩家進入</span></span>'
+    );
   }
 }
 
@@ -317,8 +339,10 @@ async function boot() {
   window.addEventListener("orientationchange", resizeCanvas, { passive: true });
   installControls();
   resetTilesForMap(getMapForBattle(1));
+  renderRoomHud();
 
   if (window.BoomRoomSDK) {
+    sdkSignalSeen = true;
     adoptSdk(window.BoomRoomSDK);
     let currentUser = null;
     try { currentUser = typeof sdk.getUser === "function" ? await Promise.resolve(sdk.getUser()) : null; } catch {}
@@ -331,9 +355,10 @@ async function boot() {
     return;
   }
 
-  // 只有在真的沒有 SDK 時才進入開發單機模式。
+  // Embedded BoomRoom game: give the host bridge enough time to deliver initSDK.
+  // Only a true standalone page gets the local AI fallback.
   setTimeout(() => {
-    if (sdkReady || devFallbackUsed) return;
+    if (sdkReady || devFallbackUsed || sdkSignalSeen || parentEmbedded || window.BoomRoomSDK) return;
     devFallbackUsed = true;
     sdk = mockSdk;
     mockMode = true;
@@ -343,14 +368,18 @@ async function boot() {
     setRoomHumans([user], "dev-fallback");
     showCallout("開發模式 · 1 人 + 5 AI");
     scheduleSeriesAutoStart();
-  }, 1800);
+  }, 2600);
 }
 
 function adoptSdk(realSdk) {
-  if (!realSdk || typeof realSdk !== "object") return;
+  if (!realSdk || typeof realSdk !== "object") return false;
   sdk = realSdk;
   mockMode = false;
   sdkReady = true;
+  const flag = realSdk.isHost;
+  if (flag !== undefined && flag !== null) hostFlag = flag;
+  if (realSdk.roomId != null) roomId = String(realSdk.roomId);
+  return true;
 }
 
 function resizeCanvas() {
@@ -361,16 +390,15 @@ function resizeCanvas() {
   canvas.width = Math.round(canvasWidth * dpr);
   canvas.height = Math.round(canvasHeight * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // 優先把可用垂直空間交給棋盤；上方 HUD / 下方操控區只留必要安全距離。
-  const side = Math.min(canvasWidth * 0.99, canvasHeight * 0.82, 980);
-  const topReserve = Math.max(74, canvasHeight * 0.09);
-  const bottomReserve = Math.max(112, canvasHeight * 0.13);
-  const usableTop = topReserve;
-  const usableBottom = canvasHeight - bottomReserve;
+  // 把最大的可用中央區交給地板，同時預留 HUD / 操控區。
+  const topReserve = Math.max(118, canvasHeight * 0.16);
+  const bottomReserve = Math.max(128, canvasHeight * 0.19);
+  const corridor = Math.max(160, canvasHeight - topReserve - bottomReserve);
+  const side = Math.min(canvasWidth * 0.96, corridor * 0.98, 1080);
   board = {
     side,
     x: canvasWidth / 2,
-    y: Math.min(usableBottom - side * 0.02, Math.max(usableTop + side * 0.50, canvasHeight * 0.48)),
+    y: topReserve + corridor / 2,
   };
 }
 
@@ -439,10 +467,12 @@ function installNetworkEvents() {
       const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       if (!data || typeof data !== "object") return;
       if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady") {
+        sdkSignalSeen = true;
         setupSDK(data.data && typeof data.data === "object" ? data.data : data);
         return;
       }
       if (data.action === "roomPlayersUpdated" || data.action === "roomRoster" || data.action === "playersUpdated") {
+        sdkSignalSeen = true;
         const list = data.roomPlayers || data.players || data.data?.roomPlayers || data.data?.players;
         if (Array.isArray(list)) setRoomHumans(list, "postMessage-roster");
         if (isHost()) { sendRoomSync(state === GAME_STATE.PLAYING ? "PLAYING" : "WAITING"); scheduleSeriesAutoStart(); }
@@ -470,12 +500,14 @@ function installNetworkEvents() {
 }
 
 function setupSDK(data = {}) {
+  sdkSignalSeen = true;
   adoptSdk(window.BoomRoomSDK || sdk);
   const nested = data?.data && typeof data.data === "object" ? data.data : data;
   if (nested.user) user = nested.user;
   if (nested.roomId != null) roomId = String(nested.roomId);
-  if (nested.isHost !== undefined) {
-    try { sdk.isHost = nested.isHost; } catch {}
+  if (nested.isHost !== undefined && nested.isHost !== null) {
+    hostFlag = nested.isHost;
+    try { if (sdk) sdk.isHost = nested.isHost; } catch {}
   }
   sdkReady = true;
   mockMode = false;
@@ -495,8 +527,9 @@ function sendEvent(eventName, payload = {}) {
   const sourceId = String(localPlayer?.id ?? user?.id ?? payload?.sourceId ?? "");
   const event = { ...payload, sourceId, roomId, at: Date.now() };
   try {
-    if (sdk && typeof sdk.sendGameEvent === "function") {
-      sdk.sendGameEvent(eventName, event);
+    const liveSdk = window.BoomRoomSDK || sdk;
+    if (liveSdk && typeof liveSdk.sendGameEvent === "function") {
+      liveSdk.sendGameEvent(eventName, event);
       return true;
     }
     if (window.parent && window.parent !== window) {
@@ -641,7 +674,7 @@ function startPlaying() {
 }
 
 function isHost() {
-  const flag = sdk?.isHost;
+  const flag = hostFlag ?? window.BoomRoomSDK?.isHost ?? sdk?.isHost;
   if (flag !== undefined && flag !== null) return flag === true || flag === 1 || flag === "true";
   return players[0]?.id === String(user?.id ?? localPlayer?.id ?? "");
 }
@@ -650,15 +683,16 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
   const event = String(eventName || "");
   if (!payload || typeof payload !== "object") return;
   const sender = senderId != null ? String(senderId) : String(payload.sourceId ?? payload.playerId ?? "");
-  const me = String(localPlayer?.id ?? user?.id ?? "");
+  const me = String(user?.id ?? localPlayer?.id ?? "");
   if (sender && sender === me && !mockMode) return;
 
   switch (event) {
     case "FLOOR_ROOM_HELLO": {
       const p = payload.player || { id: payload.playerId || sender, username: payload.playerName || "玩家", avatar: payload.avatar || null };
+      if (p?.id && String(p.id) !== me) addRoomPlayer(p);
       if (isHost() && p?.id && String(p.id) !== me) {
-        addRoomPlayer(p);
         sendRoomSync(state === GAME_STATE.PLAYING ? "PLAYING" : state === GAME_STATE.COUNTDOWN ? "COUNTDOWN" : "WAITING");
+        scheduleSeriesAutoStart();
       }
       break;
     }
@@ -697,6 +731,12 @@ function handleGameEvent({ eventName, payload = {}, senderId = null }) {
         mapIndex: Number(payload.mapIndex ?? ((Number(payload.battleNumber || battleNumber) - 1) % MAPS.length)),
         broadcast: false,
       });
+      break;
+    case "SHOVE_REQUEST":
+      if (isHost()) hostResolveShove(payload);
+      break;
+    case "ORB_PICKUP_REQUEST":
+      if (isHost()) handleOrbRequest(payload);
       break;
     case "PLAYER_MOVE": {
       const player = players.find((candidate) => candidate.id === String(payload.playerId ?? sender));
@@ -1398,7 +1438,8 @@ function updateUi(timestamp) {
     ? `+${Math.max(0, OVERTIME_SECONDS - Math.floor((timestamp - overtimeAt) / 1000))}`
     : String(Math.max(0, Math.ceil(cachedTimeLeft)));
   timerNode.parentElement.classList.toggle("urgent", cachedTimeLeft <= 8 || Boolean(overtimeAt));
-  if (state === GAME_STATE.COUNTDOWN) placeNode.textContent = `第 ${battleNumber} 戰 · 進場`;
+  if (state === GAME_STATE.LOADING) placeNode.textContent = mockMode ? "開發單機" : "連線中";
+  else if (state === GAME_STATE.COUNTDOWN) placeNode.textContent = `第 ${battleNumber} 戰 · 進場`;
   else if (state === GAME_STATE.PLAYING) {
     const position = getStandings().findIndex((player) => player.id === localPlayer?.id);
     placeNode.textContent = localPlayer?.alive ? `本戰第 ${Math.max(1, position + 1)} 名` : "已出局";
@@ -1425,7 +1466,7 @@ function roundedRect(context, x, y, width, height, radius) {
 }
 
 function worldToScreen(x, y) {
-  const radius = board.side * 0.44 * (getMapForBattle(battleNumber).radius / 1.03);
+  const radius = Math.max(1, board.side * 0.455 * (getMapForBattle(battleNumber).radius / 1.03));
   return { x: board.x + x * radius, y: board.y + y * radius };
 }
 
@@ -1451,10 +1492,20 @@ function drawBackground() {
 }
 
 function drawBoard(timestamp) {
-  const side = board.side;
-  const unit = side * 0.93;
-  const tileSize = unit / gridSize;
+  const side = Math.max(180, board.side);
+  const map = getMapForBattle(battleNumber);
+  const unit = side * 0.90;
+  const tileSize = unit / Math.max(1, gridSize);
   ctx.save();
+
+  // 明確的主地板底座：即使所有格子都塌掉，也仍然能看見競技場。
+  const floorRadius = side * 0.455 * (map.radius / 1.03);
+  ctx.fillStyle = "rgba(21, 28, 73, .95)";
+  ctx.strokeStyle = "rgba(152, 172, 255, .48)";
+  ctx.lineWidth = 3;
+  roundedRect(ctx, board.x - floorRadius, board.y - floorRadius, floorRadius * 2, floorRadius * 2, Math.min(28, side * .06));
+  ctx.fill();
+  ctx.stroke();
 
   ctx.beginPath();
   ctx.ellipse(board.x, board.y + 12, unit * 0.53, unit * 0.49, 0, 0, Math.PI * 2);
@@ -1468,7 +1519,7 @@ function drawBoard(timestamp) {
     const point = worldToScreen(tile.x, tile.y);
     const size = tileSize * 0.94;
     if (tile.level === 3) {
-      ctx.fillStyle = "rgba(7, 9, 30, .45)";
+      ctx.fillStyle = "rgba(7, 9, 30, .72)";
       ctx.beginPath();
       ctx.ellipse(point.x, point.y + 6, size * 0.44, size * 0.26, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -1485,7 +1536,7 @@ function drawBoard(timestamp) {
     const pulse = warning ? 0.55 + Math.sin(timestamp / 70 + index) * 0.28 : 0;
     const y = point.y + 3 + (warning ? Math.sin(timestamp / 90 + index) * 1.5 : 0);
     roundedRect(ctx, point.x - size / 2, y - size / 2 + 4, size, size, Math.max(6, size * 0.19));
-    ctx.fillStyle = warning ? `rgba(255, 99, 136, ${0.26 + pulse * 0.22})` : "rgba(4, 7, 30, .46)";
+    ctx.fillStyle = warning ? `rgba(255, 99, 136, ${0.34 + pulse * 0.25})` : "rgba(10, 16, 49, .92)";
     ctx.fill();
     roundedRect(ctx, point.x - size / 2, y - size / 2, size, size * 0.88, Math.max(6, size * 0.19));
     const tileGradient = ctx.createLinearGradient(point.x, y - size / 2, point.x, y + size / 2);
@@ -1496,12 +1547,12 @@ function drawBoard(timestamp) {
       tileGradient.addColorStop(0, "rgb(64, 78, 143)");
       tileGradient.addColorStop(1, "rgb(47, 57, 115)");
     } else {
-      tileGradient.addColorStop(0, index % 2 ? "rgb(60, 72, 133)" : "rgb(55, 67, 128)");
-      tileGradient.addColorStop(1, index % 2 ? "rgb(43, 53, 107)" : "rgb(40, 51, 104)");
+      tileGradient.addColorStop(0, index % 2 ? "rgb(82, 105, 181)" : "rgb(73, 94, 169)");
+      tileGradient.addColorStop(1, index % 2 ? "rgb(45, 61, 125)" : "rgb(39, 55, 117)");
     }
     ctx.fillStyle = tileGradient;
     ctx.fill();
-    ctx.strokeStyle = warning ? `rgba(255, 135, 165, ${0.5 + pulse * 0.3})` : "rgba(148, 164, 233, .16)";
+    ctx.strokeStyle = warning ? `rgba(255, 135, 165, ${0.65 + pulse * 0.25})` : "rgba(180, 198, 255, .34)";
     ctx.lineWidth = warning ? 2 : 1;
     ctx.stroke();
 
@@ -1521,7 +1572,22 @@ function drawBoard(timestamp) {
     }
   });
 
-  const ring = board.side * 0.44 * safeRadius;
+  // 再畫一次乾淨的格線，讓玩家永遠能辨識地板格子。
+  ctx.save();
+  const gridUnit = unit / Math.max(1, gridSize);
+  const gridLeft = board.x - unit / 2;
+  const gridTop = board.y - unit / 2;
+  ctx.strokeStyle = "rgba(204, 219, 255, .20)";
+  ctx.lineWidth = 1;
+  for (let i = 1; i < gridSize; i += 1) {
+    const gx = gridLeft + gridUnit * i;
+    const gy = gridTop + gridUnit * i;
+    ctx.beginPath(); ctx.moveTo(gx, gridTop); ctx.lineTo(gx, gridTop + unit); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gridLeft, gy); ctx.lineTo(gridLeft + unit, gy); ctx.stroke();
+  }
+  ctx.restore();
+
+  const ring = board.side * 0.455 * safeRadius;
   ctx.save();
   ctx.setLineDash([8, 8]);
   ctx.lineWidth = 2;
@@ -1566,7 +1632,7 @@ function drawOrb(item, timestamp) {
 function drawPlayer(player, timestamp) {
   if (!player.alive) return;
   const point = worldToScreen(player.x, player.y);
-  const radius = Math.max(12, board.side * 0.025);
+  const radius = Math.max(15, Math.min(28, board.side * 0.037));
   const jumping = timestamp < player.dashUntil;
   const bob = Math.sin(timestamp / 115 + players.indexOf(player) * 2) * 1.5;
   const lift = jumping ? 9 : 0;
@@ -1718,6 +1784,10 @@ function frame(timestamp) {
   draw(timestamp);
   requestAnimationFrame(frame);
 }
+
+// 啟動唯一的主遊戲迴圈。
+// V1.2 漏掉第一次 requestAnimationFrame，造成 UI 正常但 Canvas 永遠沒有繪製。
+requestAnimationFrame(frame);
 
 setInterval(() => {
   if (!sdkReady) return;

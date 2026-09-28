@@ -22,12 +22,17 @@
       <div class="status-row">
         <div class="status-left">
           <div class="place-pill" id="place">準備落地</div>
-          <div class="room-pill" id="roomCountText">房間真人 0 / 10</div>
+          <div class="room-pill" id="roomCountText">房內 0 人</div>
         </div>
         <div class="status-right">
           <div class="map-pill" id="mapInfo">第 1 戰 · 小型庭院 · 7×7 小圖</div>
           <div class="charge-pill" id="charge">✦ 強撞未充能</div>
         </div>
+      </div>
+
+      <div class="player-strip" id="playerStrip" aria-label="本局玩家">
+        <span class="player-strip-label">玩家</span>
+        <div class="player-chips" id="playerChips"></div>
       </div>
 
       <div class="center-callout" id="callout" aria-live="polite"></div>
@@ -56,6 +61,6 @@
         </div>
       </div>
     </main>
-    <script type="module" src="./app.js"></script>
+    <script defer src="./app.js"></script>
   </body>
 </html>

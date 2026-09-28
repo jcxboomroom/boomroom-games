@@ -70,10 +70,14 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  z-index: 0;
+  pointer-events: none;
+  background: transparent;
 }
 
 .hud {
   position: absolute;
+  z-index: 10;
   top: calc(var(--safe-top) + 14px);
   left: 16px;
   right: 16px;
@@ -153,6 +157,7 @@ body {
 
 .status-row {
   position: absolute;
+  z-index: 10;
   top: calc(var(--safe-top) + 58px);
   left: 12px;
   right: 12px;
@@ -185,6 +190,97 @@ body {
 
 .charge-pill { color: var(--amber); transition: .2s; }
 .charge-pill.ready { color: #fff; background: rgba(232, 162, 54, .25); border-color: rgba(255, 216, 106, .42); box-shadow: 0 0 20px rgba(255, 216, 106, .17); }
+
+
+.player-strip {
+  position: absolute;
+  z-index: 10;
+  top: calc(var(--safe-top) + 91px);
+  left: 12px;
+  right: 12px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid rgba(190, 205, 255, .14);
+  border-radius: 14px;
+  background: rgba(15, 19, 48, .7);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.player-strip-label {
+  flex: 0 0 auto;
+  color: #8ff0d5;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.player-chips {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.player-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 128px;
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(38, 46, 94, .82);
+  border: 1px solid rgba(185, 199, 255, .14);
+  color: #e9eeff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.player-chip.bot {
+  background: rgba(100, 67, 110, .78);
+}
+
+.player-chip .dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 8px rgba(113, 243, 206, .6);
+}
+
+.player-chip.bot .dot {
+  background: var(--amber);
+  box-shadow: 0 0 8px rgba(255, 216, 106, .55);
+}
+
+.player-chip .chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-chip .chip-tag {
+  color: #aeb8de;
+  font: 700 9px/1 "DM Mono", monospace;
+}
+
+@media (max-width: 430px) {
+  .player-strip { top: calc(var(--safe-top) + 87px); }
+  .player-chip { max-width: 90px; padding: 0 7px; }
+  .player-strip-label { font-size: 9px; }
+  .status-row .place-pill, .status-row .charge-pill { display: none; }
+  .status-left, .status-right { flex: 1 1 auto; }
+  .status-right { justify-content: flex-end; }
+  .map-pill { max-width: 62vw; }
+}
 
 .center-callout {
   position: absolute;
@@ -356,6 +452,7 @@ body {
 }
 
 @media (max-height: 620px) {
+  .player-strip { top: calc(var(--safe-top) + 82px); }
   .controls { bottom: calc(var(--safe-bottom) + 6px); height: 92px; }
   .stick, .dash-button { width: 78px; height: 78px; }
   .status-row { top: calc(var(--safe-top) + 56px); }
@@ -368,6 +465,6 @@ body {
   .brand-mark { font-size: 15px; }
   .alive-pill, .series-pill { padding: 0 8px; }
   .status-row { left: 8px; right: 8px; }
-  .room-pill { display: none; }
+  .room-pill { display: inline-flex; }
   .map-pill { max-width: 58vw; }
 }
