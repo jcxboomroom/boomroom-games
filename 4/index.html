@@ -400,8 +400,19 @@ function getMatchParticipants(){return state.participantIds.map(id=>players.get(
 function aliveMatchPlayers(){return getMatchParticipants().filter(p=>p.status==='ALIVE')}
 
 function broadcast(eventName,payload){
-  const s=refreshSDK();if(!s||typeof s.sendGameEvent!=='function')return;
-  try{s.sendGameEvent(eventName,Object.assign({roundId:state.roundId,matchId:state.matchId},payload||{}))}catch(e){}
+  const fullPayload = Object.assign({roundId: state.roundId, matchId: state.matchId}, payload || {});
+  const message = { action: 'sendGameEvent', eventName: eventName, payload: fullPayload };
+  try{
+    const s = refreshSDK();
+    if(s && typeof s.sendGameEvent === 'function'){
+      s.sendGameEvent(eventName, fullPayload);
+    }
+  }catch(e){}
+  try{
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage(JSON.stringify(message), '*');
+    }
+  }catch(e){}
 }
 
 function playerSnapshot(p){return{id:p.id,username:p.username,avatar:p.avatar,joinedAt:p.joinedAt,joined:p.joined,online:p.online,score:p.score,status:p.status,hp:p.hp,shield:p.shield,combo:p.combo,bestCombo:p.bestCombo,mines:p.mines,actions:p.actions}}

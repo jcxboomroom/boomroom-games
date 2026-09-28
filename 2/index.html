@@ -1138,7 +1138,7 @@ function sendGameEvent(eventName, payload={}){
 
   try{
     if(window.parent && window.parent !== window){
-      window.parent.postMessage(message, '*');
+      window.parent.postMessage(JSON.stringify(message), '*');
       return true;
     }
   }catch(_){}
