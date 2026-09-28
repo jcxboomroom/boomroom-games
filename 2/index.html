@@ -1978,13 +1978,27 @@ function recordPlayerFinished(payload,senderId){
   return true;
 }
 
+let firstFinishTime = 0;
+
 function tryFinalizeWholeRound(reason='ALL_FINISHED'){
   if(!isHost() || state.roundFinalized || state.game==='LOBBY') return;
 
   const total=getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1;
   const finished=getFinishedCount();
 
-  if(reason!=='TIMEOUT' && finished<total) return;
+  if (finished > 0 && firstFinishTime === 0) {
+    firstFinishTime = Date.now();
+  }
+
+  const timeElapsedSinceFirst = firstFinishTime > 0 ? (Date.now() - firstFinishTime) : 0;
+  if(reason!=='TIMEOUT' && finished < total && timeElapsedSinceFirst < 4000) {
+    setTimeout(() => {
+      if (!state.roundFinalized && isHost()) {
+        tryFinalizeWholeRound('TIMEOUT');
+      }
+    }, 4000);
+    return;
+  }
   finalizeWholeRound(reason);
 }
 
