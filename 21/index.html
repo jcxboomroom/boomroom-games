@@ -112,6 +112,12 @@ function setupSDK(data) {
     });
   }
   render();
+
+  setTimeout(() => {
+    if (state === "LOBBY" && sdkIsHost) {
+      runLocalDevTest();
+    }
+  }, 800);
 }
 
 window.addEventListener("message", e => {
@@ -292,6 +298,14 @@ function gameOver() {
     }
   } catch(_) {}
   render();
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 
 function renderPlayers() {
