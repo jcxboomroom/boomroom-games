@@ -1,130 +1,130 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#060712">
-<title>霓虹疊塔：極限巔峰</title>
-<style>
-:root{
-  --bg:#060712;
-  --bg2:#0c1022;
-  --panel:rgba(13,16,31,.88);
-  --panel2:rgba(17,21,40,.96);
-  --line:rgba(255,255,255,.09);
-  --line2:rgba(255,255,255,.15);
-  --text:#f7f8ff;
-  --muted:#9aa2bd;
-  --cyan:#45efff;
-  --purple:#9b6cff;
-  --pink:#ff4da8;
-  --gold:#ffd85a;
-  --green:#42efaa;
-  --red:#ff5871;
-  --shadow:0 22px 80px rgba(0,0,0,.42);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif;}
-body{touch-action:none;overscroll-behavior:none;}
-button{font:inherit;color:inherit;border:0;outline:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
-#startBtn{display:none !important;}
-button:active{transform:scale(.975);}
-.app{width:100%;height:100dvh;min-height:100dvh;position:relative;overflow:hidden;background:
-  radial-gradient(circle at 50% -10%,rgba(155,108,255,.23),transparent 35%),
-  radial-gradient(circle at 0% 55%,rgba(255,77,168,.08),transparent 30%),
-  radial-gradient(circle at 100% 60%,rgba(69,239,255,.08),transparent 32%),
-  linear-gradient(180deg,#0b0d1b 0%,#04050b 100%);
-  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
-}
-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
-.backdrop{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,6,13,.02),rgba(4,5,10,.34));z-index:1;}
-.grid{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(69,239,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(69,239,255,.06) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(to bottom,transparent 0,black 18%,black 88%,transparent 100%);}
-.hud{position:absolute;left:10px;right:10px;top:67px;z-index:4;display:grid;grid-template-columns:1fr auto 1fr;gap:7px;pointer-events:none;}
-.hudCard{min-width:0;padding:9px 10px;border-radius:15px;background:rgba(7,10,20,.7);border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.2);backdrop-filter:blur(8px);}
-.hudCard.center{text-align:center;border-color:rgba(155,108,255,.17);min-width:112px;}
-.hudCard.right{text-align:right;}
-.hudLabel{font-size:7px;color:var(--muted);letter-spacing:1.1px;font-weight:900;}
-.hudValue{margin-top:2px;font-size:19px;font-weight:1000;line-height:1.05;}
-.hudValue.small{font-size:15px;}
-.progressWrap{position:absolute;left:16px;right:16px;top:126px;z-index:4;pointer-events:none;}
-.progressTrack{height:5px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.04);}
-.progressBar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));box-shadow:0 0 13px rgba(69,239,255,.32);transition:width .18s ease;}
-.milestoneRow{position:absolute;left:0;right:0;top:-5px;display:flex;justify-content:space-between;padding:0 9.5%;z-index:2;pointer-events:none;}
-.milestoneDot{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#13182a;border:1px solid rgba(255,255,255,.10);color:#747d98;font-size:7px;font-weight:1000;box-shadow:0 3px 10px rgba(0,0,0,.25);transition:.2s ease;}
-.milestoneDot.active{background:linear-gradient(145deg,var(--cyan),var(--purple));color:#08101d;border-color:rgba(255,255,255,.35);box-shadow:0 0 14px rgba(69,239,255,.35);transform:scale(1.13);}
-.milestoneDot.reached{background:rgba(66,239,170,.14);color:var(--green);border-color:rgba(66,239,170,.28);}
-.milestoneLabels{display:flex;justify-content:space-between;padding:4px 7.5% 0;color:#6f7892;font-size:7px;font-weight:900;letter-spacing:.4px;}
-.milestoneBanner{position:absolute;left:50%;top:158px;transform:translateX(-50%);z-index:4;padding:6px 11px;border-radius:999px;background:rgba(7,10,20,.78);border:1px solid rgba(69,239,255,.13);color:#aeb7ce;font-size:8px;font-weight:900;letter-spacing:.3px;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.18);}
-.milestoneBanner b{color:var(--cyan);font-size:9px;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#060712">
+  <title>霓虹疊塔：極限巔峰</title>
+  <style>
+    :root{
+      --bg:#060712;
+      --bg2:#0c1022;
+      --panel:rgba(13,16,31,.88);
+      --panel2:rgba(17,21,40,.96);
+      --line:rgba(255,255,255,.09);
+      --line2:rgba(255,255,255,.15);
+      --text:#f7f8ff;
+      --muted:#9aa2bd;
+      --cyan:#45efff;
+      --purple:#9b6cff;
+      --pink:#ff4da8;
+      --gold:#ffd85a;
+      --green:#42efaa;
+      --red:#ff5871;
+      --shadow:0 22px 80px rgba(0,0,0,.42);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei","Segoe UI",sans-serif;}
+    body{touch-action:none;overscroll-behavior:none;}
+    button{font:inherit;color:inherit;border:0;outline:0;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;}
+    #startBtn{display:none !important;}
+    button:active{transform:scale(.975);}
+    .app{width:100%;height:100dvh;min-height:100dvh;position:relative;overflow:hidden;background:
+      radial-gradient(circle at 50% -10%,rgba(155,108,255,.23),transparent 35%),
+      radial-gradient(circle at 0% 55%,rgba(255,77,168,.08),transparent 30%),
+      radial-gradient(circle at 100% 60%,rgba(69,239,255,.08),transparent 32%),
+      linear-gradient(180deg,#0b0d1b 0%,#04050b 100%);
+      padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+    }
+    canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+    .backdrop{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(4,6,13,.02),rgba(4,5,10,.34));z-index:1;}
+    .grid{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(69,239,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(69,239,255,.06) 1px,transparent 1px);background-size:30px 30px;mask-image:linear-gradient(to bottom,transparent 0,black 18%,black 88%,transparent 100%);}
+    .hud{position:absolute;left:10px;right:10px;top:67px;z-index:4;display:grid;grid-template-columns:1fr auto 1fr;gap:7px;pointer-events:none;}
+    .hudCard{min-width:0;padding:9px 10px;border-radius:15px;background:rgba(7,10,20,.7);border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.2);backdrop-filter:blur(8px);}
+    .hudCard.center{text-align:center;border-color:rgba(155,108,255,.17);min-width:112px;}
+    .hudCard.right{text-align:right;}
+    .hudLabel{font-size:7px;color:var(--muted);letter-spacing:1.1px;font-weight:900;}
+    .hudValue{margin-top:2px;font-size:19px;font-weight:1000;line-height:1.05;}
+    .hudValue.small{font-size:15px;}
+    .progressWrap{position:absolute;left:16px;right:16px;top:126px;z-index:4;pointer-events:none;}
+    .progressTrack{height:5px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;border:1px solid rgba(255,255,255,.04);}
+    .progressBar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));box-shadow:0 0 13px rgba(69,239,255,.32);transition:width .18s ease;}
+    .milestoneRow{position:absolute;left:0;right:0;top:-5px;display:flex;justify-content:space-between;padding:0 9.5%;z-index:2;pointer-events:none;}
+    .milestoneDot{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#13182a;border:1px solid rgba(255,255,255,.10);color:#747d98;font-size:7px;font-weight:1000;box-shadow:0 3px 10px rgba(0,0,0,.25);transition:.2s ease;}
+    .milestoneDot.active{background:linear-gradient(145deg,var(--cyan),var(--purple));color:#08101d;border-color:rgba(255,255,255,.35);box-shadow:0 0 14px rgba(69,239,255,.35);transform:scale(1.13);}
+    .milestoneDot.reached{background:rgba(66,239,170,.14);color:var(--green);border-color:rgba(66,239,170,.28);}
+    .milestoneLabels{display:flex;justify-content:space-between;padding:4px 7.5% 0;color:#6f7892;font-size:7px;font-weight:900;letter-spacing:.4px;}
+    .milestoneBanner{position:absolute;left:50%;top:158px;transform:translateX(-50%);z-index:4;padding:6px 11px;border-radius:999px;background:rgba(7,10,20,.78);border:1px solid rgba(69,239,255,.13);color:#aeb7ce;font-size:8px;font-weight:900;letter-spacing:.3px;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.18);}
+    .milestoneBanner b{color:var(--cyan);font-size:9px;}
 
-.scoreBoard{position:absolute;right:10px;top:184px;z-index:6;width:150px;padding:8px 9px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid rgba(255,255,255,.09);box-shadow:0 10px 28px rgba(0,0,0,.24);backdrop-filter:blur(9px);pointer-events:none;}
-.scoreBoardHead{display:flex;align-items:center;justify-content:space-between;color:#8f98b3;font-size:7px;font-weight:1000;letter-spacing:.8px;margin-bottom:5px;}
-.scoreBoardHead b{color:var(--gold);font-size:8px;}
-.scoreRows{display:flex;flex-direction:column;gap:3px;}
-.scoreRow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:5px;min-height:18px;font-size:8px;font-weight:900;}
-.scoreRank{color:#737d99;text-align:center;font-size:8px;}
-.scoreName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dfe4f5;}
-.scoreName.me{color:var(--cyan);}
-.scoreNum{font-variant-numeric:tabular-nums;color:#fff;font-size:9px;}
-.scoreEmpty{color:#6f7892;font-size:8px;padding:2px 0;}
-.scoreRow.top .scoreRank{color:var(--gold);}
-.scoreRow.top .scoreNum{color:var(--gold);}
-@media (max-height:650px){.scoreBoard{top:178px;width:138px;padding:7px 8px;}}
+    .scoreBoard{position:absolute;right:10px;top:184px;z-index:6;width:150px;padding:8px 9px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid rgba(255,255,255,.09);box-shadow:0 10px 28px rgba(0,0,0,.24);backdrop-filter:blur(9px);pointer-events:none;}
+    .scoreBoardHead{display:flex;align-items:center;justify-content:space-between;color:#8f98b3;font-size:7px;font-weight:1000;letter-spacing:.8px;margin-bottom:5px;}
+    .scoreBoardHead b{color:var(--gold);font-size:8px;}
+    .scoreRows{display:flex;flex-direction:column;gap:3px;}
+    .scoreRow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:5px;min-height:18px;font-size:8px;font-weight:900;}
+    .scoreRank{color:#737d99;text-align:center;font-size:8px;}
+    .scoreName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dfe4f5;}
+    .scoreName.me{color:var(--cyan);}
+    .scoreNum{font-variant-numeric:tabular-nums;color:#fff;font-size:9px;}
+    .scoreEmpty{color:#6f7892;font-size:8px;padding:2px 0;}
+    .scoreRow.top .scoreRank{color:var(--gold);}
+    .scoreRow.top .scoreNum{color:var(--gold);}
+    @media (max-height:650px){.scoreBoard{top:178px;width:138px;padding:7px 8px;}}
 
-.inheritRule{margin-top:4px;color:#7d87a6;font-size:9px;font-weight:800;text-align:center;}
-.statusPill{position:absolute;left:50%;top:140px;transform:translateX(-50%);z-index:4;padding:7px 11px;border-radius:999px;background:rgba(7,10,20,.68);border:1px solid rgba(255,255,255,.08);color:#bec4d8;font-size:9px;font-weight:900;letter-spacing:.4px;pointer-events:none;backdrop-filter:blur(7px);white-space:nowrap;}
-.bottomBar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:end;justify-content:space-between;gap:10px;pointer-events:none;}
-.hintCard{max-width:240px;padding:9px 11px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid var(--line);box-shadow:0 10px 28px rgba(0,0,0,.22);backdrop-filter:blur(8px);}
-.hintTitle{font-size:10px;font-weight:1000;}
-.hintSub{margin-top:3px;font-size:8px;color:var(--muted);line-height:1.3;}
-.tapIndicator{width:48px;height:48px;border-radius:16px;border:1px solid rgba(69,239,255,.22);background:rgba(69,239,255,.05);display:grid;place-items:center;font-size:20px;color:var(--cyan);box-shadow:0 0 22px rgba(69,239,255,.10);}
-.overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;pointer-events:auto;background:rgba(3,4,9,.64);backdrop-filter:blur(11px);}
-.overlay.show{display:flex;}
-.modal{width:min(480px,100%);border-radius:25px;padding:22px 18px 18px;background:linear-gradient(145deg,rgba(18,22,43,.98),rgba(7,9,18,.98));border:1px solid var(--line2);box-shadow:var(--shadow);position:relative;overflow:hidden;}
-.modal::before{content:"";position:absolute;inset:-30% -15% auto;height:52%;background:radial-gradient(circle,rgba(155,108,255,.18),transparent 63%);pointer-events:none;}
-.modalHead{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.kicker{font-size:8px;color:var(--cyan);letter-spacing:1.7px;font-weight:1000;}
-.h1{position:relative;margin:8px 0 6px;font-size:32px;line-height:1.02;font-weight:1000;letter-spacing:-1px;}
-.lead{position:relative;color:#b7bfd5;font-size:11px;line-height:1.55;margin:0;}
-.metaGrid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px;}
-.meta{padding:9px 8px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
-.metaLabel{font-size:7px;color:var(--muted);font-weight:900;}
-.metaValue{margin-top:3px;font-size:11px;font-weight:1000;}
-.rules{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px;}
-.rule{padding:10px 8px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);}
-.ruleIcon{font-size:16px;}
-.ruleTitle{margin-top:5px;font-size:9px;font-weight:1000;}
-.ruleText{margin-top:3px;font-size:7px;line-height:1.35;color:var(--muted);}
-.primary{position:relative;width:100%;height:48px;margin-top:16px;border-radius:15px;background:linear-gradient(135deg,#7f5bff,#ff4da8);font-weight:1000;font-size:14px;box-shadow:0 12px 30px rgba(155,108,255,.24);overflow:hidden;}
-.primary::after{content:"";position:absolute;left:-35%;top:-80%;width:28%;height:260%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 2.8s linear infinite;}
-.secondary{position:relative;width:100%;height:44px;margin-top:9px;border-radius:13px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:12px;font-weight:900;}
-.note{position:relative;margin-top:9px;text-align:center;font-size:8px;color:#747c94;line-height:1.5;}
-.resultStats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:15px;}
-.resultStat{padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
-.resultStat .v{font-size:17px;font-weight:1000;}
-.resultStat .l{margin-top:3px;font-size:7px;color:var(--muted);font-weight:900;}
-.reward{position:relative;margin-top:12px;padding:13px;border-radius:15px;background:linear-gradient(90deg,rgba(255,216,90,.08),rgba(155,108,255,.08));border:1px solid rgba(255,216,90,.15);text-align:center;}
-.reward .rLabel{font-size:8px;color:#9c98a1;letter-spacing:1px;font-weight:900;}
-.reward .rValue{margin-top:3px;color:var(--gold);font-size:25px;font-weight:1000;}
-.resultReason{position:relative;margin-top:11px;color:#b2bad0;text-align:center;font-size:9px;font-weight:800;}
-.toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);z-index:30;padding:8px 12px;border-radius:999px;background:rgba(5,7,14,.92);border:1px solid var(--line2);color:#dce2f1;font-size:9px;font-weight:900;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.34);}
-.toast.show{opacity:1;transform:translate(-50%,0);}
-.flash{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.32),transparent 53%);}
-.flash.play{animation:flash .3s ease-out;}
+    .inheritRule{margin-top:4px;color:#7d87a6;font-size:9px;font-weight:800;text-align:center;}
+    .statusPill{position:absolute;left:50%;top:140px;transform:translateX(-50%);z-index:4;padding:7px 11px;border-radius:999px;background:rgba(7,10,20,.68);border:1px solid rgba(255,255,255,.08);color:#bec4d8;font-size:9px;font-weight:900;letter-spacing:.4px;pointer-events:none;backdrop-filter:blur(7px);white-space:nowrap;}
+    .bottomBar{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:end;justify-content:space-between;gap:10px;pointer-events:none;}
+    .hintCard{max-width:240px;padding:9px 11px;border-radius:14px;background:rgba(7,10,20,.76);border:1px solid var(--line);box-shadow:0 10px 28px rgba(0,0,0,.22);backdrop-filter:blur(8px);}
+    .hintTitle{font-size:10px;font-weight:1000;}
+    .hintSub{margin-top:3px;font-size:8px;color:var(--muted);line-height:1.3;}
+    .tapIndicator{width:48px;height:48px;border-radius:16px;border:1px solid rgba(69,239,255,.22);background:rgba(69,239,255,.05);display:grid;place-items:center;font-size:20px;color:var(--cyan);box-shadow:0 0 22px rgba(69,239,255,.10);}
+    .overlay{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:18px;pointer-events:auto;background:rgba(3,4,9,.64);backdrop-filter:blur(11px);}
+    .overlay.show{display:flex;}
+    .modal{width:min(480px,100%);border-radius:25px;padding:22px 18px 18px;background:linear-gradient(145deg,rgba(18,22,43,.98),rgba(7,9,18,.98));border:1px solid var(--line2);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+    .modal::before{content:"";position:absolute;inset:-30% -15% auto;height:52%;background:radial-gradient(circle,rgba(155,108,255,.18),transparent 63%);pointer-events:none;}
+    .modalHead{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .kicker{font-size:8px;color:var(--cyan);letter-spacing:1.7px;font-weight:1000;}
+    .h1{position:relative;margin:8px 0 6px;font-size:32px;line-height:1.02;font-weight:1000;letter-spacing:-1px;}
+    .lead{position:relative;color:#b7bfd5;font-size:11px;line-height:1.55;margin:0;}
+    .metaGrid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px;}
+    .meta{padding:9px 8px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
+    .metaLabel{font-size:7px;color:var(--muted);font-weight:900;}
+    .metaValue{margin-top:3px;font-size:11px;font-weight:1000;}
+    .rules{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px;}
+    .rule{padding:10px 8px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);}
+    .ruleIcon{font-size:16px;}
+    .ruleTitle{margin-top:5px;font-size:9px;font-weight:1000;}
+    .ruleText{margin-top:3px;font-size:7px;line-height:1.35;color:var(--muted);}
+    .primary{position:relative;width:100%;height:48px;margin-top:16px;border-radius:15px;background:linear-gradient(135deg,#7f5bff,#ff4da8);font-weight:1000;font-size:14px;box-shadow:0 12px 30px rgba(155,108,255,.24);overflow:hidden;}
+    .primary::after{content:"";position:absolute;left:-35%;top:-80%;width:28%;height:260%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 2.8s linear infinite;}
+    .secondary{position:relative;width:100%;height:44px;margin-top:9px;border-radius:13px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:12px;font-weight:900;}
+    .note{position:relative;margin-top:9px;text-align:center;font-size:8px;color:#747c94;line-height:1.5;}
+    .resultStats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:15px;}
+    .resultStat{padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);text-align:center;}
+    .resultStat .v{font-size:17px;font-weight:1000;}
+    .resultStat .l{margin-top:3px;font-size:7px;color:var(--muted);font-weight:900;}
+    .reward{position:relative;margin-top:12px;padding:13px;border-radius:15px;background:linear-gradient(90deg,rgba(255,216,90,.08),rgba(155,108,255,.08));border:1px solid rgba(255,216,90,.15);text-align:center;}
+    .reward .rLabel{font-size:8px;color:#9c98a1;letter-spacing:1px;font-weight:900;}
+    .reward .rValue{margin-top:3px;color:var(--gold);font-size:25px;font-weight:1000;}
+    .resultReason{position:relative;margin-top:11px;color:#b2bad0;text-align:center;font-size:9px;font-weight:800;}
+    .toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,14px);z-index:30;padding:8px 12px;border-radius:999px;background:rgba(5,7,14,.92);border:1px solid var(--line2);color:#dce2f1;font-size:9px;font-weight:900;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.34);}
+    .toast.show{opacity:1;transform:translate(-50%,0);}
+    .flash{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.32),transparent 53%);}
+    .flash.play{animation:flash .3s ease-out;}
 
-.autoCountBadge{
-  position:absolute;left:50%;top:205px;transform:translateX(-50%);
-  z-index:7;padding:8px 13px;border-radius:999px;
-  background:rgba(7,10,20,.82);border:1px solid rgba(69,239,255,.16);
-  color:#dfe6f8;font-size:9px;font-weight:1000;pointer-events:none;
-  backdrop-filter:blur(8px);display:none;
-}
-.autoCountBadge.show{display:block;}
-.fpsWarn{position:absolute;right:10px;bottom:10px;z-index:40;display:none;padding:4px 6px;border-radius:7px;background:#280f15;color:#ff8e9f;border:1px solid rgba(255,88,113,.2);font-size:8px;font-weight:900;}
-@keyframes shine{to{transform:translateX(460%) skewX(-20deg);}}
-@keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
-@media (max-height:650px){.hud{top:58px}.progressWrap{top:113px}.milestoneBanner{top:142px}.statusPill{top:164px}.bottomBar{bottom:8px}.h1{font-size:27px}.modal{padding-top:18px}.rules{margin-top:9px}.metaGrid{margin-top:10px}.primary{margin-top:12px}}
-</style>
+    .autoCountBadge{
+      position:absolute;left:50%;top:205px;transform:translateX(-50%);
+      z-index:7;padding:8px 13px;border-radius:999px;
+      background:rgba(7,10,20,.82);border:1px solid rgba(69,239,255,.16);
+      color:#dfe6f8;font-size:9px;font-weight:1000;pointer-events:none;
+      backdrop-filter:blur(8px);display:none;
+    }
+    .autoCountBadge.show{display:block;}
+    .fpsWarn{position:absolute;right:10px;bottom:10px;z-index:40;display:none;padding:4px 6px;border-radius:7px;background:#280f15;color:#ff8e9f;border:1px solid rgba(255,88,113,.2);font-size:8px;font-weight:900;}
+    @keyframes shine{to{transform:translateX(460%) skewX(-20deg);}}
+    @keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+    @media (max-height:650px){.hud{top:58px}.progressWrap{top:113px}.milestoneBanner{top:142px}.statusPill{top:164px}.bottomBar{bottom:8px}.h1{font-size:27px}.modal{padding-top:18px}.rules{margin-top:9px}.metaGrid{margin-top:10px}.primary{margin-top:12px}}
+  </style>
 </head>
 <body>
 <div class="app" id="app">
@@ -132,7 +132,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
   <canvas id="gameCanvas"></canvas>
   <div class="backdrop"></div>
   <div class="flash" id="flash"></div>
-<section class="hud" id="hud" aria-hidden="true">
+  <section class="hud" id="hud" aria-hidden="true">
     <div class="hudCard">
       <div class="hudLabel">HEIGHT</div>
       <div class="hudValue" id="layerValue">0</div>
@@ -235,2068 +235,1694 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 </div>
 
 <script>
-'use strict';
+  'use strict';
 
-const DEBUG = false;
-const GAME_INFO = {
-  id: 'neon_stack_peak',
-  category: '反應挑戰',
-  name: '霓虹疊塔：極限巔峰',
-  description: '點擊落下方塊，對準塔頂並保持節奏。',
-  version: '4.0.2',
-  entryCost: 0,
-  maxPlayers: 10,
-  controlModes: ['Tap', 'Pointer'],
-  duration: '30~120 秒',
-  multiplayer: true,
-  rewardEnabled: true
-};
+  const DEBUG = false;
+  const GAME_INFO = {
+    id: 'neon_stack_peak',
+    category: '反應挑戰',
+    name: '霓虹疊塔：極限巔峰',
+    description: '點擊落下方塊，對準塔頂並保持節奏。',
+    version: '4.0.2',
+    entryCost: 0,
+    maxPlayers: 10,
+    controlModes: ['Tap', 'Pointer'],
+    duration: '30~120 秒',
+    multiplayer: true,
+    rewardEnabled: true
+  };
 
-const AUTO_ROUND = {
-  MAX_PLAYERS: GAME_INFO.maxPlayers,
-  STABLE_MS: 900,           // 人數穩定 0.9 秒後進入倒數
-  COUNTDOWN_MS: 3000,       // 3 秒全房倒數
-  RESULT_MS: 3000,          // 全房結算展示 3 秒後自動返回
-  GLOBAL_ROUND_MAX_MS: 120000, // 單局最長 120 秒；有人未結束時不會無限等待
-  CLOSE_GRACE_MS: 80,       // 返回前緩衝
-  HEARTBEAT_MS: 650,        // 高頻同步，降低漏事件機率
-  SYNC_MS: 650,
-  JOIN_GRACE_MS: 400,
-  EVENT_REPEAT_MS: 900,     // 開局事件在前段重複廣播
-  RESULT_SYNC_MS: 3500
-};
+  const AUTO_ROUND = {
+    MAX_PLAYERS: GAME_INFO.maxPlayers,
+    STABLE_MS: 900,           // 人數穩定 0.9 秒後進入倒數
+    COUNTDOWN_MS: 3000,       // 3 秒全房倒數
+    RESULT_MS: 3000,          // 全房結算展示 3 秒後自動返回
+    GLOBAL_ROUND_MAX_MS: 120000, // 單局最長 120 秒；有人未結束時不會無限等待
+    CLOSE_GRACE_MS: 80,       // 返回前緩衝
+    HEARTBEAT_MS: 650,        // 高頻同步，降低漏事件機率
+    SYNC_MS: 650,
+    JOIN_GRACE_MS: 400,
+    EVENT_REPEAT_MS: 900,     // 開局事件在前段重複廣播
+    RESULT_SYNC_MS: 3500
+  };
 
-const CONFIG = {
-  boxHeight: 42,
-  initialWidth: 206,
-  minWidth: 52,
-  sideMargin: 12,
+  const CONFIG = {
+    boxHeight: 42,
+    initialWidth: 206,
+    minWidth: 52,
+    sideMargin: 12,
 
-  // HARDER DIFFICULTY CURVE (2.5)
-  // Faster early acceleration, steeper high-layer speed growth, and a real cap.
-  speedStart: 260,
-  speedGain: 9.5,
-  speedExponent: 1.16,
-  speedCap: 860,
+    // HARDER DIFFICULTY CURVE (2.5)
+    // Faster early acceleration, steeper high-layer speed growth, and a real cap.
+    speedStart: 260,
+    speedGain: 9.5,
+    speedExponent: 1.16,
+    speedCap: 860,
 
 
-  // Precision grades become slightly stricter as the tower gets higher.
-  perfectThreshold: 0.98,
-  greatThreshold: 0.84,
+    // Precision grades become slightly stricter as the tower gets higher.
+    perfectThreshold: 0.98,
+    greatThreshold: 0.84,
 
-  // Survival now requires meaningful overlap, increasing by layer.
-  minOverlapRatio: 0.06,
-  minOverlapGrowth: 0.0045,
-  minOverlapCap: 0.22,
+    // Survival now requires meaningful overlap, increasing by layer.
+    minOverlapRatio: 0.06,
+    minOverlapGrowth: 0.0045,
+    minOverlapCap: 0.22,
 
-  maxReward: 250,
-  rewardStepLayers: 10,
-  rewardStepCoins: 50,
-  maxParticles: 90,
-  maxDebris: 24,
-  cameraFocusRatio: 0.52,
-  cameraStartLayer: 6,
-  cameraBlendLayers: 4,
-  cameraEase: 14
-};
+    maxReward: 250,
+    rewardStepLayers: 10,
+    rewardStepCoins: 50,
+    maxParticles: 90,
+    maxDebris: 24,
+    cameraFocusRatio: 0.52,
+    cameraStartLayer: 6,
+    cameraBlendLayers: 4,
+    cameraEase: 14
+  };
 
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d', { alpha: false });
-const dprCap = 2;
-let width = 0, height = 0, dpr = 1;
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const dprCap = 2;
+  let width = 0, height = 0, dpr = 1;
 
-const $ = id => document.getElementById(id);
-const state = {
-  game: 'LOBBY',
-  roundId: '',
-  score: 0,
-  layers: 0,
-  combo: 0,
-  bestCombo: 0,
-  perfects: 0,
-  greats: 0,
-  goods: 0,
-  cameraY: 0,
-  targetCameraY: 0,
-  shake: 0,
-  hue: 190,
-  boxes: [],
-  currentBox: null,
-  debris: [],
-  particles: [],
-  trail: [],
-  side: 'LEFT',
-  nextEntryAt: 0,
-  inputLockedUntil: 0,
-  startedAt: 0,
-  lastTimestamp: 0,
-  reward: 0,
-  resultReason: '',
-  gameOverCalled: false,
-  bestLayers: 0,
-  bestScore: 0,
-  soundEnabled: true,
-  lowEffects: false,
-  avgFps: 60,
-  fpsSamples: 0,
-  sdkUser: null,
-  finishToastShown: false,
+  const $ = id => document.getElementById(id);
+  const state = {
+    game: 'LOBBY',
+    roundId: '',
+    score: 0,
+    layers: 0,
+    combo: 0,
+    bestCombo: 0,
+    perfects: 0,
+    greats: 0,
+    goods: 0,
+    cameraY: 0,
+    targetCameraY: 0,
+    shake: 0,
+    hue: 190,
+    boxes: [],
+    currentBox: null,
+    debris: [],
+    particles: [],
+    trail: [],
+    side: 'LEFT',
+    nextEntryAt: 0,
+    inputLockedUntil: 0,
+    startedAt: 0,
+    lastTimestamp: 0,
+    reward: 0,
+    resultReason: '',
+    gameOverCalled: false,
+    bestLayers: 0,
+    bestScore: 0,
+    soundEnabled: true,
+    lowEffects: false,
+    avgFps: 60,
+    fpsSamples: 0,
+    sdkUser: null,
+    finishToastShown: false,
 
-  // Auto-room lifecycle
-  roomPlayerCount: 0,
-  roomPlayersUpdatedAt: 0,
-  autoRoundState: 'WAITING',
-  autoRoundTimer: null,
-  countdownTimer: null,
-  countdownEndsAt: 0,
-  resultCloseTimer: null,
-  closeRequested: false,
-  closeSent: false,
-  hostRoundStarted: false,
-  remoteStartAt: 0,
-  lastRoomSignature: '',
-  lastAutoScheduledSignature: '',
-  localPlayerReady: false,
-  roundFinalized: false,
-  globalRoundDeadline: 0,
-  finishedCount: 0
-};
+    // Auto-room lifecycle
+    roomPlayerCount: 0,
+    roomPlayersUpdatedAt: 0,
+    autoRoundState: 'WAITING',
+    autoRoundTimer: null,
+    countdownTimer: null,
+    countdownEndsAt: 0,
+    resultCloseTimer: null,
+    closeRequested: false,
+    closeSent: false,
+    hostRoundStarted: false,
+    remoteStartAt: 0,
+    lastRoomSignature: '',
+    lastAutoScheduledSignature: '',
+    localPlayerReady: false,
+    roundFinalized: false,
+    globalRoundDeadline: 0,
+    finishedCount: 0
+  };
 
-let finishedPlayers = new Map();
-let globalRoundTimer = null;
+  let finishedPlayers = new Map();
+  let globalRoundTimer = null;
 
-let audioCtx = null;
-let toastTimer = 0;
-let particlePool = [];
-let debrisPool = [];
+  let audioCtx = null;
+  let toastTimer = 0;
+  let particlePool = [];
+  let debrisPool = [];
 
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-function finite(v, fallback=0){ return Number.isFinite(v) ? v : fallback; }
-function safeReward(v){ return clamp(Math.floor(finite(v,0)), 0, CONFIG.maxReward); }
-function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+  function finite(v, fallback=0){ return Number.isFinite(v) ? v : fallback; }
+  function safeReward(v){ return clamp(Math.floor(finite(v,0)), 0, CONFIG.maxReward); }
+  function uid(){ return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
 
-function loadBest(){
-  try{
-    state.bestLayers = clamp(Number(localStorage.getItem('neon_stack_best_layers') || 0),0,9999);
-    state.bestScore = clamp(Number(localStorage.getItem('neon_stack_best_score') || 0),0,999999);
-  }catch{}
-}
-function saveBest(){
-  try{
-    localStorage.setItem('neon_stack_best_layers', String(state.bestLayers));
-    localStorage.setItem('neon_stack_best_score', String(state.bestScore));
-  }catch{}
-}
-loadBest();
+  function loadBest(){
+    try{
+      state.bestLayers = clamp(Number(localStorage.getItem('neon_stack_best_layers') || 0),0,9999);
+      state.bestScore = clamp(Number(localStorage.getItem('neon_stack_best_score') || 0),0,999999);
+    }catch{}
+  }
+  function saveBest(){
+    try{
+      localStorage.setItem('neon_stack_best_layers', String(state.bestLayers));
+      localStorage.setItem('neon_stack_best_score', String(state.bestScore));
+    }catch{}
+  }
+  loadBest();
 
-function resize(){
-  const prevHeight = height;
-  const prevBase = prevHeight ? baseY() : null;
-  width = Math.max(320, window.innerWidth);
-  height = Math.max(420, window.innerHeight);
-  dpr = Math.min(window.devicePixelRatio || 1, dprCap);
-  canvas.width = Math.floor(width*dpr);
-  canvas.height = Math.floor(height*dpr);
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  function resize(){
+    const prevHeight = height;
+    const prevBase = prevHeight ? baseY() : null;
+    width = Math.max(320, window.innerWidth);
+    height = Math.max(420, window.innerHeight);
+    dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+    canvas.width = Math.floor(width*dpr);
+    canvas.height = Math.floor(height*dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
 
-  // Keep the whole stack's world position relative to the floor when the
-  // viewport changes. This prevents a rotation/resize from hiding the tower.
-  const nextBase = baseY();
-  if(prevBase !== null){
-    const dy = nextBase - prevBase;
-    if(Math.abs(dy) > 0.01){
-      for(const b of state.boxes) b.y += dy;
-      if(state.currentBox) state.currentBox.y += dy;
-      for(const d of state.debris) d.y += dy;
+    const nextBase = baseY();
+    if(prevBase !== null){
+      const dy = nextBase - prevBase;
+      if(Math.abs(dy) > 0.01){
+        for(const b of state.boxes) b.y += dy;
+        if(state.currentBox) state.currentBox.y += dy;
+        for(const d of state.debris) d.y += dy;
+      }
+    }
+
+    const axis = width * 0.5;
+    for(const b of state.boxes) b.x = axis - b.w * 0.5;
+    if(state.currentBox){
+      const offscreen = state.currentBox.dir > 0
+        ? width + state.currentBox.w + 40
+        : -state.currentBox.w - 40;
+      const entering = state.currentBox.dir > 0
+        ? state.currentBox.x < -state.currentBox.w
+        : state.currentBox.x > width;
+      if(entering) state.currentBox.x = offscreen;
+    }
+    updateCameraTarget();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function ensureAudio(){
+    if(audioCtx) return audioCtx;
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{ audioCtx = null; }
+    return audioCtx;
+  }
+  function resumeAudio(){
+    const a = ensureAudio();
+    if(a && a.state === 'suspended') a.resume().catch(()=>{});
+  }
+  function tone(freq=440, duration=.08, type='sine', gain=.045){
+    if(!state.soundEnabled) return;
+    const a = ensureAudio();
+    if(!a) return;
+    try{
+      const now = a.currentTime;
+      const osc = a.createOscillator();
+      const g = a.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(gain, now + .008);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.connect(g).connect(a.destination);
+      osc.start(now); osc.stop(now+duration+.02);
+    }catch{}
+  }
+  function hitSound(grade){
+    resumeAudio();
+    if(grade === 'PERFECT'){ tone(740,.07,'triangle',.05); setTimeout(()=>tone(980,.09,'triangle',.035),35); }
+    else if(grade === 'GREAT'){ tone(620,.08,'sine',.045); }
+    else { tone(430,.065,'square',.026); }
+  }
+  function crashSound(){ resumeAudio(); tone(110,.16,'sawtooth',.06); setTimeout(()=>tone(75,.22,'sawtooth',.035),55); }
+  function playStart(){ resumeAudio(); tone(420,.08,'triangle',.035); setTimeout(()=>tone(630,.10,'triangle',.04),75); }
+  function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch{} }
+
+  function makeParticle(){
+    let p = particlePool.pop();
+    if(!p) p = {};
+    p.active=true; p.life=.45; p.maxLife=.45;
+    p.x=0; p.y=0; p.vx=0; p.vy=0; p.size=3; p.alpha=1; p.color='#fff';
+    state.particles.push(p);
+    return p;
+  }
+  function recycleParticles(){
+    for(let i=state.particles.length-1;i>=0;i--){
+      if(state.particles[i].life<=0){ particlePool.push(state.particles[i]); state.particles.splice(i,1); }
+    }
+  }
+  function burst(x,y,color,count=14){
+    if(state.lowEffects) count=Math.min(count,6);
+    for(let i=0;i<count && state.particles.length < CONFIG.maxParticles;i++){
+      const p=makeParticle();
+      p.x=x; p.y=y; p.color=color;
+      const a=Math.random()*Math.PI*2, s=40+Math.random()*170;
+      p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s-35;
+      p.size=1.8+Math.random()*3.6; p.life=p.maxLife=.32+Math.random()*.38; p.alpha=.85+Math.random()*.15;
     }
   }
 
-  // One fixed horizontal tower axis. Every settled block is recentered.
-  const axis = width * 0.5;
-  for(const b of state.boxes) b.x = axis - b.w * 0.5;
-  if(state.currentBox){
-    const offscreen = state.currentBox.dir > 0
-      ? width + state.currentBox.w + 40
-      : -state.currentBox.w - 40;
-    const entering = state.currentBox.dir > 0
-      ? state.currentBox.x < -state.currentBox.w
-      : state.currentBox.x > width;
-    if(entering) state.currentBox.x = offscreen;
+  class Debris{
+    reset(x,y,w,h,color){
+      this.active=true; this.x=x; this.y=y; this.w=w; this.h=h; this.color=color;
+      this.vx=(Math.random()-.5)*170; this.vy=-80-Math.random()*80; this.angle=0; this.va=(Math.random()-.5)*5;
+      this.life=1.4;
+    }
+    update(dt){
+      this.vy += 720*dt;
+      this.x += this.vx*dt; this.y += this.vy*dt; this.angle += this.va*dt; this.life -= dt;
+    }
+    draw(){
+      const sy=this.y-state.cameraY;
+      if(sy < -100 || sy > height+120) return;
+      ctx.save();
+      ctx.translate(this.x+this.w/2, sy+this.h/2);
+      ctx.rotate(this.angle);
+      ctx.fillStyle=this.color;
+      ctx.shadowBlur=state.lowEffects?0:10; ctx.shadowColor=this.color;
+      ctx.fillRect(-this.w/2,-this.h/2,this.w,this.h);
+      ctx.restore();
+    }
   }
-  updateCameraTarget();
-}
-window.addEventListener('resize', resize);
-resize();
-
-function ensureAudio(){
-  if(audioCtx) return audioCtx;
-  try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{ audioCtx = null; }
-  return audioCtx;
-}
-function resumeAudio(){
-  const a = ensureAudio();
-  if(a && a.state === 'suspended') a.resume().catch(()=>{});
-}
-function tone(freq=440, duration=.08, type='sine', gain=.045){
-  if(!state.soundEnabled) return;
-  const a = ensureAudio();
-  if(!a) return;
-  try{
-    const now = a.currentTime;
-    const osc = a.createOscillator();
-    const g = a.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(gain, now + .008);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.connect(g).connect(a.destination);
-    osc.start(now); osc.stop(now+duration+.02);
-  }catch{}
-}
-function hitSound(grade){
-  resumeAudio();
-  if(grade === 'PERFECT'){ tone(740,.07,'triangle',.05); setTimeout(()=>tone(980,.09,'triangle',.035),35); }
-  else if(grade === 'GREAT'){ tone(620,.08,'sine',.045); }
-  else { tone(430,.065,'square',.026); }
-}
-function crashSound(){ resumeAudio(); tone(110,.16,'sawtooth',.06); setTimeout(()=>tone(75,.22,'sawtooth',.035),55); }
-function playStart(){ resumeAudio(); tone(420,.08,'triangle',.035); setTimeout(()=>tone(630,.10,'triangle',.04),75); }
-function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch{} }
-
-function makeParticle(){
-  let p = particlePool.pop();
-  if(!p) p = {};
-  p.active=true; p.life=.45; p.maxLife=.45;
-  p.x=0; p.y=0; p.vx=0; p.vy=0; p.size=3; p.alpha=1; p.color='#fff';
-  state.particles.push(p);
-  return p;
-}
-function recycleParticles(){
-  for(let i=state.particles.length-1;i>=0;i--){
-    if(state.particles[i].life<=0){ particlePool.push(state.particles[i]); state.particles.splice(i,1); }
+  function spawnDebris(x,y,w,h,color){
+    if(w<=2) return;
+    let d = debrisPool.pop();
+    if(!d) d = new Debris();
+    d.reset(x,y,w,h,color);
+    state.debris.push(d);
   }
-}
-function burst(x,y,color,count=14){
-  if(state.lowEffects) count=Math.min(count,6);
-  for(let i=0;i<count && state.particles.length < CONFIG.maxParticles;i++){
-    const p=makeParticle();
-    p.x=x; p.y=y; p.color=color;
-    const a=Math.random()*Math.PI*2, s=40+Math.random()*170;
-    p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s-35;
-    p.size=1.8+Math.random()*3.6; p.life=p.maxLife=.32+Math.random()*.38; p.alpha=.85+Math.random()*.15;
-  }
-}
-
-class Debris{
-  reset(x,y,w,h,color){
-    this.active=true; this.x=x; this.y=y; this.w=w; this.h=h; this.color=color;
-    this.vx=(Math.random()-.5)*170; this.vy=-80-Math.random()*80; this.angle=0; this.va=(Math.random()-.5)*5;
-    this.life=1.4;
-  }
-  update(dt){
-    this.vy += 720*dt;
-    this.x += this.vx*dt; this.y += this.vy*dt; this.angle += this.va*dt; this.life -= dt;
-  }
-  draw(){
-    const sy=this.y-state.cameraY;
-    if(sy < -100 || sy > height+120) return;
-    ctx.save();
-    ctx.translate(this.x+this.w/2, sy+this.h/2);
-    ctx.rotate(this.angle);
-    ctx.fillStyle=this.color;
-    ctx.shadowBlur=state.lowEffects?0:10; ctx.shadowColor=this.color;
-    ctx.fillRect(-this.w/2,-this.h/2,this.w,this.h);
-    ctx.restore();
-  }
-}
-function spawnDebris(x,y,w,h,color){
-  if(w<=2) return;
-  let d = debrisPool.pop();
-  if(!d) d = new Debris();
-  d.reset(x,y,w,h,color);
-  state.debris.push(d);
-}
-function recycleDebris(){
-  for(let i=state.debris.length-1;i>=0;i--){
-    const d=state.debris[i];
-    if(d.life<=0 || d.y-state.cameraY>height+180){ d.active=false; debrisPool.push(d); state.debris.splice(i,1); }
-  }
-}
-
-class Box{
-  constructor(x,y,w,h,hueValue){
-    this.x=x; this.y=y; this.w=w; this.h=h; this.hue=hueValue;
-    this.dir=1; this.speed=CONFIG.speedStart; this.moving=true;
-    this.id=uid();
-  }
-  get color(){ return `hsl(${this.hue}, 100%, 65%)`; }
-  update(dt){
-    if(!this.moving) return;
-    this.x += this.speed*this.dir*dt;
-    const left=CONFIG.sideMargin, right=Math.max(left,width-CONFIG.sideMargin-this.w);
-    if(this.x <= left){ this.x=left; this.dir=1; }
-    else if(this.x >= right){ this.x=right; this.dir=-1; }
-    // Important: a box spawned from the left/right is always assigned a valid direction before entering play.
-  }
-  draw(){
-    const sy=this.y-state.cameraY;
-    if(sy<-100 || sy>height+100) return;
-    const c=this.color;
-    ctx.save();
-    ctx.fillStyle=c;
-    ctx.shadowBlur=state.lowEffects?5:15; ctx.shadowColor=c;
-    roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
-    ctx.shadowBlur=0;
-    const g=ctx.createLinearGradient(this.x,sy,this.x,sy+this.h);
-    g.addColorStop(0,'rgba(255,255,255,.26)'); g.addColorStop(.12,'rgba(255,255,255,.08)'); g.addColorStop(1,'rgba(0,0,0,.18)');
-    ctx.fillStyle=g; roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.2)'; roundRect(ctx,this.x+4,sy+4,Math.max(0,this.w-8),4,2); ctx.fill();
-    ctx.restore();
-  }
-}
-function roundRect(c,x,y,w,h,r){
-  const rr=Math.min(r,w/2,h/2);
-  c.beginPath(); c.moveTo(x+rr,y); c.arcTo(x+w,y,x+w,y+h,rr); c.arcTo(x+w,y+h,x,y+h,rr); c.arcTo(x,y+h,x,y,rr); c.arcTo(x,y,x+w,y,rr); c.closePath();
-}
-
-function stackCenterX(){ return width * 0.5; }
-function alignSettledBox(box, widthValue = box.w){
-  const w = clamp(finite(widthValue, box.w), CONFIG.minWidth, Math.min(CONFIG.initialWidth, width - CONFIG.sideMargin*2));
-  box.w = w;
-  box.x = stackCenterX() - w * 0.5;
-}
-function baseY(){ return height - 120; }
-function towerCenterY(){ return baseY() - 1; }
-function getBlockWidthForLayer(layer, parentWidth=null){
-  // Every new moving block MUST match the current top block width.
-  // Difficulty comes from movement speed and precision, not from a hidden
-  // automatic shrink schedule. If a miss clips the previous block, the
-  // resulting narrower top becomes the exact width for the next block.
-  const inherited = finite(parentWidth, CONFIG.initialWidth);
-  return clamp(inherited, CONFIG.minWidth, Math.min(CONFIG.initialWidth, width-CONFIG.sideMargin*2));
-}
-function getSpeedForLayer(layer){
-  return clamp(
-    CONFIG.speedStart + Math.pow(Math.max(0, layer), CONFIG.speedExponent) * CONFIG.speedGain,
-    CONFIG.speedStart,
-    CONFIG.speedCap
-  );
-}
-function getRequiredOverlapRatio(layer){
-  return clamp(
-    CONFIG.minOverlapRatio + Math.max(0, layer) * CONFIG.minOverlapGrowth,
-    CONFIG.minOverlapRatio,
-    CONFIG.minOverlapCap
-  );
-}
-function getDifficultyName(layer){
-  if(layer < 10) return '熱身';
-  if(layer < 20) return '加速';
-  if(layer < 30) return '高壓';
-  if(layer < 40) return '極限';
-  return '地獄';
-}
-function makeBase(){
-  state.hue=190;
-  const y=baseY();
-  const base=new Box(0,y,CONFIG.initialWidth,CONFIG.boxHeight,state.hue);
-  base.moving=false;
-  alignSettledBox(base, CONFIG.initialWidth);
-  state.boxes=[base];
-}
-function spawnBox(){
-  const last=state.boxes[state.boxes.length-1];
-  state.layers=state.boxes.length-1;
-  state.hue=(state.hue+17)%360;
-  const w=getBlockWidthForLayer(state.layers, last.w);
-  const y=last.y-CONFIG.boxHeight;
-  const b=new Box(0,y,w,CONFIG.boxHeight,state.hue);
-  const enteringLeft = state.side === 'LEFT';
-  b.dir=enteringLeft ? 1 : -1;
-  b.speed=getSpeedForLayer(state.layers);
-  // Spawn off-screen so the first frame always has a clear movement direction.
-  b.x=enteringLeft ? -w-24 : width+24;
-  state.currentBox=b;
-  state.side=enteringLeft ? 'RIGHT' : 'LEFT';
-  updateCameraTarget();
-}
-function updateCameraTarget(){
-  // CAMERA MODEL v2.4
-  // The active stacking point is the camera's anchor. It must remain near the
-  // middle of the gameplay field even when the tower rises above the original
-  // floor. IMPORTANT: cameraY is allowed to become NEGATIVE. A previous version
-  // clamped it to 0, which made layer 20+ move above the screen and disappear.
-  const ref = state.currentBox || state.boxes[state.boxes.length-1];
-  if(!ref){
-    state.targetCameraY = 0;
-    return;
+  function recycleDebris(){
+    for(let i=state.debris.length-1;i>=0;i--){
+      const d=state.debris[i];
+      if(d.life<=0 || d.y-state.cameraY>height+180){ d.active=false; debrisPool.push(d); state.debris.splice(i,1); }
+    }
   }
 
-  const playTop = Math.max(185, height*0.14);
-  const playBottom = Math.min(height-112, height*0.90);
-  const focusY = playTop + (playBottom-playTop) * CONFIG.cameraFocusRatio;
-  const desiredCamera = finite(ref.y - focusY, 0);
-  const layer = Math.max(0, state.boxes.length - 1);
-
-  // Ease the camera into follow mode over several early layers. Once follow
-  // mode is fully active, the current stacking position is continuously centered.
-  const blend = clamp((layer - CONFIG.cameraStartLayer + 1) / CONFIG.cameraBlendLayers, 0, 1);
-  state.targetCameraY = desiredCamera * blend;
-}
-
-function classifyPlacement(diff, overlap, w){
-  const overlapRatio=overlap/Math.max(1,w);
-  const centerDelta=Math.abs((state.currentBox.x+state.currentBox.w/2)-(state.boxes[state.boxes.length-1].x+state.boxes[state.boxes.length-1].w/2));
-  const centerRatio=centerDelta/Math.max(1,w);
-  const layer=state.layers;
-  const perfectCenter=Math.max(.022, .045 - layer*.00045);
-  const greatCenter=Math.max(.095, .17 - layer*.0012);
-  if(overlapRatio >= CONFIG.perfectThreshold && centerRatio <= perfectCenter) return 'PERFECT';
-  if(overlapRatio >= CONFIG.greatThreshold && centerRatio <= greatCenter) return 'GREAT';
-  return 'GOOD';
-}
-function scoreFor(grade){
-  const mult=1+Math.min(Math.max(state.combo-1,0),6)*0.18;
-  const base=grade==='PERFECT'?24:grade==='GREAT'?16:10;
-  return Math.round(base*mult);
-}
-
-function placeCurrent(){
-  const now=performance.now();
-  if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized || !state.currentBox || now<state.inputLockedUntil) return;
-  if(now<state.nextEntryAt) return;
-  resumeAudio();
-  state.inputLockedUntil=now+170;
-  const current=state.currentBox;
-  const last=state.boxes[state.boxes.length-1];
-  current.moving=false;
-
-  const currentRight=current.x+current.w;
-  const lastRight=last.x+last.w;
-  const left=Math.max(current.x,last.x);
-  const right=Math.min(currentRight,lastRight);
-  const overlap=Math.max(0,right-left);
-  const overlapRatio=overlap/Math.max(1,current.w);
-
-  const requiredOverlap = getRequiredOverlapRatio(state.layers);
-  if(overlapRatio < requiredOverlap){
-    spawnDebris(current.x,current.y,current.w,current.h,current.color);
-    burst(clamp(current.x+current.w/2,0,width),current.y-state.cameraY,current.color,16);
-    crashSound(); vibrate([24,40,36]);
-    state.resultReason='最後一塊完全偏離塔身。';
-    gameOver('MISS');
-    return;
+  class Box{
+    constructor(x,y,w,h,hueValue){
+      this.x=x; this.y=y; this.w=w; this.h=h; this.hue=hueValue;
+      this.dir=1; this.speed=CONFIG.speedStart; this.moving=true;
+      this.id=uid();
+    }
+    get color(){ return `hsl(${this.hue}, 100%, 65%)`; }
+    update(dt){
+      if(!this.moving) return;
+      this.x += this.speed*this.dir*dt;
+      const left=CONFIG.sideMargin, right=Math.max(left,width-CONFIG.sideMargin-this.w);
+      if(this.x <= left){ this.x=left; this.dir=1; }
+      else if(this.x >= right){ this.x=right; this.dir=-1; }
+    }
+    draw(){
+      const sy=this.y-state.cameraY;
+      if(sy<-100 || sy>height+100) return;
+      const c=this.color;
+      ctx.save();
+      ctx.fillStyle=c;
+      ctx.shadowBlur=state.lowEffects?5:15; ctx.shadowColor=c;
+      roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
+      ctx.shadowBlur=0;
+      const g=ctx.createLinearGradient(this.x,sy,this.x,sy+this.h);
+      g.addColorStop(0,'rgba(255,255,255,.26)'); g.addColorStop(.12,'rgba(255,255,255,.08)'); g.addColorStop(1,'rgba(0,0,0,.18)');
+      ctx.fillStyle=g; roundRect(ctx,this.x,sy,this.w,this.h,10); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.2)'; roundRect(ctx,this.x+4,sy+4,Math.max(0,this.w-8),4,2); ctx.fill();
+      ctx.restore();
+    }
+  }
+  function roundRect(c,x,y,w,h,r){
+    const rr=Math.min(r,w/2,h/2);
+    c.beginPath(); c.moveTo(x+rr,y); c.arcTo(x+w,y,x+w,y+h,rr); c.arcTo(x+w,y+h,x,y+h,rr); c.arcTo(x,y+h,x,y,rr); c.arcTo(x,y,x+w,y,rr); c.closePath();
   }
 
-  const diff=current.x-last.x;
-  const grade=classifyPlacement(diff,overlap,current.w);
-  // Collision is evaluated at the real moving position, but every settled
-  // block is snapped back to the same tower center line. This keeps the tower
-  // visually vertical while precision is still expressed through width.
-  let keptW=overlap;
-  const rawKeptX=left;
-  const oldX=current.x, oldW=current.w;
-  if(grade==='PERFECT'){
-    keptW=Math.min(current.w,last.w);
-    state.combo+=1; state.perfects+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
-  }else if(grade==='GREAT'){
-    keptW=Math.min(overlap,last.w);
-    state.combo+=1; state.greats+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
-  }else{
-    keptW=Math.min(overlap,last.w);
-    state.combo=0; state.goods+=1;
+  function stackCenterX(){ return width * 0.5; }
+  function alignSettledBox(box, widthValue = box.w){
+    const w = clamp(finite(widthValue, box.w), CONFIG.minWidth, Math.min(CONFIG.initialWidth, width - CONFIG.sideMargin*2));
+    box.w = w;
+    box.x = stackCenterX() - w * 0.5;
+  }
+  function baseY(){ return height - 120; }
+  function towerCenterY(){ return baseY() - 1; }
+  function getBlockWidthForLayer(layer, parentWidth=null){
+    const inherited = finite(parentWidth, CONFIG.initialWidth);
+    return clamp(inherited, CONFIG.minWidth, Math.min(CONFIG.initialWidth, width-CONFIG.sideMargin*2));
+  }
+  function getSpeedForLayer(layer){
+    return clamp(
+      CONFIG.speedStart + Math.pow(Math.max(0, layer), CONFIG.speedExponent) * CONFIG.speedGain,
+      CONFIG.speedStart,
+      CONFIG.speedCap
+    );
+  }
+  function getRequiredOverlapRatio(layer){
+    return clamp(
+      CONFIG.minOverlapRatio + Math.max(0, layer) * CONFIG.minOverlapGrowth,
+      CONFIG.minOverlapRatio,
+      CONFIG.minOverlapCap
+    );
+  }
+  function getDifficultyName(layer){
+    if(layer < 10) return '熱身';
+    if(layer < 20) return '加速';
+    if(layer < 30) return '高壓';
+    if(layer < 40) return '極限';
+    return '地獄';
+  }
+  function makeBase(){
+    state.hue=190;
+    const y=baseY();
+    const base=new Box(0,y,CONFIG.initialWidth,CONFIG.boxHeight,state.hue);
+    base.moving=false;
+    alignSettledBox(base, CONFIG.initialWidth);
+    state.boxes=[base];
+  }
+  function spawnBox(){
+    const last=state.boxes[state.boxes.length-1];
+    state.layers=state.boxes.length-1;
+    state.hue=(state.hue+17)%360;
+    const w=getBlockWidthForLayer(state.layers, last.w);
+    const y=last.y-CONFIG.boxHeight;
+    const b=new Box(0,y,w,CONFIG.boxHeight,state.hue);
+    const enteringLeft = state.side === 'LEFT';
+    b.dir=enteringLeft ? 1 : -1;
+    b.speed=getSpeedForLayer(state.layers);
+    b.x=enteringLeft ? -w-24 : width+24;
+    state.currentBox=b;
+    state.side=enteringLeft ? 'RIGHT' : 'LEFT';
+    updateCameraTarget();
+  }
+  function updateCameraTarget(){
+    const ref = state.currentBox || state.boxes[state.boxes.length-1];
+    if(!ref){
+      state.targetCameraY = 0;
+      return;
+    }
+
+    const playTop = Math.max(185, height*0.14);
+    const playBottom = Math.min(height-112, height*0.90);
+    const focusY = playTop + (playBottom-playTop) * CONFIG.cameraFocusRatio;
+    const desiredCamera = finite(ref.y - focusY, 0);
+    const layer = Math.max(0, state.boxes.length - 1);
+
+    const blend = clamp((layer - CONFIG.cameraStartLayer + 1) / CONFIG.cameraBlendLayers, 0, 1);
+    state.targetCameraY = desiredCamera * blend;
   }
 
-  const chopLeft=Math.max(0, rawKeptX-oldX);
-  const chopRight=Math.max(0, (oldX+oldW)-(rawKeptX+overlap));
-  if(grade!=='PERFECT'){
-    if(chopLeft>3) spawnDebris(oldX,current.y,chopLeft,current.h,current.color);
-    if(chopRight>3) spawnDebris(rawKeptX+overlap,current.y,chopRight,current.h,current.color);
+  function classifyPlacement(diff, overlap, w){
+    const overlapRatio=overlap/Math.max(1,w);
+    const centerDelta=Math.abs((state.currentBox.x+state.currentBox.w/2)-(state.boxes[state.boxes.length-1].x+state.boxes[state.boxes.length-1].w/2));
+    const centerRatio=centerDelta/Math.max(1,w);
+    const layer=state.layers;
+    const perfectCenter=Math.max(.022, .045 - layer*.00045);
+    const greatCenter=Math.max(.095, .17 - layer*.0012);
+    if(overlapRatio >= CONFIG.perfectThreshold && centerRatio <= perfectCenter) return 'PERFECT';
+    if(overlapRatio >= CONFIG.greatThreshold && centerRatio <= greatCenter) return 'GREAT';
+    return 'GOOD';
+  }
+  function scoreFor(grade){
+    const mult=1+Math.min(Math.max(state.combo-1,0),6)*0.18;
+    const base=grade==='PERFECT'?24:grade==='GREAT'?16:10;
+    return Math.round(base*mult);
   }
 
-  alignSettledBox(current, keptW);
-  state.boxes.push(current);
-  state.layers=state.boxes.length-1;
-  const gained=scoreFor(grade);
-  state.score=clamp(state.score+gained,0,999999);
-  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
-  state.shake=grade==='PERFECT'?3.5:grade==='GREAT'?2.2:1.2;
-  hitSound(grade);
-  vibrate(grade==='PERFECT'?[8,18,8]:grade==='GREAT'?10:6);
-  burst(current.x+current.w/2,current.y-state.cameraY,current.color,grade==='PERFECT'?18:grade==='GREAT'?12:8);
-  flashScreen();
-  showPlacementToast(grade,gained);
+  function placeCurrent(){
+    const now=performance.now();
+    if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized || !state.currentBox || now<state.inputLockedUntil) return;
+    if(now<state.nextEntryAt) return;
+    resumeAudio();
+    state.inputLockedUntil=now+170;
+    const current=state.currentBox;
+    const last=state.boxes[state.boxes.length-1];
+    current.moving=false;
 
-  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
-  if(state.score>state.bestScore) state.bestScore=state.score;
-  saveBest();
+    const currentRight=current.x+current.w;
+    const lastRight=last.x+last.w;
+    const left=Math.max(current.x,last.x);
+    const right=Math.min(currentRight,lastRight);
+    const overlap=Math.max(0,right-left);
+    const overlapRatio=overlap/Math.max(1,current.w);
 
-  state.side=state.layers%2===0 ? 'LEFT' : 'RIGHT';
-  state.nextEntryAt=now+100;
-  spawnBox();
-  updateHUD();
-}
+    const requiredOverlap = getRequiredOverlapRatio(state.layers);
+    if(overlapRatio < requiredOverlap){
+      spawnDebris(current.x,current.y,current.w,current.h,current.color);
+      burst(clamp(current.x+current.w/2,0,width),current.y-state.cameraY,current.color,16);
+      crashSound(); vibrate([24,40,36]);
+      state.resultReason='最後一塊完全偏離塔身。';
+      gameOver('MISS');
+      return;
+    }
 
-function showPlacementToast(grade,gained){
-  const names={PERFECT:'PERFECT',GREAT:'GREAT',GOOD:'穩定落點'};
-  const comboText=state.combo>0?` · ${state.combo}× 連擊`:'';
-  showToast(`${names[grade]}  +${gained} 分${comboText}`);
-  $('statusPill').textContent=(grade==='PERFECT'?'完美中心！':grade==='GREAT'?'穩住了！':'繼續縮小偏差') + ` · 第 ${state.layers} 層`;
-}
-function flashScreen(){
-  const el=$('flash'); el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
-}
-function showToast(text){
-  const el=$('toast'); el.textContent=text; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),900);
-}
+    const diff=current.x-last.x;
+    const grade=classifyPlacement(diff,overlap,current.w);
+    let keptW=overlap;
+    const rawKeptX=left;
+    const oldX=current.x, oldW=current.w;
+    if(grade==='PERFECT'){
+      keptW=Math.min(current.w,last.w);
+      state.combo+=1; state.perfects+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
+    }else if(grade==='GREAT'){
+      keptW=Math.min(overlap,last.w);
+      state.combo+=1; state.greats+=1; state.bestCombo=Math.max(state.bestCombo,state.combo);
+    }else{
+      keptW=Math.min(overlap,last.w);
+      state.combo=0; state.goods+=1;
+    }
 
-function calcReward(layers){
-  const raw=Math.floor(Math.max(0, finite(layers,0))/CONFIG.rewardStepLayers)*CONFIG.rewardStepCoins;
-  return safeReward(raw);
-}
+    const chopLeft=Math.max(0, rawKeptX-oldX);
+    const chopRight=Math.max(0, (oldX+oldW)-(rawKeptX+overlap));
+    if(grade!=='PERFECT'){
+      if(chopLeft>3) spawnDebris(oldX,current.y,chopLeft,current.h,current.color);
+      if(chopRight>3) spawnDebris(rawKeptX+overlap,current.y,chopRight,current.h,current.color);
+    }
 
-function legacyGameOver(reason, remoteEnd=false){
-  if(state.game==='RESULT' || state.gameOverCalled) return;
-  state.game='RESULT';
-  state.gameOverCalled=true;
-  state.currentBox && (state.currentBox.moving=false);
-  state.reward=calcReward(state.layers);
-  if(state.layers>state.bestLayers) state.bestLayers=state.layers;
-  if(state.score>state.bestScore) state.bestScore=state.score;
-  saveBest();
-  state.resultReason=state.resultReason || (reason==='MISS'?'落點完全失準。':'挑戰結束。');
-  const elapsed=Math.max(0,performance.now()-state.startedAt);
-  updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
+    alignSettledBox(current, keptW);
+    state.boxes.push(current);
+    state.layers=state.boxes.length-1;
+    const gained=scoreFor(grade);
+    state.score=clamp(state.score+gained,0,999999);
+    updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
+    state.shake=grade==='PERFECT'?3.5:grade==='GREAT'?2.2:1.2;
+    hitSound(grade);
+    vibrate(grade==='PERFECT'?[8,18,8]:grade==='GREAT'?10:6);
+    burst(current.x+current.w/2,current.y-state.cameraY,current.color,grade==='PERFECT'?18:grade==='GREAT'?12:8);
+    flashScreen();
+    showPlacementToast(grade,gained);
 
-  if(!remoteEnd && isHost()){
-    try{
-      if(
-        window.BoomRoomSDK &&
-        typeof window.BoomRoomSDK.gameOver ===
-        'function'
-      ){
-        window.BoomRoomSDK.gameOver(
-          state.reward
-        );
-      }
-    }catch(_){}
+    if(state.layers>state.bestLayers) state.bestLayers=state.layers;
+    if(state.score>state.bestScore) state.bestScore=state.score;
+    saveBest();
 
-    sendGameEvent(
-      'NEON_ROUND_END',
-      {
-        roundId:state.roundId,
-        status:'FINISHED',
-        score:state.score,
-        reward:state.reward,
-        reason:state.resultReason,
-        layers:state.layers,
-        durationMs:Math.round(elapsed)
-      }
+    state.side=state.layers%2===0 ? 'LEFT' : 'RIGHT';
+    state.nextEntryAt=now+100;
+    spawnBox();
+    updateHUD();
+  }
+
+  function showPlacementToast(grade,gained){
+    const names={PERFECT:'PERFECT',GREAT:'GREAT',GOOD:'穩定落點'};
+    const comboText=state.combo>0?` · ${state.combo}× 連擊`:'';
+    showToast(`${names[grade]}  +${gained} 分${comboText}`);
+    $('statusPill').textContent=(grade==='PERFECT'?'完美中心！':grade==='GREAT'?'穩住了！':'繼續縮小偏差') + ` · 第 ${state.layers} 層`;
+  }
+  function flashScreen(){
+    const el=$('flash'); el.classList.remove('play'); void el.offsetWidth; el.classList.add('play');
+  }
+  function showToast(text){
+    const el=$('toast'); el.textContent=text; el.classList.add('show');
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),900);
+  }
+
+  function calcReward(layers){
+    const raw=Math.floor(Math.max(0, finite(layers,0))/CONFIG.rewardStepLayers)*CONFIG.rewardStepCoins;
+    return safeReward(raw);
+  }
+
+  function legacyGameOver(reason, remoteEnd=false){
+    if(state.game==='RESULT' || state.gameOverCalled) return;
+    state.game='RESULT';
+    state.gameOverCalled=true;
+    state.currentBox && (state.currentBox.moving=false);
+    state.reward=calcReward(state.layers);
+    if(state.layers>state.bestLayers) state.bestLayers=state.layers;
+    if(state.score>state.bestScore) state.bestScore=state.score;
+    saveBest();
+    state.resultReason=state.resultReason || (reason==='MISS'?'落點完全失準。':'挑戰結束。');
+    const elapsed=Math.max(0,performance.now()-state.startedAt);
+    updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
+
+    if(!remoteEnd && isHost()){
+      try{
+        if(
+          window.BoomRoomSDK &&
+          typeof window.BoomRoomSDK.gameOver ===
+          'function'
+        ){
+          window.BoomRoomSDK.gameOver(
+            state.reward
+          );
+        } else if (window.parent && window.parent !== window) {
+          // 🌟 修復：Web 端發送 game_over 事件，並使用 JSON.stringify
+          window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: state.reward }), '*');
+        }
+      }catch(_){}
+
+      sendGameEvent(
+        'NEON_ROUND_END',
+        {
+          roundId:state.roundId,
+          status:'FINISHED',
+          score:state.score,
+          reward:state.reward,
+          reason:state.resultReason,
+          layers:state.layers,
+          durationMs:Math.round(elapsed)
+        }
+      );
+    }
+
+    setTimeout(
+      showResult,
+      520
     );
   }
 
-  setTimeout(
-    showResult,
-    520
-  );
-}
-
-function legacy_showResult(){
-  $('resultTitle').textContent=state.layers>=40?'超越極限！':state.layers>=30?'巔峰完成！':state.layers>=20?'高塔達成！':'大樓倒塌！';
-  $('resultLead').textContent=state.resultReason;
-  $('resultLayer').textContent=state.layers;
-  $('resultScore').textContent=state.score;
-  $('resultBest').textContent=state.bestLayers;
-  $('resultCombo').textContent=`${state.bestCombo}×`;
-  $('resultReward').textContent=`${state.reward} 銀幣`;
-  $('resultReason').textContent=state.reward>0 ? '本局獎勵已鎖定並完成一次結算。' : '未達 10 層獎勵門檻；本局結果仍已完成結算。';
-  $('resultOverlay').classList.add('show');
-  $('statusPill').textContent='本局已結束';
-  $('hintTitle').textContent='挑戰完成';
-  $('hintSub').textContent='本局結果已鎖定，請返回 BoomRoom 房間重新開啟新的遊戲實例。';
-}
-
-function legacy_finishRound(){
-  if(state.finishToastShown) return;
-  state.finishToastShown=true;
-  $('resultOverlay').classList.remove('show');
-  showToast('本局已完成，請回到房間開始下一場');
-}
-
-function updateMilestoneUI(){
-  const layers=state.layers;
-  const next=layers<10?10:layers<20?20:layers<30?30:Math.ceil(Math.max(31,layers+1)/10)*10;
-  const nowEl=$('milestoneNow'), nextEl=$('milestoneNext');
-  if(nowEl) nowEl.textContent=layers;
-  if(nextEl) nextEl.textContent=next;
-  const p=layers%10;
-  const progress=p===0 && layers>0 ? 100 : (p/10)*100;
-  $('progressBar').style.width=`${progress}%`;
-  for(const [id,n] of [['m10',10],['m20',20],['m30',30]]){
-    const el=$(id); if(!el) continue;
-    el.classList.toggle('reached',layers>=n);
-    el.classList.toggle('active',layers<n && layers>=n-3);
+  function legacy_showResult(){
+    $('resultTitle').textContent=state.layers>=40?'超越極限！':state.layers>=30?'巔峰完成！':state.layers>=20?'高塔達成！':'大樓倒塌！';
+    $('resultLead').textContent=state.resultReason;
+    $('resultLayer').textContent=state.layers;
+    $('resultScore').textContent=state.score;
+    $('resultBest').textContent=state.bestLayers;
+    $('resultCombo').textContent=`${state.bestCombo}×`;
+    $('resultReward').textContent=`${state.reward} 銀幣`;
+    $('resultReason').textContent=state.reward>0 ? '本局獎勵已鎖定並完成一次結算。' : '未達 10 層獎勵門檻；本局結果仍已完成結算。';
+    $('resultOverlay').classList.add('show');
+    $('statusPill').textContent='本局已結束';
+    $('hintTitle').textContent='挑戰完成';
+    $('hintSub').textContent='本局結果已鎖定，請返回 BoomRoom 房間重新開啟新的遊戲實例。';
   }
-  const banner=$('milestoneBanner');
-  if(banner){
-    if(layers>=30){
-      banner.innerHTML=`已突破 <b>${Math.floor(layers/10)*10}</b> 層 · 繼續挑戰新高度`;
-    }else{
-      banner.innerHTML=`目前 <b>${layers}</b> 層 · 下一里程碑 <b>${next}</b> 層`;
+
+  function legacy_finishRound(){
+    if(state.finishToastShown) return;
+    state.finishToastShown=true;
+    $('resultOverlay').classList.remove('show');
+    showToast('本局已完成，請回到房間開始下一場');
+  }
+
+  function updateMilestoneUI(){
+    const layers=state.layers;
+    const next=layers<10?10:layers<20?20:layers<30?30:Math.ceil(Math.max(31,layers+1)/10)*10;
+    const nowEl=$('milestoneNow'), nextEl=$('milestoneNext');
+    if(nowEl) nowEl.textContent=layers;
+    if(nextEl) nextEl.textContent=next;
+    const p=layers%10;
+    const progress=p===0 && layers>0 ? 100 : (p/10)*100;
+    $('progressBar').style.width=`${progress}%`;
+    for(const [id,n] of [['m10',10],['m20',20],['m30',30]]){
+      const el=$(id); if(!el) continue;
+      el.classList.toggle('reached',layers>=n);
+      el.classList.toggle('active',layers<n && layers>=n-3);
+    }
+    const banner=$('milestoneBanner');
+    if(banner){
+      if(layers>=30){
+        banner.innerHTML=`已突破 <b>${Math.floor(layers/10)*10}</b> 層 · 繼續挑戰新高度`;
+      }else{
+        banner.innerHTML=`目前 <b>${layers}</b> 層 · 下一里程碑 <b>${next}</b> 層`;
+      }
     }
   }
-}
 
-function updateHUD(){
-  $('layerValue').textContent=String(state.layers);
-  $('comboValue').textContent=`${state.combo}×`;
-  $('scoreValue').textContent=String(state.score);
+  function updateHUD(){
+    $('layerValue').textContent=String(state.layers);
+    $('comboValue').textContent=`${state.combo}×`;
+    $('scoreValue').textContent=String(state.score);
 
-  const badge=$('autoCountBadge');
-  if(badge){
-    badge.textContent=`房間玩家 ${state.roomPlayerCount} / ${GAME_INFO.maxPlayers}`;
-    badge.classList.toggle('show',state.game==='PLAYING');
+    const badge=$('autoCountBadge');
+    if(badge){
+      badge.textContent=`房間玩家 ${state.roomPlayerCount} / ${GAME_INFO.maxPlayers}`;
+      badge.classList.toggle('show',state.game==='PLAYING');
+    }
+
+    updateMilestoneUI();
+    if(state.game==='PLAYING'){
+      const diffName=getDifficultyName(state.layers);
+      const required=Math.round(getRequiredOverlapRatio(state.layers)*100);
+      $('hintTitle').textContent=state.combo>=3?'連擊保持中！瞄準中心。':'點一下，把方塊放下';
+      $('hintSub').textContent=`${diffName} · 速度 ${Math.round(state.currentBox?.speed||0)} · 至少重疊 ${required}%`;
+    }
   }
 
-  updateMilestoneUI();
-  if(state.game==='PLAYING'){
-    const diffName=getDifficultyName(state.layers);
-    const required=Math.round(getRequiredOverlapRatio(state.layers)*100);
-    $('hintTitle').textContent=state.combo>=3?'連擊保持中！瞄準中心。':'點一下，把方塊放下';
-    $('hintSub').textContent=`${diffName} · 速度 ${Math.round(state.currentBox?.speed||0)} · 至少重疊 ${required}%`;
+
+  function drawBackground(t){
+    ctx.fillStyle='#05060e'; ctx.fillRect(0,0,width,height);
+    const grd=ctx.createLinearGradient(0,0,0,height);
+    grd.addColorStop(0,'#0d1022'); grd.addColorStop(.65,'#060812'); grd.addColorStop(1,'#03040a');
+    ctx.fillStyle=grd; ctx.fillRect(0,0,width,height);
+
+    const glow=ctx.createRadialGradient(width/2,height*.35,10,width/2,height*.35,Math.min(width,height)*.6);
+    glow.addColorStop(0,'rgba(69,239,255,.08)'); glow.addColorStop(.55,'rgba(155,108,255,.05)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow; ctx.fillRect(0,0,width,height);
+
+    ctx.save();
+    ctx.globalAlpha=state.lowEffects?.10:.18;
+    const horizon=height-90;
+    for(let i=0;i<15;i++){
+      const bw=22+(i*13)%38;
+      const bh=18+(i*23)%90;
+      const x=(i/15)*width-8;
+      ctx.fillStyle=i%2?'#11182b':'#0d1324';
+      ctx.fillRect(x,horizon-bh,bw,bh);
+      ctx.fillStyle='rgba(69,239,255,.14)';
+      for(let yy=horizon-bh+9; yy<horizon-5; yy+=11) ctx.fillRect(x+5,yy,3,2);
+    }
+    ctx.restore();
   }
-}
 
-
-function drawBackground(t){
-  ctx.fillStyle='#05060e'; ctx.fillRect(0,0,width,height);
-  const grd=ctx.createLinearGradient(0,0,0,height);
-  grd.addColorStop(0,'#0d1022'); grd.addColorStop(.65,'#060812'); grd.addColorStop(1,'#03040a');
-  ctx.fillStyle=grd; ctx.fillRect(0,0,width,height);
-
-  const glow=ctx.createRadialGradient(width/2,height*.35,10,width/2,height*.35,Math.min(width,height)*.6);
-  glow.addColorStop(0,'rgba(69,239,255,.08)'); glow.addColorStop(.55,'rgba(155,108,255,.05)'); glow.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=glow; ctx.fillRect(0,0,width,height);
-
-  // Skyline decorations stay secondary to gameplay.
-  ctx.save();
-  ctx.globalAlpha=state.lowEffects?.10:.18;
-  const horizon=height-90;
-  for(let i=0;i<15;i++){
-    const bw=22+(i*13)%38;
-    const bh=18+(i*23)%90;
-    const x=(i/15)*width-8;
-    ctx.fillStyle=i%2?'#11182b':'#0d1324';
-    ctx.fillRect(x,horizon-bh,bw,bh);
-    ctx.fillStyle='rgba(69,239,255,.14)';
-    for(let yy=horizon-bh+9; yy<horizon-5; yy+=11) ctx.fillRect(x+5,yy,3,2);
-  }
-  ctx.restore();
-}
-
-function drawFocusZone(){
-  if(state.game!=='PLAYING' || !state.currentBox) return;
-  const playTop = Math.max(185, height*0.14);
-  const playBottom = Math.min(height-112, height*0.90);
-  const focusY = playTop + (playBottom-playTop)*CONFIG.cameraFocusRatio;
-  ctx.save();
-  ctx.strokeStyle='rgba(69,239,255,.10)';
-  ctx.lineWidth=1;
-  ctx.setLineDash([3,9]);
-  ctx.beginPath();
-  ctx.moveTo(26,focusY+1); ctx.lineTo(width-26,focusY+1);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='rgba(69,239,255,.42)';
-  ctx.font='900 7px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
-  ctx.fillText('疊層中心',30,focusY-6);
-  ctx.restore();
-}
-
-function drawGuide(){
-  if(state.game!=='PLAYING' || !state.currentBox) return;
-  const last=state.boxes[state.boxes.length-1];
-  const sy=last.y-state.cameraY;
-  const axis=stackCenterX();
-  ctx.save();
-  // Fixed vertical axis: every settled block is centered on this line.
-  ctx.strokeStyle='rgba(69,239,255,.18)';
-  ctx.lineWidth=1;
-  ctx.setLineDash([4,8]);
-  ctx.beginPath(); ctx.moveTo(axis, Math.max(86,sy-94)); ctx.lineTo(axis, sy-7); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='rgba(69,239,255,.50)';
-  ctx.shadowBlur=state.lowEffects?0:8; ctx.shadowColor='rgba(69,239,255,.7)';
-  ctx.fillRect(axis-1,sy-44,2,32);
-  ctx.shadowBlur=0;
-
-  // Target brackets show the exact centered landing zone.
-  ctx.strokeStyle='rgba(255,255,255,.18)';
-  ctx.beginPath();
-  ctx.moveTo(axis-last.w/2,sy-7); ctx.lineTo(axis-last.w/2+18,sy-7);
-  ctx.moveTo(axis+last.w/2,sy-7); ctx.lineTo(axis+last.w/2-18,sy-7);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawMilestoneMarkers(){
-  if(!state.boxes.length) return;
-  const axis=stackCenterX();
-  const startLayer=10;
-  const endLayer=Math.max(30, state.layers+20);
-  ctx.save();
-  for(let layer=startLayer; layer<=endLayer; layer+=10){
-    const y=baseY()-(layer*CONFIG.boxHeight)-state.cameraY+CONFIG.boxHeight;
-    if(y<175 || y>height-80) continue;
-    const reached=state.layers>=layer;
-    ctx.strokeStyle=reached?'rgba(66,239,170,.18)':'rgba(155,108,255,.16)';
+  function drawFocusZone(){
+    if(state.game!=='PLAYING' || !state.currentBox) return;
+    const playTop = Math.max(185, height*0.14);
+    const playBottom = Math.min(height-112, height*0.90);
+    const focusY = playTop + (playBottom-playTop)*CONFIG.cameraFocusRatio;
+    ctx.save();
+    ctx.strokeStyle='rgba(69,239,255,.10)';
     ctx.lineWidth=1;
-    ctx.setLineDash([5,8]);
-    ctx.beginPath(); ctx.moveTo(22,y); ctx.lineTo(width-22,y); ctx.stroke();
+    ctx.setLineDash([3,9]);
+    ctx.beginPath();
+    ctx.moveTo(26,focusY+1); ctx.lineTo(width-26,focusY+1);
+    ctx.stroke();
     ctx.setLineDash([]);
-    const text=`${layer} 層`;
-    ctx.font='900 10px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
-    const tw=ctx.measureText(text).width+14;
-    const bx=axis+CONFIG.initialWidth/2+14;
-    ctx.fillStyle='rgba(7,10,20,.82)';
-    ctx.strokeStyle=reached?'rgba(66,239,170,.23)':'rgba(255,255,255,.08)';
-    roundRect(ctx,bx,y-10,tw,20,10); ctx.fill(); ctx.stroke();
-    ctx.fillStyle=reached?'#42efaa':'#8a93ad';
-    ctx.fillText(text,bx+7,y+3.5);
-  }
-  ctx.restore();
-}
-
-function updateParticles(dt){
-  for(const p of state.particles){
-    p.life-=dt; p.vy+=280*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
-  }
-  recycleParticles();
-  for(const d of state.debris) d.update(dt);
-  recycleDebris();
-  if(state.shake>0) state.shake=Math.max(0,state.shake-dt*10);
-}
-function drawParticles(){
-  for(const p of state.particles){
-    if(p.life<=0) continue;
-    ctx.globalAlpha=clamp(p.life/p.maxLife,0,1)*p.alpha;
-    ctx.fillStyle=p.color;
-    ctx.shadowBlur=state.lowEffects?0:7; ctx.shadowColor=p.color;
-    ctx.fillRect(p.x,p.y,p.size,p.size);
-  }
-  ctx.globalAlpha=1; ctx.shadowBlur=0;
-  for(const d of state.debris) d.draw();
-}
-
-function loop(timestamp){
-  const dt=Math.min(Math.max((timestamp-(state.lastTimestamp||timestamp))/1000,0),0.033);
-  state.lastTimestamp=timestamp;
-  if(dt>0){
-    const instFps=1/dt;
-    state.avgFps += (clamp(instFps,20,90)-state.avgFps)*0.03;
-    if(state.avgFps<50) state.lowEffects=true;
-    if(state.avgFps>55) state.lowEffects=false;
-    $('fpsWarn').style.display = DEBUG && state.lowEffects ? 'block' : 'none';
+    ctx.fillStyle='rgba(69,239,255,.42)';
+    ctx.font='900 7px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
+    ctx.fillText('疊層中心',30,focusY-6);
+    ctx.restore();
   }
 
-  drawBackground(timestamp);
-  updateParticles(dt);
+  function drawGuide(){
+    if(state.game!=='PLAYING' || !state.currentBox) return;
+    const last=state.boxes[state.boxes.length-1];
+    const sy=last.y-state.cameraY;
+    const axis=stackCenterX();
+    ctx.save();
+    ctx.strokeStyle='rgba(69,239,255,.18)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,8]);
+    ctx.beginPath(); ctx.moveTo(axis, Math.max(86,sy-94)); ctx.lineTo(axis, sy-7); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(69,239,255,.50)';
+    ctx.shadowBlur=state.lowEffects?0:8; ctx.shadowColor='rgba(69,239,255,.7)';
+    ctx.fillRect(axis-1,sy-44,2,32);
+    ctx.shadowBlur=0;
 
-  if(state.autoRoundState==='COUNTDOWN'){
-    renderAutoRoomUI();
+    ctx.strokeStyle='rgba(255,255,255,.18)';
+    ctx.beginPath();
+    ctx.moveTo(axis-last.w/2,sy-7); ctx.lineTo(axis-last.w/2+18,sy-7);
+    ctx.moveTo(axis+last.w/2,sy-7); ctx.lineTo(axis+last.w/2-18,sy-7);
+    ctx.stroke();
+    ctx.restore();
   }
 
-  if(state.game==='PLAYING'){
-    if(state.currentBox){
-      state.currentBox.update(dt);
-      updateCameraTarget();
-      const cameraEase=1-Math.exp(-Math.max(CONFIG.cameraEase, 11)*dt);
+  function drawMilestoneMarkers(){
+    if(!state.boxes.length) return;
+    const axis=stackCenterX();
+    const startLayer=10;
+    const endLayer=Math.max(30, state.layers+20);
+    ctx.save();
+    for(let layer=startLayer; layer<=endLayer; layer+=10){
+      const y=baseY()-(layer*CONFIG.boxHeight)-state.cameraY+CONFIG.boxHeight;
+      if(y<175 || y>height-80) continue;
+      const reached=state.layers>=layer;
+      ctx.strokeStyle=reached?'rgba(66,239,170,.18)':'rgba(155,108,255,.16)';
+      ctx.lineWidth=1;
+      ctx.setLineDash([5,8]);
+      ctx.beginPath(); ctx.moveTo(22,y); ctx.lineTo(width-22,y); ctx.stroke();
+      ctx.setLineDash([]);
+      const text=`${layer} 層`;
+      ctx.font='900 10px -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif';
+      const tw=ctx.measureText(text).width+14;
+      const bx=axis+CONFIG.initialWidth/2+14;
+      ctx.fillStyle='rgba(7,10,20,.82)';
+      ctx.strokeStyle=reached?'rgba(66,239,170,.23)':'rgba(255,255,255,.08)';
+      roundRect(ctx,bx,y-10,tw,20,10); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=reached?'#42efaa':'#8a93ad';
+      ctx.fillText(text,bx+7,y+3.5);
+    }
+    ctx.restore();
+  }
+
+  function updateParticles(dt){
+    for(const p of state.particles){
+      p.life-=dt; p.vy+=280*dt; p.x+=p.vx*dt; p.y+=p.vy*dt;
+    }
+    recycleParticles();
+    for(const d of state.debris) d.update(dt);
+    recycleDebris();
+    if(state.shake>0) state.shake=Math.max(0,state.shake-dt*10);
+  }
+  function drawParticles(){
+    for(const p of state.particles){
+      if(p.life<=0) continue;
+      ctx.globalAlpha=clamp(p.life/p.maxLife,0,1)*p.alpha;
+      ctx.fillStyle=p.color;
+      ctx.shadowBlur=state.lowEffects?0:7; ctx.shadowColor=p.color;
+      ctx.fillRect(p.x,p.y,p.size,p.size);
+    }
+    ctx.globalAlpha=1; ctx.shadowBlur=0;
+    for(const d of state.debris) d.draw();
+  }
+
+  function loop(timestamp){
+    const dt=Math.min(Math.max((timestamp-(state.lastTimestamp||timestamp))/1000,0),0.033);
+    state.lastTimestamp=timestamp;
+    if(dt>0){
+      const instFps=1/dt;
+      state.avgFps += (clamp(instFps,20,90)-state.avgFps)*0.03;
+      if(state.avgFps<50) state.lowEffects=true;
+      if(state.avgFps>55) state.lowEffects=false;
+      $('fpsWarn').style.display = DEBUG && state.lowEffects ? 'block' : 'none';
+    }
+
+    drawBackground(timestamp);
+    updateParticles(dt);
+
+    if(state.autoRoundState==='COUNTDOWN'){
+      renderAutoRoomUI();
+    }
+
+    if(state.game==='PLAYING'){
+      if(state.currentBox){
+        state.currentBox.update(dt);
+        updateCameraTarget();
+        const cameraEase=1-Math.exp(-Math.max(CONFIG.cameraEase, 11)*dt);
+        state.cameraY += (state.targetCameraY-state.cameraY)*cameraEase;
+      }
+    }else{
+      const cameraEase=1-Math.exp(-5*dt);
       state.cameraY += (state.targetCameraY-state.cameraY)*cameraEase;
     }
-  }else{
-    const cameraEase=1-Math.exp(-5*dt);
-    state.cameraY += (state.targetCameraY-state.cameraY)*cameraEase;
+
+    ctx.save();
+    if(state.shake>0){ ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake); }
+
+    const baseScreenY=baseY()-state.cameraY+CONFIG.boxHeight;
+    const floorGrad=ctx.createLinearGradient(0,baseScreenY,0,height);
+    floorGrad.addColorStop(0,'rgba(69,239,255,.08)'); floorGrad.addColorStop(1,'rgba(4,5,10,.96)');
+    ctx.fillStyle=floorGrad; ctx.fillRect(0,baseScreenY,width,height-baseScreenY);
+    ctx.strokeStyle='rgba(69,239,255,.18)'; ctx.beginPath(); ctx.moveTo(0,baseScreenY); ctx.lineTo(width,baseScreenY); ctx.stroke();
+
+    drawFocusZone();
+    drawMilestoneMarkers();
+    drawGuide();
+    for(const b of state.boxes) b.draw();
+    if(state.currentBox) state.currentBox.draw();
+    drawParticles();
+    ctx.restore();
+
+    if(state.game==='PLAYING' && state.currentBox && state.currentBox.y-state.cameraY>height+40){
+      state.resultReason='方塊離開操作區，挑戰結束。'; gameOver('TIMEOUT');
+    }
+
+    requestAnimationFrame(loop);
   }
 
-  ctx.save();
-  if(state.shake>0){ ctx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake); }
-
-  // Base platform / floor.
-  const baseScreenY=baseY()-state.cameraY+CONFIG.boxHeight;
-  const floorGrad=ctx.createLinearGradient(0,baseScreenY,0,height);
-  floorGrad.addColorStop(0,'rgba(69,239,255,.08)'); floorGrad.addColorStop(1,'rgba(4,5,10,.96)');
-  ctx.fillStyle=floorGrad; ctx.fillRect(0,baseScreenY,width,height-baseScreenY);
-  ctx.strokeStyle='rgba(69,239,255,.18)'; ctx.beginPath(); ctx.moveTo(0,baseScreenY); ctx.lineTo(width,baseScreenY); ctx.stroke();
-
-  drawFocusZone();
-  drawMilestoneMarkers();
-  drawGuide();
-  for(const b of state.boxes) b.draw();
-  if(state.currentBox) state.currentBox.draw();
-  drawParticles();
-  ctx.restore();
-
-  if(state.game==='PLAYING' && state.currentBox && state.currentBox.y-state.cameraY>height+40){
-    state.resultReason='方塊離開操作區，挑戰結束。'; gameOver('TIMEOUT');
-  }
-
-  requestAnimationFrame(loop);
-}
-
-function handlePointer(e){
-  if(e.button !== undefined && e.button !== 0) return;
-  resumeAudio();
-  if(state.game==='PLAYING') placeCurrent();
-}
-canvas.addEventListener('pointerdown',handlePointer,{passive:true});
-window.addEventListener('keydown',e=>{
-  if(e.code==='Space' || e.code==='Enter'){
-    e.preventDefault();
+  function handlePointer(e){
+    if(e.button !== undefined && e.button !== 0) return;
     resumeAudio();
     if(state.game==='PLAYING') placeCurrent();
   }
-});
-
-actionSetup();
-
-function actionSetup(){
-  // 本版本完全取消手動開始。
-  // 市長/Host 只作為同步權威，實際開始由房間人數穩定後自動觸發。
-  $('startBtn').addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
+  canvas.addEventListener('pointerdown',handlePointer,{passive:true});
+  window.addEventListener('keydown',e=>{
+    if(e.code==='Space' || e.code==='Enter'){
+      e.preventDefault();
+      resumeAudio();
+      if(state.game==='PLAYING') placeCurrent();
+    }
   });
 
-  $('finishBtn').addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-  });
-}
+  actionSetup();
 
+  function actionSetup(){
+    $('startBtn').addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
 
-let sdkIsHost = false;
-let hostFlagExplicit = false;
-let gameRoomId = '';
-let sdkReady = false;
-let waitingForHost = false;
-let lastRemoteRoundId = '';
-let roomPlayersList = [];
-let roomScoreMap = new Map();
-
-function toHostBoolean(value){
-  return value === true || value === 1 || value === 'true';
-}
-
-function hasHostFlag(obj){
-  return !!obj && Object.prototype.hasOwnProperty.call(obj,'isHost');
-}
-
-function applyHostFlag(nested){
-  if(!nested || !hasHostFlag(nested)) return;
-
-  // Flutter 的 initSDK 是目前房間實際房主狀態的明確來源。
-  // 一旦已收到明確 true，後續 SDK ready 回呼不得用 undefined/false 覆蓋。
-  const next=toHostBoolean(nested.isHost);
-
-  if(next){
-    sdkIsHost=true;
-    hostFlagExplicit=true;
-  }else if(!hostFlagExplicit){
-    sdkIsHost=false;
-    hostFlagExplicit=true;
-  }
-}
-
-function deterministicCoordinator(){
-  if(hostFlagExplicit) return false;
-  const players=normalizeRoomPlayers(roomPlayersList);
-  if(!players.length) return false;
-  const me=getUserId();
-  const leader=players.map(p=>p.id).filter(Boolean).sort()[0];
-  return !!me && me===leader;
-}
-
-function isHost(){ return !!sdkIsHost || deterministicCoordinator(); }
-
-function getUserId(){
-  return String(state.sdkUser?.id || state.sdkUser?.userId || '');
-}
-
-function sendGameEvent(eventName, payload={}){
-  const message = { action:'sendGameEvent', eventName, payload };
-
-  try{
-    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function'){
-      window.BoomRoomSDK.sendGameEvent(eventName, payload);
-      return true;
-    }
-  }catch(_){}
-
-  try{
-    if(window.parent && window.parent !== window){
-      window.parent.postMessage(JSON.stringify(message), '*');
-      return true;
-    }
-  }catch(_){}
-
-  return false;
-}
-
-function requestSDKInit(){
-  try{
-    if(window.parent && window.parent !== window){
-      window.parent.postMessage({
-        action:'requestSDKInit',
-        gameId:GAME_INFO.id,
-        version:GAME_INFO.version
-      }, '*');
-    }
-  }catch(_){}
-
-  try{
-    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.requestInit === 'function'){
-      window.BoomRoomSDK.requestInit();
-    }
-  }catch(_){}
-}
-
-function playerIdOf(player){
-  return String(player?.id ?? player?.userId ?? player?.uid ?? player?.playerId ?? '');
-}
-
-function playerNameOf(player, fallback='玩家'){
-  const name =
-    player?.nickname ??
-    player?.nickName ??
-    player?.displayName ??
-    player?.name ??
-    player?.username ??
-    player?.user?.nickname ??
-    player?.user?.displayName ??
-    '';
-  return String(name || fallback).trim().slice(0,18) || fallback;
-}
-
-function normalizeRoomPlayers(list){
-  const source = Array.isArray(list) ? list : [];
-  const seen = new Set();
-  const out = [];
-
-  for(const p of source){
-    const id = playerIdOf(p);
-    if(!id || seen.has(id)) continue;
-    seen.add(id);
-    out.push({
-      id,
-      nickname: playerNameOf(p),
-      raw: p
+    $('finishBtn').addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
     });
   }
 
-  const me = getUserId();
-  if(me && !seen.has(me)){
-    out.push({
-      id: me,
-      nickname: playerNameOf(state.sdkUser,'你'),
-      raw: state.sdkUser
-    });
+
+  let sdkIsHost = false;
+  let hostFlagExplicit = false;
+  let gameRoomId = '';
+  let sdkReady = false;
+  let waitingForHost = false;
+  let lastRemoteRoundId = '';
+  let roomPlayersList = [];
+  let roomScoreMap = new Map();
+
+  function toHostBoolean(value){
+    return value === true || value === 1 || value === 'true';
   }
 
-  return out.slice(0, GAME_INFO.maxPlayers);
-}
-
-function updateRoomPlayers(list, source='sdk'){
-  const next = normalizeRoomPlayers(list);
-  const sig = next.map(p=>p.id).sort().join('|');
-
-  if(sig !== state.lastRoomSignature){
-    state.lastRoomSignature = sig;
-    state.roomPlayersUpdatedAt = Date.now();
+  function hasHostFlag(obj){
+    return !!obj && Object.prototype.hasOwnProperty.call(obj,'isHost');
   }
 
-  roomPlayersList = next;
-  state.roomPlayerCount = next.length;
-  seedRoomScorePlayers();
-  renderAutoRoomUI();
+  function applyHostFlag(nested){
+    if(!nested || !hasHostFlag(nested)) return;
 
-  // 房間名單改變時，Host 立即重新評估自動開局。
-  if(sdkReady && isHost() && state.game==='LOBBY' && sig !== state.lastAutoScheduledSignature){
-    scheduleAutoStart();
-  }
-}
+    const next=toHostBoolean(nested.isHost);
 
-function onlinePlayers(){
-  return normalizeRoomPlayers(roomPlayersList);
-}
-
-function ensureScorePlayer(id, name='玩家'){
-  id = String(id || '');
-  if(!id) return null;
-
-  const old = roomScoreMap.get(id);
-  if(old){
-    if(name && name !== '玩家') old.name=name;
-    return old;
-  }
-
-  const item={id,name:name || '玩家',score:0,layers:0,updatedAt:Date.now()};
-  roomScoreMap.set(id,item);
-  return item;
-}
-
-function seedRoomScorePlayers(){
-  for(const player of roomPlayersList){
-    const id=playerIdOf(player);
-    if(id) ensureScorePlayer(id,playerNameOf(player));
-  }
-
-  const me=getUserId();
-  if(me) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
-
-  renderScoreBoard();
-}
-
-function updatePlayerScore(id, score, layers, name='玩家', broadcast=false){
-  id=String(id || '');
-  if(!id) return;
-
-  const item=ensureScorePlayer(id,name);
-  if(!item) return;
-
-  const nextScore=Math.max(0,Math.floor(finite(score,0)));
-  const nextLayers=Math.max(0,Math.floor(finite(layers,0)));
-
-  if(nextScore >= item.score){
-    item.score=nextScore;
-    item.layers=Math.max(item.layers,nextLayers);
-    item.updatedAt=Date.now();
-  }
-
-  renderScoreBoard();
-
-  if(broadcast){
-    sendGameEvent('NEON_SCORE_UPDATE',{
-      roundId:state.roundId,
-      playerId:id,
-      playerName:item.name,
-      score:item.score,
-      layers:item.layers
-    });
-  }
-}
-
-function renderScoreBoard(){
-  const rows=$('scoreRows');
-  if(!rows) return;
-
-  const list=[...roomScoreMap.values()]
-    .sort((a,b)=>b.score-a.score || b.layers-a.layers || a.name.localeCompare(b.name,'zh-Hant'))
-    .slice(0,5);
-
-  if(!list.length){
-    rows.innerHTML='<div class="scoreEmpty">等待玩家分數...</div>';
-    return;
-  }
-
-  const me=getUserId();
-
-  rows.innerHTML=list.map((item,index)=>{
-    const isMe=item.id===me;
-    const safeName=String(item.name || '玩家').replace(/[&<>"]/g,c=>({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
-    }[c]));
-
-    return `<div class="scoreRow ${index===0?'top':''}">
-      <span class="scoreRank">${index+1}</span>
-      <span class="scoreName ${isMe?'me':''}">${safeName}${isMe?' · 你':''}</span>
-      <span class="scoreNum">${item.score.toLocaleString()}</span>
-    </div>`;
-  }).join('');
-}
-
-function renderAutoRoomUI(){
-  const count = state.roomPlayerCount;
-  const max = GAME_INFO.maxPlayers;
-
-  const roomCount = $('roomCountText');
-  const autoText = $('autoRoundText');
-  const status = $('hostStatus');
-  const startBtn = $('startBtn');
-
-  if(roomCount) roomCount.textContent=`房間玩家 ${count} / ${max}`;
-
-  if(!sdkReady){
-    if(autoText) autoText.textContent='正在連接 BoomRoom...';
-    if(status) status.textContent='正在同步房間';
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent='等待房間同步';
-    }
-    return;
-  }
-
-  if(state.game === 'PLAYING'){
-    if(autoText) autoText.textContent=`本局進行中 · ${count} 人參賽`;
-    if(status) status.textContent='遊戲進行中';
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent='遊戲進行中';
-    }
-    return;
-  }
-
-  if(state.game === 'RESULT'){
-    if(autoText) autoText.textContent='本局已結束 · 正在準備關閉';
-    if(status) status.textContent='本局已鎖定';
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent='遊戲將自動關閉';
-    }
-    return;
-  }
-
-  if(state.autoRoundState === 'COUNTDOWN'){
-    const remain=Math.max(0,state.countdownEndsAt-Date.now());
-    const sec=Math.max(1,Math.ceil(remain/1000));
-
-    if(autoText) autoText.textContent=`${count} 人已就緒 · ${sec} 秒後開始`;
-    if(status) status.textContent='自動倒數中';
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent=`${sec} 秒後開始`;
-    }
-    return;
-  }
-
-  if(count > 0){
-    if(state.autoRoundState==='STABILIZING'){
-      if(autoText) autoText.textContent=`${count} 人已進入 · 自動開局準備中`;
-      if(status) status.textContent=isHost()?'房主已接管 · 自動開局中':'等待房主同步';
-    }else{
-      if(autoText) autoText.textContent=`${count} 人已進入 · 人數穩定後自動開始`;
-      if(status) status.textContent=isHost()?'房主已接管 · 等待穩定':'等待房主同步';
-    }
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent='等待自動開始';
-    }
-  }else{
-    if(autoText) autoText.textContent='等待玩家進入房間';
-    if(status) status.textContent='等待玩家';
-    if(startBtn){
-      startBtn.disabled=true;
-      startBtn.textContent='等待玩家';
+    if(next){
+      sdkIsHost=true;
+      hostFlagExplicit=true;
+    }else if(!hostFlagExplicit){
+      sdkIsHost=false;
+      hostFlagExplicit=true;
     }
   }
-}
 
-function setupSDK(data){
-  if(!data) return;
-
-  const nested =
-    data.data && typeof data.data === 'object'
-      ? data.data
-      : data;
-
-  if(nested.user) state.sdkUser=nested.user;
-
-  applyHostFlag(nested);
-
-  gameRoomId =
-    nested.roomId != null
-      ? String(nested.roomId)
-      : gameRoomId;
-
-  let rList = nested.roomPlayers || nested.players || roomPlayersList;
-  if (!Array.isArray(rList) || rList.length < 2) {
-    rList = [...(rList || []), { id: 'bot-1', username: '🤖 體驗玩家-1' }, { id: 'bot-2', username: '🤖 體驗玩家-2' }];
+  function deterministicCoordinator(){
+    if(hostFlagExplicit) return false;
+    const players=normalizeRoomPlayers(roomPlayersList);
+    if(!players.length) return false;
+    const me=getUserId();
+    const leader=players.map(p=>p.id).filter(Boolean).sort()[0];
+    return !!me && me===leader;
   }
 
-  if(Array.isArray(rList)){
-    updateRoomPlayers(rList,'sdk');
-  }else{
-    updateRoomPlayers(roomPlayersList,'existing');
+  function isHost(){ return !!sdkIsHost || deterministicCoordinator(); }
+
+  function getUserId(){
+    return String(state.sdkUser?.id || state.sdkUser?.userId || '');
   }
 
-  sdkReady=true;
-  state.localPlayerReady=!!getUserId();
-  seedRoomScorePlayers();
-  renderAutoRoomUI();
-
-  sendGameEvent('NEON_ROOM_HELLO',{
-    playerId:getUserId(),
-    playerName:playerNameOf(state.sdkUser,'玩家'),
-    roomId:gameRoomId,
-    timestamp:Date.now()
-  });
-
-  waitingForHost=false;
-  setTimeout(() => {
-    if (state.game === 'LOBBY') {
-      forceStart();
-    }
-  }, 600);
-}
-
-function clearAutoRoundTimers(){
-  if(state.autoRoundTimer){
-    clearTimeout(state.autoRoundTimer);
-    state.autoRoundTimer=null;
-  }
-  if(state.countdownTimer){
-    clearInterval(state.countdownTimer);
-    state.countdownTimer=null;
-  }
-  if(state.remoteStartTimer){
-    clearTimeout(state.remoteStartTimer);
-    state.remoteStartTimer=null;
-  }
-  if(state.resultCloseTimer){
-    clearInterval(state.resultCloseTimer);
-    state.resultCloseTimer=null;
-  }
-}
-
-function getStablePlayerSignature(){
-  return onlinePlayers().map(p=>p.id).sort().join('|');
-}
-
-function cleanPlayerIds(ids){
-  return [...new Set((Array.isArray(ids)?ids:[]).map(x=>String(x||'')).filter(Boolean))].slice(0,GAME_INFO.maxPlayers);
-}
-
-function currentRoundPlayers(){
-  const source = Array.isArray(state.roundPlayerIds) && state.roundPlayerIds.length
-    ? state.roundPlayerIds
-    : onlinePlayers().map(p=>p.id);
-  return cleanPlayerIds(source);
-}
-
-function resetRoundScoreboard(playerIds){
-  const ids=cleanPlayerIds(playerIds);
-  roomScoreMap.clear();
-  for(const id of ids){
-    const p=roomPlayersList.find(x=>x.id===id);
-    ensureScorePlayer(id,p?.nickname || '玩家');
-  }
-  const me=getUserId();
-  if(me && !roomScoreMap.has(me)) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
-  renderScoreBoard();
-}
-
-function makeRoundId(){
-  return 'neon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
-}
-
-function sendHostSync(phaseOverride=''){ 
-  if(!isHost() || !sdkReady) return false;
-
-  const players=onlinePlayers();
-  const playerIds=cleanPlayerIds(players.map(p=>p.id));
-  const phase = phaseOverride || (
-    state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
-    state.game==='PLAYING' ? 'PLAYING' :
-    'WAITING'
-  );
-
-  return sendGameEvent('NEON_ROOM_SYNC',{
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version,
-    hostId:getUserId(),
-    phase,
-    game:state.game,
-    roundId:state.roundId || '',
-    playerCount:playerIds.length,
-    playerIds,
-    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''})),
-    countdownEndsAt:Number(state.countdownEndsAt||0),
-    startAt:Number(state.remoteStartAt||0),
-    globalRoundDeadline:Number(state.globalRoundDeadline||0),
-    finishedIds:[...finishedPlayers.keys()],
-    finishedCount:Number(state.finishedCount||0),
-    timestamp:Date.now()
-  });
-}
-
-function broadcastRoundStart(roundId,players,startAt){
-  const payload={
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version,
-    roundId,
-    hostId:getUserId(),
-    startAt,
-    startedAt:startAt,
-    playerCount:players.length,
-    playerIds:players.map(p=>p.id),
-    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
-  };
-
-  // 立即送出一次，並在開局前後由 heartbeat / repeated event 再送，避免任何單次漏包。
-  sendGameEvent('NEON_ROUND_START',payload);
-  sendGameEvent('NEON_ROOM_SYNC',{
-    ...payload,
-    phase:'COUNTDOWN',
-    game:'LOBBY',
-    countdownEndsAt:state.countdownEndsAt,
-    timestamp:Date.now()
-  });
-
-  clearTimeout(state.roundStartRepeatTimer);
-  let repeats=0;
-  state.roundStartRepeatTimer=setInterval(()=>{
-    repeats+=1;
-    if(repeats>5 || state.game==='PLAYING' || state.game==='RESULT'){
-      clearInterval(state.roundStartRepeatTimer);
-      state.roundStartRepeatTimer=null;
-      return;
-    }
-    sendGameEvent('NEON_ROUND_START',payload);
-    sendGameEvent('NEON_ROOM_SYNC',{
-      ...payload,
-      phase:Date.now()<startAt?'COUNTDOWN':'PLAYING',
-      game:Date.now()<startAt?'LOBBY':'PLAYING',
-      countdownEndsAt:state.countdownEndsAt,
-      timestamp:Date.now()
-    });
-  },AUTO_ROUND.EVENT_REPEAT_MS);
-}
-
-function scheduleAutoStart(){
-  if(!sdkReady || !isHost()) return;
-  if(state.game==='PLAYING' || state.game==='RESULT') return;
-  if(state.autoRoundState==='COUNTDOWN' || state.autoRoundState==='PLAYING') return;
-
-  const players=onlinePlayers();
-  const count=players.length;
-  const signature=getStablePlayerSignature();
-
-  if(count<=0){
-    clearTimeout(state.autoRoundTimer);
-    state.autoRoundTimer=null;
-    state.autoRoundState='WAITING';
-    state.lastAutoScheduledSignature='';
-    sendHostSync('WAITING');
-    renderAutoRoomUI();
-    return;
-  }
-
-  // 不使用「每次 heartbeat 重新計時」；同一份名單只建立一次穩定計時器。
-  if(
-    state.autoRoundState==='STABILIZING' &&
-    state.autoRoundTimer &&
-    state.lastAutoScheduledSignature===signature
-  ){
-    sendHostSync('STABILIZING');
-    renderAutoRoomUI();
-    return;
-  }
-
-  clearTimeout(state.autoRoundTimer);
-  state.autoRoundState='STABILIZING';
-  state.lastAutoScheduledSignature=signature;
-  state.roomPlayersUpdatedAt=state.roomPlayersUpdatedAt || Date.now();
-  renderAutoRoomUI();
-  sendHostSync('STABILIZING');
-
-  const stableSince=state.roomPlayersUpdatedAt || Date.now();
-  const delay=Math.max(80,(stableSince+AUTO_ROUND.STABLE_MS)-Date.now());
-
-  state.autoRoundTimer=setTimeout(()=>{
-    state.autoRoundTimer=null;
-    if(state.game!=='LOBBY' || !isHost()) return;
-
-    const latest=onlinePlayers();
-    const latestSig=getStablePlayerSignature();
-    if(!latest.length || latestSig!==signature){
-      state.autoRoundState='WAITING';
-      state.lastAutoScheduledSignature='';
-      renderAutoRoomUI();
-      scheduleAutoStart();
-      return;
-    }
-
-    beginHostCountdown(latest);
-  },delay);
-}
-
-function beginHostCountdown(players){
-  if(!isHost() || !sdkReady || state.game!=='LOBBY' || !players.length) return;
-
-  clearAutoRoundTimers();
-  state.autoRoundState='COUNTDOWN';
-  state.hostRoundStarted=false;
-  state.roundPlayerIds=players.map(p=>p.id);
-  state.roundPlayerCount=players.length;
-  state.countdownEndsAt=Date.now()+AUTO_ROUND.COUNTDOWN_MS;
-  state.remoteStartAt=state.countdownEndsAt;
-  state.roundId=makeRoundId();
-  state.localFinished=false;
-  state.roundFinished=false;
-  state.roundFinalized=false;
-  state.globalRoundDeadline=0;
-  state.finishedCount=0;
-  finishedPlayers.clear();
-  if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
-  state.closeRequested=false;
-  state.closeSent=false;
-  state.gameOverCalled=false;
-
-  resetRoundScoreboard(state.roundPlayerIds);
-
-  sendGameEvent('NEON_COUNTDOWN',{
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version,
-    roundId:state.roundId,
-    hostId:getUserId(),
-    endsAt:state.countdownEndsAt,
-    startAt:state.countdownEndsAt,
-    playerCount:players.length,
-    playerIds:state.roundPlayerIds,
-    players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
-  });
-  sendHostSync('COUNTDOWN');
-
-  playStart();
-  vibrate([10,25,10]);
-  renderAutoRoomUI();
-
-  state.countdownTimer=setInterval(()=>{
-    const remain=state.countdownEndsAt-Date.now();
-    if(remain>0){
-      renderAutoRoomUI();
-      if(isHost()) sendHostSync('COUNTDOWN');
-      return;
-    }
-
-    clearInterval(state.countdownTimer);
-    state.countdownTimer=null;
-
-    const latest=onlinePlayers();
-    const latestIds=cleanPlayerIds(latest.map(p=>p.id));
-    const fixedIds=cleanPlayerIds(state.roundPlayerIds);
-    if(latestIds.join('|')!==fixedIds.join('|')){
-      state.autoRoundState='WAITING';
-      state.lastAutoScheduledSignature='';
-      renderAutoRoomUI();
-      scheduleAutoStart();
-      return;
-    }
-
-    launchHostRound(state.roundId,latest);
-  },100);
-}
-
-function launchHostRound(roundId,players){
-  if(!isHost() || state.game!=='LOBBY') return;
-
-  const startAt=Date.now()+220;
-  state.remoteStartAt=startAt;
-  state.autoRoundState='PLAYING';
-  state.hostRoundStarted=true;
-  state.roundPlayerIds=cleanPlayerIds(players.map(p=>p.id));
-  state.roundPlayerCount=state.roundPlayerIds.length;
-
-  broadcastRoundStart(roundId,players,startAt);
-  startGame(roundId,false,startAt,state.roundPlayerIds.length);
-}
-
-function startGame(remoteRoundId=null,remote=false,remoteStartAt=0,forcedPlayerCount=0,playerIds=null){
-  if(state.game==='PLAYING' || state.game==='RESULT') return;
-  if(!remote && !isHost()) return;
-
-  const id=String(remoteRoundId || state.roundId || makeRoundId());
-  const incomingStart=Number(remoteStartAt||0);
-  const startDelay=Math.max(0,incomingStart-Date.now());
-
-  if(state.remoteStartTimer){ clearTimeout(state.remoteStartTimer); state.remoteStartTimer=null; }
-
-  const actuallyStart=()=>{
-    if(state.game==='PLAYING' || state.game==='RESULT') return;
-
-    resumeAudio();
-    playStart();
-    vibrate([12,30,12]);
-
-    state.game='PLAYING';
-    state.autoRoundState='PLAYING';
-    state.roundId=id;
-    state.roundPlayerIds=cleanPlayerIds(playerIds || state.roundPlayerIds || onlinePlayers().map(p=>p.id));
-    if(!state.roundPlayerIds.length) state.roundPlayerIds=onlinePlayers().map(p=>p.id);
-    state.roundPlayerCount=state.roundPlayerIds.length || forcedPlayerCount || state.roomPlayerCount || 1;
-    state.roundFinished=false;
-    state.roundFinalized=false;
-    state.localFinished=false;
-    state.finishedCount=0;
-    finishedPlayers.clear();
-    if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
-    state.globalRoundDeadline=Date.now()+AUTO_ROUND.GLOBAL_ROUND_MAX_MS;
-    state.closeRequested=false;
-    state.closeSent=false;
-    state.gameOverCalled=false;
-    state.score=0;
-    state.layers=0;
-    state.combo=0;
-    state.bestCombo=0;
-    state.perfects=0;
-    state.greats=0;
-    state.goods=0;
-    state.cameraY=0;
-    state.targetCameraY=0;
-    state.hue=190;
-    state.shake=0;
-    state.boxes=[];
-    state.debris=[];
-    state.particles=[];
-    state.trail=[];
-    state.currentBox=null;
-    state.nextEntryAt=0;
-    state.inputLockedUntil=0;
-    state.startedAt=performance.now();
-    state.reward=0;
-    state.resultReason='';
-    state.finishToastShown=false;
-    state.remoteStartAt=incomingStart || Date.now();
-
-    resetRoundScoreboard(state.roundPlayerIds);
-    ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
-    updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
-
-    makeBase();
-    spawnBox();
-    updateCameraTarget();
-    state.cameraY=state.targetCameraY;
-
-    $('startOverlay').classList.remove('show');
-    $('resultOverlay').classList.remove('show');
-    $('statusPill').textContent='本局進行中';
-    $('hintTitle').textContent='點一下，把方塊放下';
-    $('hintSub').textContent='每位玩家獨立挑戰；右上會即時看到同房最高分。';
-
-    updateHUD();
-    renderAutoRoomUI();
-    showToast(remote ? '全房同步開始！' : `自動開局 · ${state.roundPlayerCount} 人`);
-
-    updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
-    waitingForHost=false;
-    lastRemoteRoundId=state.roundId;
-
-    // 由 Host 控制全房最大回合時間：個別玩家失誤不會結束其他人的遊戲。
-    if(isHost()){
-      if(globalRoundTimer) clearTimeout(globalRoundTimer);
-      globalRoundTimer=setTimeout(()=>{
-        globalRoundTimer=null;
-        finalizeWholeRound('TIMEOUT');
-      },AUTO_ROUND.GLOBAL_ROUND_MAX_MS + 120);
-    }
-  };
-
-  if(startDelay>0){
-    state.remoteStartTimer=setTimeout(()=>{
-      state.remoteStartTimer=null;
-      actuallyStart();
-    },startDelay);
-  }else{
-    actuallyStart();
-  }
-}
-
-function sendRoomRosterToRequester(){
-  if(!isHost()) return;
-  sendHostSync(
-    state.autoRoundState==='COUNTDOWN'
-      ? 'COUNTDOWN'
-      : state.game==='PLAYING'
-        ? 'PLAYING'
-        : 'WAITING'
-  );
-}
-
-function applyRemoteRoomSync(payload){
-  const remoteHostId=String(payload.hostId||'');
-  const me=getUserId();
-  if(remoteHostId && remoteHostId===me) return;
-
-  if(Array.isArray(payload.players)){
-    updateRoomPlayers(payload.players,'remote-sync');
-  }else if(Array.isArray(payload.playerIds) && payload.playerIds.length){
-    const existing=new Map(roomPlayersList.map(p=>[p.id,p]));
-    updateRoomPlayers(payload.playerIds.map(id=>existing.get(String(id))||{id:String(id),username:'玩家'}),'remote-sync-ids');
-  }
-
-  const incomingRound=String(payload.roundId||'');
-  const incomingPhase=String(payload.phase||'');
-  const playerIds=cleanPlayerIds(payload.playerIds || onlinePlayers().map(p=>p.id));
-
-  if(incomingRound){
-    if(lastRemoteRoundId && incomingRound!==lastRemoteRoundId && state.game==='PLAYING') return;
-    lastRemoteRoundId=incomingRound;
-    state.roundId=incomingRound;
-    state.roundPlayerIds=playerIds;
-    state.roundPlayerCount=Number(payload.playerCount||playerIds.length||state.roomPlayerCount||1);
-  }
-
-  if(Number(payload.globalRoundDeadline||0)>0){
-    state.globalRoundDeadline=Number(payload.globalRoundDeadline);
-  }
-  if(Array.isArray(payload.finishedIds)){
-    updateFinishedPlayersFromPayload(payload.finishedIds);
-  }
-
-  const startAt=Number(payload.startAt||payload.startedAt||0);
-  const countdownEndsAt=Number(payload.countdownEndsAt||payload.endsAt||startAt||0);
-
-  if(incomingPhase==='COUNTDOWN' || incomingPhase==='PLAYING'){
-    state.autoRoundState=incomingPhase;
-    state.remoteStartAt=startAt || Date.now();
-    renderAutoRoomUI();
-
-    if(state.game==='LOBBY' || state.game==='MENU'){
-      if(state.remoteStartTimer) clearTimeout(state.remoteStartTimer);
-      state.remoteStartTimer=setTimeout(()=>{
-        state.remoteStartTimer=null;
-        if(state.game==='LOBBY' || state.game==='MENU'){
-          startGame(incomingRound,true,state.remoteStartAt,state.roundPlayerCount,state.roundPlayerIds);
-        }
-      },50);
-    }
-    return;
-  }
-
-  renderAutoRoomUI();
-}
-
-function sendHello(){
-  const me=getUserId();
-  if(!me) return;
-  sendGameEvent('NEON_ROOM_HELLO',{
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version,
-    playerId:me,
-    player:{id:me,username:playerNameOf(state.sdkUser,'玩家'),avatar:state.sdkUser?.avatar || ''},
-    requestSync:true,
-    timestamp:Date.now()
-  });
-}
-
-function getRoundPlayerIds(){
-  return cleanPlayerIds(state.roundPlayerIds || onlinePlayers().map(p=>p.id));
-}
-
-function getFinishedCount(){
-  const ids=getRoundPlayerIds();
-  let count=0;
-  for(const id of ids){
-    if(finishedPlayers.has(id)) count++;
-  }
-  state.finishedCount=count;
-  return count;
-}
-
-function renderPersonalFinished(){
-  const overlay=$('personalFinishOverlay');
-  if(!overlay) return;
-
-  const count=getFinishedCount();
-  const total=Math.max(1,getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1);
-  const waitCount=Math.max(0,total-count);
-
-  $('personalFinishTitle').textContent='本局已完成';
-  $('personalFinishLead').textContent=state.resultReason || '你已完成本局，等待其他玩家繼續挑戰。';
-  $('personalFinishLayer').textContent=state.layers;
-  $('personalFinishScore').textContent=state.score;
-  $('personalFinishCount').textContent=`${count} / ${total}`;
-  $('personalFinishWait').textContent =
-    waitCount>0
-      ? `還有 ${waitCount} 位玩家挑戰中 · 你無法再次操作`
-      : '所有玩家都已完成 · 正在進入全房結算';
-
-  // 只有「自己」已完成時才顯示個人等待層；其他玩家輸掉不會遮住你的遊戲。
-  if(state.localFinished && state.game==='PLAYING' && !state.roundFinalized){
-    overlay.classList.add('show');
-  }else{
-    overlay.classList.remove('show');
-  }
-}
-
-function updateFinishedPlayersFromPayload(ids){
-  const expected=new Set(getRoundPlayerIds());
-  for(const id of cleanPlayerIds(ids)){
-    if(expected.has(id)) finishedPlayers.set(id, finishedPlayers.get(id) || {at:Date.now()});
-  }
-  getFinishedCount();
-  renderPersonalFinished();
-}
-
-function recordPlayerFinished(payload,senderId){
-  const id=String(payload.playerId||senderId||'');
-  if(!id) return false;
-
-  const expected=new Set(getRoundPlayerIds());
-  if(expected.size && !expected.has(id)) return false;
-
-  finishedPlayers.set(id,{
-    at:Date.now(),
-    score:clamp(Number(payload.score)||0,0,999999),
-    layers:clamp(Number(payload.layers)||0,0,99999),
-    reward:safeReward(payload.reward),
-    reason:String(payload.reason||'本局完成')
-  });
-
-  updatePlayerScore(
-    id,
-    payload.score,
-    payload.layers,
-    String(payload.playerName||'玩家'),
-    false
-  );
-
-  getFinishedCount();
-  renderPersonalFinished();
-  return true;
-}
-
-let firstFinishTime = 0;
-
-function tryFinalizeWholeRound(reason='ALL_FINISHED'){
-  if(!isHost() || state.roundFinalized || state.game==='LOBBY') return;
-
-  const total=getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1;
-  const finished=getFinishedCount();
-
-  if (finished > 0 && firstFinishTime === 0) {
-    firstFinishTime = Date.now();
-  }
-
-  const timeElapsedSinceFirst = firstFinishTime > 0 ? (Date.now() - firstFinishTime) : 0;
-  if(reason!=='TIMEOUT' && finished < total && timeElapsedSinceFirst < 4000) {
-    setTimeout(() => {
-      if (!state.roundFinalized && isHost()) {
-        tryFinalizeWholeRound('TIMEOUT');
+  // 🌟 修復：Web 端發送事件必須使用 JSON.stringify
+  function sendGameEvent(eventName, payload={}){
+    const message = { action:'sendGameEvent', eventName, payload };
+
+    try{
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function'){
+        window.BoomRoomSDK.sendGameEvent(eventName, payload);
+        return true;
       }
-    }, 4000);
-    return;
-  }
-  finalizeWholeRound(reason);
-}
+    }catch(_){}
 
-function finalizeWholeRound(reason='ALL_FINISHED'){
-  if(!isHost() || state.roundFinalized) return;
-  if(state.game!=='PLAYING' && !state.localFinished) return;
+    try{
+      if(window.parent && window.parent !== window){
+        window.parent.postMessage(JSON.stringify(message), '*');
+        return true;
+      }
+    }catch(_){}
 
-  state.roundFinalized=true;
-  state.roundFinished=true;
-  state.autoRoundState='RESULT';
-  state.statusEndedAt=Date.now();
-
-  if(globalRoundTimer){
-    clearTimeout(globalRoundTimer);
-    globalRoundTimer=null;
+    return false;
   }
 
-  // Host 若尚未結束，先將自己的最終成績記錄進房間。
-  if(!finishedPlayers.has(getUserId())){
-    finishedPlayers.set(getUserId(),{
-      at:Date.now(),
-      score:clamp(state.score,0,999999),
-      layers:clamp(state.layers,0,99999),
-      reward:safeReward(calcReward(state.layers)),
-      reason:state.localFinished ? state.resultReason : '全房時間到'
-    });
+  // 🌟 修復：Web 端請求初始化必須使用 JSON.stringify
+  function requestSDKInit(){
+    try{
+      if(window.parent && window.parent !== window){
+        window.parent.postMessage(JSON.stringify({
+          action:'requestSDKInit',
+          gameId:GAME_INFO.id,
+          version:GAME_INFO.version
+        }), '*');
+      }
+    }catch(_){}
+
+    try{
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.requestInit === 'function'){
+        window.BoomRoomSDK.requestInit();
+      }
+    }catch(_){}
   }
 
-  // 🌟 確保房主結算時，自動從 roomScoreMap 補齊所有玩家的分數與層數
-  for(const id of getRoundPlayerIds()){
-    if(!finishedPlayers.has(id)){
-      const board = roomScoreMap.get(id) || {};
-      const score = Number(board.score || 0);
-      const layers = Number(board.layers || 0);
-      finishedPlayers.set(id, {
-        at: Date.now(),
-        score: clamp(score, 0, 999999),
-        layers: clamp(layers, 0, 99999),
-        reward: safeReward(calcReward(layers)),
-        reason: '結算自動採計'
+  function playerIdOf(player){
+    return String(player?.id ?? player?.userId ?? player?.uid ?? player?.playerId ?? '');
+  }
+
+  function playerNameOf(player, fallback='玩家'){
+    const name =
+      player?.nickname ??
+      player?.nickName ??
+      player?.displayName ??
+      player?.name ??
+      player?.username ??
+      player?.user?.nickname ??
+      player?.user?.displayName ??
+      '';
+    return String(name || fallback).trim().slice(0,18) || fallback;
+  }
+
+  function normalizeRoomPlayers(list){
+    const source = Array.isArray(list) ? list : [];
+    const seen = new Set();
+    const out = [];
+
+    for(const p of source){
+      const id = playerIdOf(p);
+      if(!id || seen.has(id)) continue;
+      seen.add(id);
+      out.push({
+        id,
+        nickname: playerNameOf(p),
+        raw: p
+      });
+    }
+
+    const me = getUserId();
+    if(me && !seen.has(me)){
+      out.push({
+        id: me,
+        nickname: playerNameOf(state.sdkUser,'你'),
+        raw: state.sdkUser
+      });
+    }
+
+    return out.slice(0, GAME_INFO.maxPlayers);
+  }
+
+  function updateRoomPlayers(list, source='sdk'){
+    const next = normalizeRoomPlayers(list);
+    const sig = next.map(p=>p.id).sort().join('|');
+
+    if(sig !== state.lastRoomSignature){
+      state.lastRoomSignature = sig;
+      state.roomPlayersUpdatedAt = Date.now();
+    }
+
+    roomPlayersList = next;
+    state.roomPlayerCount = next.length;
+    seedRoomScorePlayers();
+    renderAutoRoomUI();
+
+    if(sdkReady && isHost() && state.game==='LOBBY' && sig !== state.lastAutoScheduledSignature){
+      scheduleAutoStart();
+    }
+  }
+
+  function onlinePlayers(){
+    return normalizeRoomPlayers(roomPlayersList);
+  }
+
+  function ensureScorePlayer(id, name='玩家'){
+    id = String(id || '');
+    if(!id) return null;
+
+    const old = roomScoreMap.get(id);
+    if(old){
+      if(name && name !== '玩家') old.name=name;
+      return old;
+    }
+
+    const item={id,name:name || '玩家',score:0,layers:0,updatedAt:Date.now()};
+    roomScoreMap.set(id,item);
+    return item;
+  }
+
+  function seedRoomScorePlayers(){
+    for(const player of roomPlayersList){
+      const id=playerIdOf(player);
+      if(id) ensureScorePlayer(id,playerNameOf(player));
+    }
+
+    const me=getUserId();
+    if(me) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
+
+    renderScoreBoard();
+  }
+
+  function updatePlayerScore(id, score, layers, name='玩家', broadcast=false){
+    id=String(id || '');
+    if(!id) return;
+
+    const item=ensureScorePlayer(id,name);
+    if(!item) return;
+
+    const nextScore=Math.max(0,Math.floor(finite(score,0)));
+    const nextLayers=Math.max(0,Math.floor(finite(layers,0)));
+
+    if(nextScore >= item.score){
+      item.score=nextScore;
+      item.layers=Math.max(item.layers,nextLayers);
+      item.updatedAt=Date.now();
+    }
+
+    renderScoreBoard();
+
+    if(broadcast){
+      sendGameEvent('NEON_SCORE_UPDATE',{
+        roundId:state.roundId,
+        playerId:id,
+        playerName:item.name,
+        score:item.score,
+        layers:item.layers
       });
     }
   }
 
-  getFinishedCount();
+  function renderScoreBoard(){
+    const rows=$('scoreRows');
+    if(!rows) return;
 
-  const results=getRoundPlayerIds().map(id=>{
-    const p=finishedPlayers.get(id)||{};
-    const roster=roomPlayersList.find(x=>x.id===id);
-    const board=roomScoreMap.get(id)||{};
-    return {
-      id,
-      username:roster?.nickname || board.name || '玩家',
-      score:clamp(Number(p.score ?? board.score)||0,0,999999),
-      layers:clamp(Number(p.layers ?? board.layers)||0,0,99999),
-      reward:safeReward(p.reward),
-      finished:finishedPlayers.has(id)
-    };
-  }).sort((a,b)=>b.layers-a.layers || b.score-a.score);
+    const list=[...roomScoreMap.values()]
+      .sort((a,b)=>b.score-a.score || b.layers-a.layers || a.name.localeCompare(b.name,'zh-Hant'))
+      .slice(0,5);
 
-  const payload={
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    version:GAME_INFO.version,
-    roundId:state.roundId,
-    status:'FINISHED',
-    reason:reason==='TIMEOUT'?'全房時間到，未完成玩家以目前成績結算。':'所有玩家已完成挑戰。',
-    playerCount:getRoundPlayerIds().length,
-    finishedCount:getFinishedCount(),
-    finishedIds:[...finishedPlayers.keys()],
-    results,
-    globalEndedAt:Date.now()
-  };
+    if(!list.length){
+      rows.innerHTML='<div class="scoreEmpty">等待玩家分數...</div>';
+      return;
+    }
 
-  sendGameEvent('NEON_ROUND_END',payload);
-  applyWholeRoundResult(payload,true);
-}
+    const me=getUserId();
 
-function localPlayerFinished(reason){
-  if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized) return;
+    rows.innerHTML=list.map((item,index)=>{
+      const isMe=item.id===me;
+      const safeName=String(item.name || '玩家').replace(/[&<>"]/g,c=>({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+      }[c]));
 
-  state.localFinished=true;
-  state.autoRoundState='PLAYER_FINISHED';
-  if(state.currentBox) state.currentBox.moving=false;
-
-  state.reward=calcReward(state.layers);
-  state.resultReason=state.resultReason || (
-    reason==='MISS' ? '最後一塊沒有與塔身重疊。' :
-    reason==='TIMEOUT' ? '你的挑戰時間已結束。' :
-    '你的本局挑戰已完成。'
-  );
-
-  recordPlayerFinished({
-    playerId:getUserId(),
-    playerName:playerNameOf(state.sdkUser,'你'),
-    score:state.score,
-    layers:state.layers,
-    reward:state.reward,
-    reason:state.resultReason
-  },getUserId());
-
-  sendGameEvent('NEON_PLAYER_FINISH',{
-    roomId:gameRoomId,
-    gameId:GAME_INFO.id,
-    roundId:state.roundId,
-    playerId:getUserId(),
-    playerName:playerNameOf(state.sdkUser,'你'),
-    score:clamp(state.score,0,999999),
-    layers:clamp(state.layers,0,99999),
-    reward:safeReward(state.reward),
-    reason:state.resultReason
-  });
-
-  // 重要：個人失敗只鎖定自己的操作，不能把整房遊戲切成 RESULT。
-  renderPersonalFinished();
-
-  if(isHost()){
-    tryFinalizeWholeRound('ALL_FINISHED');
-  }
-}
-
-function gameOver(reason){
-  if(state.localFinished || state.roundFinalized || state.gameOverCalled) return;
-  localPlayerFinished(reason);
-}
-
-function applyWholeRoundResult(payload,localHost=false){
-  if(state.roundFinalized && state.game==='RESULT' && localHost!==true) return;
-  if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
-
-  state.roundFinalized=true;
-  state.roundFinished=true;
-  state.game='RESULT';
-  state.autoRoundState='RESULT';
-  state.statusEndedAt=Date.now();
-
-  if(globalRoundTimer){
-    clearTimeout(globalRoundTimer);
-    globalRoundTimer=null;
+      return `<div class="scoreRow ${index===0?'top':''}">
+        <span class="scoreRank">${index+1}</span>
+        <span class="scoreName ${isMe?'me':''}">${safeName}${isMe?' · 你':''}</span>
+        <span class="scoreNum">${item.score.toLocaleString()}</span>
+      </div>`;
+    }).join('');
   }
 
-  if(Array.isArray(payload.finishedIds)){
-    updateFinishedPlayersFromPayload(payload.finishedIds);
+  function renderAutoRoomUI(){
+    const count = state.roomPlayerCount;
+    const max = GAME_INFO.maxPlayers;
+
+    const roomCount = $('roomCountText');
+    const autoText = $('autoRoundText');
+    const status = $('hostStatus');
+    const startBtn = $('startBtn');
+
+    if(roomCount) roomCount.textContent=`房間玩家 ${count} / ${max}`;
+
+    if(!sdkReady){
+      if(autoText) autoText.textContent='正在連接 BoomRoom...';
+      if(status) status.textContent='正在同步房間';
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent='等待房間同步';
+      }
+      return;
+    }
+
+    if(state.game === 'PLAYING'){
+      if(autoText) autoText.textContent=`本局進行中 · ${count} 人參賽`;
+      if(status) status.textContent='遊戲進行中';
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent='遊戲進行中';
+      }
+      return;
+    }
+
+    if(state.game === 'RESULT'){
+      if(autoText) autoText.textContent='本局已結束 · 正在準備關閉';
+      if(status) status.textContent='本局已鎖定';
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent='遊戲將自動關閉';
+      }
+      return;
+    }
+
+    if(state.autoRoundState === 'COUNTDOWN'){
+      const remain=Math.max(0,state.countdownEndsAt-Date.now());
+      const sec=Math.max(1,Math.ceil(remain/1000));
+
+      if(autoText) autoText.textContent=`${count} 人已就緒 · ${sec} 秒後開始`;
+      if(status) status.textContent='自動倒數中';
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent=`${sec} 秒後開始`;
+      }
+      return;
+    }
+
+    if(count > 0){
+      if(state.autoRoundState==='STABILIZING'){
+        if(autoText) autoText.textContent=`${count} 人已進入 · 自動開局準備中`;
+        if(status) status.textContent=isHost()?'房主已接管 · 自動開局中':'等待房主同步';
+      }else{
+        if(autoText) autoText.textContent=`${count} 人已進入 · 人數穩定後自動開始`;
+        if(status) status.textContent=isHost()?'房主已接管 · 等待穩定':'等待房主同步';
+      }
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent='等待自動開始';
+      }
+    }else{
+      if(autoText) autoText.textContent='等待玩家進入房間';
+      if(status) status.textContent='等待玩家';
+      if(startBtn){
+        startBtn.disabled=true;
+        startBtn.textContent='等待玩家';
+      }
+    }
   }
 
-  const myResult=(Array.isArray(payload.results)?payload.results:[]).find(r=>String(r.id)===getUserId());
-  if(myResult){
-    state.score=clamp(Number(myResult.score)||state.score,0,999999);
-    state.layers=clamp(Number(myResult.layers)||state.layers,0,99999);
-    state.reward=safeReward(myResult.reward);
+  function setupSDK(data){
+    if(!data) return;
+
+    const nested =
+      data.data && typeof data.data === 'object'
+        ? data.data
+        : data;
+
+    if(nested.user) state.sdkUser=nested.user;
+
+    applyHostFlag(nested);
+
+    gameRoomId =
+      nested.roomId != null
+        ? String(nested.roomId)
+        : gameRoomId;
+
+    let rList = nested.roomPlayers || nested.players || roomPlayersList;
+    if (!Array.isArray(rList) || rList.length < 2) {
+      rList = [...(rList || []), { id: 'bot-1', username: '🤖 體驗玩家-1' }, { id: 'bot-2', username: '🤖 體驗玩家-2' }];
+    }
+
+    if(Array.isArray(rList)){
+      updateRoomPlayers(rList,'sdk');
+    }else{
+      updateRoomPlayers(roomPlayersList,'existing');
+    }
+
+    sdkReady=true;
+    state.localPlayerReady=!!getUserId();
+    seedRoomScorePlayers();
+    renderAutoRoomUI();
+
+    sendGameEvent('NEON_ROOM_HELLO',{
+      playerId:getUserId(),
+      playerName:playerNameOf(state.sdkUser,'玩家'),
+      roomId:gameRoomId,
+      timestamp:Date.now()
+    });
+
+    waitingForHost=false;
+    setTimeout(() => {
+      if (state.game === 'LOBBY') {
+        forceStart();
+      }
+    }, 600);
   }
 
-  if(!state.localFinished){
-    state.resultReason=String(payload.reason||'本局已完成全房結算。');
-    state.localFinished=true;
-  }else if(payload.reason){
-    state.resultReason=state.resultReason || String(payload.reason);
-  }
-
-  showResult();
-}
-
-function showResult(){
-  $('resultTitle').textContent =
-    state.layers>=40 ? '超越極限！' :
-    state.layers>=30 ? '巔峰完成！' :
-    state.layers>=20 ? '高塔達成！' :
-    '大樓倒塌！';
-
-  $('resultLead').textContent=state.resultReason;
-  $('resultLayer').textContent=state.layers;
-  $('resultScore').textContent=state.score;
-  $('resultBest').textContent=state.bestLayers;
-  $('resultCombo').textContent=`${state.bestCombo}×`;
-  $('resultReward').textContent=`${state.reward} 銀幣`;
-
-  $('resultReason').textContent =
-    state.reward>0
-      ? '全房結算完成，3 秒後自動返回 BoomRoom。'
-      : '全房結算完成，3 秒後自動返回 BoomRoom。';
-
-  $('personalFinishOverlay').classList.remove('show');
-  $('resultOverlay').classList.add('show');
-  $('statusPill').textContent='全房結算完成';
-  $('hintTitle').textContent='本局完成';
-  $('hintSub').textContent='所有玩家已完成或時間到；本局已鎖定，無法再次開始。';
-
-  startAutoCloseCountdown();
-}
-
-function startAutoCloseCountdown(){
-  if(state.resultCloseTimer) clearInterval(state.resultCloseTimer);
-
-  const endAt=Date.now()+AUTO_ROUND.RESULT_MS;
-  state.localReturnAt=endAt;
-
-  const tick=()=>{
-    const remain=Math.max(0,endAt-Date.now());
-    const sec=Math.max(1,Math.ceil(remain/1000));
-
-    $('finishBtn').textContent = remain>0 ? `${sec} 秒後自動返回` : '正在返回房間';
-    $('closeCountdownNote').textContent = remain>0
-      ? `全房結算完成 · ${sec} 秒後自動離開遊戲`
-      : '正在返回 BoomRoom...';
-
-    if(remain<=0){
+  function clearAutoRoundTimers(){
+    if(state.autoRoundTimer){
+      clearTimeout(state.autoRoundTimer);
+      state.autoRoundTimer=null;
+    }
+    if(state.countdownTimer){
+      clearInterval(state.countdownTimer);
+      state.countdownTimer=null;
+    }
+    if(state.remoteStartTimer){
+      clearTimeout(state.remoteStartTimer);
+      state.remoteStartTimer=null;
+    }
+    if(state.resultCloseTimer){
       clearInterval(state.resultCloseTimer);
       state.resultCloseTimer=null;
-      finishAndLeave();
     }
-  };
-
-  tick();
-  state.resultCloseTimer=setInterval(tick,100);
-}
-
-function finishAndLeave(){
-  if(state.closeRequested) return;
-  state.closeRequested=true;
-  state.closeSent=false;
-
-  const reward=safeReward(state.reward);
-  state.reward=reward;
-
-  // 每一位玩家只在「全房結算完成後」呼叫一次 gameOver。
-  if(!state.gameOverCalled){
-    state.gameOverCalled=true;
-    try{
-      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-        window.BoomRoomSDK.gameOver(reward);
-        state.closeSent=true;
-      }
-    }catch(_){ }
   }
 
-  try{
-    if(window.parent && window.parent!==window){
-      window.parent.postMessage({
-        action:'leaveGame',
-        gameId:GAME_INFO.id,
-        roundId:state.roundId,
-        reason:'NATURAL_GAME_OVER'
-      },'*');
-      state.closeSent=true;
+  function getStablePlayerSignature(){
+    return onlinePlayers().map(p=>p.id).sort().join('|');
+  }
+
+  function cleanPlayerIds(ids){
+    return [...new Set((Array.isArray(ids)?ids:[]).map(x=>String(x||'')).filter(Boolean))].slice(0,GAME_INFO.maxPlayers);
+  }
+
+  function currentRoundPlayers(){
+    const source = Array.isArray(state.roundPlayerIds) && state.roundPlayerIds.length
+      ? state.roundPlayerIds
+      : onlinePlayers().map(p=>p.id);
+    return cleanPlayerIds(source);
+  }
+
+  function resetRoundScoreboard(playerIds){
+    const ids=cleanPlayerIds(playerIds);
+    roomScoreMap.clear();
+    for(const id of ids){
+      const p=roomPlayersList.find(x=>x.id===id);
+      ensureScorePlayer(id,p?.nickname || '玩家');
     }
-  }catch(_){ }
-
-  if(!state.closeSent){
-    try{
-      window.location.href='../room.html';
-      state.closeSent=true;
-    }catch(_){ }
+    const me=getUserId();
+    if(me && !roomScoreMap.has(me)) ensureScorePlayer(me,playerNameOf(state.sdkUser,'你'));
+    renderScoreBoard();
   }
 
-  $('finishBtn').textContent='已完成 · 返回房間';
-  $('closeCountdownNote').textContent='本局已結算。';
-}
-
-function handleGameEvent(name,payload,sender){
-  window.handleGameEvent = handleGameEvent;
-  payload=payload && typeof payload==='object' ? payload : {};
-  const event=String(name||'');
-  const senderId=sender!=null ? String(sender) : String(payload.playerId||'');
-
-  if(event==='NEON_ROOM_HELLO'){
-    if(isHost()){
-      const p=payload.player || {
-        id:String(payload.playerId||senderId||''),
-        username:String(payload.playerName||'玩家'),
-        avatar:String(payload.avatar||'')
-      };
-      if(p.id){
-        const existing=roomPlayersList.some(x=>x.id===String(p.id));
-        if(!existing){
-          updateRoomPlayers([...roomPlayersList,p],'hello-merge');
-        }
-      }
-      sendHostSync(
-        state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
-        state.game==='PLAYING' ? 'PLAYING' : 'WAITING'
-      );
-      scheduleAutoStart();
-    }
-    return;
+  function makeRoundId(){
+    return 'neon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
   }
 
-  if(event==='NEON_ROOM_SYNC'){
-    applyRemoteRoomSync(payload);
-    return;
+  function sendHostSync(phaseOverride=''){
+    if(!isHost() || !sdkReady) return false;
+
+    const players=onlinePlayers();
+    const playerIds=cleanPlayerIds(players.map(p=>p.id));
+    const phase = phaseOverride || (
+      state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
+      state.game==='PLAYING' ? 'PLAYING' :
+      'WAITING'
+    );
+
+    return sendGameEvent('NEON_ROOM_SYNC',{
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      version:GAME_INFO.version,
+      hostId:getUserId(),
+      phase,
+      game:state.game,
+      roundId:state.roundId || '',
+      playerCount:playerIds.length,
+      playerIds,
+      players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''})),
+      countdownEndsAt:Number(state.countdownEndsAt||0),
+      startAt:Number(state.remoteStartAt||0),
+      globalRoundDeadline:Number(state.globalRoundDeadline||0),
+      finishedIds:[...finishedPlayers.keys()],
+      finishedCount:Number(state.finishedCount||0),
+      timestamp:Date.now()
+    });
   }
 
-  if(event==='NEON_COUNTDOWN'){
-    const hostId=String(payload.hostId||'');
-    if(hostId && hostId===getUserId()) return;
-    applyRemoteRoomSync({
+  function broadcastRoundStart(roundId,players,startAt){
+    const payload={
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      version:GAME_INFO.version,
+      roundId,
+      hostId:getUserId(),
+      startAt,
+      startedAt:startAt,
+      playerCount:players.length,
+      playerIds:players.map(p=>p.id),
+      players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
+    };
+
+    sendGameEvent('NEON_ROUND_START',payload);
+    sendGameEvent('NEON_ROOM_SYNC',{
       ...payload,
       phase:'COUNTDOWN',
-      countdownEndsAt:Number(payload.endsAt||payload.countdownEndsAt||0),
-      startAt:Number(payload.startAt||payload.endsAt||0)
+      game:'LOBBY',
+      countdownEndsAt:state.countdownEndsAt,
+      timestamp:Date.now()
     });
-    return;
+
+    clearTimeout(state.roundStartRepeatTimer);
+    let repeats=0;
+    state.roundStartRepeatTimer=setInterval(()=>{
+      repeats+=1;
+      if(repeats>5 || state.game==='PLAYING' || state.game==='RESULT'){
+        clearInterval(state.roundStartRepeatTimer);
+        state.roundStartRepeatTimer=null;
+        return;
+      }
+      sendGameEvent('NEON_ROUND_START',payload);
+      sendGameEvent('NEON_ROOM_SYNC',{
+        ...payload,
+        phase:Date.now()<startAt?'COUNTDOWN':'PLAYING',
+        game:Date.now()<startAt?'LOBBY':'PLAYING',
+        countdownEndsAt:state.countdownEndsAt,
+        timestamp:Date.now()
+      });
+    },AUTO_ROUND.EVENT_REPEAT_MS);
   }
 
-  if(event==='SYNC_START_GAME' || event==='NEON_ROUND_START' || event==='ROUND_START'){
-    if(state.game==='LOBBY'||state.game==='MENU'){
-      forceStart();
+  function scheduleAutoStart(){
+    if(!sdkReady || !isHost()) return;
+    if(state.game==='PLAYING' || state.game==='RESULT') return;
+    if(state.autoRoundState==='COUNTDOWN' || state.autoRoundState==='PLAYING') return;
+
+    const players=onlinePlayers();
+    const count=players.length;
+    const signature=getStablePlayerSignature();
+
+    if(count<=0){
+      clearTimeout(state.autoRoundTimer);
+      state.autoRoundTimer=null;
+      state.autoRoundState='WAITING';
+      state.lastAutoScheduledSignature='';
+      sendHostSync('WAITING');
+      renderAutoRoomUI();
+      return;
     }
-    return;
+
+    if(
+      state.autoRoundState==='STABILIZING' &&
+      state.autoRoundTimer &&
+      state.lastAutoScheduledSignature===signature
+    ){
+      sendHostSync('STABILIZING');
+      renderAutoRoomUI();
+      return;
+    }
+
+    clearTimeout(state.autoRoundTimer);
+    state.autoRoundState='STABILIZING';
+    state.lastAutoScheduledSignature=signature;
+    state.roomPlayersUpdatedAt=state.roomPlayersUpdatedAt || Date.now();
+    renderAutoRoomUI();
+    sendHostSync('STABILIZING');
+
+    const stableSince=state.roomPlayersUpdatedAt || Date.now();
+    const delay=Math.max(80,(stableSince+AUTO_ROUND.STABLE_MS)-Date.now());
+
+    state.autoRoundTimer=setTimeout(()=>{
+      state.autoRoundTimer=null;
+      if(state.game!=='LOBBY' || !isHost()) return;
+
+      const latest=onlinePlayers();
+      const latestSig=getStablePlayerSignature();
+      if(!latest.length || latestSig!==signature){
+        state.autoRoundState='WAITING';
+        state.lastAutoScheduledSignature='';
+        renderAutoRoomUI();
+        scheduleAutoStart();
+        return;
+      }
+
+      beginHostCountdown(latest);
+    },delay);
   }
 
-  if(event==='NEON_SCORE_UPDATE' || event==='SCORE_UPDATE'){
+  function beginHostCountdown(players){
+    if(!isHost() || !sdkReady || state.game!=='LOBBY' || !players.length) return;
+
+    clearAutoRoundTimers();
+    state.autoRoundState='COUNTDOWN';
+    state.hostRoundStarted=false;
+    state.roundPlayerIds=players.map(p=>p.id);
+    state.roundPlayerCount=players.length;
+    state.countdownEndsAt=Date.now()+AUTO_ROUND.COUNTDOWN_MS;
+    state.remoteStartAt=state.countdownEndsAt;
+    state.roundId=makeRoundId();
+    state.localFinished=false;
+    state.roundFinished=false;
+    state.roundFinalized=false;
+    state.globalRoundDeadline=0;
+    state.finishedCount=0;
+    finishedPlayers.clear();
+    if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
+    state.closeRequested=false;
+    state.closeSent=false;
+    state.gameOverCalled=false;
+
+    resetRoundScoreboard(state.roundPlayerIds);
+
+    sendGameEvent('NEON_COUNTDOWN',{
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      version:GAME_INFO.version,
+      roundId:state.roundId,
+      hostId:getUserId(),
+      endsAt:state.countdownEndsAt,
+      startAt:state.countdownEndsAt,
+      playerCount:players.length,
+      playerIds:state.roundPlayerIds,
+      players:players.map(p=>({id:p.id,username:p.nickname,avatar:p.raw?.avatar || ''}))
+    });
+    sendHostSync('COUNTDOWN');
+
+    playStart();
+    vibrate([10,25,10]);
+    renderAutoRoomUI();
+
+    state.countdownTimer=setInterval(()=>{
+      const remain=state.countdownEndsAt-Date.now();
+      if(remain>0){
+        renderAutoRoomUI();
+        if(isHost()) sendHostSync('COUNTDOWN');
+        return;
+      }
+
+      clearInterval(state.countdownTimer);
+      state.countdownTimer=null;
+
+      const latest=onlinePlayers();
+      const latestIds=cleanPlayerIds(latest.map(p=>p.id));
+      const fixedIds=cleanPlayerIds(state.roundPlayerIds);
+      if(latestIds.join('|')!==fixedIds.join('|')){
+        state.autoRoundState='WAITING';
+        state.lastAutoScheduledSignature='';
+        renderAutoRoomUI();
+        scheduleAutoStart();
+        return;
+      }
+
+      launchHostRound(state.roundId,latest);
+    },100);
+  }
+
+  function launchHostRound(roundId,players){
+    if(!isHost() || state.game!=='LOBBY') return;
+
+    const startAt=Date.now()+220;
+    state.remoteStartAt=startAt;
+    state.autoRoundState='PLAYING';
+    state.hostRoundStarted=true;
+    state.roundPlayerIds=cleanPlayerIds(players.map(p=>p.id));
+    state.roundPlayerCount=state.roundPlayerIds.length;
+
+    broadcastRoundStart(roundId,players,startAt);
+    startGame(roundId,false,startAt,state.roundPlayerIds.length);
+  }
+
+  function startGame(remoteRoundId=null,remote=false,remoteStartAt=0,forcedPlayerCount=0,playerIds=null){
+    if(state.game==='PLAYING' || state.game==='RESULT') return;
+    if(!remote && !isHost()) return;
+
+    const id=String(remoteRoundId || state.roundId || makeRoundId());
+    const incomingStart=Number(remoteStartAt||0);
+    const startDelay=Math.max(0,incomingStart-Date.now());
+
+    if(state.remoteStartTimer){ clearTimeout(state.remoteStartTimer); state.remoteStartTimer=null; }
+
+    const actuallyStart=()=>{
+      if(state.game==='PLAYING' || state.game==='RESULT') return;
+
+      resumeAudio();
+      playStart();
+      vibrate([12,30,12]);
+
+      state.game='PLAYING';
+      state.autoRoundState='PLAYING';
+      state.roundId=id;
+      state.roundPlayerIds=cleanPlayerIds(playerIds || state.roundPlayerIds || onlinePlayers().map(p=>p.id));
+      if(!state.roundPlayerIds.length) state.roundPlayerIds=onlinePlayers().map(p=>p.id);
+      state.roundPlayerCount=state.roundPlayerIds.length || forcedPlayerCount || state.roomPlayerCount || 1;
+      state.roundFinished=false;
+      state.roundFinalized=false;
+      state.localFinished=false;
+      state.finishedCount=0;
+      finishedPlayers.clear();
+      if(globalRoundTimer){ clearTimeout(globalRoundTimer); globalRoundTimer=null; }
+      state.globalRoundDeadline=Date.now()+AUTO_ROUND.GLOBAL_ROUND_MAX_MS;
+      state.closeRequested=false;
+      state.closeSent=false;
+      state.gameOverCalled=false;
+      state.score=0;
+      state.layers=0;
+      state.combo=0;
+      state.bestCombo=0;
+      state.perfects=0;
+      state.greats=0;
+      state.goods=0;
+      state.cameraY=0;
+      state.targetCameraY=0;
+      state.hue=190;
+      state.shake=0;
+      state.boxes=[];
+      state.debris=[];
+      state.particles=[];
+      state.trail=[];
+      state.currentBox=null;
+      state.nextEntryAt=0;
+      state.inputLockedUntil=0;
+      state.startedAt=performance.now();
+      state.reward=0;
+      state.resultReason='';
+      state.finishToastShown=false;
+      state.remoteStartAt=incomingStart || Date.now();
+
+      resetRoundScoreboard(state.roundPlayerIds);
+      ensureScorePlayer(getUserId(),playerNameOf(state.sdkUser,'你'));
+      updatePlayerScore(getUserId(),0,0,playerNameOf(state.sdkUser,'你'),false);
+
+      makeBase();
+      spawnBox();
+      updateCameraTarget();
+      state.cameraY=state.targetCameraY;
+
+      $('startOverlay').classList.remove('show');
+      $('resultOverlay').classList.remove('show');
+      $('statusPill').textContent='本局進行中';
+      $('hintTitle').textContent='點一下，把方塊放下';
+      $('hintSub').textContent='每位玩家獨立挑戰；右上會即時看到同房最高分。';
+
+      updateHUD();
+      renderAutoRoomUI();
+      showToast(remote ? '全房同步開始！' : `自動開局 · ${state.roundPlayerCount} 人`);
+
+      updatePlayerScore(getUserId(),state.score,state.layers,playerNameOf(state.sdkUser,'你'),true);
+      waitingForHost=false;
+      lastRemoteRoundId=state.roundId;
+
+      if(isHost()){
+        if(globalRoundTimer) clearTimeout(globalRoundTimer);
+        globalRoundTimer=setTimeout(()=>{
+          globalRoundTimer=null;
+          finalizeWholeRound('TIMEOUT');
+        },AUTO_ROUND.GLOBAL_ROUND_MAX_MS + 120);
+      }
+    };
+
+    if(startDelay>0){
+      state.remoteStartTimer=setTimeout(()=>{
+        state.remoteStartTimer=null;
+        actuallyStart();
+      },startDelay);
+    }else{
+      actuallyStart();
+    }
+  }
+
+  function sendRoomRosterToRequester(){
+    if(!isHost()) return;
+    sendHostSync(
+      state.autoRoundState==='COUNTDOWN'
+        ? 'COUNTDOWN'
+        : state.game==='PLAYING'
+          ? 'PLAYING'
+          : 'WAITING'
+    );
+  }
+
+  function applyRemoteRoomSync(payload){
+    const remoteHostId=String(payload.hostId||'');
+    const me=getUserId();
+    if(remoteHostId && remoteHostId===me) return;
+
+    if(Array.isArray(payload.players)){
+      updateRoomPlayers(payload.players,'remote-sync');
+    }else if(Array.isArray(payload.playerIds) && payload.playerIds.length){
+      const existing=new Map(roomPlayersList.map(p=>[p.id,p]));
+      updateRoomPlayers(payload.playerIds.map(id=>existing.get(String(id))||{id:String(id),username:'玩家'}),'remote-sync-ids');
+    }
+
+    const incomingRound=String(payload.roundId||'');
+    const incomingPhase=String(payload.phase||'');
+    const playerIds=cleanPlayerIds(payload.playerIds || onlinePlayers().map(p=>p.id));
+
+    if(incomingRound){
+      if(lastRemoteRoundId && incomingRound!==lastRemoteRoundId && state.game==='PLAYING') return;
+      lastRemoteRoundId=incomingRound;
+      state.roundId=incomingRound;
+      state.roundPlayerIds=playerIds;
+      state.roundPlayerCount=Number(payload.playerCount||playerIds.length||state.roomPlayerCount||1);
+    }
+
+    if(Number(payload.globalRoundDeadline||0)>0){
+      state.globalRoundDeadline=Number(payload.globalRoundDeadline);
+    }
+    if(Array.isArray(payload.finishedIds)){
+      updateFinishedPlayersFromPayload(payload.finishedIds);
+    }
+
+    const startAt=Number(payload.startAt||payload.startedAt||0);
+    const countdownEndsAt=Number(payload.countdownEndsAt||payload.endsAt||startAt||0);
+
+    if(incomingPhase==='COUNTDOWN' || incomingPhase==='PLAYING'){
+      state.autoRoundState=incomingPhase;
+      state.remoteStartAt=startAt || Date.now();
+      renderAutoRoomUI();
+
+      if(state.game==='LOBBY' || state.game==='MENU'){
+        if(state.remoteStartTimer) clearTimeout(state.remoteStartTimer);
+        state.remoteStartTimer=setTimeout(()=>{
+          state.remoteStartTimer=null;
+          if(state.game==='LOBBY' || state.game==='MENU'){
+            startGame(incomingRound,true,state.remoteStartAt,state.roundPlayerCount,state.roundPlayerIds);
+          }
+        },50);
+      }
+      return;
+    }
+
+    renderAutoRoomUI();
+  }
+
+  function sendHello(){
+    const me=getUserId();
+    if(!me) return;
+    sendGameEvent('NEON_ROOM_HELLO',{
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      version:GAME_INFO.version,
+      playerId:me,
+      player:{id:me,username:playerNameOf(state.sdkUser,'玩家'),avatar:state.sdkUser?.avatar || ''},
+      requestSync:true,
+      timestamp:Date.now()
+    });
+  }
+
+  function getRoundPlayerIds(){
+    return cleanPlayerIds(state.roundPlayerIds || onlinePlayers().map(p=>p.id));
+  }
+
+  function getFinishedCount(){
+    const ids=getRoundPlayerIds();
+    let count=0;
+    for(const id of ids){
+      if(finishedPlayers.has(id)) count++;
+    }
+    state.finishedCount=count;
+    return count;
+  }
+
+  function renderPersonalFinished(){
+    const overlay=$('personalFinishOverlay');
+    if(!overlay) return;
+
+    const count=getFinishedCount();
+    const total=Math.max(1,getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1);
+    const waitCount=Math.max(0,total-count);
+
+    $('personalFinishTitle').textContent='本局已完成';
+    $('personalFinishLead').textContent=state.resultReason || '你已完成本局，等待其他玩家繼續挑戰。';
+    $('personalFinishLayer').textContent=state.layers;
+    $('personalFinishScore').textContent=state.score;
+    $('personalFinishCount').textContent=`${count} / ${total}`;
+    $('personalFinishWait').textContent =
+      waitCount>0
+        ? `還有 ${waitCount} 位玩家挑戰中 · 你無法再次操作`
+        : '所有玩家都已完成 · 正在進入全房結算';
+
+    if(state.localFinished && state.game==='PLAYING' && !state.roundFinalized){
+      overlay.classList.add('show');
+    }else{
+      overlay.classList.remove('show');
+    }
+  }
+
+  function updateFinishedPlayersFromPayload(ids){
+    const expected=new Set(getRoundPlayerIds());
+    for(const id of cleanPlayerIds(ids)){
+      if(expected.has(id)) finishedPlayers.set(id, finishedPlayers.get(id) || {at:Date.now()});
+    }
+    getFinishedCount();
+    renderPersonalFinished();
+  }
+
+  function recordPlayerFinished(payload,senderId){
     const id=String(payload.playerId||senderId||'');
-    if(!id) return;
+    if(!id) return false;
+
+    const expected=new Set(getRoundPlayerIds());
+    if(expected.size && !expected.has(id)) return false;
+
+    finishedPlayers.set(id,{
+      at:Date.now(),
+      score:clamp(Number(payload.score)||0,0,999999),
+      layers:clamp(Number(payload.layers)||0,0,99999),
+      reward:safeReward(payload.reward),
+      reason:String(payload.reason||'本局完成')
+    });
+
     updatePlayerScore(
       id,
       payload.score,
@@ -2304,169 +1930,508 @@ function handleGameEvent(name,payload,sender){
       String(payload.playerName||'玩家'),
       false
     );
-    return;
+
+    getFinishedCount();
+    renderPersonalFinished();
+    return true;
   }
 
-  if(event==='NEON_ROOM_SCORES' && payload.scores && Array.isArray(payload.scores)){
-    payload.scores.forEach(s => {
-      if(s && s.id && s.id !== getUserId()){
-        updatePlayerScore(s.id, s.score, s.layers, s.name || '玩家', false);
+  let firstFinishTime = 0;
+
+  function tryFinalizeWholeRound(reason='ALL_FINISHED'){
+    if(!isHost() || state.roundFinalized || state.game==='LOBBY') return;
+
+    const total=getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1;
+    const finished=getFinishedCount();
+
+    if (finished > 0 && firstFinishTime === 0) {
+      firstFinishTime = Date.now();
+    }
+
+    const timeElapsedSinceFirst = firstFinishTime > 0 ? (Date.now() - firstFinishTime) : 0;
+    if(reason!=='TIMEOUT' && finished < total && timeElapsedSinceFirst < 4000) {
+      setTimeout(() => {
+        if (!state.roundFinalized && isHost()) {
+          tryFinalizeWholeRound('TIMEOUT');
+        }
+      }, 4000);
+      return;
+    }
+    finalizeWholeRound(reason);
+  }
+
+  function finalizeWholeRound(reason='ALL_FINISHED'){
+    if(!isHost() || state.roundFinalized) return;
+    if(state.game!=='PLAYING' && !state.localFinished) return;
+
+    state.roundFinalized=true;
+    state.roundFinished=true;
+    state.autoRoundState='RESULT';
+    state.statusEndedAt=Date.now();
+
+    if(globalRoundTimer){
+      clearTimeout(globalRoundTimer);
+      globalRoundTimer=null;
+    }
+
+    if(!finishedPlayers.has(getUserId())){
+      finishedPlayers.set(getUserId(),{
+        at:Date.now(),
+        score:clamp(state.score,0,999999),
+        layers:clamp(state.layers,0,99999),
+        reward:safeReward(calcReward(state.layers)),
+        reason:state.localFinished ? state.resultReason : '全房時間到'
+      });
+    }
+
+    for(const id of getRoundPlayerIds()){
+      if(!finishedPlayers.has(id)){
+        const board = roomScoreMap.get(id) || {};
+        const score = Number(board.score || 0);
+        const layers = Number(board.layers || 0);
+        finishedPlayers.set(id, {
+          at: Date.now(),
+          score: clamp(score, 0, 999999),
+          layers: clamp(layers, 0, 99999),
+          reward: safeReward(calcReward(layers)),
+          reason: '結算自動採計'
+        });
       }
-    });
-    return;
-  }
-
-  if(event==='NEON_PLAYER_FINISH'){
-    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
-    recordPlayerFinished(payload,senderId);
-    if(isHost()) tryFinalizeWholeRound('ALL_FINISHED');
-    return;
-  }
-
-  if(event==='NEON_ROUND_END'){
-    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
-    applyWholeRoundResult(payload,false);
-    return;
-  }
-
-  // 個人 NEON_PLAYER_FINISH 絕不直接切換 RESULT；只有全房 NEON_ROUND_END 才結束整局。
-  if(event==='TOGGLE_SOUND'){
-    state.soundEnabled=!Boolean(payload.muted);
-    return;
-  }
-}
-
-window.addEventListener('message',e=>{
-  try{
-    const d=typeof e.data==='string' ? JSON.parse(e.data) : e.data;
-    if(!d) return;
-
-    if(d.action==='initSDK'){
-      setupSDK(d);
-      return;
     }
 
-    if(d.action==='sdkReady' || d.action==='boomroom:sdkReady'){
-      setupSDK(d.data || d);
-      return;
-    }
+    getFinishedCount();
 
-    if(
-      d.action==='roomPlayersUpdated' ||
-      d.action==='roomRoster' ||
-      d.action==='playersUpdated'
-    ){
-      const list=d.roomPlayers || d.players || d.data?.roomPlayers || d.data?.players;
-      if(Array.isArray(list)) updateRoomPlayers(list,'postMessage');
-      if(isHost()) scheduleAutoStart();
-      return;
-    }
+    const results=getRoundPlayerIds().map(id=>{
+      const p=finishedPlayers.get(id)||{};
+      const roster=roomPlayersList.find(x=>x.id===id);
+      const board=roomScoreMap.get(id)||{};
+      return {
+        id,
+        username:roster?.nickname || board.name || '玩家',
+        score:clamp(Number(p.score ?? board.score)||0,0,999999),
+        layers:clamp(Number(p.layers ?? board.layers)||0,0,99999),
+        reward:safeReward(p.reward),
+        finished:finishedPlayers.has(id)
+      };
+    }).sort((a,b)=>b.layers-a.layers || b.score-a.score);
 
-    if(d.action==='gameEventReceived' || d.action==='gameEvent'){
-      handleGameEvent(
-        String(d.eventName || d.name || d.event || ''),
-        d.payload || d.data || {},
-        d.userId!=null ? String(d.userId) : null
-      );
-    }
-  }catch(_){ }
-});
-
-window.initBoomRoomSDK = function(data) {
-  setupSDK(data);
-};
-
-window.onBoomRoomSDKReady=function(){
-  try{
-    if(!window.BoomRoomSDK) return;
-
-    const sdkPayload={
-      user:typeof window.BoomRoomSDK.getUser==='function'
-        ? window.BoomRoomSDK.getUser()
-        : null,
-      roomId:window.BoomRoomSDK.roomId,
-      roomPlayers:
-        window.BoomRoomSDK.roomPlayers ||
-        window.BoomRoomSDK.players ||
-        []
+    const payload={
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      version:GAME_INFO.version,
+      roundId:state.roundId,
+      status:'FINISHED',
+      reason:reason==='TIMEOUT'?'全房時間到，未完成玩家以目前成績結算。':'所有玩家已完成挑戰。',
+      playerCount:getRoundPlayerIds().length,
+      finishedCount:getFinishedCount(),
+      finishedIds:[...finishedPlayers.keys()],
+      results,
+      globalEndedAt:Date.now()
     };
 
-    // 僅在 SDK 實際提供明確 isHost 時採用；不要用 undefined 覆蓋 Flutter 傳入值。
-    const sdkHost=window.BoomRoomSDK.isHost;
-    if(
-      sdkHost===true || sdkHost===false ||
-      sdkHost===1 || sdkHost===0 ||
-      sdkHost==='true' || sdkHost==='false'
-    ){
-      sdkPayload.isHost=sdkHost;
+    sendGameEvent('NEON_ROUND_END',payload);
+    applyWholeRoundResult(payload,true);
+  }
+
+  function localPlayerFinished(reason){
+    if(state.game!=='PLAYING' || state.localFinished || state.roundFinalized) return;
+
+    state.localFinished=true;
+    state.autoRoundState='PLAYER_FINISHED';
+    if(state.currentBox) state.currentBox.moving=false;
+
+    state.reward=calcReward(state.layers);
+    state.resultReason=state.resultReason || (
+      reason==='MISS' ? '最後一塊沒有與塔身重疊。' :
+      reason==='TIMEOUT' ? '你的挑戰時間已結束。' :
+      '你的本局挑戰已完成。'
+    );
+
+    recordPlayerFinished({
+      playerId:getUserId(),
+      playerName:playerNameOf(state.sdkUser,'你'),
+      score:state.score,
+      layers:state.layers,
+      reward:state.reward,
+      reason:state.resultReason
+    },getUserId());
+
+    sendGameEvent('NEON_PLAYER_FINISH',{
+      roomId:gameRoomId,
+      gameId:GAME_INFO.id,
+      roundId:state.roundId,
+      playerId:getUserId(),
+      playerName:playerNameOf(state.sdkUser,'你'),
+      score:clamp(state.score,0,999999),
+      layers:clamp(state.layers,0,99999),
+      reward:safeReward(state.reward),
+      reason:state.resultReason
+    });
+
+    renderPersonalFinished();
+
+    if(isHost()){
+      tryFinalizeWholeRound('ALL_FINISHED');
+    }
+  }
+
+  function gameOver(reason){
+    if(state.localFinished || state.roundFinalized || state.gameOverCalled) return;
+    localPlayerFinished(reason);
+  }
+
+  function applyWholeRoundResult(payload,localHost=false){
+    if(state.roundFinalized && state.game==='RESULT' && localHost!==true) return;
+    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+
+    state.roundFinalized=true;
+    state.roundFinished=true;
+    state.game='RESULT';
+    state.autoRoundState='RESULT';
+    state.statusEndedAt=Date.now();
+
+    if(globalRoundTimer){
+      clearTimeout(globalRoundTimer);
+      globalRoundTimer=null;
     }
 
-    setupSDK(sdkPayload);
-  }catch(_){ }
-};
-
-try{
-  if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
-    state.sdkUser=window.BoomRoomSDK.getUser() || null;
-  }
-}catch(_){ }
-
-requestSDKInit();
-
-setTimeout(()=>{
-  if(window.BoomRoomSDK) window.onBoomRoomSDKReady();
-},100);
-
-// 開發模式：沒有 SDK 才啟用本地 Host，方便直接以 HTML 測試。
-setTimeout(()=>{
-  if(!sdkReady){
-    sdkReady=true;
-    sdkIsHost=true;
-    hostFlagExplicit=true;
-    if(!state.sdkUser) state.sdkUser={id:'dev_host',nickname:'開發玩家'};
-    updateRoomPlayers([state.sdkUser],'dev-fallback');
-    renderAutoRoomUI();
-    scheduleAutoStart();
-  }
-},1800);
-
-// 全房高頻同步：Host 反覆告知「目前回合怎麼走」，非 Host 反覆要求同步。
-let lastScoreBroadcast = 0;
-setInterval(()=>{
-  if(!sdkReady) return;
-
-  if(isHost()){
-    if(state.game==='PLAYING') sendHostSync('PLAYING');
-    else if(state.autoRoundState==='COUNTDOWN') sendHostSync('COUNTDOWN');
-    else if(state.game!=='RESULT') sendHostSync('WAITING');
-    scheduleAutoStart();
-
-    const now = Date.now();
-    if (now - lastScoreBroadcast > 1500) {
-      lastScoreBroadcast = now;
-      const allScores = [...roomScoreMap.values()];
-      sendGameEvent('NEON_ROOM_SCORES', { scores: allScores });
+    if(Array.isArray(payload.finishedIds)){
+      updateFinishedPlayersFromPayload(payload.finishedIds);
     }
-  }else{
-    sendHello();
+
+    const myResult=(Array.isArray(payload.results)?payload.results:[]).find(r=>String(r.id)===getUserId());
+    if(myResult){
+      state.score=clamp(Number(myResult.score)||state.score,0,999999);
+      state.layers=clamp(Number(myResult.layers)||state.layers,0,99999);
+      state.reward=safeReward(myResult.reward);
+    }
+
+    if(!state.localFinished){
+      state.resultReason=String(payload.reason||'本局已完成全房結算。');
+      state.localFinished=true;
+    }else if(payload.reason){
+      state.resultReason=state.resultReason || String(payload.reason);
+    }
+
+    showResult();
   }
 
-  renderAutoRoomUI();
-},AUTO_ROUND.HEARTBEAT_MS);
+  function showResult(){
+    $('resultTitle').textContent =
+      state.layers>=40 ? '超越極限！' :
+      state.layers>=30 ? '巔峰完成！' :
+      state.layers>=20 ? '高塔達成！' :
+      '大樓倒塌！';
 
-if(DEBUG){
-  window.__NEON_STACK_DEBUG__={
-    state,
-    GAME_INFO,
-    get host(){return isHost();},
-    get roomPlayers(){return [...roomPlayersList];},
-    get fps(){return state.avgFps;},
-    forceSync(){if(isHost())sendHostSync('PLAYING');},
-    forceStart(){if(state.game==='LOBBY')beginHostCountdown(onlinePlayers());}
+    $('resultLead').textContent=state.resultReason;
+    $('resultLayer').textContent=state.layers;
+    $('resultScore').textContent=state.score;
+    $('resultBest').textContent=state.bestLayers;
+    $('resultCombo').textContent=`${state.bestCombo}×`;
+    $('resultReward').textContent=`${state.reward} 銀幣`;
+
+    $('resultReason').textContent =
+      state.reward>0
+        ? '全房結算完成，3 秒後自動返回 BoomRoom。'
+        : '全房結算完成，3 秒後自動返回 BoomRoom。';
+
+    $('personalFinishOverlay').classList.remove('show');
+    $('resultOverlay').classList.add('show');
+    $('statusPill').textContent='全房結算完成';
+    $('hintTitle').textContent='本局完成';
+    $('hintSub').textContent='所有玩家已完成或時間到；本局已鎖定，無法再次開始。';
+
+    startAutoCloseCountdown();
+  }
+
+  function startAutoCloseCountdown(){
+    if(state.resultCloseTimer) clearInterval(state.resultCloseTimer);
+
+    const endAt=Date.now()+AUTO_ROUND.RESULT_MS;
+    state.localReturnAt=endAt;
+
+    const tick=()=>{
+      const remain=Math.max(0,endAt-Date.now());
+      const sec=Math.max(1,Math.ceil(remain/1000));
+
+      $('finishBtn').textContent = remain>0 ? `${sec} 秒後自動返回` : '正在返回房間';
+      $('closeCountdownNote').textContent = remain>0
+        ? `全房結算完成 · ${sec} 秒後自動離開遊戲`
+        : '正在返回 BoomRoom...';
+
+      if(remain<=0){
+        clearInterval(state.resultCloseTimer);
+        state.resultCloseTimer=null;
+        finishAndLeave();
+      }
+    };
+
+    tick();
+    state.resultCloseTimer=setInterval(tick,100);
+  }
+
+  // 🌟 修復：Web 端發送 game_over 事件，並使用 JSON.stringify
+  function finishAndLeave(){
+    if(state.closeRequested) return;
+    state.closeRequested=true;
+    state.closeSent=false;
+
+    const reward=safeReward(state.reward);
+    state.reward=reward;
+
+    if(!state.gameOverCalled){
+      state.gameOverCalled=true;
+      try{
+        if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+          window.BoomRoomSDK.gameOver(reward);
+          state.closeSent=true;
+        } else if (window.parent && window.parent !== window) {
+          window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: reward }), '*');
+          state.closeSent=true;
+        }
+      }catch(_){ }
+    }
+
+    try{
+      if(window.parent && window.parent!==window){
+        window.parent.postMessage(JSON.stringify({
+          action:'leaveGame',
+          gameId:GAME_INFO.id,
+          roundId:state.roundId,
+          reason:'NATURAL_GAME_OVER'
+        }),'*');
+        state.closeSent=true;
+      }
+    }catch(_){ }
+
+    if(!state.closeSent){
+      try{
+        window.location.href='../room.html';
+        state.closeSent=true;
+      }catch(_){ }
+    }
+
+    $('finishBtn').textContent='已完成 · 返回房間';
+    $('closeCountdownNote').textContent='本局已結算。';
+  }
+
+  function handleGameEvent(name,payload,sender){
+    window.handleGameEvent = handleGameEvent;
+    payload=payload && typeof payload==='object' ? payload : {};
+    const event=String(name||'');
+    const senderId=sender!=null ? String(sender) : String(payload.playerId||'');
+
+    if(event==='NEON_ROOM_HELLO'){
+      if(isHost()){
+        const p=payload.player || {
+          id:String(payload.playerId||senderId||''),
+          username:String(payload.playerName||'玩家'),
+          avatar:String(payload.avatar||'')
+        };
+        if(p.id){
+          const existing=roomPlayersList.some(x=>x.id===String(p.id));
+          if(!existing){
+            updateRoomPlayers([...roomPlayersList,p],'hello-merge');
+          }
+        }
+        sendHostSync(
+          state.autoRoundState==='COUNTDOWN' ? 'COUNTDOWN' :
+          state.game==='PLAYING' ? 'PLAYING' : 'WAITING'
+        );
+        scheduleAutoStart();
+      }
+      return;
+    }
+
+    if(event==='NEON_ROOM_SYNC'){
+      applyRemoteRoomSync(payload);
+      return;
+    }
+
+    if(event==='NEON_COUNTDOWN'){
+      const hostId=String(payload.hostId||'');
+      if(hostId && hostId===getUserId()) return;
+      applyRemoteRoomSync({
+        ...payload,
+        phase:'COUNTDOWN',
+        countdownEndsAt:Number(payload.endsAt||payload.countdownEndsAt||0),
+        startAt:Number(payload.startAt||payload.endsAt||0)
+      });
+      return;
+    }
+
+    if(event==='SYNC_START_GAME' || event==='NEON_ROUND_START' || event==='ROUND_START'){
+      if(state.game==='LOBBY'||state.game==='MENU'){
+        forceStart();
+      }
+      return;
+    }
+
+    if(event==='NEON_SCORE_UPDATE' || event==='SCORE_UPDATE'){
+      const id=String(payload.playerId||senderId||'');
+      if(!id) return;
+      updatePlayerScore(
+        id,
+        payload.score,
+        payload.layers,
+        String(payload.playerName||'玩家'),
+        false
+      );
+      return;
+    }
+
+    if(event==='NEON_ROOM_SCORES' && payload.scores && Array.isArray(payload.scores)){
+      payload.scores.forEach(s => {
+        if(s && s.id && s.id !== getUserId()){
+          updatePlayerScore(s.id, s.score, s.layers, s.name || '玩家', false);
+        }
+      });
+      return;
+    }
+
+    if(event==='NEON_PLAYER_FINISH'){
+      if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+      recordPlayerFinished(payload,senderId);
+      if(isHost()) tryFinalizeWholeRound('ALL_FINISHED');
+      return;
+    }
+
+    if(event==='NEON_ROUND_END'){
+      if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+      applyWholeRoundResult(payload,false);
+      return;
+    }
+
+    if(event==='TOGGLE_SOUND'){
+      state.soundEnabled=!Boolean(payload.muted);
+      return;
+    }
+  }
+
+  window.addEventListener('message',e=>{
+    try{
+      const d=typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+      if(!d) return;
+
+      if(d.action==='initSDK'){
+        setupSDK(d);
+        return;
+      }
+
+      if(d.action==='sdkReady' || d.action==='boomroom:sdkReady'){
+        setupSDK(d.data || d);
+        return;
+      }
+
+      if(
+        d.action==='roomPlayersUpdated' ||
+        d.action==='roomRoster' ||
+        d.action==='playersUpdated'
+      ){
+        const list=d.roomPlayers || d.players || d.data?.roomPlayers || d.data?.players;
+        if(Array.isArray(list)) updateRoomPlayers(list,'postMessage');
+        if(isHost()) scheduleAutoStart();
+        return;
+      }
+
+      if(d.action==='gameEventReceived' || d.action==='gameEvent'){
+        handleGameEvent(
+          String(d.eventName || d.name || d.event || ''),
+          d.payload || d.data || {},
+          d.userId!=null ? String(d.userId) : null
+        );
+      }
+    }catch(_){ }
+  });
+
+  window.onBoomRoomSDKReady=function(){
+    try{
+      if(!window.BoomRoomSDK) return;
+
+      const sdkPayload={
+        user:typeof window.BoomRoomSDK.getUser==='function'
+          ? window.BoomRoomSDK.getUser()
+          : null,
+        roomId:window.BoomRoomSDK.roomId,
+        roomPlayers:
+          window.BoomRoomSDK.roomPlayers ||
+          window.BoomRoomSDK.players ||
+          []
+      };
+
+      const sdkHost=window.BoomRoomSDK.isHost;
+      if(
+        sdkHost===true || sdkHost===false ||
+        sdkHost===1 || sdkHost===0 ||
+        sdkHost==='true' || sdkHost==='false'
+      ){
+        sdkPayload.isHost=sdkHost;
+      }
+
+      setupSDK(sdkPayload);
+    }catch(_){ }
   };
-}
 
-requestAnimationFrame(loop);
+  try{
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
+      state.sdkUser=window.BoomRoomSDK.getUser() || null;
+    }
+  }catch(_){ }
+
+  requestSDKInit();
+
+  setTimeout(()=>{
+    if(window.BoomRoomSDK) window.onBoomRoomSDKReady();
+  },100);
+
+  setTimeout(()=>{
+    if(!sdkReady){
+      sdkReady=true;
+      sdkIsHost=true;
+      hostFlagExplicit=true;
+      if(!state.sdkUser) state.sdkUser={id:'dev_host',nickname:'開發玩家'};
+      updateRoomPlayers([state.sdkUser],'dev-fallback');
+      renderAutoRoomUI();
+      scheduleAutoStart();
+    }
+  },1800);
+
+  let lastScoreBroadcast = 0;
+  setInterval(()=>{
+    if(!sdkReady) return;
+
+    if(isHost()){
+      if(state.game==='PLAYING') sendHostSync('PLAYING');
+      else if(state.autoRoundState==='COUNTDOWN') sendHostSync('COUNTDOWN');
+      else if(state.game!=='RESULT') sendHostSync('WAITING');
+      scheduleAutoStart();
+
+      const now = Date.now();
+      if (now - lastScoreBroadcast > 1500) {
+        lastScoreBroadcast = now;
+        const allScores = [...roomScoreMap.values()];
+        sendGameEvent('NEON_ROOM_SCORES', { scores: allScores });
+      }
+    }else{
+      sendHello();
+    }
+
+    renderAutoRoomUI();
+  },AUTO_ROUND.HEARTBEAT_MS);
+
+  if(DEBUG){
+    window.__NEON_STACK_DEBUG__={
+      state,
+      GAME_INFO,
+      get host(){return isHost();},
+      get roomPlayers(){return [...roomPlayersList];},
+      get fps(){return state.avgFps;},
+      forceSync(){if(isHost())sendHostSync('PLAYING');},
+      forceStart(){if(state.game==='LOBBY')beginHostCountdown(onlinePlayers());}
+    };
+  }
+
+  requestAnimationFrame(loop);
 
 </script>
 </body>

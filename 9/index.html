@@ -582,7 +582,16 @@ function addOrUpdatePlayer(raw, seen=true) {
 }
 
 function broadcast(name, payload) {
-    try { if(SDK && typeof SDK.sendGameEvent === 'function') SDK.sendGameEvent(name, payload || {}); } catch(e){}
+    try {
+        if(SDK && typeof SDK.sendGameEvent === 'function') {
+            SDK.sendGameEvent(name, payload || {});
+        }
+    } catch(e){}
+    try {
+        if(window.parent && window.parent !== window) {
+            window.parent.postMessage(JSON.stringify({ action: 'sendGameEvent', eventName: name, payload: payload || {} }), '*');
+        }
+    } catch(e){}
 }
 function snapshotState() {
     return {

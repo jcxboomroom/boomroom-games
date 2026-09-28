@@ -409,7 +409,7 @@
       }catch(_){}
       try{
         if(window.parent && window.parent!==window){
-          window.parent.postMessage({action:'sendGameEvent',eventName:name,payload:data},'*');
+          window.parent.postMessage(JSON.stringify({action:'sendGameEvent',eventName:name,payload:data}),'*');
         }
       }catch(_){}
     }

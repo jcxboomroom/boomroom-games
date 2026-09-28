@@ -218,7 +218,10 @@ function sfx(n){
 $('soundBtn').textContent=muted?'🔇':'🔊';
 $('soundBtn').onclick=()=>{muted=!muted;try{localStorage.setItem('crownMuted',muted?'1':'0')}catch(e){};$('soundBtn').textContent=muted?'🔇':'🔊';if(!muted)initAudio();};
 
-function send(name,payload){if(SDK&&typeof SDK.sendGameEvent==='function'){try{SDK.sendGameEvent(name,payload||{});}catch(e){}}}
+function send(name,payload){
+  if(SDK&&typeof SDK.sendGameEvent==='function'){try{SDK.sendGameEvent(name,payload||{});return;}catch(e){}}
+  if(window.parent&&window.parent!==window){try{window.parent.postMessage(JSON.stringify({action:'sendGameEvent',eventName:name,payload:payload||{}}),'*');}catch(e){}}
+}
 window.onPurchaseSuccess=item=>{
   if(!purchaseLocked||item!==pendingPurchaseItem)return;
   purchaseLocked=false;pendingPurchaseItem=null;currentRoundPaid=true;beginRound();
