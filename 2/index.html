@@ -2026,6 +2026,23 @@ function finalizeWholeRound(reason='ALL_FINISHED'){
       reason:state.localFinished ? state.resultReason : '全房時間到'
     });
   }
+
+  // 🌟 確保房主結算時，自動從 roomScoreMap 補齊所有玩家的分數與層數
+  for(const id of getRoundPlayerIds()){
+    if(!finishedPlayers.has(id)){
+      const board = roomScoreMap.get(id) || {};
+      const score = Number(board.score || 0);
+      const layers = Number(board.layers || 0);
+      finishedPlayers.set(id, {
+        at: Date.now(),
+        score: clamp(score, 0, 999999),
+        layers: clamp(layers, 0, 99999),
+        reward: safeReward(calcReward(layers)),
+        reason: '結算自動採計'
+      });
+    }
+  }
+
   getFinishedCount();
 
   const results=getRoundPlayerIds().map(id=>{
