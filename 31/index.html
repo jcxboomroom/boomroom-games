@@ -1,60 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0718" />
-  <title>爆爆貪吃蛇：派對大亂鬥</title>
-  <link rel="stylesheet" href="./style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#070912">
+<meta name="mobile-web-app-capable" content="yes">
+<title>爆爆貪吃蛇：派對大亂鬥</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="game-shell">
-    <header class="topbar">
-      <div class="brand"><span>✳</span> BOOM<span style="color:#fff;">ROOM</span> 貪吃蛇</div>
-      <div class="player-counter" id="playerCounter">👥 1/10 人</div>
-    </header>
-
-    <section class="status-bar">
-      <div class="timer-box" id="timerBox">⏱️ 剩餘時間: 45s</div>
-      <div class="score-box" id="scoreBox">🍏 得分: 0</div>
-    </section>
-
-    <section class="ai-difficulty-bar" id="aiDifficultyBar">
-      <span style="font-size:11px;color:var(--text-muted);font-weight:800;">AI 難度:</span>
-      <button class="diff-btn" id="diffEasy" type="button" data-diff="easy">🌱 簡單</button>
-      <button class="diff-btn active" id="diffNormal" type="button" data-diff="normal">⚔️ 中等</button>
-      <button class="diff-btn" id="diffMaster" type="button" data-diff="master">👑 大師</button>
-    </section>
-
-    <section class="board-container">
-      <canvas id="snakeCanvas"></canvas>
-    </section>
-
-    <section class="dpad-container">
-      <div class="dpad">
-        <button class="dpad-btn up" id="btnUp" type="button">▲</button>
-        <button class="dpad-btn left" id="btnLeft" type="button">◄</button>
-        <button class="dpad-btn right" id="btnRight" type="button">►</button>
-        <button class="dpad-btn down" id="btnDown" type="button">▼</button>
-      </div>
-    </section>
-
-    <footer class="footer-notice">
-      <div class="notice-box" id="autoStartNotice">⏱️ 房間人數 1/1，準備自動開始...</div>
-      <div class="roster-list" id="rosterList"></div>
-    </footer>
-
-    <!-- 結算對話框 -->
-    <div class="overlay hidden" id="resultOverlay">
-      <div class="result-card">
-        <div class="result-title" id="resultTitle">🏆 獲勝！</div>
-        <div class="result-subtitle" id="resultSubtitle">成為貪吃蛇派對最高分霸主！</div>
-        <div class="result-reward" id="resultReward">+100 銀幣</div>
-        <div class="auto-close-hint">3 秒後自動返回房間...</div>
-      </div>
+<main class="game-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">✦</div>
+      <div><b>BOOM</b><span>ROOM</span><small>爆爆貪吃蛇</small></div>
     </div>
-  </main>
+    <div class="top-actions">
+      <span id="devBadge" class="status-badge">連線中</span>
+      <button id="muteBtn" class="icon-btn" type="button" aria-label="靜音">🔊</button>
+      <button id="helpBtn" class="icon-btn" type="button" aria-label="遊戲規則">?</button>
+    </div>
+  </header>
 
-  <script type="module" src="./app.js"></script>
+  <section class="hud">
+    <div class="hud-card player-card">
+      <div class="avatar-dot"></div>
+      <div><small>你</small><strong id="scoreValue">0</strong></div>
+    </div>
+    <div id="timerWrap" class="timer">
+      <small>剩餘</small><strong id="timerValue">50</strong><em>秒</em>
+    </div>
+    <div class="hud-card compact">
+      <div><small>生命</small><strong id="hpValue">3</strong></div>
+      <div class="rank-divider"></div>
+      <div><small>排名</small><strong id="rankValue">#1</strong></div>
+    </div>
+  </section>
+
+  <section class="status-row">
+    <div class="status-pill"><i></i><span id="playerCounter">1/10</span> 玩家</div>
+    <div class="status-pill authority" id="authorityBadge">● 同步中</div>
+    <div class="goal-text">🍏 吃掉　💰搶金　💣 小心炸彈</div>
+  </section>
+
+  <section class="game-area">
+    <canvas id="snakeCanvas" aria-label="貪吃蛇遊戲區"></canvas>
+    <div class="corner-hint">滑動轉向</div>
+  </section>
+
+  <section class="bottom-panel">
+    <div class="boost-row">
+      <div class="boost-label"><span>⚡ 加速</span><b>長按</b></div>
+      <div class="boost-track"><div id="boostFill"></div></div>
+    </div>
+    <div class="controls">
+      <div class="dpad">
+        <button id="btnUp" class="ctrl up" type="button">▲</button>
+        <button id="btnLeft" class="ctrl left" type="button">◀</button>
+        <button id="btnRight" class="ctrl right" type="button">▶</button>
+        <button id="btnDown" class="ctrl down" type="button">▼</button>
+      </div>
+      <button id="boostBtn" class="boost-btn" type="button">
+        <span>⚡</span><small>BOOST</small>
+      </button>
+    </div>
+    <div class="roster" id="rosterList"></div>
+    <div class="notice" id="autoCloseHint">自動開局・不用 Ready・不用按開始</div>
+  </section>
+
+  <div id="resultOverlay" class="overlay hidden">
+    <div class="result-card">
+      <div class="result-glow"></div>
+      <div class="result-kicker">ROUND COMPLETE</div>
+      <div id="resultTitle" class="result-title">🏆 你是蛇王！</div>
+      <div id="resultSubtitle" class="result-subtitle">本局 0 分 · 第一名 0 分</div>
+      <div id="resultReward" class="result-reward">+100 銀幣</div>
+      <div class="result-line"></div>
+      <div class="result-countdown">3 秒後自動返回房間</div>
+    </div>
+  </div>
+
+  <div id="helpOverlay" class="overlay hidden">
+    <div class="help-card">
+      <div class="help-head"><div><small>BOOMROOM</small><h2>爆爆貪吃蛇</h2></div><button id="helpClose" class="close-btn" type="button">×</button></div>
+      <div class="help-grid">
+        <div><b>🍏 吃蘋果</b><span>+10 分，蛇身變長</span></div>
+        <div><b>💰 搶金幣</b><span>+28 分，值得冒險</span></div>
+        <div><b>💣 炸彈</b><span>扣生命與分數</span></div>
+        <div><b>⚡ BOOST</b><span>長按消耗能量快速追擊</span></div>
+      </div>
+      <p>滑動畫面或使用方向鍵轉向。撞到別人的蛇會受傷；生命歸零就出局。最後時間到，以分數決定排名。</p>
+      <div class="help-foot">多人房間會同步玩家移動、吃物、受傷、淘汰與最終結果。</div>
+    </div>
+  </div>
+</main>
+<script src="./app.js"></script>
 </body>
 </html>

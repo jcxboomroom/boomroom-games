@@ -2773,19 +2773,21 @@ function electHost(){
    NETWORK
 ========================================================= */
 
-function sendEvent(
-    eventName,
-    payload={}
-){
-    const sdkObj = window.BoomRoomSDK;
-    if(sdkObj && typeof sdkObj.sendGameEvent === "function"){
-        try{
-            sdkObj.sendGameEvent(
-                eventName,
-                payload
-            );
-        }catch(e){}
-    }
+function sendEvent(eventName, payload={}){
+    const message = { action: 'sendGameEvent', eventName: eventName, payload: payload };
+    try{
+        const sdkObj = window.BoomRoomSDK;
+        if(sdkObj && typeof sdkObj.sendGameEvent === "function"){
+            sdkObj.sendGameEvent(eventName, payload);
+            return;
+        }
+    }catch(e){}
+
+    try{
+        if(window.parent && window.parent !== window){
+            window.parent.postMessage(JSON.stringify(message), '*');
+        }
+    }catch(e){}
 }
 
 
@@ -7754,19 +7756,15 @@ function applyCashout(
     soundCashout();
 
 
-    const sdkObj = window.BoomRoomSDK;
-    if(sdkObj && typeof sdkObj.gameOver === "function"){
-        try{
-            sdkObj.gameOver(
-                Math.max(
-                    0,
-                    Math.floor(
-                        reward
-                    )
-                )
-            );
-        }catch(e){}
-    }
+    try{
+        const sdkObj = window.BoomRoomSDK;
+        const finalReward = Math.max(0, Math.floor(reward));
+        if(sdkObj && typeof sdkObj.gameOver === "function"){
+            sdkObj.gameOver(finalReward);
+        } else if (window.parent && window.parent !== window) {
+            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward }), '*');
+        }
+    }catch(e){}
 
 
     showToast(
@@ -7844,12 +7842,14 @@ function settleLoss(
     soundCrash();
 
 
-    const sdkObj = window.BoomRoomSDK;
-    if(sdkObj && typeof sdkObj.gameOver === "function"){
-        try{
+    try{
+        const sdkObj = window.BoomRoomSDK;
+        if(sdkObj && typeof sdkObj.gameOver === "function"){
             sdkObj.gameOver(0);
-        }catch(e){}
-    }
+        } else if (window.parent && window.parent !== window) {
+            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: 0 }), '*');
+        }
+    }catch(e){}
 
 }
 
