@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#b9e986">
+  <title>搶雞</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game" id="game">
+    <canvas id="field" aria-label="雞舍競賽遊戲場景"></canvas>
+
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">🐔</span><span>雞飛狗跳</span></div>
+      <div class="clock" id="clock">60</div>
+      <div class="standings" id="standings" aria-label="玩家分數"></div>
+    </header>
+
+    <div class="hint" id="hint">追上雞，帶回你的窩！碰到抱雞的人就能搶走</div>
+    <div class="toast" id="toast" aria-live="polite"></div>
+    <div class="countdown" id="countdown"></div>
+
+    <div class="controls" id="controls">
+      <div class="joystick" id="joystick" aria-label="移動控制">
+        <div class="joy-ring"><div class="joy-knob" id="joyKnob"></div></div>
+        <span>移動</span>
+      </div>
+      <div class="action-help" id="actionHelp">衝刺</div>
+      <button class="dash" id="dash" aria-label="衝刺"><span>➜</span><small>衝刺</small></button>
+    </div>
+
+    <section class="result" id="result" aria-live="polite">
+      <div class="result-card">
+        <div class="result-chicken">🐔</div>
+        <p class="result-kicker" id="resultKicker">本局冠軍</p>
+        <h1 id="resultTitle">雞王誕生！</h1>
+        <div class="podium" id="podium"></div>
+        <p class="result-note" id="resultNote"></p>
+        <div class="return-track"><span></span></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

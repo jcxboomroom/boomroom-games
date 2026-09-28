@@ -249,12 +249,14 @@ function updateTurnUI() {
   ui.moveCount.textContent = `第 ${moveHistory.length} 步`;
   ui.matchScore.textContent = `黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝)`;
 
+  const myColorStr = me.id === playerBlack?.id ? '⚫ 你是黑子' : (playerWhite && !playerWhite.isBot && me.id === playerWhite.id) ? '⚪ 你是白子' : '👁 觀戰中';
+
   if (currentTurn === 1) {
     ui.turnStone.className = 'stone-badge black';
-    ui.turnText.textContent = `黑子（${playerBlack?.username || '黑棋'}）落子中`;
+    ui.turnText.textContent = `${myColorStr} · 黑子（${playerBlack?.username || '黑棋'}）落子`;
   } else {
     ui.turnStone.className = 'stone-badge white';
-    ui.turnText.textContent = `白子（${playerWhite?.username || '白棋'}）落子中`;
+    ui.turnText.textContent = `${myColorStr} · 白子（${playerWhite?.username || '白棋'}）落子`;
   }
 
   if (isPlaying && currentTurn === 2 && playerWhite?.isBot) {
@@ -401,7 +403,7 @@ function handleCanvasClick(e) {
   if (!isPlaying) return;
 
   const isMyTurn = (currentTurn === 1 && me.id === playerBlack?.id) ||
-                   (currentTurn === 2 && (playerWhite?.isBot ? false : me.id === playerWhite?.id));
+                   (currentTurn === 2 && playerWhite && !playerWhite.isBot && me.id === playerWhite.id);
 
   if (!isMyTurn) return;
 

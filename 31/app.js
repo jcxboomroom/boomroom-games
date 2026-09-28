@@ -213,6 +213,7 @@ function setupSDK(data={}){
   }
   if(players.size===0) players.set(me.id,me);
   initialized=true;
+  if(state==='LOADING') state='AUTO_START';
   $('devBadge').textContent = sdk ? 'SDK 已連線' : '開發測試模式';
   $('devBadge').classList.toggle('online',!!sdk);
   updateRosterUI();
@@ -321,7 +322,8 @@ function isAuthority(){ return String(authorityId)===String(me.id); }
 function scheduleAutoStart(){
   clearTimeout(autoStartTimer);
   autoStartTimer=setTimeout(()=>{
-    if(state==='LOADING' || state==='RESULT' || state==='EXIT') return;
+    if(state==='RESULT' || state==='EXIT') return;
+    if(state==='LOADING') state='AUTO_START';
     if(isAuthority() && !roundId) startNewRoundAsAuthority(false);
   },900);
 }
@@ -532,7 +534,7 @@ function respawnSnake(s,instant=false){
   const spot=[2+((idx*7)%18),2+((idx*11)%18)];
   const d=idx%2?'LEFT':'RIGHT';
   s.body=[]; for(let i=0;i<GAME.INITIAL_LENGTH;i++) s.body.push({x:wrap(spot[0]+(d==='LEFT'?i:-i)),y:spot[1]});
-  s.dir=d;s.nextDir=d;s.alive=true;s.respawnAt=instant?Date.now()+450:0;
+  s.dir=d;s.nextDir=d;s.alive=true;s.respawnAt=0;
   if(s.hp<1) s.hp=1;
   s.boost=Math.max(s.boost||0,35);
 }
@@ -797,7 +799,7 @@ function draw(){
 
   // particles
   particles.forEach(p=>{
-    const x=ox+p.x*cell/GAME.GRID*GAME.GRID; // p coords are grid-ish
+    const x=ox+p.x*cell;
     const y=oy+p.y*cell;
     ctx.globalAlpha=clamp(p.life,0,1);
     ctx.fillStyle=p.type==='bomb'?'#ff456d':p.type==='gold'?'#ffd45c':'#68efff';
