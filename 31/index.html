@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0718" />
+  <title>爆爆貪吃蛇：派對大亂鬥</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <div class="brand"><span>✳</span> BOOM<span style="color:#fff;">ROOM</span> 貪吃蛇</div>
+      <div class="player-counter" id="playerCounter">👥 1/10 人</div>
+    </header>
+
+    <section class="status-bar">
+      <div class="timer-box" id="timerBox">⏱️ 剩餘時間: 45s</div>
+      <div class="score-box" id="scoreBox">🍏 得分: 0</div>
+    </section>
+
+    <section class="ai-difficulty-bar" id="aiDifficultyBar">
+      <span style="font-size:11px;color:var(--text-muted);font-weight:800;">AI 難度:</span>
+      <button class="diff-btn" id="diffEasy" type="button" data-diff="easy">🌱 簡單</button>
+      <button class="diff-btn active" id="diffNormal" type="button" data-diff="normal">⚔️ 中等</button>
+      <button class="diff-btn" id="diffMaster" type="button" data-diff="master">👑 大師</button>
+    </section>
+
+    <section class="board-container">
+      <canvas id="snakeCanvas"></canvas>
+    </section>
+
+    <section class="dpad-container">
+      <div class="dpad">
+        <button class="dpad-btn up" id="btnUp" type="button">▲</button>
+        <button class="dpad-btn left" id="btnLeft" type="button">◄</button>
+        <button class="dpad-btn right" id="btnRight" type="button">►</button>
+        <button class="dpad-btn down" id="btnDown" type="button">▼</button>
+      </div>
+    </section>
+
+    <footer class="footer-notice">
+      <div class="notice-box" id="autoStartNotice">⏱️ 房間人數 1/1，準備自動開始...</div>
+      <div class="roster-list" id="rosterList"></div>
+    </footer>
+
+    <!-- 結算對話框 -->
+    <div class="overlay hidden" id="resultOverlay">
+      <div class="result-card">
+        <div class="result-title" id="resultTitle">🏆 獲勝！</div>
+        <div class="result-subtitle" id="resultSubtitle">成為貪吃蛇派對最高分霸主！</div>
+        <div class="result-reward" id="resultReward">+100 銀幣</div>
+        <div class="auto-close-hint">3 秒後自動返回房間...</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
