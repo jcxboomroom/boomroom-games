@@ -421,12 +421,22 @@
       }catch(_){return ''}
     }
     function onlineCount(){
+      if(state.phase==='LOBBY'){
+        return [...players.values()].filter(p=>
+          !p.isBot && (p.online!==false || p.rosterConfirmed || p.hostConfirmedAt)
+        ).length;
+      }
       return [...players.values()].filter(p=>p.online!==false).length;
     }
     function allActivePlayers(){
       return [...players.values()].filter(p=>p.online!==false);
     }
     function paidPlayers(){
+      if(state.phase==='LOBBY'){
+        return [...players.values()].filter(p=>p.hasPaid && (
+          p.online!==false || p.rosterConfirmed || p.hostConfirmedAt
+        ));
+      }
       return [...players.values()].filter(p=>p.hasPaid && p.online!==false);
     }
     function humanPlayers(){
@@ -457,7 +467,11 @@
           bump:0,
           bumpCooldown:0,
           isBot:!!raw.isBot,
-          inputSeq:Number(raw.inputSeq)||0
+          inputSeq:Number(raw.inputSeq)||0,
+          presenceSource:raw.presenceSource||'event',
+          rosterConfirmed:!!raw.rosterConfirmed,
+          hostConfirmedAt:Number(raw.hostConfirmedAt)||0,
+          rosterConfirmedAt:Number(raw.rosterConfirmedAt)||0
         };
         players.set(id,p);
       }else{
@@ -474,6 +488,10 @@
         if(raw.lane!=null)p.lane=Number(raw.lane)||0;
         if(raw.color!=null)p.color=Number(raw.color)||0;
         if(raw.isBot!=null)p.isBot=!!raw.isBot;
+        if(raw.presenceSource!=null)p.presenceSource=String(raw.presenceSource);
+        if(raw.rosterConfirmed!=null)p.rosterConfirmed=!!raw.rosterConfirmed;
+        if(raw.hostConfirmedAt!=null)p.hostConfirmedAt=Number(raw.hostConfirmedAt)||p.hostConfirmedAt||0;
+        if(raw.rosterConfirmedAt!=null)p.rosterConfirmedAt=Number(raw.rosterConfirmedAt)||p.rosterConfirmedAt||0;
         if(seen){p.lastSeen=Date.now();p.online=true}
       }
       return p;
@@ -511,7 +529,10 @@
         const raw={
           id:sid,
           username:String(q.username||q.name||q.displayName||('玩家'+(i+1))),
-          online:q.online!==false
+          online:q.online!==false,
+          presenceSource:'sdk_roster',
+          rosterConfirmed:true,
+          rosterConfirmedAt:Date.now()
         };
         if(Number.isFinite(joinedRaw) && joinedRaw>0)raw.joinedAt=joinedRaw;
         const before=players.has(sid);
@@ -519,6 +540,9 @@
         if(player){
           if(q.hasPaid===true)player.hasPaid=true;
           player.lastRosterSeen=Date.now();
+          player.rosterConfirmed=true;
+          player.rosterConfirmedAt=Date.now();
+          player.presenceSource='sdk_roster';
           player.online=true;
           // roster 不應在每次輪詢時覆蓋 Host 計算的位置
           if(!before && player.x==null)player.x=.06;
@@ -632,6 +656,9 @@
             q.online=raw.online!==false;
             q.lastSeen=Date.now();
             q.lastRosterSeen=Date.now();
+            q.hostConfirmedAt=Date.now();
+            q.rosterConfirmed=true;
+            q.presenceSource='host_state';
           }
         });
         assignLanes();
@@ -904,6 +931,9 @@
           if(q){
             q.lastSeen=Date.now();
             q.online=true;
+            q.presenceSource='event';
+            q.rosterConfirmed=true;
+            q.rosterConfirmedAt=Date.now();
           }
           assignLanes();
           if(q)showToast('房間玩家：'+onlineCount()+' 人');
@@ -1509,9 +1539,26 @@
     setInterval(()=>{
       const now=Date.now();
       [...players.values()].forEach(p=>{
-        // lobby 不做短暫離線剔除，避免 SDK 封包延遲造成 1/2/1/2 閃爍。
-        const timeout=state.phase==='LOBBY'?cfg.hostTimeoutMs*2:cfg.hostTimeoutMs;
-        if(p.id!==ME.id && now-p.lastSeen>timeout)p.online=false;
+        if(p.id===ME.id) return;
+
+        // Lobby 階段：房間 roster 在 WebView 可能只回傳「自己」，
+        // 不能因此把已由 Host 快照確認的其他玩家判成離線。
+        if(state.phase==='LOBBY'){
+          if(p.rosterConfirmed || p.hostConfirmedAt || p.presenceSource==='host_state'){
+            p.online=true;
+          }
+          return;
+        }
+
+        // COUNTDOWN / PLAYING / RESULT：優先相信 Host 快照；
+        // 只有長時間完全沒有 Host / 玩家事件，才視為斷線。
+        const lastAuthoritativeSeen=Math.max(
+          Number(p.hostConfirmedAt)||0,
+          Number(p.lastSeen)||0,
+          Number(p.lastRosterSeen)||0
+        );
+        const timeout=cfg.hostTimeoutMs*2;
+        if(lastAuthoritativeSeen && now-lastAuthoritativeSeen>timeout)p.online=false;
       });
 
       // 正式 BoomRoom 不自行推舉市長；只有平台 isHost 才能成為 Host。

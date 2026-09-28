@@ -133,6 +133,35 @@ function setupSDK(data) {
   bindGameEvents();
 }
 
+// 🌟 定期同步房間最新玩家清單（防止房主端漏接其他玩家）
+setInterval(() => {
+  if (window.BoomRoomSDK && Array.isArray(window.BoomRoomSDK.roomPlayers)) {
+    if (window.BoomRoomSDK.roomPlayers.length > 0) {
+      let changed = false;
+      window.BoomRoomSDK.roomPlayers.forEach((rp, i) => {
+        if (rp && rp.id != null) {
+          const id = String(rp.id);
+          if (!roomPlayersMap.has(id)) {
+            roomPlayersMap.set(id, {
+              id,
+              username: String(rp.username || `玩家${i + 1}`).slice(0, 16),
+              avatar: String(rp.avatar || '')
+            });
+            readyPlayersSet.add(id);
+            changed = true;
+          }
+        }
+      });
+      if (changed) {
+        totalRoomPlayersCount = Math.max(1, roomPlayersMap.size);
+        assignRoles();
+        updateRosterUI();
+        updateAutoStartNotice();
+      }
+    }
+  }
+}, 1000);
+
 function assignRoles() {
   const pList = [...roomPlayersMap.values()];
   playerBlack = pList[0] || me;
