@@ -1263,12 +1263,24 @@ function showResults(winner, reason, rows = [], final = false) {
       if (!exitSent) {
         exitSent = true;
         try {
+          // Web iframe：按照 BoomRoom 規範，必須以 JSON 字串傳給父頁面。
+          // Android WebView：gameOver() 會經由 BoomRoomJS channel 交給 Flutter，
+          // Flutter 收到 game_over 後負責 Navigator.pop() 返回房間；這裡絕不能再
+          // 猜測 ../room.html，否則 WebView 會先導航到不存在的頁面而出現 404。
           if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ action: "leaveGame", reason: "SERIES_COMPLETE" }, "*");
-          } else {
-            window.location.href = "../room.html";
+            window.parent.postMessage(
+              JSON.stringify({
+                action: "leaveGame",
+                gameId: "floor_brawl",
+                roomId,
+                reason: "SERIES_COMPLETE"
+              }),
+              "*"
+            );
           }
-        } catch {}
+        } catch (error) {
+          console.warn("BoomRoom leaveGame message failed", error);
+        }
       }
       resultNode.classList.remove("show");
       showCallout("五戰結束 · 返回房間");
