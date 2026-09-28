@@ -234,6 +234,9 @@
     let demoFallbackTimer = 0;
     let bridgeRoomId = '';
     let sdkEventsBound = false;
+    let lastRosterSignature = '';
+    let lastRosterSyncAt = 0;
+    let lastSyncRequestAt = 0;
 
     function getSDK(){
       if(window.BoomRoomSDK) SDK=window.BoomRoomSDK;
@@ -268,7 +271,10 @@
       hostTimeoutMs:15000,
       startDelayMs:3200,
       runSpeed:17.5,
-      finishAt:.93
+      finishAt:.93,
+      rosterPollMs:450,
+      rosterTimeoutMs:9000,
+      syncRequestMs:1400
     };
 
     const canvas=document.getElementById('gameCanvas');
@@ -456,7 +462,10 @@
         players.set(id,p);
       }else{
         if(raw.username!=null||raw.name!=null||raw.displayName!=null||nested?.username!=null||nested?.name!=null)p.username=String(raw.username||raw.name||raw.displayName||nested?.username||nested?.name||p.username).slice(0,12);
-        if(raw.joinedAt!=null)p.joinedAt=Number(raw.joinedAt)||p.joinedAt;
+        if(raw.joinedAt!=null){
+          const joined=Number(raw.joinedAt);
+          if(Number.isFinite(joined) && joined>0)p.joinedAt=joined;
+        }
         if(raw.hasPaid!=null)p.hasPaid=!!raw.hasPaid;
         if(raw.x!=null)p.targetX=Math.max(.02,Math.min(cfg.finishAt,Number(raw.x)||p.targetX));
         if(raw.status!=null)p.status=raw.status;
@@ -475,22 +484,85 @@
         hasPaid:localPaid,x:.06,status:'ALIVE',lane:0,color:0
       });
     }
+    function extractRoomPlayerArray(value){
+      if(Array.isArray(value))return value;
+      if(!value || typeof value!=='object')return [];
+      if(Array.isArray(value.players))return value.players;
+      if(Array.isArray(value.roomPlayers))return value.roomPlayers;
+      if(Array.isArray(value.members))return value.members;
+      const vals=Object.values(value);
+      return vals.every(v=>v && typeof v==='object') ? vals : [];
+    }
     function normalizeRoomPlayers(list){
-      if(!Array.isArray(list))return;
-      list.slice(0,cfg.maxPlayers).forEach((rp,i)=>{
+      const arr=extractRoomPlayerArray(list).slice(0,cfg.maxPlayers);
+      if(!arr.length)return 0;
+      let added=0;
+      const seenIds=new Set();
+      arr.forEach((rp,i)=>{
         if(!rp)return;
         const q=rp.user||rp.player||rp.member||rp;
-        const id=q.id ?? q.userId ?? q.playerId ?? q.uid;
+        if(!q || typeof q!=='object')return;
+        const id=q.id ?? q.userId ?? q.playerId ?? q.uid ?? q.memberId;
         if(id==null)return;
-        addPlayer({
-          id:String(id),
+        const sid=String(id);
+        seenIds.add(sid);
+        const existing=players.get(sid);
+        const joinedRaw=Number(q.joinedAt ?? q.createdAt ?? q.enteredAt);
+        const raw={
+          id:sid,
           username:String(q.username||q.name||q.displayName||('玩家'+(i+1))),
-          joinedAt:Number(q.joinedAt)||Date.now()+i,
-          hasPaid:q.hasPaid===true,
-          lane:i,
-          color:i
-        },true);
+          online:q.online!==false
+        };
+        if(Number.isFinite(joinedRaw) && joinedRaw>0)raw.joinedAt=joinedRaw;
+        const before=players.has(sid);
+        const player=addPlayer(raw,true);
+        if(player){
+          if(q.hasPaid===true)player.hasPaid=true;
+          player.lastRosterSeen=Date.now();
+          player.online=true;
+          // roster 不應在每次輪詢時覆蓋 Host 計算的位置
+          if(!before && player.x==null)player.x=.06;
+          added++;
+        }
       });
+      assignLanes();
+      return added;
+    }
+    function syncSDKRoomPlayers(force=false){
+      const sdk=getSDK();
+      if(!sdk || DEMO)return;
+      const now=Date.now();
+      if(!force && now-lastRosterSyncAt<cfg.rosterPollMs)return;
+      lastRosterSyncAt=now;
+
+      let list=null;
+      try{
+        if(Array.isArray(sdk.roomPlayers)) list=sdk.roomPlayers;
+        else if(typeof sdk.getRoomPlayers==='function') list=sdk.getRoomPlayers();
+        else if(sdk.room && Array.isArray(sdk.room.players)) list=sdk.room.players;
+      }catch(_){list=null}
+
+      const arr=extractRoomPlayerArray(list);
+      if(arr.length){
+        const ids=arr.map((rp,i)=>{
+          const q=rp?.user||rp?.player||rp?.member||rp||{};
+          return String(q.id ?? q.userId ?? q.playerId ?? q.uid ?? q.memberId ?? ('idx-'+i));
+        }).sort();
+        const sig=ids.join('|');
+        if(force || sig!==lastRosterSignature){
+          lastRosterSignature=sig;
+          normalizeRoomPlayers(arr);
+          renderHUD();
+          // 讓 Host 立即把最新 roster 變成權威快照；非 Host 同步時也回報自己。
+          if(isHost())broadcastState(true);
+        }
+      }
+
+      // 非 Host 定期主動要求權威快照，避免只靠首次事件。
+      if(!isHost() && now-lastSyncRequestAt>=cfg.syncRequestMs){
+        lastSyncRequestAt=now;
+        broadcast('BR_SYNC_REQUEST',{reason:'periodic',clientId:ME.id});
+      }
     }
     function assignLanes(){
       const arr=[...players.values()].sort((a,b)=>(a.joinedAt-b.joinedAt)||a.id.localeCompare(b.id));
@@ -554,7 +626,14 @@
       state.result=Array.isArray(s.result)?s.result:[];
       if(Array.isArray(s.players)){
         // Host 快照是唯一權威名單：只合併資料，不因一次短暫缺漏就把玩家踢出。
-        s.players.forEach(raw=>addPlayer(raw,false));
+        s.players.forEach(raw=>{
+          const q=addPlayer(raw,false);
+          if(q){
+            q.online=raw.online!==false;
+            q.lastSeen=Date.now();
+            q.lastRosterSeen=Date.now();
+          }
+        });
         assignLanes();
       }
       const me=players.get(ME.id);
@@ -923,6 +1002,7 @@
       }
       if(Array.isArray(data.roomPlayers))normalizeRoomPlayers(data.roomPlayers);
       ensureMe();assignLanes();
+      syncSDKRoomPlayers(true);
       if(isHost())broadcast('BR_HOST_ANNOUNCE',{hostId:ME.id});
       broadcast('BR_PLAYER_ANNOUNCE',{player:{id:ME.id,username:ME.username,joinedAt:ME.joinedAt,hasPaid:localPaid,online:true,x:.06,status:'ALIVE',lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0}});
       broadcast('BR_PLAYER_LIST_REQUEST',{});
@@ -1443,8 +1523,9 @@
       if(sdk){
         bindSDKEvents();
         if(!sdkBridgeReady){try{window.onBoomRoomSDKReady?.()}catch(_){} }
+        syncSDKRoomPlayers(false);
       }
-    },500);
+    },250);
 
     if(DEMO)showToast('預覽模式：已載入 4 名 BOT，共用同一場遊戲');
 
