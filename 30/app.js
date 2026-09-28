@@ -667,7 +667,15 @@ function returnToRoom() {
 
 function sendGameEvent(eventName, payload) {
   if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === 'function') {
-    window.BoomRoomSDK.sendGameEvent(eventName, payload);
+    try {
+      window.BoomRoomSDK.sendGameEvent(eventName, payload);
+      return;
+    } catch (_) {}
+  }
+  if (window.parent && window.parent !== window) {
+    try {
+      window.parent.postMessage(JSON.stringify({ action: 'sendGameEvent', eventName, payload }), '*');
+    } catch (_) {}
   }
 }
 
