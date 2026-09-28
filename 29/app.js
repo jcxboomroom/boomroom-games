@@ -88,6 +88,37 @@ const isMock = !hasRealSDK;
 if (isMock) window.BoomRoomSDK = sdk;
 const isHost = Boolean(sdk.isHost);
 
+window.initBoomRoomSDK = function(data) {
+  if (data) {
+    if (data.user) {
+      localUser.id = String(data.user.id || localUser.id);
+      localUser.username = data.user.username || localUser.username;
+      localId = localUser.id;
+    }
+    if (data.roomPlayers && Array.isArray(data.roomPlayers)) {
+      sdk.roomPlayers = data.roomPlayers;
+    }
+    sdk.isHost = !!data.isHost;
+    sdk.roomId = data.roomId || '';
+    init();
+  }
+};
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    window.initBoomRoomSDK({
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
+
 async function init() {
   try {
     const user = await sdk.getUser?.();

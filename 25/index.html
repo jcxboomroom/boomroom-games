@@ -990,38 +990,26 @@
   );
 
 
-  window.onBoomRoomSDKReady=
-  function(){
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
 
-    try{
+window.onBoomRoomSDKReady = function(){
+  try{
+    if(window.BoomRoomSDK){
+      setupSDK({
+        user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+        isHost: window.BoomRoomSDK.isHost,
+        roomId: window.BoomRoomSDK.roomId,
+        roomPlayers: window.BoomRoomSDK.roomPlayers || []
+      });
+    }
+  }catch(_){}
+};
 
-      if(
-        window.BoomRoomSDK
-      ){
-
-        setupSDK({
-
-          user:
-            window.BoomRoomSDK
-              .getUser(),
-
-          isHost:
-            window.BoomRoomSDK
-              .isHost,
-
-          roomId:
-            window.BoomRoomSDK
-              .roomId,
-
-          roomPlayers:
-            window.BoomRoomSDK
-              .roomPlayers||[]
-
-        });
-
-      }
-
-    }catch(_){}
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
   };
 
@@ -2950,6 +2938,14 @@
 
 
     render();
+
+    setTimeout(() => {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ action: 'leaveGame' }, '*');
+      } else {
+        try { window.close(); } catch(e){}
+      }
+    }, 3000);
 
   }
 

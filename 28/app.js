@@ -399,4 +399,30 @@ window.addEventListener('keydown', event => {
   if (event.repeat || !['1', '2', '3'].includes(event.key)) return;
   chooseWire(Number(event.key) - 1);
 });
+window.initBoomRoomSDK = function(data) {
+  if (data) {
+    if (data.user) state.me = cleanPlayer(data.user, state.me.id);
+    state.isHost = !!data.isHost;
+    state.roomId = data.roomId ? String(data.roomId) : '';
+    seedPlayers(data.roomPlayers || []);
+    bindGameEvents();
+    scheduleAutoStart();
+  }
+};
+
+window.onBoomRoomSDKReady = function() {
+  if (window.BoomRoomSDK) {
+    window.initBoomRoomSDK({
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+      isHost: window.BoomRoomSDK.isHost,
+      roomId: window.BoomRoomSDK.roomId,
+      roomPlayers: window.BoomRoomSDK.roomPlayers || []
+    });
+  }
+};
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
+
 setupSdk();

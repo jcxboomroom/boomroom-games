@@ -112,7 +112,9 @@ function addPlayer(id,name,avatar=""){if(id==null)return;id=String(id);let p=pla
 function send(eventName,payload={},localHost=false){try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")window.BoomRoomSDK.sendGameEvent(eventName,payload);else if(window.parent!==window)window.parent.postMessage(JSON.stringify({action:"sendGameEvent",eventName,payload}),"*")}catch(_){} if(localHost&&isHost())handleEvent(eventName,payload,ME.id)}
 function setupSDK(d){if(d&&d.user){ME.id=String(d.user.id??ME.id);ME.username=safe(d.user.username,"玩家");ME.avatar=d.user.avatar||"";addPlayer(ME.id,ME.username,ME.avatar)}sdkIsHost=!!(d&&d.isHost);roomId=(d&&d.roomId)||"";if(Array.isArray(d&&d.roomPlayers))d.roomPlayers.forEach(x=>addPlayer(x.id,x.username,x.avatar));render()}
 window.addEventListener("message",e=>{try{const d=typeof e.data==="string"?JSON.parse(e.data):e.data;if(d&&d.action==="initSDK")setupSDK(d);else if(d&&d.action==="gameEventReceived")handleEvent(d.eventName,d.payload,d.userId,false)}catch(_){} });
-window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:window.BoomRoomSDK.getUser?.(),isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
+window.initBoomRoomSDK=function(d){setupSDK(d)};
+window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:typeof window.BoomRoomSDK.getUser==='function'?window.BoomRoomSDK.getUser():{},isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
+if(window.BoomRoomSDK){window.onBoomRoomSDKReady()}
 function log(s){feed.unshift(s);feed=feed.slice(0,36)}
 
 /* -------------------- Big Two rules -------------------- */
@@ -222,6 +224,14 @@ function finishRound(){
   // UI result only; real silver settlement must remain server-side.
   try{window.BoomRoomSDK?.gameOver?.(0)}catch(_){}
   broadcast();render();
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 
 /* -------------------- Original blood exchange --------------------

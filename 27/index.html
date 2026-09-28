@@ -87,11 +87,19 @@ function setupSDK(data){
   sdkIsHost=!!(data&&data.isHost);gameRoomId=(data&&data.roomId)||"";
   if(Array.isArray(data&&data.roomPlayers))data.roomPlayers.forEach(r=>r&&r.id!=null&&addPlayer(r.id,r.username,r.avatar));
   render();
+
+  setTimeout(() => {
+    if(state==="LOBBY"){
+      startGame();
+    }
+  }, 300);
 }
 window.addEventListener("message",e=>{
   try{const d=typeof e.data==="string"?JSON.parse(e.data):e.data;if(!d)return;if(d.action==="initSDK")setupSDK(d);else if(d.action==="gameEventReceived")handleGameEvent(d.eventName,d.payload||{},d.userId)}catch(_){}}
 );
-window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:window.BoomRoomSDK.getUser(),isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
+window.initBoomRoomSDK=function(data){setupSDK(data)};
+window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:typeof window.BoomRoomSDK.getUser==="function"?window.BoomRoomSDK.getUser():{},isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
+if(window.BoomRoomSDK){window.onBoomRoomSDKReady()}
 function sendEvent(eventName,payload){try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")window.BoomRoomSDK.sendGameEvent(eventName,payload);else if(window.parent!==window)window.parent.postMessage({action:"sendGameEvent",eventName,payload},"*")}catch(_){} }
 function handleGameEvent(name,payload,senderId){
   if(!payload)payload={};
@@ -268,7 +276,7 @@ function tryPickup(){if(!player)return;for(let i=pickups.length-1;i>=0;i--){cons
 function maybeDrop(x,z){if(Math.random()<.25)pickups.push({type:Math.random()<.5?"hp":"mp",x,z,t:0,life:15});else if(Math.random()<.15)pickups.push({type:"weapon",name:"鐵棍",damageMul:1.45,durability:10,x,z,t:0,life:18});else if(Math.random()<.08)pickups.push({type:"bomb",x,z,t:0,life:18})}
 function knockOut(t,source){if(t.dead)return;t.hp=0;t.dead=true;t.state="dead";t.knockTimer=.9;t.vx=source&&source.dir?source.dir*7:0;t.vy=-7;t.invuln=.2;addParticles(t.x,t.z,t.y-30,t.color||"#fff",24,4);addText(t.x,t.z,-90,"KO","#ffd36b",28);playSfx("ko");score+=150;if(source&&source.team===1){kills++;source.kills=(source.kills||0)+1;}maybeDrop(t.x,t.z);if(t.boss)pushFeed(`🏆 Boss ${t.username} 被擊敗！`)}
 
-function endGame(win,msg){if(gameEnded)return;gameEnded=true;state="RESULT";stopLoop();pushFeed(`${win?"🏆":"💀"} ${msg}`);try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(win?200:50)}catch(_){}sendEvent("LF2_END",{win,msg,stage:stageLevel,score,kills,damage:Math.round(damageTotal)});render()}
+function endGame(win,msg){if(gameEnded)return;gameEnded=true;state="RESULT";stopLoop();pushFeed(`${win?"🏆":"💀"} ${msg}`);try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(win?200:50)}catch(_){}sendEvent("LF2_END",{win,msg,stage:stageLevel,score,kills,damage:Math.round(damageTotal)});render();setTimeout(()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({action:"leaveGame"},"*");else try{window.close()}catch(_){}},3000)}
 function updateStage(dt){if(gameMode==="PVP"||stageState!=="FIGHT")return;roundClock-=dt;if(roundClock<=0){stageState="FAIL";endGame(false,"時間到，挑戰失敗");return}if(enemies.filter(isAlive).length===0){if(wave<3){wave++;stageTransition=.9;stageState="TRANSITION";showMessage("WAVE CLEAR");setTimeout(()=>{if(state==="PLAYING"){spawnWave()}},850)}else{stageTransition=1.1;stageState="CLEAR";showMessage(`STAGE ${stageLevel} CLEAR`);setTimeout(()=>{if(state!=="PLAYING")return;if(stageLevel>=CONFIG.STAGE_MAX){endGame(true,"完成所有關卡！");}else{stageLevel++;wave=0;stageState="TRANSITION";spawnWave()}},1200)}}}
 function updatePVP(dt){if(gameMode!=="PVP")return;const aliveOpp=remotes.filter(isAlive);if(aliveOpp.length===0&&remotes.length){endGame(true,"擊敗所有對手！");}if(player&&player.hp<=0)endGame(false,"你被擊倒了");}
 function update(dt){

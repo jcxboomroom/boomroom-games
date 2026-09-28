@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0b1e" />
+  <title>爆爆五子棋：極限連珠</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <div class="brand">✳ BOOM<span style="color:#fff;">ROOM</span> 五子棋</div>
+      <div class="player-counter" id="playerCounter">👥 1/10 人</div>
+    </header>
+
+    <section class="turn-banner" id="turnBanner">
+      <div class="stone-indicator black" id="turnStone"></div>
+      <span id="turnText">黑子（黑棋先行）回合</span>
+    </section>
+
+    <section class="board-container">
+      <canvas id="boardCanvas"></canvas>
+    </section>
+
+    <footer class="footer-notice">
+      <div class="notice-box" id="autoStartNotice">⏱️ 房間人數 1/1，準備自動開始...</div>
+      <div class="roster-list" id="rosterList"></div>
+    </footer>
+
+    <!-- 結算對話框 -->
+    <div class="overlay hidden" id="resultOverlay">
+      <div class="result-card">
+        <div class="result-title" id="resultTitle">🏆 獲勝！</div>
+        <div class="result-subtitle" id="resultSubtitle">完成五子連珠絕殺！</div>
+        <div class="result-reward" id="resultReward">+100 銀幣</div>
+        <div class="auto-close-hint">3 秒後自動返回房間...</div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
