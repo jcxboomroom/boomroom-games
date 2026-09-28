@@ -227,13 +227,23 @@
        - SDK 存在：只相信平台 isHost；Host 才能推進世界狀態
        - SDK 不存在：啟用本地 Mock，建立 4 個 BOT 方便直接測試
        ========================================================= */
-    const SDK = window.BoomRoomSDK || null;
-    const DEMO = !SDK;
+    let SDK = window.BoomRoomSDK || null;
+    let DEMO = false;
+    let sdkBridgeReady = !!SDK;
+    let sdkInitReceived = false;
+    let demoFallbackTimer = 0;
+    let bridgeRoomId = '';
+    let sdkEventsBound = false;
+
+    function getSDK(){
+      if(window.BoomRoomSDK) SDK=window.BoomRoomSDK;
+      return SDK;
+    }
 
     function safeUser(){
       try{
-        if(SDK && typeof SDK.getUser === 'function'){
-          const u = SDK.getUser();
+        if(getSDK() && typeof getSDK().getUser === 'function'){
+          const u = getSDK().getUser();
           if(u) return u;
         }
       }catch(_){}
@@ -256,7 +266,7 @@
       stateSendMs:70,
       playerSendMs:55,
       hostTimeoutMs:6500,
-      startDelayMs:1700,
+      startDelayMs:3200,
       runSpeed:17.5,
       finishAt:.93
     };
@@ -360,12 +370,13 @@
     const popups=[];
 
     function sdkIsHostValue(){
-      if(!SDK)return true;
+      const sdk=getSDK();
+      if(!sdk)return false;
       try{
-        const v=typeof SDK.isHost==='function'?SDK.isHost():SDK.isHost;
+        const v=typeof sdk.isHost==='function'?sdk.isHost():sdk.isHost;
         if(typeof v==='boolean'){
           sdkHostKnown=true;
-          if(v) hostId=ME.id;
+          if(v)hostId=ME.id;
           return v;
         }
       }catch(_){}
@@ -373,15 +384,21 @@
     }
     function isHost(){
       if(DEMO)return hostId===ME.id;
+      const sdk=getSDK();
       if(sdkHostKnown)return sdkIsHostValue();
-      return hostId===ME.id;
+      return false;
     }
     function broadcast(name,payload={}){
+      if(DEMO)return;
+      const sdk=getSDK();
       const data={...payload,roomId:roomId()};
       try{
-        if(SDK && typeof SDK.sendGameEvent==='function') SDK.sendGameEvent(name,data);
+        if(sdk && typeof sdk.sendGameEvent==='function'){
+          // BoomRoom SDK 已經依目前房間路由事件；不要把 wrapper 當成 event payload。
+          sdk.sendGameEvent(name,payload||{});
+          return;
+        }
       }catch(_){}
-      // 支援直接以父頁 / WebView 橋接的環境
       try{
         if(window.parent && window.parent!==window){
           window.parent.postMessage({action:'sendGameEvent',eventName:name,payload:data},'*');
@@ -390,12 +407,16 @@
     }
     function roomId(){
       try{
-        const id=SDK?.roomId;
-        return String(id||'demo-room');
-      }catch(_){return 'demo-room'}
+        const sdk=getSDK();
+        const id=sdk?.roomId ?? bridgeRoomId;
+        return String(id||'');
+      }catch(_){return ''}
     }
     function onlineCount(){
       return [...players.values()].filter(p=>p.online!==false).length;
+    }
+    function allActivePlayers(){
+      return [...players.values()].filter(p=>p.online!==false);
     }
     function paidPlayers(){
       return [...players.values()].filter(p=>p.hasPaid && p.online!==false);
@@ -404,13 +425,16 @@
       return [...players.values()].filter(p=>!p.isBot);
     }
     function addPlayer(raw,seen=true){
-      if(!raw || raw.id==null)return null;
-      const id=String(raw.id);
+      if(!raw)return null;
+      const nested=raw.user||raw.player||raw.member||null;
+      const idValue=raw.id ?? raw.userId ?? raw.playerId ?? raw.uid ?? nested?.id ?? nested?.userId ?? nested?.playerId;
+      if(idValue==null)return null;
+      const id=String(idValue);
       let p=players.get(id);
       if(!p){
         p={
           id,
-          username:String(raw.username||'玩家').slice(0,12),
+          username:String(raw.username||raw.name||raw.displayName||nested?.username||nested?.name||'玩家').slice(0,12),
           joinedAt:Number(raw.joinedAt)||Date.now(),
           hasPaid:!!raw.hasPaid,
           x:Number.isFinite(Number(raw.x))?Number(raw.x):.06,
@@ -429,7 +453,7 @@
         };
         players.set(id,p);
       }else{
-        if(raw.username!=null)p.username=String(raw.username).slice(0,12);
+        if(raw.username!=null||raw.name!=null||raw.displayName!=null||nested?.username!=null||nested?.name!=null)p.username=String(raw.username||raw.name||raw.displayName||nested?.username||nested?.name||p.username).slice(0,12);
         if(raw.joinedAt!=null)p.joinedAt=Number(raw.joinedAt)||p.joinedAt;
         if(raw.hasPaid!=null)p.hasPaid=!!raw.hasPaid;
         if(raw.x!=null)p.targetX=Math.max(.02,Math.min(cfg.finishAt,Number(raw.x)||p.targetX));
@@ -451,14 +475,16 @@
     }
     function normalizeRoomPlayers(list){
       if(!Array.isArray(list))return;
-      const now=Date.now();
       list.slice(0,cfg.maxPlayers).forEach((rp,i)=>{
-        if(!rp||rp.id==null)return;
+        if(!rp)return;
+        const q=rp.user||rp.player||rp.member||rp;
+        const id=q.id ?? q.userId ?? q.playerId ?? q.uid;
+        if(id==null)return;
         addPlayer({
-          id:String(rp.id),
-          username:String(rp.username||rp.displayName||('玩家'+(i+1))),
-          joinedAt:Number(rp.joinedAt)||now+i,
-          hasPaid:!!rp.hasPaid,
+          id:String(id),
+          username:String(q.username||q.name||q.displayName||('玩家'+(i+1))),
+          joinedAt:Number(q.joinedAt)||Date.now()+i,
+          hasPaid:q.hasPaid===true,
           lane:i,
           color:i
         },true);
@@ -542,7 +568,8 @@
         return;
       }
       try{
-        if(typeof SDK.requestPurchase==='function')SDK.requestPurchase('neon_redlight',cfg.entryFee);
+        const sdk=getSDK();
+        if(sdk && typeof sdk.requestPurchase==='function')sdk.requestPurchase('neon_redlight',cfg.entryFee);
         else window.onPurchaseSuccess?.('neon_redlight');
       }catch(_){
         purchasePending=false;renderHUD();showToast('入場請求失敗');
@@ -608,11 +635,18 @@
     let autoStartAt=0;
     let hostLightBroadcastAt=0;
 
+    let lastEntrantCount=-1;
     function hostStartIfReady(now){
       if(!isHost()||state.phase!=='LOBBY')return;
       const entrants=paidPlayers();
-      if(entrants.length<1){autoStartAt=0;return}
-      if(autoStartAt===0)autoStartAt=now+cfg.startDelayMs;
+      if(entrants.length<1){autoStartAt=0;lastEntrantCount=0;return}
+      if(entrants.length!==lastEntrantCount){
+        lastEntrantCount=entrants.length;
+        autoStartAt=now+cfg.startDelayMs;
+        assignLanes();
+        entrants.forEach(p=>{p.x=.06;p.targetX=.06;p.status='ALIVE';p.holding=false});
+        broadcastState(true);
+      }
       if(now>=autoStartAt){
         assignLanes();
         entrants.forEach(p=>{
@@ -626,12 +660,18 @@
         state.startedAt=0;
         state.result=[];
         gameOverCalled=false;
+        lastEntrantCount=-1;
         broadcastState(true);
         showCountdown('3');
       }
     }
     function hostTick(now,dt){
       if(!isHost())return;
+
+      if(state.phase==='LOBBY'){
+        hostStartIfReady(now);
+        return;
+      }
 
       if(state.phase==='COUNTDOWN'){
         const remain=Math.max(0,state.phaseEndsAt-now);
@@ -756,14 +796,28 @@
     /* =========================================================
        Incoming game events
        ========================================================= */
-    function handleGameEvent(name,payload){
+    function handleGameEvent(name,payload,senderId=null){
       if(!name)return;
-      const p=payload||{};
-      if(p.roomId && String(p.roomId)!==roomId() && !DEMO)return;
+      let p=payload||{};
+      if(typeof p==='string'){try{p=JSON.parse(p)}catch(_){p={}}}
+      if(p.payload && typeof p.payload==='object' && !p.playerId && !p.player && !p.hostId && !p.players)p=p.payload;
+      const currentRoom=roomId();
+      if(!DEMO && p.roomId && currentRoom && String(p.roomId)!==currentRoom)return;
 
-      if(name==='BR_PLAYER_JOIN'){
-        if(p.player)addPlayer(p.player,true);
-        assignLanes();
+      if(name==='BR_PLAYER_ANNOUNCE' || name==='BR_PLAYER_JOIN'){
+        const raw=p.player||p.user||p.member||p;
+        if(raw && (raw.id!=null||raw.userId!=null||raw.playerId!=null||senderId!=null)){
+          if(raw.id==null && senderId!=null)raw.id=senderId;
+          const q=addPlayer({...raw,online:true},true);
+          assignLanes();
+          if(q)showToast('房間玩家：'+onlineCount()+' 人');
+          if(isHost())broadcastState(true);
+        }
+        return;
+      }
+
+      if(name==='BR_PLAYER_LIST_REQUEST'){
+        if(ME.id)broadcast('BR_PLAYER_ANNOUNCE',{player:{id:ME.id,username:ME.username,joinedAt:ME.joinedAt,hasPaid:localPaid,online:true,x:.06,status:'ALIVE',lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0}});
         if(isHost())broadcastState(true);
         return;
       }
@@ -771,7 +825,8 @@
       if(name==='BR_INPUT'){
         if(!isHost())return;
         if(String(p.matchId||'')!==state.matchId)return;
-        const pl=players.get(String(p.playerId));
+        const pid=String(p.playerId ?? senderId ?? '');
+        const pl=players.get(pid);
         if(!pl||!pl.hasPaid||pl.status!=='ALIVE')return;
         pl.holding=!!p.holding;
         pl.lastSeen=Date.now();pl.online=true;pl.inputSeq=Number(p.seq)||pl.inputSeq;
@@ -780,85 +835,101 @@
 
       if(name==='BR_PLAYER_DEAD'){
         const pl=players.get(String(p.playerId));
-        if(pl && pl.status!=='DEAD'){
-          pl.status='DEAD';pl.holding=false;hitFX(pl,'#ff4d6d');
-        }
+        if(pl && pl.status!=='DEAD'){pl.status='DEAD';pl.holding=false;hitFX(pl,'#ff4d6d');}
         return;
       }
-
       if(name==='BR_BUMP'){
         const a=players.get(String(p.a)),b=players.get(String(p.b));
-        if(a){a.bump=1}
-        if(b){b.bump=1}
-        sfx.hit();vibrate(22);spawnBurst(W*.5,H*.6,'#fff',8);
-        return;
+        if(a)a.bump=1;if(b)b.bump=1;sfx.hit();vibrate(22);spawnBurst(W*.5,H*.6,'#fff',8);return;
       }
-
-      if(name==='BR_GAME_STATE'){
-        applyState(p);
-        return;
-      }
-
+      if(name==='BR_GAME_STATE'){applyState(p);return;}
       if(name==='BR_SYNC_REQUEST'){
+        // 回覆自己的存在，並由 Host 回傳權威世界狀態。
+        broadcast('BR_PLAYER_ANNOUNCE',{player:{id:ME.id,username:ME.username,joinedAt:ME.joinedAt,hasPaid:localPaid,online:true,x:.06,status:'ALIVE',lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0}});
         if(isHost())broadcastState(true);
         return;
       }
-
       if(name==='BR_HOST_ANNOUNCE'){
-        if(p.hostId!=null)hostId=String(p.hostId);
+        if(p.hostId!=null && !sdkHostKnown)hostId=String(p.hostId);
         return;
       }
     }
     function onMessageData(data){
       if(!data)return;
-      if(data.action==='initSDK'){applySDKData(data);return}
-      if(data.action==='gameEventReceived'){
-        handleGameEvent(data.eventName,data.payload||{});
-        return;
-      }
-      if(data.action==='BR_GAME_EVENT'){
-        handleGameEvent(data.eventName,data.payload||{});
+      if(typeof data==='string'){try{data=JSON.parse(data)}catch(_){return}}
+      const action=String(data.action||data.type||'');
+      const body=data.data&&typeof data.data==='object' ? data.data : data;
+      if(action==='initSDK'||action==='sdkReady'||action==='boomroom:sdkReady'){applySDKData(body);return}
+      if(action==='purchaseSuccess'){window.onPurchaseSuccess?.(String(data.itemId||body.itemId||''));return}
+      if(action==='purchaseFailed'){window.onPurchaseFailed?.(String(data.itemId||body.itemId||''));return}
+      if(action==='gameEventReceived'||action==='gameEvent'||action==='BR_GAME_EVENT'){
+        handleGameEvent(String(data.eventName||data.name||data.event||''),data.payload||data.data||{},data.userId!=null?String(data.userId):null);
       }
     }
     window.addEventListener('message',e=>{
-      try{onMessageData(typeof e.data==='string'?JSON.parse(e.data):e.data)}catch(_){}
+      try{onMessageData(typeof e.data==='string'?e.data:e.data)}catch(_){}
     });
-    try{
-      SDK?.addEventListener?.('gameEventReceived',e=>{
-        try{handleGameEvent(e.eventName||e.name,e.payload||e.data||{})}catch(_){}
-      });
-    }catch(_){}
-    try{
-      SDK?.on?.('gameEventReceived',(name,payload)=>handleGameEvent(name,payload));
-    }catch(_){}
+    bindSDKEvents();
+
+    function bindSDKEvents(){
+      if(sdkEventsBound)return;
+      const sdk=getSDK();
+      if(!sdk)return;
+      sdkEventsBound=true;
+      try{
+        sdk.addEventListener?.('gameEventReceived',e=>{
+          try{handleGameEvent(e.eventName||e.name||e.event,e.payload||e.data||{},e.userId!=null?String(e.userId):null)}catch(_){}
+        });
+      }catch(_){}
+      try{
+        sdk.on?.('gameEventReceived',(name,payload,meta)=>handleGameEvent(name,payload,meta?.userId||meta?.senderId||null));
+      }catch(_){}
+    }
 
     function applySDKData(data){
-      if(data?.user && data.user.id){
-        ME.id=String(data.user.id);
-        ME.username=String(data.user.username||'玩家').slice(0,12);
+      if(!data || typeof data!=='object')return;
+      sdkInitReceived=true;
+      DEMO=false;
+      sdkBridgeReady=true;
+      SDK=getSDK()||SDK;
+      if(data.roomId!=null)bridgeRoomId=String(data.roomId||'');
+      bindSDKEvents();
+      if(data.user && (data.user.id!=null||data.user.userId!=null)){
+        ME.id=String(data.user.id ?? data.user.userId);
+        ME.username=String(data.user.username||data.user.name||'玩家').slice(0,12);
       }
-      if(typeof data?.isHost==='boolean'){
+      if(typeof data.isHost==='boolean'){
         sdkHostKnown=true;
         if(data.isHost)hostId=ME.id;
+        else if(hostId===ME.id)hostId=null;
       }
-      if(Array.isArray(data?.roomPlayers))normalizeRoomPlayers(data.roomPlayers);
+      if(Array.isArray(data.roomPlayers))normalizeRoomPlayers(data.roomPlayers);
       ensureMe();assignLanes();
       if(isHost())broadcast('BR_HOST_ANNOUNCE',{hostId:ME.id});
+      broadcast('BR_PLAYER_ANNOUNCE',{player:{id:ME.id,username:ME.username,joinedAt:ME.joinedAt,hasPaid:localPaid,online:true,x:.06,status:'ALIVE',lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0}});
+      broadcast('BR_PLAYER_LIST_REQUEST',{});
       broadcast('BR_SYNC_REQUEST',{});
-      if(!localPaid && state.phase==='LOBBY')setTimeout(requestEntry,250);
+      renderHUD();
+      if(!localPaid && state.phase==='LOBBY')setTimeout(requestEntry,300);
     }
     window.initBoomRoomSDK=applySDKData;
     window.onBoomRoomSDKReady=()=>{
       try{
-        applySDKData({
-          user:typeof SDK?.getUser==='function'?SDK.getUser():null,
-          isHost:typeof SDK?.isHost==='function'?SDK.isHost():SDK?.isHost,
-          roomId:SDK?.roomId,
-          roomPlayers:Array.isArray(SDK?.roomPlayers)?SDK.roomPlayers:[]
-        });
+        SDK=getSDK();
+        if(SDK){
+          applySDKData({
+            user:typeof SDK.getUser==='function'?SDK.getUser():SDK.user||null,
+            isHost:typeof SDK.isHost==='function'?SDK.isHost():SDK.isHost,
+            roomId:SDK.roomId,
+            roomPlayers:Array.isArray(SDK.roomPlayers)?SDK.roomPlayers:[]
+          });
+        }
       }catch(_){ensureMe()}
     };
-    if(SDK)window.onBoomRoomSDKReady();
+    if(getSDK())window.onBoomRoomSDKReady();
+
+    // Flutter / WebView 可能先發 initSDK，再稍後掛上 BoomRoomSDK。
+    window.requestBoomRoomSDKInit?.();
 
     /* =========================================================
        Demo mock: direct browser = real local player + AI rivals
@@ -893,7 +964,13 @@
         });
       },240);
     }
-    setupDemo();
+    clearTimeout(demoFallbackTimer);
+    demoFallbackTimer=setTimeout(()=>{
+      if(!sdkInitReceived && !getSDK() && window.parent===window){
+        DEMO=true;
+        setupDemo();
+      }
+    },1200);
 
     /* =========================================================
        Result
@@ -907,7 +984,7 @@
       if(!gameOverCalled){
         gameOverCalled=true;
         const reward=Math.max(0,Number(my.winAmount)||0);
-        try{if(SDK && typeof SDK.gameOver==='function')SDK.gameOver(reward)}catch(_){}
+        try{const sdk=getSDK();if(sdk && typeof sdk.gameOver==='function')sdk.gameOver(reward)}catch(_){}
         ui.resultWinner.textContent=state.result.filter(r=>r.isWinner).map(r=>r.username).join('、')+' 獲勝';
         ui.resultAmount.textContent='+'+reward.toLocaleString()+' 🪙';
         ui.resultAmount.style.color=reward>0?'var(--green)':'var(--red)';
@@ -1223,8 +1300,9 @@
        HUD
        ========================================================= */
     function renderHUD(){
+      const detected=onlineCount();
       const count=paidPlayers().length;
-      ui.players.textContent=Math.min(10,Math.max(1,count))+' / 10';
+      ui.players.textContent=Math.min(10,Math.max(1,detected))+' / 10';
       const pool=Math.floor(count*cfg.entryFee);
       ui.pool.textContent=pool.toLocaleString()+' 🪙';
 
@@ -1247,7 +1325,7 @@
       }
 
       if(state.phase==='PLAYING')ui.hint.textContent='綠燈長按畫面奔跑　・　紅燈立刻鬆手　・　撞到其他玩家會被推開';
-      else if(state.phase==='LOBBY')ui.hint.textContent=localPaid?'已入場，等所有人自動開始':'點一下畫面加入本局';
+      else if(state.phase==='LOBBY')ui.hint.textContent=localPaid?('已入場・房間偵測 '+Math.min(10,detected)+' 人，正在自動整合'): '點一下畫面加入本局';
       else if(state.phase==='COUNTDOWN')ui.hint.textContent='自動開始，不需要 Ready / Start';
       if(Date.now()>tutorialUntil && state.phase==='PLAYING')ui.hint.classList.add('hide');
     }
@@ -1313,11 +1391,12 @@
        ========================================================= */
     function hello(){
       ensureMe();assignLanes();
-      broadcast('BR_PLAYER_JOIN',{player:{
+      broadcast('BR_PLAYER_ANNOUNCE',{player:{
         id:ME.id,username:ME.username,joinedAt:ME.joinedAt,
-        hasPaid:localPaid,x:.06,status:'ALIVE',
+        hasPaid:localPaid,x:.06,status:'ALIVE',online:true,
         lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0
       }});
+      broadcast('BR_PLAYER_LIST_REQUEST',{});
       broadcast('BR_SYNC_REQUEST',{});
       if(isHost()){
         hostId=ME.id;
@@ -1337,17 +1416,19 @@
         if(p.id!==ME.id && now-p.lastSeen>cfg.hostTimeoutMs)p.online=false;
       });
 
-      // No per-client host election when BoomRoom provides isHost.
-      // Fallback is allowed only in standalone preview.
-      if(DEMO){
-        hostId=ME.id;
-      }else if(!sdkHostKnown && !hostId){
-        const first=[...players.values()].sort((a,b)=>(a.joinedAt-b.joinedAt)||a.id.localeCompare(b.id))[0];
-        if(first)hostId=first.id;
-      }
+      // 正式 BoomRoom 不自行推舉市長；只有平台 isHost 才能成為 Host。
+      if(DEMO)hostId=ME.id;
     },1000);
 
-    if(!SDK)showToast('預覽模式：已載入 4 名 BOT，共用同一場遊戲');
+    setInterval(()=>{
+      const sdk=getSDK();
+      if(sdk){
+        bindSDKEvents();
+        if(!sdkBridgeReady){try{window.onBoomRoomSDKReady?.()}catch(_){} }
+      }
+    },500);
+
+    if(DEMO)showToast('預覽模式：已載入 4 名 BOT，共用同一場遊戲');
 
     })();
 </script>
