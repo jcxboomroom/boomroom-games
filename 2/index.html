@@ -2310,8 +2310,7 @@ function handleGameEvent(name,payload,sender){
 
   if(event==='NEON_SCORE_UPDATE' || event==='SCORE_UPDATE'){
     const id=String(payload.playerId||senderId||'');
-    if(!id || id===getUserId()) return;
-    if(payload.roundId && state.roundId && String(payload.roundId)!==String(state.roundId)) return;
+    if(!id) return;
     updatePlayerScore(
       id,
       payload.score,
@@ -2319,6 +2318,15 @@ function handleGameEvent(name,payload,sender){
       String(payload.playerName||'玩家'),
       false
     );
+    return;
+  }
+
+  if(event==='NEON_ROOM_SCORES' && payload.scores && Array.isArray(payload.scores)){
+    payload.scores.forEach(s => {
+      if(s && s.id && s.id !== getUserId()){
+        updatePlayerScore(s.id, s.score, s.layers, s.name || '玩家', false);
+      }
+    });
     return;
   }
 
@@ -2433,6 +2441,7 @@ setTimeout(()=>{
 },1800);
 
 // 全房高頻同步：Host 反覆告知「目前回合怎麼走」，非 Host 反覆要求同步。
+let lastScoreBroadcast = 0;
 setInterval(()=>{
   if(!sdkReady) return;
 
@@ -2441,6 +2450,13 @@ setInterval(()=>{
     else if(state.autoRoundState==='COUNTDOWN') sendHostSync('COUNTDOWN');
     else if(state.game!=='RESULT') sendHostSync('WAITING');
     scheduleAutoStart();
+
+    const now = Date.now();
+    if (now - lastScoreBroadcast > 1500) {
+      lastScoreBroadcast = now;
+      const allScores = [...roomScoreMap.values()];
+      sendGameEvent('NEON_ROOM_SCORES', { scores: allScores });
+    }
   }else{
     sendHello();
   }
