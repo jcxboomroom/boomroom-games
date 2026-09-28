@@ -372,18 +372,32 @@ function setupSDK(data){
   }
   if($('devBadge')) $('devBadge').style.display = 'none';
   hello();
+
+  setTimeout(() => {
+    if(!currentRoundPaid && state.phase===STATES.LOBBY){
+      requestEntry();
+    }
+  }, 300);
 }
+
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
 
 window.onBoomRoomSDKReady = function(){
   if(window.BoomRoomSDK){
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 addEventListener('message',e=>{
   let d;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(_){return}
@@ -410,6 +424,14 @@ function renderResult(reward,won,reason,myScore,result){
   const list=$('resultList');list.innerHTML='';
   result.slice(0,6).forEach((r,i)=>{const div=document.createElement('div');div.className='row '+(r.id===ME.id?'me':'');div.innerHTML='<span class="rank">#'+(i+1)+'</span><span>'+escapeHtml(r.username)+'</span><strong>'+Math.round(r.score)+'</strong>';list.appendChild(div);});
   $('result').style.display='grid';$('hud').style.display='none';gameState=STATES.RESULT;showMsg(won?'王者！':'時間到',won?'#ffd35a':'#ff6f8f');
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 

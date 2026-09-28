@@ -653,20 +653,34 @@ function setupSDK(data){
     render();
 
     if(isHost()) broadcastState(true);
+
+    setTimeout(() => {
+        if(!hasPaid && state.phase==='LOBBY'){
+            requestEntry();
+        }
+    }, 300);
 }
 
-window.onBoomRoomSDKReady=function(){
+window.initBoomRoomSDK = function(data) {
+    setupSDK(data);
+};
+
+window.onBoomRoomSDKReady = function(){
     try{
         if(window.BoomRoomSDK){
             setupSDK({
-                user:window.BoomRoomSDK.getUser(),
-                isHost:window.BoomRoomSDK.isHost,
-                roomId:window.BoomRoomSDK.roomId,
-                roomPlayers:window.BoomRoomSDK.roomPlayers || []
+                user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
+                isHost: window.BoomRoomSDK.isHost,
+                roomId: window.BoomRoomSDK.roomId,
+                roomPlayers: window.BoomRoomSDK.roomPlayers || []
             });
         }
     }catch(e){}
 };
+
+if (window.BoomRoomSDK) {
+    window.onBoomRoomSDKReady();
+}
 
 /* ================= Entry ================= */
 function requestEntry(){
@@ -1383,6 +1397,7 @@ function requestCloseGame(){
     /* BoomRoom 未在提供的 SDK 指南中定義 close API，
        因此使用 postMessage 通知外層 App 關閉 WebView。 */
     const closeMessages=[
+        {action:'leaveGame'},
         {action:'closeGame'},
         {action:'close_game'},
         {type:'closeGame'}

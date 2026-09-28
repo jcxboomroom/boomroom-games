@@ -773,7 +773,17 @@ function gameLoop(ts){
     }
   } else {
     setRollingVisual(false);
-    if(gameState===STATES.RESULT){resultTimer=Math.max(0,resultTimer-dt);if(resultTimer<=0)setState(STATES.WAITING_HOST);}
+    if(gameState===STATES.RESULT){
+      resultTimer=Math.max(0,resultTimer-dt);
+      if(resultTimer<=0){
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ action: 'leaveGame' }, '*');
+        } else {
+          try { window.close(); } catch(_){}
+        }
+        setState(STATES.WAITING_HOST);
+      }
+    }
   }
 
   updateParticles(dt);rafId=requestAnimationFrame(gameLoop);lastTime=ts;
@@ -829,16 +839,24 @@ function setupSDK(data){
   updatePlayerUI();
 }
 
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
+
 window.onBoomRoomSDKReady = function(){
   if(window.BoomRoomSDK){
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 window.addEventListener('message',(event)=>{
   try{

@@ -743,6 +743,14 @@ function maybeCallGameOver() {
   
   els.popResult.classList.add('show');
   sfx(myResult.survived ? 'win' : 'lose');
+
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
 }
 
 /* ==============================
@@ -771,18 +779,32 @@ function setupSDK(data){
   }
   if(els.devBanner) els.devBanner.style.display = 'none';
   render();
+
+  setTimeout(() => {
+    if(!hasPaid && state.phase === 'LOBBY'){
+      requestEntry();
+    }
+  }, 300);
 }
+
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
 
 window.onBoomRoomSDKReady = function(){
   if(window.BoomRoomSDK){
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 function handleIncoming(data) {
   if(!data) return;

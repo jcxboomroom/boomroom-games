@@ -4634,7 +4634,14 @@ function showResult() {
 
   resultModal.classList.add("show");
 
-  // One-shot: keep result visible. No replay/next-round button.
+  setTimeout(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ action: 'leaveGame' }, '*');
+    } else {
+      try { window.close(); } catch(e){}
+    }
+  }, 3000);
+
   gameState = STATES.WAITING_FOR_MAYOR_CLOSE;
   phaseLabel.className = "phase crashed";
   phaseLabel.textContent = "🏁 本局已結束";
@@ -5342,18 +5349,32 @@ function setupSDK(data){
   }
   SDK_AVAILABLE = true;
   if(devBadge) devBadge.hidden = true;
+
+  setTimeout(() => {
+    if(!hasPaid && gameState === STATES.LOBBY){
+      requestEntry();
+    }
+  }, 300);
 }
+
+window.initBoomRoomSDK = function(data) {
+  setupSDK(data);
+};
 
 window.onBoomRoomSDKReady = function(){
   if(window.BoomRoomSDK){
     setupSDK({
-      user: window.BoomRoomSDK.getUser(),
+      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
       roomId: window.BoomRoomSDK.roomId,
       roomPlayers: window.BoomRoomSDK.roomPlayers || []
     });
   }
 };
+
+if (window.BoomRoomSDK) {
+  window.onBoomRoomSDKReady();
+}
 
 window.addEventListener("message", event => {
   try {
