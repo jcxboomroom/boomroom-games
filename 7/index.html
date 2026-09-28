@@ -265,7 +265,7 @@
       countdownMs:3000,
       stateSendMs:70,
       playerSendMs:55,
-      hostTimeoutMs:6500,
+      hostTimeoutMs:15000,
       startDelayMs:3200,
       runSpeed:17.5,
       finishAt:.93
@@ -351,6 +351,8 @@
     let gameOverCalled=false;
     let stateBroadcastAt=0;
     let lastStateMatch='';
+    let stateSeq=0;
+    let lastAppliedStateSeq=-1;
 
     const state={
       matchId:'M_'+Math.random().toString(36).slice(2,10),
@@ -499,6 +501,7 @@
     }
     function snapshot(){
       return {
+        stateSeq,
         matchId:state.matchId,
         phase:state.phase,
         phaseEndsAt:state.phaseEndsAt,
@@ -519,17 +522,29 @@
       const now=Date.now();
       if(!force && now-stateBroadcastAt<cfg.stateSendMs)return;
       stateBroadcastAt=now;
+      stateSeq++;
       broadcast('BR_GAME_STATE',snapshot());
     }
     function applyState(s){
       if(!s||typeof s!=='object')return;
+
+      const incomingMatch=s.matchId!=null?String(s.matchId):'';
+      const incomingSeq=Number(s.stateSeq)||0;
+
+      // 防止網路封包亂序：舊狀態不可覆蓋較新的玩家名單。
+      if(incomingMatch && incomingMatch===state.matchId && incomingSeq>0 && incomingSeq<=lastAppliedStateSeq){
+        return;
+      }
+
       if(s.hostId!=null)hostId=String(s.hostId);
-      if(s.matchId && s.matchId!==state.matchId){
-        state.matchId=String(s.matchId);
+      if(incomingMatch && incomingMatch!==state.matchId){
+        state.matchId=incomingMatch;
+        lastAppliedStateSeq=-1;
         localHolding=false;
         gameOverCalled=false;
         ui.result.classList.remove('show');
       }
+      if(incomingSeq>0)lastAppliedStateSeq=incomingSeq;
       if(s.phase)state.phase=s.phase;
       state.phaseEndsAt=Number(s.phaseEndsAt)||0;
       state.startedAt=Number(s.startedAt)||0;
@@ -538,11 +553,9 @@
       state.lightEndsAt=Number(s.lightEndsAt)||0;
       state.result=Array.isArray(s.result)?s.result:[];
       if(Array.isArray(s.players)){
-        const ids=new Set(s.players.map(p=>String(p.id)));
+        // Host 快照是唯一權威名單：只合併資料，不因一次短暫缺漏就把玩家踢出。
         s.players.forEach(raw=>addPlayer(raw,false));
-        [...players.values()].forEach(p=>{
-          if(!ids.has(p.id)&&p.id!==ME.id && state.phase==='PLAYING')p.online=false;
-        });
+        assignLanes();
       }
       const me=players.get(ME.id);
       if(me){
@@ -809,6 +822,10 @@
         if(raw && (raw.id!=null||raw.userId!=null||raw.playerId!=null||senderId!=null)){
           if(raw.id==null && senderId!=null)raw.id=senderId;
           const q=addPlayer({...raw,online:true},true);
+          if(q){
+            q.lastSeen=Date.now();
+            q.online=true;
+          }
           assignLanes();
           if(q)showToast('房間玩家：'+onlineCount()+' 人');
           if(isHost())broadcastState(true);
@@ -817,6 +834,7 @@
       }
 
       if(name==='BR_PLAYER_LIST_REQUEST'){
+        // 只回報自己，不重建本地玩家 Map。Host 再以最新 roster 快照同步全房。
         if(ME.id)broadcast('BR_PLAYER_ANNOUNCE',{player:{id:ME.id,username:ME.username,joinedAt:ME.joinedAt,hasPaid:localPaid,online:true,x:.06,status:'ALIVE',lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0}});
         if(isHost())broadcastState(true);
         return;
@@ -1396,8 +1414,6 @@
         hasPaid:localPaid,x:.06,status:'ALIVE',online:true,
         lane:players.get(ME.id)?.lane||0,color:players.get(ME.id)?.color||0
       }});
-      broadcast('BR_PLAYER_LIST_REQUEST',{});
-      broadcast('BR_SYNC_REQUEST',{});
       if(isHost()){
         hostId=ME.id;
         broadcast('BR_HOST_ANNOUNCE',{hostId:ME.id});
@@ -1413,7 +1429,9 @@
     setInterval(()=>{
       const now=Date.now();
       [...players.values()].forEach(p=>{
-        if(p.id!==ME.id && now-p.lastSeen>cfg.hostTimeoutMs)p.online=false;
+        // lobby 不做短暫離線剔除，避免 SDK 封包延遲造成 1/2/1/2 閃爍。
+        const timeout=state.phase==='LOBBY'?cfg.hostTimeoutMs*2:cfg.hostTimeoutMs;
+        if(p.id!==ME.id && now-p.lastSeen>timeout)p.online=false;
       });
 
       // 正式 BoomRoom 不自行推舉市長；只有平台 isHost 才能成為 Host。
