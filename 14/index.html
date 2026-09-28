@@ -163,7 +163,20 @@ const COLORS = [
   {name:'金',hex:'#ffd65a',h:45},
   {name:'橙',hex:'#ff9c57',h:24}
 ];
-const SHAPES = ['👑', '⭐', '💎', '🔥', '⚡', '🌙'];
+const SHAPES = [
+  { symbol: '👑', name: '國王' },
+  { symbol: '⭐', name: '星星' },
+  { symbol: '💎', name: '鑽石' },
+  { symbol: '🔥', name: '火焰' },
+  { symbol: '⚡', name: '閃電' },
+  { symbol: '🌙', name: '月亮' },
+  { symbol: '🎲', name: '骰子' },
+  { symbol: '🎯', name: '標靶' },
+  { symbol: '🚀', name: '火箭' },
+  { symbol: '🎈', name: '氣球' },
+  { symbol: '🎁', name: '禮物' },
+  { symbol: '🏆', name: '獎盃' }
+];
 const RULES = [
   {id:'color',title:'找同色',desc:'找到和目標顏色完全相同的唯一方塊',icon:'🎨'},
   {id:'shape',title:'找同形',desc:'找到和目標形狀完全相同的唯一方塊',icon:'🔷'},
@@ -335,38 +348,28 @@ function makeBoard(){
   const diff=difficulty();
   const seed=(seedForRound()+boardVersion*0x9E3779B9)>>>0;
   const rnd=mulberry32(seed);
-  const target={color:Math.floor(rnd()*COLORS.length),shape:Math.floor(rnd()*SHAPES.length),num:1+Math.floor(rnd()*9)};
-  targetIndex=Math.floor(rnd()*12);
 
-  const targetColorName = COLORS[target.color].name;
-  const targetColorHex = COLORS[target.color].hex;
-  const targetShapeSymbol = SHAPES[target.shape];
+  const availableShapes = [...SHAPES];
+  for (let i = availableShapes.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const temp = availableShapes[i];
+    availableShapes[i] = availableShapes[j];
+    availableShapes[j] = temp;
+  }
 
-  $('ruleIcon').innerHTML = `<span style="color:${targetColorHex};font-weight:bold;font-size:22px;">${targetShapeSymbol}</span>`;
-  $('ruleTitle').innerHTML = `尋找：<span style="color:${targetColorHex};">${targetColorName}色</span> ${targetShapeSymbol}`;
-  $('ruleDesc').textContent = `在下方 12 格中點選 ${targetColorName}色的 ${targetShapeSymbol}`;
+  targetIndex = Math.floor(rnd() * 12);
+  const targetObj = availableShapes[targetIndex];
+
+  $('ruleIcon').innerHTML = `<span style="font-size:24px;">${targetObj.symbol}</span>`;
+  $('ruleTitle').innerHTML = `尋找：${targetObj.symbol} ${targetObj.name}`;
+  $('ruleDesc').textContent = `在下方 12 格中點選唯一的 ${targetObj.symbol} ${targetObj.name}`;
 
   grid.innerHTML='';
   const cells=[];
   for(let i=0;i<12;i++){
     const tile=document.createElement('button');
-    tile.type='button'; tile.className='tile'; tile.dataset.index=i; tile.setAttribute('aria-label','遊戲方塊');
-    let colorIdx,shapeIdx,num;
-    if(i===targetIndex){ colorIdx=target.color; shapeIdx=target.shape; num=target.num; }
-    else{
-      colorIdx=Math.floor(rnd()*COLORS.length); shapeIdx=Math.floor(rnd()*SHAPES.length); num=1+Math.floor(rnd()*9);
-      // 高難度干擾：可以有相同顏色或相同形狀，但嚴格保證【顏色+形狀】組合絕對不重複！
-      const mode=Math.floor(rnd()*2);
-      if(mode===0 && rnd()<diff.sim) colorIdx=target.color;
-      if(mode===1 && rnd()<diff.sim) shapeIdx=target.shape;
-      // 🌟 嚴格保證：若【顏色+形狀】完全相同，強制替換為不同形狀！
-      if(colorIdx===target.color && shapeIdx===target.shape){
-        shapeIdx=(target.shape + 1 + Math.floor(rnd() * (SHAPES.length - 1))) % SHAPES.length;
-      }
-    }
-    tile.dataset.color=colorIdx; tile.dataset.shape=shapeIdx; tile.dataset.num=num;
-    tile.style.setProperty('--glow',COLORS[colorIdx].hex);
-    tile.innerHTML='<span class="glyph" style="color:'+COLORS[colorIdx].hex+'">'+SHAPES[shapeIdx]+'</span><span class="num">'+num+'</span>';
+    tile.type='button'; tile.className='tile'; tile.dataset.index=i; tile.setAttribute('aria-label', availableShapes[i].name);
+    tile.innerHTML='<span class="glyph" style="font-size:32px;">'+availableShapes[i].symbol+'</span>';
     tile.addEventListener('pointerdown',handleTilePointer,{passive:false});
     cells.push(tile); grid.appendChild(tile);
   }

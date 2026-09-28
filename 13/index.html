@@ -2777,24 +2777,15 @@ function sendEvent(
     eventName,
     payload={}
 ){
-
-    if(
-        !SDK_READY
-    ){
-
-        return;
-
+    const sdkObj = window.BoomRoomSDK;
+    if(sdkObj && typeof sdkObj.sendGameEvent === "function"){
+        try{
+            sdkObj.sendGameEvent(
+                eventName,
+                payload
+            );
+        }catch(e){}
     }
-
-    try{
-
-        SDK.sendGameEvent(
-            eventName,
-            payload
-        );
-
-    }catch(e){}
-
 }
 
 
@@ -3519,30 +3510,19 @@ function beginPurchase(){
     joinButton.textContent =
         "驗證銀幣中…";
 
-    if(
-        SDK_READY
-    ){
-
+    const sdkObj = window.BoomRoomSDK;
+    if(sdkObj && typeof sdkObj.requestPurchase === "function"){
         try{
-
-            SDK.requestPurchase(
+            sdkObj.requestPurchase(
                 itemId,
                 selectedBet
             );
-
         }catch(e){
-
-            joinButton.disabled =
-                false;
-
-            joinButton.textContent =
-                `支付 ${selectedBet} 銀幣加入`;
-
+            joinButton.disabled = false;
+            joinButton.textContent = `支付 ${selectedBet} 銀幣加入`;
         }
-
     }
     else{
-
         setTimeout(
             () =>
                 handlePurchaseSuccess(
@@ -3550,9 +3530,7 @@ function beginPurchase(){
                 ),
             120
         );
-
     }
-
 }
 
 
@@ -7799,13 +7777,10 @@ function applyCashout(
     soundCashout();
 
 
-    if(
-        SDK_READY
-    ){
-
+    const sdkObj = window.BoomRoomSDK;
+    if(sdkObj && typeof sdkObj.gameOver === "function"){
         try{
-
-            SDK.gameOver(
+            sdkObj.gameOver(
                 Math.max(
                     0,
                     Math.floor(
@@ -7813,9 +7788,7 @@ function applyCashout(
                     )
                 )
             );
-
         }catch(e){}
-
     }
 
 
@@ -7894,18 +7867,11 @@ function settleLoss(
     soundCrash();
 
 
-    if(
-        SDK_READY
-    ){
-
+    const sdkObj = window.BoomRoomSDK;
+    if(sdkObj && typeof sdkObj.gameOver === "function"){
         try{
-
-            SDK.gameOver(
-                0
-            );
-
+            sdkObj.gameOver(0);
         }catch(e){}
-
     }
 
 }
