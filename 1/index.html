@@ -5796,14 +5796,13 @@ function settleReward(){
         ME.id
     );
 
+  const baseEntry = Number(selectedEntry) > 0 ? Number(selectedEntry) : 100;
   const reward =
     idx === 0
-      ? selectedEntry*2
+      ? baseEntry * 2
       : idx === 1
-        ? Math.floor(
-            selectedEntry*.5
-          )
-        : 0;
+        ? Math.floor(baseEntry * 0.5)
+        : 50;
 
   const safe =
     Math.floor(

@@ -2286,10 +2286,10 @@ function handleGameEvent(name,payload,sender){
     return;
   }
 
-  if(event==='NEON_ROUND_START' || event==='ROUND_START'){
-    const hostId=String(payload.hostId||'');
-    if(hostId && hostId===getUserId()) return;
-    applyRemoteRoomSync({...payload,phase:'COUNTDOWN',countdownEndsAt:Number(payload.startAt||0),startAt:Number(payload.startAt||0)});
+  if(event==='SYNC_START_GAME' || event==='NEON_ROUND_START' || event==='ROUND_START'){
+    if(state.game==='LOBBY'||state.game==='MENU'){
+      forceStart();
+    }
     return;
   }
 
