@@ -5925,58 +5925,63 @@
     }
 
     const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!Recognition) return;
+    const btn=document.getElementById("voiceBtn");
+
+    if(!Recognition){
+      if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+      return;
+    }
 
     if(speechListening) return;
 
     ensureAudio();
     speechFinalText="";
-    speechRecognition=new Recognition();
-    speechRecognition.lang="zh-TW";
-    speechRecognition.continuous=true;
-    speechRecognition.interimResults=true;
-    speechRecognition.maxAlternatives=3;
+    try{
+      speechRecognition=new Recognition();
+      speechRecognition.lang="zh-TW";
+      speechRecognition.continuous=true;
+      speechRecognition.interimResults=true;
+      speechRecognition.maxAlternatives=3;
 
-    speechRecognition.onstart=()=>{
-      speechListening=true;
-      const btn=document.getElementById("voiceBtn");
-      if(btn){ btn.textContent="🎙️ 語音即時答題中"; }
-    };
+      speechRecognition.onstart=()=>{
+        speechListening=true;
+        if(btn){ btn.textContent="🎙️ 語音即時答題中"; }
+      };
 
-    speechRecognition.onresult=(event)=>{
-      for(let i=event.resultIndex; i<event.results.length; i++){
-        const transcript = event.results[i][0]?.transcript || "";
-        if(transcript.trim()){
-          const text = transcript.trim();
-          const input = document.getElementById("guessInput");
-          if(input) input.value = text;
+      speechRecognition.onresult=(event)=>{
+        for(let i=event.resultIndex; i<event.results.length; i++){
+          const transcript = event.results[i][0]?.transcript || "";
+          if(transcript.trim()){
+            const text = transcript.trim();
+            const input = document.getElementById("guessInput");
+            if(input) input.value = text;
 
-          if(currentWord && answerMatches(text, currentWord)){
-            submitGuess();
-            showToast("🎙️ 語音偵測到正確答案：「" + text + "」！");
-            break;
+            if(currentWord && answerMatches(text, currentWord)){
+              submitGuess();
+              showToast("🎙️ 語音偵測到正確答案：「" + text + "」！");
+              break;
+            }
           }
         }
-      }
-    };
+      };
 
-    speechRecognition.onerror=(event)=>{
-      if(event?.error === "no-speech") return;
-      speechListening=false;
-    };
+      speechRecognition.onerror=(event)=>{
+        if(event?.error === "no-speech") return;
+        speechListening=false;
+        if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+      };
 
-    speechRecognition.onend=()=>{
-      speechListening=false;
-      if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
-        setTimeout(startVoiceGuess, 300);
-      }
-    };
+      speechRecognition.onend=()=>{
+        speechListening=false;
+        if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
+          setTimeout(startVoiceGuess, 300);
+        }
+      };
 
-    try{
       speechRecognition.start();
     }catch(_){
       speechListening=false;
-      showToast("語音辨識無法啟動");
+      if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
     }
   }
 
