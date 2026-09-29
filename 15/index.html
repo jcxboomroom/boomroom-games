@@ -5899,24 +5899,41 @@
   }
 
   /* =========================================================
-     VOICE GUESS
-     使用瀏覽器 Web Speech API（需要玩家允許麥克風）。
-     這不是直接讀取 BoomRoom 語音房的原始音訊；目前檔案使用的
-     BoomRoomSDK 介面只有 getUser / sendGameEvent / gameOver，
-     沒有語音轉文字 API，因此只能做「瀏覽器麥克風語音猜題」。
+     VOICE GUESS (雙軌制：Flutter 原生橋接 + Web Speech API 優化)
   ========================================================= */
 
   function stopVoiceGuess(){
+    // 1. 如果是 APK 版，通知 Flutter 停止錄音
+    if (window.BoomRoomJS) {
+      window.BoomRoomJS.postMessage(JSON.stringify({ action: 'stopVoiceRecognition' }));
+    }
+
+    // 2. 如果是 Web 版，停止 Web Speech API
     if(speechRecognition){
       try{ speechRecognition.stop(); }catch(_){}
     }
     speechListening=false;
     const btn=document.getElementById("voiceBtn");
     if(btn){
-      btn.textContent="🎙️ 語音偵測中";
+      btn.textContent="🎙️ 語音房通暢中 (打字答題)";
       btn.title="語音即時答題中";
     }
   }
+
+  // 🌟 新增：專門接收來自 Flutter 原生語音辨識的結果
+  window.receiveVoiceText = function(text) {
+    if(!text || text.trim() === "") return;
+    const cleanText = text.trim();
+
+    const input = document.getElementById("guessInput");
+    if(input) input.value = cleanText;
+
+    if(currentWord && answerMatches(cleanText, currentWord)){
+      submitGuess();
+      showToast("🎙️ 語音偵測到正確答案：「" + cleanText + "」！");
+      stopVoiceGuess(); // 猜中就停止
+    }
+  };
 
   function startVoiceGuess(){
     if(state!==STATES.PLAYING || isDrawer() || matchEnded || (Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
@@ -5924,11 +5941,22 @@
       return;
     }
 
-    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
     const btn=document.getElementById("voiceBtn");
 
+    // 🌟 核心修改 1：如果是 APK (有注入 BoomRoomJS)，直接呼叫 Flutter 原生語音辨識
+    if (window.BoomRoomJS) {
+      if (speechListening) return;
+      speechListening = true;
+      if(btn) btn.textContent="🎙️ APP 語音辨識中";
+      window.BoomRoomJS.postMessage(JSON.stringify({ action: 'startVoiceRecognition' }));
+      return;
+    }
+
+    // 🌟 核心修改 2：如果是 Web 瀏覽器，使用優化版的 Web Speech API
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Recognition){
-      if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+      if(btn){ btn.textContent="❌ 瀏覽器不支援"; }
+      showToast("您的瀏覽器不支援語音辨識，請使用打字或下載 APP 版");
       return;
     }
 
@@ -5939,29 +5967,32 @@
     try{
       speechRecognition=new Recognition();
       speechRecognition.lang="zh-TW";
-      speechRecognition.continuous=true;
+
+      // ⚠️ 手機版 Chrome 不支援 continuous=true，會導致直接失效，因此動態判斷
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      speechRecognition.continuous = !isMobile;
       speechRecognition.interimResults=true;
-      speechRecognition.maxAlternatives=3;
+      speechRecognition.maxAlternatives=1;
 
       speechRecognition.onstart=()=>{
         speechListening=true;
-        if(btn){ btn.textContent="🎙️ 語音即時答題中"; }
+        if(btn){ btn.textContent="🎙️ 網頁語音辨識中"; }
       };
 
       speechRecognition.onresult=(event)=>{
+        let interimTranscript = '';
         for(let i=event.resultIndex; i<event.results.length; i++){
           const transcript = event.results[i][0]?.transcript || "";
-          if(transcript.trim()){
-            const text = transcript.trim();
-            const input = document.getElementById("guessInput");
-            if(input) input.value = text;
-
-            if(currentWord && answerMatches(text, currentWord)){
-              submitGuess();
-              showToast("🎙️ 語音偵測到正確答案：「" + text + "」！");
-              break;
-            }
+          if (event.results[i].isFinal) {
+             window.receiveVoiceText(transcript);
+          } else {
+             interimTranscript += transcript;
           }
+        }
+        // 即時顯示正在說的話
+        if(interimTranscript.trim()){
+           const input = document.getElementById("guessInput");
+           if(input) input.value = interimTranscript.trim();
         }
       };
 
@@ -5973,8 +6004,11 @@
 
       speechRecognition.onend=()=>{
         speechListening=false;
+        // 如果還在遊戲中且沒猜中，自動重啟 (解決手機瀏覽器容易自動斷開的問題)
         if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
           setTimeout(startVoiceGuess, 300);
+        } else {
+          if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
         }
       };
 
