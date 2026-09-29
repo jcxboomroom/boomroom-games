@@ -1583,258 +1583,169 @@ function drawPlatform(x,y,side){
 
 function drawBody(x,y,side,recoil){
   const isCat=side==="CAT";
+  const main=isCat?"#f2a0aa":"#e9d4ae";
+  const fur=isCat?"#d96375":"#b9814d";
+  const dark=isCat?"#552934":"#4a3023";
+  const cream=isCat?"#ffe3df":"#fff1d2";
   const active=side===currentSide() && GAME_STATE==="PLAYING";
   const throwP=side==="CAT"?throwAnimCat:throwAnimDog;
   const charge=active && isCharging ? chargeProgress : 0;
-  const r=characterReactions[side]||{};
-  const bob=active ? Math.sin(sceneTime*6)*1.7 : Math.sin(sceneTime*2.3+(isCat?0:1.5))*0.8;
-  const hurt=!!r.hit, block=!!r.block, happy=!!r.celebrate, miss=!!r.miss;
-  const lean=(throwP>0 ? throwP*.12 : 0) + charge*.05;
-
-  // 這裡只重新設計「人物本身」：
-  // 貓＝灰白毛＋紅圍巾＋大型藍鏡護目鏡
-  // 狗＝柴犬橘白毛＋藍圍巾＋大型藍鏡護目鏡
-  // 其餘戰鬥系統、操作、道具、地形與動畫狀態全部沿用上一版。
-  const furMain=isCat?"#7f8492":"#d9964d";
-  const furLight=isCat?"#f1f0f2":"#fff0cf";
-  const furDark=isCat?"#4f5362":"#a96838";
-  const innerEar=isCat?"#e89aa8":"#e9a678";
-  const scarf=isCat?"#e74b45":"#2f86d8";
-  const scarfDark=isCat?"#b93134":"#1e5da0";
-  const suit=isCat?"#343947":"#3c5262";
-  const strap="#2a3040";
-  const lens="#8fe3ff";
-  const lensGlow="#d9f8ff";
-  const eye="#25202a";
-  const mouth="#4a1820";
+  const bob=active ? Math.sin(sceneTime*6)*1.8 : Math.sin(sceneTime*2.4+(isCat?0:1.7))*1.0;
+  const lean=(throwP>0 ? throwP*.18 : 0) + charge*.07;
 
   ctx.save();
-  ctx.translate(x+(isCat?-recoil*6:recoil*6),y+bob);
-  // 再縮小角色，尤其壓低高度；保留一定寬度讓角色仍然醒目。
-  ctx.translate(0,10);
-  ctx.scale(0.62,0.54);
-  if(isCat){
-    ctx.transform(1,0,0,1,0,0);
-  }else{
-    ctx.transform(-1,0,0,1,0,0);
-  }
+  ctx.translate(x+(isCat?-recoil*6:recoil*6), y+bob);
 
-  if(hurt){ctx.rotate(-.055)}
-  else if(happy){ctx.rotate(Math.sin(sceneTime*18)*.03)}
-  else if(block){ctx.rotate(Math.sin(sceneTime*24)*.025)}
-
-  // 地面影子
+  // 地面小影子
   ctx.save();
-  ctx.globalAlpha=.22;ctx.fillStyle="#0a1220";
-  ctx.beginPath();ctx.ellipse(0,40,45,9,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.22;
+  ctx.fillStyle="#000";
+  ctx.beginPath();ctx.ellipse(0,37,39,8,0,0,Math.PI*2);ctx.fill();
   ctx.restore();
 
-  // 尾巴：貓尾蓬鬆、狗尾巴上翹
+  // 尾巴：先畫在身體後面
   ctx.save();
-  ctx.lineCap="round";
-  ctx.strokeStyle=furDark;
-  ctx.lineWidth=isCat?11:13;
+  ctx.lineWidth=8; ctx.lineCap="round";
+  ctx.strokeStyle=isCat?fur:dark;
   ctx.beginPath();
   if(isCat){
-    ctx.moveTo(-24,7);
-    ctx.bezierCurveTo(-58,0,-57,36,-29,28);
+    ctx.moveTo(-17,7);ctx.bezierCurveTo(-49,-1,-48,29,-25,27);
   }else{
-    ctx.moveTo(22,6);
-    ctx.bezierCurveTo(58,-7,58,31,34,24);
-  }
-  ctx.stroke();
-  ctx.strokeStyle=furLight;ctx.lineWidth=isCat?5:6;
-  ctx.beginPath();
-  if(isCat){
-    ctx.moveTo(-24,7);ctx.bezierCurveTo(-52,4,-50,29,-32,25);
-  }else{
-    ctx.moveTo(23,6);ctx.bezierCurveTo(51,-4,53,25,36,21);
+    ctx.moveTo(18,9);ctx.bezierCurveTo(50,-4,48,28,28,28);
   }
   ctx.stroke();
   ctx.restore();
 
-  // 小短腿＋靴子
-  ctx.fillStyle=furDark;
-  roundRect(-24,12,16,26,7);ctx.fill();
-  roundRect(8,12,16,26,7);ctx.fill();
-  ctx.fillStyle=strap;
-  roundRect(-29,33,21,9,5);ctx.fill();
-  roundRect(7,33,21,9,5);ctx.fill();
+  // 腿＋鞋
+  ctx.fillStyle=dark;
+  roundRect(-20,13,13,24,6);ctx.fill();
+  roundRect(7,13,13,24,6);ctx.fill();
+  ctx.fillStyle=isCat?"#2e2731":"#382c27";
+  roundRect(-24,31,18,8,4);ctx.fill();
+  roundRect(6,31,18,8,4);ctx.fill();
 
-  // 身體：略微胖一點、更像主視覺角色
-  ctx.save();ctx.rotate(-lean*.55);
-  ctx.fillStyle=furDark;roundRect(-32,-4,64,41,20);ctx.fill();
-  ctx.fillStyle=furMain;roundRect(-34,-43,68,58,24);ctx.fill();
+  // 身體
+  ctx.save(); ctx.rotate(-lean);
+  ctx.fillStyle=fur; roundRect(-25,-2,50,35,17); ctx.fill();
+  ctx.fillStyle=main; roundRect(-28,-39,56,47,21); ctx.fill();
 
-  // 戰鬥背心＋肩帶
-  ctx.fillStyle=suit;roundRect(-30,1,60,31,12);ctx.fill();
-  ctx.strokeStyle="#121827";ctx.lineWidth=5;
-  ctx.beginPath();ctx.moveTo(-21,-37);ctx.lineTo(-12,14);ctx.moveTo(21,-37);ctx.lineTo(12,14);ctx.stroke();
-  ctx.fillStyle=isCat?"#e85c5c":"#3f9bc7";
-  roundRect(-6,5,12,20,6);ctx.fill();
+  // 小背心／護具
+  ctx.fillStyle=isCat?"#3d3a50":"#38556a";
+  roundRect(-26,4,52,24,10);ctx.fill();
+  ctx.fillStyle=isCat?"#ffd36f":"#88daf5";
+  roundRect(-5,6,10,19,5);ctx.fill();
 
-  // 大頭＋耳朵
-  ctx.fillStyle=furMain;
-  ctx.beginPath();ctx.arc(0,-92,73,0,Math.PI*2);ctx.fill();
-
+  // 耳朵
   if(isCat){
-    // 貓耳
-    ctx.beginPath();ctx.moveTo(-58,-125);ctx.lineTo(-49,-186);ctx.lineTo(-7,-143);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(58,-125);ctx.lineTo(50,-186);ctx.lineTo(7,-143);ctx.closePath();ctx.fill();
-    ctx.fillStyle=innerEar;
-    ctx.beginPath();ctx.moveTo(-47,-132);ctx.lineTo(-43,-166);ctx.lineTo(-19,-143);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(47,-132);ctx.lineTo(45,-166);ctx.lineTo(20,-142);ctx.closePath();ctx.fill();
-    // 額頭毛
-    ctx.fillStyle=furLight;
-    ctx.beginPath();ctx.moveTo(-28,-151);ctx.lineTo(-13,-178);ctx.lineTo(0,-153);ctx.lineTo(14,-178);ctx.lineTo(30,-150);ctx.closePath();ctx.fill();
+    ctx.fillStyle=main;
+    ctx.beginPath();ctx.moveTo(-23,-34);ctx.lineTo(-15,-57);ctx.lineTo(-3,-35);ctx.fill();
+    ctx.beginPath();ctx.moveTo(3,-35);ctx.lineTo(17,-57);ctx.lineTo(24,-30);ctx.fill();
+    ctx.fillStyle="#d66b7d";
+    ctx.beginPath();ctx.moveTo(-18,-38);ctx.lineTo(-15,-48);ctx.lineTo(-9,-37);ctx.fill();
+    ctx.beginPath();ctx.moveTo(9,-38);ctx.lineTo(16,-48);ctx.lineTo(19,-34);ctx.fill();
   }else{
-    // 柴犬大三角耳
-    ctx.beginPath();ctx.moveTo(-54,-126);ctx.quadraticCurveTo(-74,-167,-50,-184);ctx.quadraticCurveTo(-18,-154,-11,-134);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(54,-126);ctx.quadraticCurveTo(74,-167,50,-184);ctx.quadraticCurveTo(18,-154,11,-134);ctx.closePath();ctx.fill();
-    ctx.fillStyle=innerEar;
-    ctx.beginPath();ctx.moveTo(-49,-139);ctx.quadraticCurveTo(-61,-165,-49,-169);ctx.quadraticCurveTo(-31,-153,-18,-138);ctx.closePath();ctx.fill();
-    ctx.beginPath();ctx.moveTo(49,-139);ctx.quadraticCurveTo(61,-165,49,-169);ctx.quadraticCurveTo(31,-153,18,-138);ctx.closePath();ctx.fill();
-    // 白色額心
-    ctx.fillStyle=furLight;
-    ctx.beginPath();ctx.moveTo(-15,-160);ctx.quadraticCurveTo(0,-177,15,-160);ctx.lineTo(20,-92);ctx.quadraticCurveTo(0,-70,-20,-92);ctx.closePath();ctx.fill();
+    // 柴犬大耳
+    ctx.fillStyle=fur;
+    ctx.beginPath();ctx.moveTo(-22,-30);ctx.quadraticCurveTo(-43,-51,-36,-13);ctx.quadraticCurveTo(-29,-4,-16,-18);ctx.fill();
+    ctx.beginPath();ctx.moveTo(22,-30);ctx.quadraticCurveTo(43,-51,36,-13);ctx.quadraticCurveTo(29,-4,16,-18);ctx.fill();
+    ctx.fillStyle="#7d4f32";
+    ctx.beginPath();ctx.ellipse(-31,-23,8,13,-.28,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(31,-23,8,13,.28,0,Math.PI*2);ctx.fill();
   }
 
-  // 臉頰白毛
-  ctx.fillStyle=furLight;
-  ctx.beginPath();ctx.ellipse(-28,-77,25,20,-.16,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(28,-77,25,20,.16,0,Math.PI*2);ctx.fill();
+  // 臉
+  ctx.fillStyle=cream;
+  ctx.beginPath();ctx.ellipse(0,-15,isCat?24:27,isCat?20:22,0,0,Math.PI*2);ctx.fill();
 
-  // 超大的主視覺護目鏡
-  ctx.save();
-  ctx.translate(0,-122);
-  ctx.fillStyle=strap;
-  roundRect(-68,-10,136,28,14);ctx.fill();
-  ctx.strokeStyle="#161c2a";ctx.lineWidth=4;
-  ctx.fillStyle="#58bfea";
-  ctx.beginPath();ctx.ellipse(-32,4,29,23,-.08,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(32,4,29,23,.08,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="#bff4ff";ctx.lineWidth=4;
-  ctx.beginPath();ctx.ellipse(-32,4,24,18,-.08,0,Math.PI*2);ctx.stroke();
-  ctx.beginPath();ctx.ellipse(32,4,24,18,.08,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle=lensGlow;ctx.globalAlpha=.72;
-  ctx.beginPath();ctx.ellipse(-38,-1,8,4,-.4,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(26,-1,8,4,-.4,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=1;
-  ctx.fillStyle="#252b39";roundRect(-5,0,10,7,3);ctx.fill();
-  ctx.restore();
-
-  // 眉毛：戰鬥時更有氣勢
-  ctx.strokeStyle=eye;ctx.lineWidth=7;ctx.lineCap="round";
-  ctx.beginPath();
-  if(hurt){
-    ctx.moveTo(-43,-92);ctx.lineTo(-15,-84);
-    ctx.moveTo(15,-84);ctx.lineTo(43,-92);
+  // 護目鏡：有點笨又有趣
+  ctx.fillStyle="#252735";
+  if(isCat){
+    ctx.save();ctx.translate(0,-28);
+    ctx.fillRect(-21,-4,42,5);
+    ctx.fillStyle="#9feaff";
+    ctx.beginPath();ctx.arc(-10,1,8,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(10,1,8,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#252735";ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(-2,1);ctx.lineTo(2,1);ctx.stroke();
+    ctx.restore();
   }else{
-    ctx.moveTo(-44,-98);ctx.lineTo(-15,-105);
-    ctx.moveTo(15,-105);ctx.lineTo(44,-98);
+    ctx.fillStyle="#dff8ff";
+    ctx.beginPath();ctx.ellipse(-10,-22,8,6,-.1,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(10,-22,8,6,.1,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#24313c";ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(-4,-22);ctx.lineTo(4,-22);ctx.stroke();
   }
-  ctx.stroke();
 
   // 眼睛
-  ctx.fillStyle=eye;
-  ctx.beginPath();ctx.ellipse(-22,-76,10,14,-.08,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(22,-76,10,14,.08,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#fff";
-  ctx.beginPath();ctx.arc(-18,-81,3.5,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.arc(18,-81,3.5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#1e1b25";
+  ctx.beginPath();ctx.arc(-10,-11,3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(10,-11,3,0,Math.PI*2);ctx.fill();
 
-  // 鼻口：攻擊時張嘴、命中時扁嘴、閃避時鬆口氣
-  ctx.fillStyle=isCat?"#b95b68":"#2a201d";
-  ctx.beginPath();
-  ctx.arc(0,-58,5,0,Math.PI*2);ctx.fill();
-
-  if(hurt){
-    ctx.fillStyle=mouth;
-    ctx.beginPath();ctx.ellipse(0,-43,19,11,0,0,Math.PI*2);ctx.fill();
-  }else if(active||throwP>.15){
-    ctx.fillStyle=mouth;
-    ctx.beginPath();ctx.ellipse(0,-43,20,16,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#fff";
-    ctx.beginPath();ctx.arc(0,-49,13,Math.PI,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#f18e9a";
-    ctx.beginPath();ctx.ellipse(0,-37,11,8,0,0,Math.PI*2);ctx.fill();
+  // 表情
+  if(isCat){
+    ctx.fillStyle="#a44355";
+    ctx.beginPath();ctx.arc(0,-2,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#7b3444";ctx.lineWidth=2;ctx.lineCap="round";
+    ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(-20,3);ctx.moveTo(-8,4);ctx.lineTo(-21,9);ctx.moveTo(8,0);ctx.lineTo(20,3);ctx.moveTo(8,4);ctx.lineTo(21,9);ctx.stroke();
   }else{
-    ctx.strokeStyle=mouth;ctx.lineWidth=4;
-    ctx.beginPath();ctx.arc(0,-47,13,.1,Math.PI-.1);ctx.stroke();
+    ctx.fillStyle="#2b201d";
+    ctx.beginPath();ctx.ellipse(0,-3,5,4,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#2b201d";ctx.lineWidth=3;ctx.lineCap="round";
+    ctx.beginPath();ctx.arc(0,1,10,.15,Math.PI-.15);ctx.stroke();
+    // 舌頭：讓狗真的像個傻氣砲手
+    if(active || throwP>.2){
+      ctx.fillStyle="#f28f9c";
+      ctx.beginPath();ctx.ellipse(0,11,5,8,0,0,Math.PI*2);ctx.fill();
+    }
   }
 
-  // 貓鬍鬚／狗口鼻紋
-  ctx.strokeStyle=isCat?"#676b78":"#9b6c4a";ctx.lineWidth=2;
-  if(isCat){
-    ctx.beginPath();
-    ctx.moveTo(-8,-57);ctx.lineTo(-51,-49);
-    ctx.moveTo(-8,-52);ctx.lineTo(-54,-34);
-    ctx.moveTo(8,-57);ctx.lineTo(51,-49);
-    ctx.moveTo(8,-52);ctx.lineTo(54,-34);
-    ctx.stroke();
-  }else{
-    ctx.strokeStyle="#8b5f43";ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(-12,-58);ctx.lineTo(-23,-52);ctx.moveTo(12,-58);ctx.lineTo(23,-52);ctx.stroke();
-  }
-
-  // 圍巾：照主視覺改成更醒目的大結
-  ctx.fillStyle=scarf;roundRect(-37,-20,74,14,6);ctx.fill();
-  ctx.fillStyle=scarfDark;
+  // 圍巾
+  ctx.fillStyle=isCat?"#f6c85f":"#e05b5f";
+  roundRect(-27,-1,54,9,4);ctx.fill();
   ctx.beginPath();
   if(isCat){
-    ctx.moveTo(25,-10);ctx.lineTo(58,8);ctx.lineTo(35,17);ctx.closePath();
+    ctx.moveTo(14,6);ctx.lineTo(31,14);ctx.lineTo(20,19);ctx.closePath();
   }else{
-    ctx.moveTo(-25,-10);ctx.lineTo(-58,10);ctx.lineTo(-34,18);ctx.closePath();
+    ctx.moveTo(-16,6);ctx.lineTo(-33,17);ctx.lineTo(-26,21);ctx.closePath();
   }
   ctx.fill();
 
   ctx.restore();
 
-  // 手臂：保留上一版「跟隨瞄準方向＋蓄力」機制
+  // 手臂：永遠朝向玩家手指的位置；按住時往後蓄力，放手時甩出去。
   const armBack=isCat?-1:1;
   const windup=isCharging&&active ? charge : 0;
-  const swing=throwP>0 ? (1-throwP) : 0;
+  const swing=throwP>0 ? (1-throwP)*1.0 : 0;
+
   let targetDirX=armBack, targetDirY=0;
   if(active && aimPoint){
-    const dx=aimPoint.x-x, dy=aimPoint.y-(y+3);
+    const dx=aimPoint.x-x;
+    const dy=aimPoint.y-(y+2);
     const len=Math.max(1,Math.hypot(dx,dy));
-    targetDirX=dx/len; targetDirY=dy/len;
+    targetDirX=dx/len;
+    targetDirY=dy/len;
     if(side==="DOG") targetDirX=-targetDirX;
   }
 
-  const armX=(targetDirX*27)-targetDirX*windup*13+targetDirX*swing*18;
-  const armY=5+targetDirY*22-windup*8-swing*16;
+  const armX=(targetDirX*24) - targetDirX*windup*12 + targetDirX*swing*16;
+  const armY=6 + targetDirY*22 + (-windup*7) - swing*15;
 
   ctx.save();
-  ctx.strokeStyle=furMain;ctx.lineWidth=15;ctx.lineCap="round";
-  ctx.beginPath();ctx.moveTo(armBack*24,-1);ctx.quadraticCurveTo(armBack*32,armY,armX,armY);ctx.stroke();
-  ctx.fillStyle=furLight;ctx.beginPath();ctx.arc(armX,armY,10,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=fur; ctx.lineWidth=11; ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(armBack*18,3);ctx.quadraticCurveTo(armBack*29,armY,armX,armY);ctx.stroke();
+  ctx.fillStyle=cream;ctx.beginPath();ctx.arc(armX,armY,7,0,Math.PI*2);ctx.fill();
 
-  // 蓄力中的砲彈
+  // 手上的砲彈：只有蓄力時看得到，放手後飛走
   if(isCharging&&active){
-    const pulse=1+charge*.25+.07*Math.sin(sceneTime*18);
-    ctx.save();ctx.translate(armX,armY-8);ctx.scale(pulse,pulse);
-    ctx.fillStyle="#252a34";ctx.shadowBlur=17;ctx.shadowColor="#ff9c33";
-    ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
+    const pulse=1+charge*.35+.08*Math.sin(sceneTime*18);
+    ctx.save();ctx.translate(armX,armY-5);ctx.scale(pulse,pulse);
+    ctx.fillStyle="#ffe07b";ctx.shadowBlur=18;ctx.shadowColor="#ffb52e";
+    ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
-    ctx.fillStyle="#ffd35a";ctx.beginPath();ctx.arc(4,-5,3.5,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle="#8b6636";ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(2,-9);ctx.lineTo(7,-15);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*1.4);ctx.stroke();
     ctx.restore();
   }
-
-  // 角色小表情，不改系統，只利用原有反應狀態
-  let emote="";
-  if(hurt) emote="💫";
-  else if(block) emote="🛡️";
-  else if(happy) emote="😎";
-  else if(miss) emote="😮‍💨";
-  if(emote){
-    ctx.save();ctx.globalAlpha=.9;
-    ctx.font="26px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText(emote,0,-182-Math.sin(sceneTime*8)*2);ctx.restore();
-  }
-
   ctx.restore();
 }
 
