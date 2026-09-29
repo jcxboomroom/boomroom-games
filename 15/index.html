@@ -485,6 +485,12 @@
       gap:6px;
       flex-wrap:wrap;
       flex:0 0 auto;
+      align-items:center;
+    }
+
+    .tools .tool:not(.color){
+      padding:0 10px;
+      font-size:11px;
     }
 
     .tool{
@@ -503,6 +509,10 @@
     .tool.active{
       outline:2px solid var(--cyan);
       outline-offset:-2px;
+    }
+
+    .color.active{
+      box-shadow:0 0 0 3px #62e7ff88, inset 0 0 0 2px #111625;
     }
 
     .color{
@@ -796,10 +806,10 @@
     id:"boom_draw_guess",
     category:"派對競技",
     name:"爆爆你畫我猜",
-    description:"選擇題型、輪數與秒數，輪流作畫，搶猜得分！",
+    description:"依實際畫畫難度選題型，輪流作畫，搶猜得分！",
     entryCost:100,
     maxPlayers:10,
-    version:"1.6.0"
+    version:"1.8.0"
   };
 
   const CONFIG=Object.freeze({
@@ -830,7 +840,13 @@
 
     MAX_STROKES:140,
 
-    MAX_POINTS_PER_STROKE:2000
+    MAX_POINTS_PER_STROKE:2000,
+
+  /* 猜中排名獎勵：第 1 / 2 / 3 名 */
+  GUESS_REWARDS:[150,120,90],
+
+  /* 畫家在本回合有人猜中後取得一次獎勵 */
+  DRAWER_CORRECT_REWARD:100
   });
 
   const STATES=Object.freeze({
@@ -844,94 +860,213 @@
     RESULT:"RESULT"
   });
 
+  /* =========================================================
+     題型：依「實際畫畫難度」分類
+     ★ 簡單：輪廓直觀、幾筆就能畫出來
+     ★★ 中等：需要多一點特徵或細節
+     ★★★ 困難：仍然可以畫，但需要較完整的構圖
+     ========================================================= */
+
   const CATEGORIES=Object.freeze([
-
     {
-      id:"food",
+      id:"food_easy",
       name:"美食",
+      difficulty:"簡單",
+      difficultyStars:"★",
       icon:"🍔",
-      hint:"吃的、喝的、甜點"
+      hint:"一眼就能畫出的食物"
     },
-
     {
-      id:"animals",
+      id:"animals_easy",
       name:"動物",
+      difficulty:"簡單",
+      difficultyStars:"★",
       icon:"🐱",
-      hint:"陸地、海洋、天空"
+      hint:"輪廓簡單、特徵明顯"
     },
-
     {
-      id:"daily",
-      name:"日常",
+      id:"daily_easy",
+      name:"日常用品",
+      difficulty:"簡單",
+      difficultyStars:"★",
       icon:"🏠",
-      hint:"生活中常見的東西"
+      hint:"家裡常見、容易畫"
     },
-
     {
-      id:"places",
-      name:"地點",
-      icon:"🚕",
-      hint:"景點、車輛、場所"
+      id:"school_easy",
+      name:"校園物品",
+      difficulty:"簡單",
+      difficultyStars:"★",
+      icon:"🎒",
+      hint:"學生熟悉、線條簡單"
     },
-
     {
-      id:"people",
-      name:"職業",
-      icon:"🧑",
-      hint:"職業、角色、人物"
+      id:"toys_easy",
+      name:"玩具",
+      difficulty:"簡單",
+      difficultyStars:"★",
+      icon:"🧸",
+      hint:"形狀好辨認"
     },
-
     {
-      id:"fantasy",
+      id:"transport_easy",
+      name:"交通工具",
+      difficulty:"簡單",
+      difficultyStars:"★",
+      icon:"🚗",
+      hint:"車子、船、飛機等"
+    },
+    {
+      id:"food_medium",
+      name:"飲料甜點",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"🧋",
+      hint:"杯子、冰品、甜點造型"
+    },
+    {
+      id:"sports_medium",
+      name:"運動",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"⚽",
+      hint:"球類與簡單運動動作"
+    },
+    {
+      id:"jobs_medium",
+      name:"職業人物",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"🧑‍🍳",
+      hint:"用制服、道具表現職業"
+    },
+    {
+      id:"places_medium",
+      name:"地點場景",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"🏞️",
+      hint:"簡單場景與場所"
+    },
+    {
+      id:"nature_medium",
+      name:"自然",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"🌳",
+      hint:"植物、天氣、自然景象"
+    },
+    {
+      id:"festivals_medium",
+      name:"節慶",
+      difficulty:"中等",
+      difficultyStars:"★★",
+      icon:"🎉",
+      hint:"節日物品與慶祝元素"
+    },
+    {
+      id:"fantasy_hard",
       name:"幻想",
-      icon:"🚀",
-      hint:"遊戲、幻想、電影感"
+      difficulty:"困難",
+      difficultyStars:"★★★",
+      icon:"🐉",
+      hint:"需要靠特徵與組合畫出來"
+    },
+    {
+      id:"adventure_hard",
+      name:"冒險寶物",
+      difficulty:"困難",
+      difficultyStars:"★★★",
+      icon:"🗺️",
+      hint:"仍可具象作畫，但細節較多"
     }
-
   ]);
 
+  /* 題目全部以「實際能畫出來」為前提，移除太抽象、太複雜、
+     很難靠圖像猜出的詞。每個題型至少 30 題，足以支援多人多輪。 */
   const WORD_BANK={
-    food:[
-      ["披薩"],["漢堡"],["薯條"],["炸雞"],["火鍋"],["拉麵"],["珍珠奶茶",["珍奶"]],["冰淇淋"],["蛋糕"],["壽司"],
-      ["章魚燒"],["水餃"],["蛋炒飯"],["牛排"],["香腸"],["爆米花"],["甜甜圈"],["巧克力"],["棒棒糖"],["吐司"],
-      ["三明治"],["熱狗"],["鬆餅"],["剉冰"],["布丁"],["蛋塔"],["鳳梨"],["香蕉"],["草莓"],["蘋果"],
-      ["柳橙"],["葡萄"],["檸檬"],["水蜜桃"],["水梨"],["芒果"],["椰子"],["玉米"],["南瓜"],["番茄"],
-      ["胡蘿蔔"],["花椰菜"],["香菇"],["麵包"],["牛奶"],["果汁"],["咖啡"],["餅乾"],["可頌"],["雞蛋"]
+    food_easy:[
+      ["蘋果"],["香蕉"],["西瓜"],["草莓"],["葡萄"],["鳳梨"],["橘子"],["檸檬"],["芒果"],["水梨"],
+      ["玉米"],["南瓜"],["番茄"],["胡蘿蔔"],["雞蛋"],["麵包"],["吐司"],["漢堡"],["披薩"],["薯條"],
+      ["炸雞"],["熱狗"],["香腸"],["蛋糕"],["甜甜圈"],["餅乾"],["棒棒糖"],["冰淇淋"],["壽司"],["水餃"],
+      ["拉麵"],["炒飯"],["牛排"],["火鍋"],["爆米花"],["巧克力"]
     ],
-    animals:[
-      ["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["企鵝"],["熊貓"],["無尾熊"],["黑熊"],
-      ["猴子"],["大猩猩"],["長頸鹿"],["斑馬"],["馬"],["乳牛"],["豬"],["綿羊"],["山羊"],["雞"],
-      ["鴨子"],["鵝"],["老鷹"],["貓頭鷹"],["鸚鵡"],["麻雀"],["火鶴"],["天鵝"],["孔雀"],["海豚"],
-      ["鯨魚"],["鯊魚"],["章魚"],["螃蟹"],["海星"],["烏龜"],["青蛙"],["蛇"],["蜥蜴"],["鱷魚"],
-      ["河馬"],["犀牛"],["袋鼠"],["狐狸"],["狼"],["梅花鹿"],["松鼠"],["刺蝟"],["蜜蜂"],["蝴蝶"]
+    animals_easy:[
+      ["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["猴子"],["熊貓"],["無尾熊"],["黑熊"],
+      ["馬"],["乳牛"],["豬"],["綿羊"],["山羊"],["雞"],["鴨子"],["鵝"],["鸚鵡"],["貓頭鷹"],
+      ["企鵝"],["海豚"],["鯨魚"],["鯊魚"],["章魚"],["螃蟹"],["海星"],["烏龜"],["青蛙"],["蛇"],
+      ["長頸鹿"],["斑馬"],["狐狸"],["狼"],["袋鼠"],["松鼠"],["刺蝟"],["蜜蜂"]
     ],
-    daily:[
-      ["雨傘"],["眼鏡"],["電視"],["手機"],["腳踏車",["自行車","單車"]],["手錶"],["牙刷"],["書包"],["背包"],["筆記本"],
-      ["鉛筆"],["橡皮擦"],["尺"],["剪刀"],["書本"],["檯燈"],["時鐘"],["鏡子"],["梳子"],["吹風機"],
-      ["鞋子"],["襪子"],["帽子"],["外套"],["錢包"],["鑰匙"],["門"],["窗戶"],["椅子"],["桌子"],
-      ["沙發"],["床"],["枕頭"],["棉被"],["冰箱"],["洗衣機"],["微波爐"],["電鍋"],["電風扇"],["吸塵器"],
-      ["掃把"],["拖把"],["垃圾桶"],["杯子"],["盤子"],["碗"],["湯匙"],["叉子"],["筷子"],["雨衣"]
+    daily_easy:[
+      ["雨傘"],["眼鏡"],["手機"],["手錶"],["牙刷"],["書包"],["背包"],["鉛筆"],["橡皮擦"],["尺"],
+      ["剪刀"],["書本"],["檯燈"],["時鐘"],["鏡子"],["梳子"],["鞋子"],["襪子"],["帽子"],["外套"],
+      ["錢包"],["鑰匙"],["門"],["窗戶"],["椅子"],["桌子"],["沙發"],["床"],["枕頭"],["杯子"],
+      ["盤子"],["碗"],["湯匙"],["叉子"],["筷子"],["掃把"],["拖把"],["垃圾桶"]
     ],
-    places:[
-      ["摩天輪"],["遊樂園"],["動物園"],["醫院"],["超市"],["飛機"],["火車"],["公車"],["計程車"],["捷運"],
-      ["機場"],["車站"],["學校"],["圖書館"],["博物館"],["電影院"],["餐廳"],["咖啡廳"],["麵包店"],["公園"],
-      ["海邊"],["山"],["瀑布"],["小島"],["大橋"],["隧道"],["城堡"],["寺廟"],["傳統市場"],["便利商店"],
-      ["銀行"],["郵局"],["消防局"],["警察局"],["加油站"],["港口"],["游泳池"],["遊樂場"],["體育館"],["健身房"],
-      ["飯店"],["露營區"],["農場"],["水族館"],["沙灘"],["森林"],["街道"],["夜市"],["公車站牌"],["超商"]
+    school_easy:[
+      ["鉛筆盒"],["鉛筆"],["彩色筆"],["蠟筆"],["橡皮擦"],["尺"],["剪刀"],["膠水"],["畫紙"],["課本"],
+      ["作業本"],["書包"],["黑板"],["粉筆"],["黑板擦"],["書桌"],["椅子"],["地球儀"],["鐘"],["校車"],
+      ["午餐盒"],["水壺"],["便當"],["文具盒"],["三角板"],["圓規"],["書架"],["垃圾桶"],["球"],["跳繩"],
+      ["羽球拍"],["籃球"],["足球"],["制服"],["帽子"],["獎杯"]
     ],
-    people:[
-      ["醫生"],["警察"],["消防員"],["司機"],["歌手"],["國王"],["忍者"],["老師"],["學生"],["廚師"],
-      ["麵包師"],["農夫"],["漁夫"],["太空人"],["飛行員"],["攝影師"],["畫家"],["魔術師"],["偵探"],["士兵"],
-      ["郵差"],["收銀員"],["理髮師"],["牙醫"],["科學家"],["工程師"],["程式設計師"],["音樂家"],["舞者"],["演員"],
-      ["運動員"],["裁判"],["救生員"],["外送員"],["服務生"],["修車工"],["建築工人"],["園丁"],["獸醫"],["法官"],
-      ["律師"],["建築師"],["裁縫師"],["導遊"],["記者"],["保全"],["清潔工"],["超級英雄"],["公主"],["海盜"]
+    toys_easy:[
+      ["積木"],["玩偶"],["熊布偶"],["玩具車"],["玩具火車"],["玩具飛機"],["玩具船"],["機器人"],["紙飛機"],["風箏"],
+      ["溜溜球"],["彈珠"],["陀螺"],["泡泡"],["氣球"],["跳繩"],["呼拉圈"],["拼圖"],["積木城堡"],["玩具槍"],
+      ["玩具劍"],["玩具錘"],["玩具恐龍"],["玩具熊"],["玩具兔"],["玩具狗"],["玩具廚房"],["玩具電話"],["魔術方塊"],["桌遊骰子"],
+      ["橡皮泥"],["黏土人偶"],["泡泡槍"],["玩具鼓"],["玩具吉他"],["玩具皇冠"]
     ],
-    fantasy:[
-      ["魔法帽"],["魔法杖"],["皇冠"],["寶箱"],["鑰匙"],["盾牌"],["弓箭"],["寶劍"],["盔甲"],["巨龍"],
-      ["獨角獸"],["美人魚"],["巫師"],["女巫"],["精靈"],["小精靈"],["騎士"],["海盜"],["吸血鬼"],["狼人"],
-      ["幽靈"],["木乃伊"],["怪獸"],["機器人"],["太空人"],["外星人"],["火箭"],["飛碟"],["太空船"],["UFO"],
-      ["巨人"],["鳳凰"],["史萊姆"],["忍者"],["魔法藥水"],["水晶球"],["魔法書"],["魔法門"],["城堡"],["龍蛋"],
-      ["寶藏"],["金幣"],["骷髏"],["南瓜怪"],["鬼屋"],["魔法貓"],["魔法狗"],["飛天掃帚"],["魔法戒指"],["惡魔角"]
+    transport_easy:[
+      ["腳踏車",["自行車","單車"]],["機車"],["汽車"],["計程車"],["公車"],["卡車"],["消防車"],["救護車"],["警車"],["校車"],
+      ["火車"],["高鐵"],["捷運"],["飛機"],["直升機"],["火箭"],["船"],["帆船"],["潛水艇"],["熱氣球"],
+      ["滑板車"],["滑板"],["獨木舟"],["纜車"],["摩天輪"],["拖拉機"],["挖土機"],["吊車"],["垃圾車"],["郵車"],
+      ["火車站月台"],["紅綠燈"],["斑馬線"],["停車場"],["加油站"],["路牌"]
+    ],
+    food_medium:[
+      ["珍珠奶茶",["珍奶"]],["奶茶"],["果汁"],["可樂"],["汽水"],["咖啡"],["熱可可"],["檸檬茶"],["冰沙"],["雪花冰"],
+      ["剉冰"],["布丁"],["蛋塔"],["鬆餅"],["可麗餅"],["三明治"],["章魚燒"],["雞塊"],["薯餅"],["關東煮"],
+      ["燒賣"],["鍋貼"],["飯糰"],["粽子"],["月餅"],["漢堡排"],["起司蛋糕"],["草莓蛋糕"],["水果蛋糕"],["冰棒"],
+      ["甜筒"],["棉花糖"],["鬆餅塔"],["奶油蛋糕"],["可頌"]
+    ],
+    sports_medium:[
+      ["足球"],["籃球"],["棒球"],["排球"],["羽球"],["網球"],["桌球"],["高爾夫"],["保齡球"],["游泳"],
+      ["跑步"],["跳高"],["跳遠"],["騎腳踏車"],["滑冰"],["溜冰"],["滑雪"],["衝浪"],["跳繩"],["拔河"],
+      ["踢毽子"],["射箭"],["拳擊"],["摔角"],["體操"],["瑜伽"],["啦啦隊"],["釣魚"],["爬山"],["露營"],
+      ["丟飛盤"],["接球"],["踢球"],["投籃"],["打棒球"]
+    ],
+    jobs_medium:[
+      ["醫生"],["護士"],["警察"],["消防員"],["廚師"],["老師"],["學生"],["司機"],["飛行員"],["郵差"],
+      ["農夫"],["漁夫"],["理髮師"],["牙醫"],["攝影師"],["畫家"],["歌手"],["舞者"],["魔術師"],["偵探"],
+      ["建築工人"],["清潔工"],["園丁"],["獸醫"],["收銀員"],["外送員"],["服務生"],["修車工"],["裁縫師"],["導遊"],
+      ["記者"],["運動員"],["裁判"],["救生員"],["機器人操作員"]
+    ],
+    places_medium:[
+      ["學校"],["醫院"],["超市"],["便利商店"],["餐廳"],["咖啡廳"],["麵包店"],["公園"],["遊樂園"],["動物園"],
+      ["電影院"],["圖書館"],["水族館"],["游泳池"],["體育館"],["夜市"],["市場"],["車站"],["機場"],["港口"],
+      ["海邊"],["沙灘"],["森林"],["農場"],["露營區"],["山"],["瀑布"],["小島"],["大橋"],["隧道"],
+      ["遊戲場"],["教室"],["廚房"],["客廳"],["臥室"]
+    ],
+    nature_medium:[
+      ["太陽"],["月亮"],["星星"],["雲"],["下雨"],["彩虹"],["閃電"],["雪"],["風"],["火"],
+      ["樹"],["花"],["向日葵"],["玫瑰"],["仙人掌"],["大樹"],["草"],["葉子"],["松樹"],["竹子"],
+      ["山"],["河流"],["湖"],["瀑布"],["海浪"],["海灘"],["小島"],["火山"],["石頭"],["貝殼"],
+      ["雪人"],["秋天落葉"],["春天花朵"],["夜空"],["日出"]
+    ],
+    festivals_medium:[
+      ["生日蛋糕"],["生日帽"],["生日氣球"],["禮物"],["紅包"],["燈籠"],["鞭炮"],["月餅"],["春聯"],["湯圓"],
+      ["粽子"],["聖誕樹"],["聖誕帽"],["聖誕襪"],["雪人"],["煙火"],["南瓜"],["萬聖節面具"],["彩蛋"],["復活節兔子"],
+      ["花圈"],["派對帽"],["彩帶"],["蛋糕蠟燭"],["氣球拱門"],["遊行花車"],["獎杯"],["畢業帽"],["畢業證書"],["校慶旗子"]
+    ],
+    fantasy_hard:[
+      ["巨龍"],["獨角獸"],["美人魚"],["巫師"],["女巫"],["騎士"],["海盜"],["精靈"],["幽靈"],["吸血鬼"],
+      ["狼人"],["木乃伊"],["機器人"],["外星人"],["怪獸"],["火箭"],["飛碟"],["城堡"],["寶劍"],["盾牌"],
+      ["弓箭"],["皇冠"],["寶箱"],["魔法杖"],["魔法帽"],["魔法書"],["水晶球"],["魔法藥水"],["飛天掃帚"],["龍蛋"],
+      ["金幣寶藏"],["鬼屋"],["魔法門"],["巨大城堡"],["魔法戒指"]
+    ],
+    adventure_hard:[
+      ["地圖"],["指南針"],["望遠鏡"],["探險背包"],["寶藏箱"],["寶藏地圖"],["金幣"],["皇冠"],["鑰匙"],["古老石門"],
+      ["吊橋"],["山洞"],["瀑布洞穴"],["火山島"],["海盜船"],["探險船"],["登山繩"],["營火"],["帳篷"],["手電筒"],
+      ["望遠鏡台"],["遺跡"],["石像"],["神秘雕像"],["寶石"],["巨大寶石"],["寶箱鑰匙"],["地下室"],["秘密通道"],["迷宮"],
+      ["古堡"],["城堡大門"],["森林小屋"],["山頂旗幟"],["探險隊"]
     ]
   };
 
@@ -1105,7 +1240,7 @@
 
   let gameRoomId="";
 
-  let selectedCategory="food";
+  let selectedCategory="food_easy";
 
   let selectedRounds=1;
 
@@ -1154,6 +1289,16 @@
 
   let currentTurnResolved=false;
 
+  /* 每回合依猜中先後記錄第 1 / 2 / 3 名，
+     不再因第一個人猜中就立刻結束回合。 */
+  let correctGuessers=[];
+
+  /* 可選：瀏覽器語音辨識。BoomRoom 目前提供的 SDK 介面沒有
+     原始語音串流／語音轉文字 API，因此這裡不假裝直接讀取平台語音。 */
+  let speechRecognition=null;
+  let speechListening=false;
+  let speechFinalText="";
+
   let currentWord=null;
 
   let knownStrokes=[];
@@ -1166,7 +1311,7 @@
 
   let brushColor="#151923";
 
-  let brushSize=7;
+  let brushSize=6;
 
   let muted=false;
 
@@ -1405,6 +1550,20 @@
         /[\s\u3000，。！？、,.!?;；:：'"“”‘’()（）\[\]{}<>《》【】]/g,
         ""
       );
+  }
+
+
+  function getAnswerLength(word){
+    const answer=
+      safeString(
+        word?.answer,
+        "",
+        100
+      )
+      .replace(/\s+/g,"")
+      .trim();
+
+    return Array.from(answer).length;
   }
 
   function answerMatches(
@@ -2586,6 +2745,8 @@
       Date.now()+250;
 
     currentTurnResolved=false;
+    correctGuessers=[];
+    speechFinalText="";
 
     knownStrokes=[];
 
@@ -2694,7 +2855,7 @@
     /*
       每個回合取一次洗牌後的索引。
       目前最大回合數為 10 人 × 5 輪 = 50，
-      每個題型有 50 題，因此同一局內不重複。
+      每個題型都有足夠題量，因此同一局內盡量不重複。
     */
     const safeTurnIndex=
       Math.max(
@@ -2778,6 +2939,8 @@
       );
 
     currentTurnResolved=false;
+    correctGuessers=[];
+    speechFinalText="";
 
     selectedCategory=
       safeString(
@@ -2836,9 +2999,9 @@
       username:"系統",
 
       text:
-        "🎨 第 "+
-        (currentTurnIndex+1)+
-        " 回合開始！",
+        isDrawer()
+          ?"🎨 第 "+(currentTurnIndex+1)+" 回合開始！答案共 "+getAnswerLength(currentWord)+" 字，開始作畫！"
+          :"🎨 第 "+(currentTurnIndex+1)+" 回合開始！提示：答案共 "+getAnswerLength(currentWord)+" 字，搶先猜！",
 
       isCorrect:false,
 
@@ -2867,6 +3030,12 @@
       ensureCanvas,
       50
     );
+
+    if(!isDrawer()){
+      setTimeout(startVoiceGuess, 300);
+    } else {
+      stopVoiceGuess();
+    }
   }
 
   /* =========================================================
@@ -2882,393 +3051,267 @@
       return;
     }
 
-    if(
-      matchEnded ||
-      currentTurnResolved
-    ){
+    if(matchEnded || currentTurnResolved){
+      return;
+    }
 
+    /*
+      CORRECT 不再立即結束回合。
+      只有 TIMEOUT / SKIP / 第三位猜中才真正結束回合。
+    */
+    if(kind==="CORRECT"){
+      const uid=safeString(winnerId,"",64);
+      if(!uid || !participants.has(uid) || uid===currentDrawerId){
+        return;
+      }
+      if(correctGuessers.some(x=>x.id===uid)){
+        return;
+      }
+      if(correctGuessers.length>=CONFIG.GUESS_REWARDS.length){
+        return;
+      }
+
+      const rank=correctGuessers.length+1;
+      const guesserGain=CONFIG.GUESS_REWARDS[rank-1]||0;
+      const gp=players.get(uid);
+      const drawer=players.get(currentDrawerId);
+      if(!gp || !drawer){
+        return;
+      }
+
+      gp.score=intClamp(gp.score+guesserGain,0,100000);
+      gp.correct=intClamp((gp.correct||0)+1,0,1000);
+
+      let drawerGain=0;
+      /* 畫家只在本回合第一次有人猜中時獎勵一次。 */
+      if(correctGuessers.length===0){
+        drawerGain=CONFIG.DRAWER_CORRECT_REWARD;
+        drawer.score=intClamp(drawer.score+drawerGain,0,100000);
+      }
+
+      correctGuessers.push({
+        id:uid,
+        rank,
+        gain:guesserGain
+      });
+
+      const payload={
+        roundId,
+        turnIndex:currentTurnIndex,
+        type:"GUESS_CORRECT",
+        rank,
+        userId:uid,
+        drawerId:currentDrawerId,
+        guesserGain,
+        drawerGain,
+        userScore:gp.score,
+        drawerScore:drawer.score,
+        answer:currentWord?currentWord.answer:"",
+        at:Date.now()
+      };
+
+      sendEvent("GAME_EVENT",payload);
+      applyGuessCorrect(payload);
+
+      /* 第三名猜中後立即結束本回合，進入下一回合。 */
+      if(rank>=CONFIG.GUESS_REWARDS.length){
+        endResolvedTurnAsHost("ALL_CORRECT",uid);
+      }
       return;
     }
 
     currentTurnResolved=true;
 
-    const drawer=
-      players.get(
-        currentDrawerId
-      );
-
-    const turnStarted=
-      finite(
-        currentTurnStartedAt,
-        Date.now()
-      );
-
-    const elapsed=
-      Math.max(
-        0,
-        Math.min(
-          activeTurnSeconds,
-          (
-            Date.now()-
-            turnStarted
-          )/1000
-        )
-      );
-
-    const remain=
-      Math.max(
-        0,
-        activeTurnSeconds-
-        elapsed
-      );
-
-    let drawerGain=0;
-
-    let guesserGain=0;
-
-    if(
-      kind==="CORRECT" &&
-      drawer &&
-      winnerId &&
-      participants.has(
-        winnerId
-      )
-    ){
-
-      drawerGain=
-        intClamp(
-          80+
-          remain*3,
-          80,
-          125
-        );
-
-      guesserGain=
-        intClamp(
-          100+
-          remain*3,
-          100,
-          145
-        );
-
-      drawer.score=
-        intClamp(
-          drawer.score+
-          drawerGain,
-          0,
-          100000
-        );
-
-      drawer.drawTurns=
-        intClamp(
-          (drawer.drawTurns||0)+1,
-          0,
-          1000
-        );
-
-      const gp=
-        players.get(
-          winnerId
-        );
-
-      if(gp){
-
-        gp.score=
-          intClamp(
-            gp.score+
-            guesserGain,
-            0,
-            100000
-          );
-
-        gp.correct=
-          intClamp(
-            (gp.correct||0)+1,
-            0,
-            1000
-          );
-      }
+    const drawer=players.get(currentDrawerId);
+    if(kind==="SKIP" && drawer){
+      drawer.skips=intClamp((drawer.skips||0)+1,0,1000);
     }
-
-    if(
-      kind==="SKIP" &&
-      drawer
-    ){
-
-      drawer.skips=
-        intClamp(
-          (drawer.skips||0)+1,
-          0,
-          1000
-        );
-    }
-
-    if(
-      kind==="TIMEOUT" &&
-      drawer
-    ){
-
-      drawer.drawTurns=
-        intClamp(
-          (drawer.drawTurns||0)+1,
-          0,
-          1000
-        );
+    if(kind==="TIMEOUT" && drawer){
+      drawer.drawTurns=intClamp((drawer.drawTurns||0)+1,0,1000);
     }
 
     const payload={
-
       roundId,
-
-      turnIndex:
-        currentTurnIndex,
-
+      turnIndex:currentTurnIndex,
       kind,
-
-      winnerId:
-        winnerId||
-        null,
-
-      drawerId:
-        currentDrawerId,
-
-      answer:
-        currentWord
-          ?currentWord.answer
-          :"",
-
-      drawerGain,
-
-      guesserGain,
-
-      drawerScore:
-        drawer
-          ?drawer.score
-          :0,
-
-      winnerScore:
-        winnerId &&
-        players.get(
-          winnerId
-        )
-          ?players.get(
-              winnerId
-            ).score
-          :null,
-
+      winnerId:winnerId||null,
+      drawerId:currentDrawerId,
+      answer:currentWord?currentWord.answer:"",
+      drawerGain:0,
+      guesserGain:0,
+      drawerScore:drawer?drawer.score:0,
+      winnerScore:null,
+      correctGuessers:correctGuessers.map(x=>({id:x.id,rank:x.rank,gain:x.gain})),
       at:Date.now()
     };
 
-    sendEvent(
-      "TURN_END",
-      payload
-    );
+    sendEvent("TURN_END",payload);
+    applyTurnEnd(payload);
+  }
 
-    applyTurnEnd(
-      payload
-    );
+  function applyGuessCorrect(payload){
+
+    if(!payload || payload.roundId!==roundId){
+      return;
+    }
+
+    const uid=safeString(payload.userId,"",64);
+    const rank=intClamp(payload.rank,1,3);
+    if(!uid || rank<1 || rank>3){
+      return;
+    }
+
+    /* 同一玩家同一回合只能拿一次名次。 */
+    const alreadyRecorded=correctGuessers.some(x=>x.id===uid);
+    if(!alreadyRecorded){
+      correctGuessers.push({
+        id:uid,
+        rank,
+        gain:intClamp(payload.guesserGain,0,100000)
+      });
+      correctGuessers.sort((a,b)=>a.rank-b.rank);
+    }
+
+    const gp=players.get(uid);
+    if(gp){
+      gp.score=intClamp(payload.userScore,0,100000);
+      if(!alreadyRecorded){
+        gp.correct=intClamp((gp.correct||0)+1,0,1000);
+      }
+    }
+
+    const drawer=players.get(payload.drawerId);
+    if(drawer){
+      drawer.score=intClamp(payload.drawerScore,0,100000);
+    }
+
+    const winnerName=gp?.username||"玩家";
+    const drawerName=drawer?.username||"畫家";
+    const rankText=["","🥇 第 1 名","🥈 第 2 名","🥉 第 3 名"][rank]||("第 "+rank+" 名");
+
+    feedText=
+      rankText+" "+winnerName+
+      " 猜中！ +"+intClamp(payload.guesserGain,0,100000)+" 分"+
+      (payload.drawerGain>0
+        ?"；🎨 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分"
+        :"");
+
+    appendChatMessage({
+      chatKey:"GUESS_CORRECT|"+roundId+"|"+payload.turnIndex+"|"+uid+"|"+rank,
+      roundId,
+      turnIndex:payload.turnIndex,
+      username:"系統",
+      text:rankText+" "+winnerName+" 猜中了！+"+intClamp(payload.guesserGain,0,100000)+" 分"+
+        (payload.drawerGain>0?"，畫家 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分":""),
+      isCorrect:true,
+      isSystem:true
+    });
+
+    render();
+    setTimeout(ensureCanvas,50);
+    scheduleChatScroll();
+    playTone(rank===1?980:rank===2?820:680,.08);
+    vibrate(rank===1?90:45);
+  }
+
+  function endResolvedTurnAsHost(kind,winnerId=""){
+    if(!DEV && !sdkIsHost){
+      return;
+    }
+    if(matchEnded || currentTurnResolved){
+      return;
+    }
+    currentTurnResolved=true;
+
+    const drawer=players.get(currentDrawerId);
+    const payload={
+      roundId,
+      turnIndex:currentTurnIndex,
+      kind,
+      winnerId:winnerId||null,
+      drawerId:currentDrawerId,
+      answer:currentWord?currentWord.answer:"",
+      drawerGain:0,
+      guesserGain:0,
+      drawerScore:drawer?drawer.score:0,
+      winnerScore:winnerId&&players.get(winnerId)?players.get(winnerId).score:null,
+      correctGuessers:correctGuessers.map(x=>({id:x.id,rank:x.rank,gain:x.gain})),
+      at:Date.now()
+    };
+
+    sendEvent("TURN_END",payload);
+    applyTurnEnd(payload);
   }
 
   function applyTurnEnd(
     payload
   ){
 
-    if(
-      !payload ||
-      payload.roundId!==roundId
-    ){
-
+    if(!payload || payload.roundId!==roundId){
       return;
     }
 
-    const incomingTurnIndex=
-      intClamp(
-        payload.turnIndex,
-        -1,
-        Math.max(0, turnOrder.length)
-      );
+    const incomingTurnIndex=intClamp(payload.turnIndex,-1,Math.max(0,turnOrder.length));
+    const turnKey=String(payload.roundId)+"|"+String(incomingTurnIndex);
 
-    const turnKey=
-      String(payload.roundId)+"|"+String(incomingTurnIndex);
-
-    /* 同一回合只能結算一次。 */
     if(turnEndSeenKeys.has(turnKey)){
       return;
     }
-
-    if(
-      currentTurnIndex!==incomingTurnIndex &&
-      !matchEnded
-    ){
-
+    if(currentTurnIndex!==incomingTurnIndex && !matchEnded){
       return;
     }
-
     turnEndSeenKeys.add(turnKey);
 
-    if(
-      payload.drawerId &&
-      players.has(
-        payload.drawerId
-      )
-    ){
-
-      players.get(
-        payload.drawerId
-      ).score=
-        intClamp(
-          payload.drawerScore,
-          0,
-          100000
-        );
+    if(payload.drawerId && players.has(payload.drawerId)){
+      players.get(payload.drawerId).score=intClamp(payload.drawerScore,0,100000);
     }
 
-    if(
-      payload.winnerId &&
-      players.has(
-        payload.winnerId
-      ) &&
-      payload.winnerScore!=null
-    ){
-
-      players.get(
-        payload.winnerId
-      ).score=
-        intClamp(
-          payload.winnerScore,
-          0,
-          100000
-        );
+    if(Array.isArray(payload.correctGuessers)){
+      correctGuessers=payload.correctGuessers.map(x=>({
+        id:String(x.id),
+        rank:intClamp(x.rank,1,3),
+        gain:intClamp(x.gain,0,100000)
+      })).sort((a,b)=>a.rank-b.rank);
     }
 
-    const winnerName=
-      players.get(
-        payload.winnerId
-      )?.username||
-      "玩家";
-
-    if(
-      payload.kind===
-      "CORRECT"
-    ){
-
-      feedText=
-        "✅ "+
-        winnerName+
-        " 猜中了！";
-
-    }else if(
-      payload.kind===
-      "SKIP"
-    ){
-
-      feedText=
-        "⏭️ 畫家跳過";
-
+    const winnerName=players.get(payload.winnerId)?.username||"玩家";
+    if(payload.kind==="ALL_CORRECT"){
+      feedText="🎉 前 3 名全部猜中！準備下一回合";
+    }else if(payload.kind==="SKIP"){
+      feedText="⏭️ 畫家跳過這題";
     }else{
-
-      feedText=
-        "⏰ 時間到，答案是「"+
-        safeString(
-          payload.answer,
-          "題目",
-          30
-        )+
-        "」";
+      feedText="⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }
 
     let msgText="";
-
-    if(
-      payload.kind===
-      "CORRECT"
-    ){
-
-      msgText=
-        "✅ "+
-        winnerName+
-        " 猜中了答案「"+
-        safeString(
-          payload.answer,
-          "題目",
-          30
-        )+
-        "」！";
-
-    }else if(
-      payload.kind===
-      "SKIP"
-    ){
-
-      msgText=
-        "⏭️ 畫家跳過這題";
-
+    if(payload.kind==="ALL_CORRECT"){
+      msgText="🎉 第 1、2、3 名都已猜中！答案是「"+safeString(payload.answer,"題目",30)+"」";
+    }else if(payload.kind==="SKIP"){
+      msgText="⏭️ 畫家跳過這題，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }else{
-
-      msgText=
-        "⏰ 時間到，答案是「"+
-        safeString(
-          payload.answer,
-          "題目",
-          30
-        )+
-        "」";
+      msgText="⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }
 
     appendChatMessage({
-
-      chatKey:
-        "TURN_END|"+
-        roundId+
-        "|"+
-        payload.turnIndex,
-
+      chatKey:"TURN_END|"+roundId+"|"+payload.turnIndex,
       roundId,
-
-      turnIndex:
-        payload.turnIndex,
-
+      turnIndex:payload.turnIndex,
       username:"系統",
-
       text:msgText,
-
       isCorrect:true,
-
       isSystem:true
     });
 
-    state=
-      STATES.PLAYING;
-
+    state=STATES.PLAYING;
     render();
-
-    setTimeout(
-      ensureCanvas,
-      50
-    );
-
+    setTimeout(ensureCanvas,50);
     scheduleChatScroll();
 
-    clearTimeout(
-      turnStateTimer
-    );
-
-    turnStateTimer=
-      setTimeout(
-        ()=>{
-
-          if(
-            matchEnded ||
-            (!DEV && !sdkIsHost)
-          ){
-            return;
-          }
-
-          startNextTurnAsHost();
-
-        },
-        1050
-      );
+    clearTimeout(turnStateTimer);
+    turnStateTimer=setTimeout(()=>{
+      if(matchEnded || (!DEV && !sdkIsHost)) return;
+      startNextTurnAsHost();
+    },1050);
   }
 
   /* =========================================================
@@ -3551,38 +3594,20 @@
     };
 
     /*
-      先在自己畫面顯示。
-      事件回傳時會用 eventId 去重。
+      ★ 不先把玩家輸入直接顯示到聊天。
+      必須等房主判定：
+      - 猜錯：公布「玩家：答案」
+      - 猜中：只公布「第幾名猜中」，絕不公布答案
+      這樣第 2、3 名不能直接照抄第 1 名的答案。
     */
-
-    appendChatMessage({
-
-      eventId,
-
-      userId:
-        ME.id,
-
-      roundId,
-
-      turnIndex:
-        currentTurnIndex,
-
-      username:
-        ME.username,
-
-      text:guess
-    });
 
     sendEvent(
       "GAME_EVENT",
       payload
     );
 
-    if(DEV){
-
-      processGuessAsHost(
-        payload
-      );
+    if(DEV || sdkIsHost){
+      processGuessAsHost(payload);
     }
 
     render();
@@ -3641,18 +3666,85 @@
       return;
     }
 
-    if(
-      answerMatches(
-        guess,
-        currentWord
-      )
-    ){
-
-      resolveTurnAsHost(
-        "CORRECT",
-        uid
-      );
+    if(answerMatches(guess,currentWord)){
+      /* 答對：不傳答案、不公布玩家輸入內容。 */
+      resolveTurnAsHost("CORRECT",uid);
+      return;
     }
+
+    /*
+      猜錯：由房主統一公布，避免送出的原始 GUESS 被 UI 直接顯示。
+    */
+    const resultPayload={
+      roundId,
+      turnIndex:currentTurnIndex,
+      type:"GUESS_RESULT",
+      userId:uid,
+      username:
+        safeString(
+          payload.username,
+          players.get(uid)?.username||"玩家",
+          CONFIG.MAX_NAME_LENGTH
+        ),
+      guess,
+      sourceEventId:
+        safeString(payload.eventId,"",100),
+      at:Date.now()
+    };
+
+    sendEvent("GAME_EVENT",resultPayload);
+    applyGuessResult(resultPayload);
+  }
+
+  function applyGuessResult(payload){
+    if(
+      !payload ||
+      payload.roundId!==roundId ||
+      payload.turnIndex!==currentTurnIndex ||
+      payload.type!=="GUESS_RESULT"
+    ){
+      return;
+    }
+
+    const uid=safeString(
+      payload.userId,
+      "",
+      64
+    );
+
+    const guess=safeString(
+      payload.guess,
+      "",
+      CONFIG.MAX_GUESS_LENGTH
+    );
+
+    if(!uid || !guess){
+      return;
+    }
+
+    appendChatMessage({
+      chatKey:
+        "GUESS_RESULT|"+
+        roundId+"|"+
+        currentTurnIndex+"|"+
+        uid+"|"+
+        safeString(payload.sourceEventId,"",100),
+      roundId,
+      turnIndex:currentTurnIndex,
+      userId:uid,
+      username:
+        safeString(
+          payload.username,
+          players.get(uid)?.username||"玩家",
+          CONFIG.MAX_NAME_LENGTH
+        ),
+      text:guess,
+      isCorrect:false,
+      isSystem:false
+    });
+
+    render();
+    scheduleChatScroll();
   }
 
   /* =========================================================
@@ -3828,6 +3920,7 @@
     }
 
     matchEnded=true;
+    stopVoiceGuess();
 
     state=
       STATES.RESULT;
@@ -4455,51 +4548,38 @@
 
       }
 
-      /* 猜答案 */
+      /* 猜答案：先給房主判定，不能直接顯示原文 */
 
       else if(
         payload.type===
         "GUESS"
       ){
 
-        appendChatMessage({
+        if(DEV || sdkIsHost){
+          processGuessAsHost(payload);
+        }
 
-          eventId:
-            payload.eventId||
-            "",
+      }
 
-          userId,
+      /* 猜錯後才把原猜詞同步給所有人 */
 
-          roundId:
-            payload.roundId||
-            roundId,
+      else if(
+        payload.type===
+        "GUESS_RESULT"
+      ){
 
-          turnIndex:
-            payload.turnIndex,
+        applyGuessResult(payload);
 
-          username:
-            payload.username||
-            players.get(
-              userId
-            )?.username||
-            "玩家",
+      }
 
-          text:
-            payload.guess||
-            "",
+      /* 猜中排名同步：第 1 / 2 / 3 名各自獨立計分 */
 
-          isCorrect:false
-        });
+      else if(
+        payload.type===
+        "GUESS_CORRECT"
+      ){
 
-        /*
-          ★ 修正：
-          原本這裡呼叫兩次。
-          現在只處理一次。
-        */
-
-        processGuessAsHost(
-          payload
-        );
+        applyGuessCorrect(payload);
 
       }
 
@@ -4846,7 +4926,7 @@
 
         <div class="sectionTitle">
 
-          🎨 題目類別投票
+          🎨 題型投票｜依實際畫畫難度
 
           <span class="muted tiny">
             （每人 1 票）
@@ -4872,6 +4952,18 @@
 
                   ${c.icon}
                   ${c.name}
+                  <span
+                    style="
+                      display:inline-block;
+                      margin-left:4px;
+                      padding:2px 5px;
+                      border-radius:999px;
+                      background:#151c2b;
+                      color:${c.difficulty==="簡單"?"#71e6a3":c.difficulty==="中等"?"#ffd166":"#ff8d9d"};
+                      font-size:9px;
+                      font-weight:1000;
+                    "
+                  >${c.difficultyStars} ${c.difficulty}</span>
 
                   <small>
 
@@ -5335,12 +5427,15 @@
               ?(
                 currentWord
                   ?"題目："+
-                    esc(
-                      currentWord.answer
-                    )
+                    esc(currentWord.answer)+
+                    " · "+getAnswerLength(currentWord)+"字"
                   :"題目準備中"
               )
-              :"❓ 看圖猜答案"
+              :(
+                "❓ 答案長度："+
+                getAnswerLength(currentWord)+
+                " 字"
+              )
           }
 
         </div>
@@ -5407,94 +5502,97 @@
             <div class="tools">
 
               <button
-                class="tool ${
-                  tool==="pen"
-                    ?"active"
-                    :""
-                }"
+                class="tool ${tool==="pen"?"active":""}"
                 data-tool="pen"
+                type="button"
               >
-                ✏️
+                ✏️ 鉛筆
               </button>
 
               <button
-                class="tool ${
-                  tool==="eraser"
-                    ?"active"
-                    :""
-                }"
+                class="tool ${tool==="eraser"?"active":""}"
                 data-tool="eraser"
+                type="button"
               >
-                🧽
+                🧽 橡皮
               </button>
 
               <button
-                class="tool color"
-                data-color="#151923"
-                style="background:#151923"
-              ></button>
-
-              <button
-                class="tool color"
-                data-color="#e34d5d"
-                style="background:#e34d5d"
-              ></button>
-
-              <button
-                class="tool color"
-                data-color="#3275e8"
-                style="background:#3275e8"
-              ></button>
-
-              <button
-                class="tool color"
-                data-color="#37a66a"
-                style="background:#37a66a"
-              ></button>
-
-              <button
-                class="tool color"
-                data-color="#a353d5"
-                style="background:#a353d5"
-              ></button>
-
-              <button
-                class="tool color"
-                data-color="#f39a28"
-                style="background:#f39a28"
-              ></button>
-
-              <button
-                class="tool sizeBtn ${
-                  brushSize===4
-                    ?"active"
-                    :""
-                }"
-                data-size="4"
+                class="tool ${tool==="fill"?"active":""}"
+                data-tool="fill"
+                type="button"
               >
-                細
+                🪣 填充
               </button>
 
               <button
-                class="tool sizeBtn ${
-                  brushSize===8
-                    ?"active"
-                    :""
-                }"
-                data-size="8"
+                class="tool ${tool==="line"?"active":""}"
+                data-tool="line"
+                type="button"
               >
-                中
+                ╱ 直線
               </button>
 
               <button
-                class="tool sizeBtn ${
-                  brushSize===15
-                    ?"active"
-                    :""
-                }"
-                data-size="15"
+                class="tool ${tool==="rect"?"active":""}"
+                data-tool="rect"
+                type="button"
               >
-                粗
+                ▢ 方框
+              </button>
+
+              <button
+                class="tool ${tool==="circle"?"active":""}"
+                data-tool="circle"
+                type="button"
+              >
+                ◯ 圓形
+              </button>
+
+              <button class="tool color" data-color="#151923" style="background:#151923"></button>
+              <button class="tool color" data-color="#ffffff" style="background:#ffffff;border-color:#667085;box-shadow:inset 0 0 0 1px #8b95a7"></button>
+              <button class="tool color" data-color="#6b7280" style="background:#6b7280"></button>
+              <button class="tool color" data-color="#e34d5d" style="background:#e34d5d"></button>
+              <button class="tool color" data-color="#ff7b54" style="background:#ff7b54"></button>
+              <button class="tool color" data-color="#f39a28" style="background:#f39a28"></button>
+              <button class="tool color" data-color="#ffd166" style="background:#ffd166"></button>
+              <button class="tool color" data-color="#9ad64b" style="background:#9ad64b"></button>
+              <button class="tool color" data-color="#37a66a" style="background:#37a66a"></button>
+              <button class="tool color" data-color="#1ec8a5" style="background:#1ec8a5"></button>
+              <button class="tool color" data-color="#3275e8" style="background:#3275e8"></button>
+              <button class="tool color" data-color="#6f5cff" style="background:#6f5cff"></button>
+              <button class="tool color" data-color="#a353d5" style="background:#a353d5"></button>
+              <button class="tool color" data-color="#ff5fa2" style="background:#ff5fa2"></button>
+              <button class="tool color" data-color="#8b5e3c" style="background:#8b5e3c"></button>
+
+              <button
+                class="tool sizeBtn ${brushSize===3?"active":""}"
+                data-size="3"
+              >細
+              </button>
+
+              <button
+                class="tool sizeBtn ${brushSize===6?"active":""}"
+                data-size="6"
+              >中
+              </button>
+
+              <button
+                class="tool sizeBtn ${brushSize===10?"active":""}"
+                data-size="10"
+              >粗
+              </button>
+
+              <button
+                class="tool sizeBtn ${brushSize===18?"active":""}"
+                data-size="18"
+              >很粗
+              </button>
+
+              <button
+                class="tool sizeBtn ${brushSize===26?"active":""}"
+                data-size="26"
+              >超粗
               </button>
 
               <button
@@ -5532,6 +5630,15 @@
                 maxlength="${CONFIG.MAX_GUESS_LENGTH}"
                 placeholder="輸入答案…"
               >
+
+              <button
+                id="voiceBtn"
+                type="button"
+                title="語音猜題"
+                style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;"
+              >
+                🎤
+              </button>
 
               <button
                 id="guessBtn"
@@ -5669,8 +5776,8 @@
                     Number(
                       b.dataset.size
                     ),
-                    4,
-                    15
+                    3,
+                    26
                   );
 
                 syncTools();
@@ -5723,6 +5830,10 @@
         );
 
       document
+        .getElementById("voiceBtn")
+        ?.addEventListener("click",startVoiceGuess);
+
+      document
         .getElementById(
           "guessInput"
         )
@@ -5744,6 +5855,88 @@
             }
           }
         );
+    }
+  }
+
+  /* =========================================================
+     VOICE GUESS
+     使用瀏覽器 Web Speech API（需要玩家允許麥克風）。
+     這不是直接讀取 BoomRoom 語音房的原始音訊；目前檔案使用的
+     BoomRoomSDK 介面只有 getUser / sendGameEvent / gameOver，
+     沒有語音轉文字 API，因此只能做「瀏覽器麥克風語音猜題」。
+  ========================================================= */
+
+  function stopVoiceGuess(){
+    if(speechRecognition){
+      try{ speechRecognition.stop(); }catch(_){}
+    }
+    speechListening=false;
+    const btn=document.getElementById("voiceBtn");
+    if(btn){
+      btn.textContent="🎙️ 語音偵測中";
+      btn.title="語音即時答題中";
+    }
+  }
+
+  function startVoiceGuess(){
+    if(state!==STATES.PLAYING || isDrawer() || matchEnded || (Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
+      stopVoiceGuess();
+      return;
+    }
+
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Recognition) return;
+
+    if(speechListening) return;
+
+    ensureAudio();
+    speechFinalText="";
+    speechRecognition=new Recognition();
+    speechRecognition.lang="zh-TW";
+    speechRecognition.continuous=true;
+    speechRecognition.interimResults=true;
+    speechRecognition.maxAlternatives=3;
+
+    speechRecognition.onstart=()=>{
+      speechListening=true;
+      const btn=document.getElementById("voiceBtn");
+      if(btn){ btn.textContent="🎙️ 語音即時答題中"; }
+    };
+
+    speechRecognition.onresult=(event)=>{
+      for(let i=event.resultIndex; i<event.results.length; i++){
+        const transcript = event.results[i][0]?.transcript || "";
+        if(transcript.trim()){
+          const text = transcript.trim();
+          const input = document.getElementById("guessInput");
+          if(input) input.value = text;
+
+          if(currentWord && answerMatches(text, currentWord)){
+            submitGuess();
+            showToast("🎙️ 語音偵測到正確答案：「" + text + "」！");
+            break;
+          }
+        }
+      }
+    };
+
+    speechRecognition.onerror=(event)=>{
+      if(event?.error === "no-speech") return;
+      speechListening=false;
+    };
+
+    speechRecognition.onend=()=>{
+      speechListening=false;
+      if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
+        setTimeout(startVoiceGuess, 300);
+      }
+    };
+
+    try{
+      speechRecognition.start();
+    }catch(_){
+      speechListening=false;
+      showToast("語音辨識無法啟動");
     }
   }
 
@@ -6370,113 +6563,208 @@
     };
   }
 
+  function normalizedColorRgb(color){
+    const value=safeString(color,"#151923",20).trim();
+    const m=value.match(/^#([0-9a-f]{6})$/i);
+    if(!m){
+      return [21,25,35];
+    }
+    return [
+      parseInt(m[1].slice(0,2),16),
+      parseInt(m[1].slice(2,4),16),
+      parseInt(m[1].slice(4,6),16)
+    ];
+  }
+
+  function floodFillAt(point,color){
+    if(!canvas || !ctx || !point){
+      return;
+    }
+
+    const w=canvas.width;
+    const h=canvas.height;
+    if(w<2 || h<2){
+      return;
+    }
+
+    const sx=clamp(Number(point.x),0,1);
+    const sy=clamp(Number(point.y),0,1);
+    const seedX=Math.min(w-1,Math.max(0,Math.floor(sx*w)));
+    const seedY=Math.min(h-1,Math.max(0,Math.floor(sy*h)));
+
+    const image=ctx.getImageData(0,0,w,h);
+    const data=image.data;
+    const seedPos=seedY*w+seedX;
+    const seedIndex=seedPos*4;
+    const targetR=data[seedIndex];
+    const targetG=data[seedIndex+1];
+    const targetB=data[seedIndex+2];
+    const targetA=data[seedIndex+3];
+    const fillRgb=normalizedColorRgb(color);
+
+    if(
+      Math.abs(targetR-fillRgb[0])<=2 &&
+      Math.abs(targetG-fillRgb[1])<=2 &&
+      Math.abs(targetB-fillRgb[2])<=2 &&
+      targetA>=250
+    ){
+      return;
+    }
+
+    const tolerance=24;
+    const seen=new Uint8Array(w*h);
+    const stack=[seedPos];
+    seen[seedPos]=1;
+
+    const matches=(pos)=>{
+      const i=pos*4;
+      return (
+        Math.abs(data[i]-targetR)<=tolerance &&
+        Math.abs(data[i+1]-targetG)<=tolerance &&
+        Math.abs(data[i+2]-targetB)<=tolerance &&
+        Math.abs(data[i+3]-targetA)<=tolerance
+      );
+    };
+
+    while(stack.length){
+      const pos=stack.pop();
+      if(!matches(pos)){
+        continue;
+      }
+
+      const i=pos*4;
+      data[i]=fillRgb[0];
+      data[i+1]=fillRgb[1];
+      data[i+2]=fillRgb[2];
+      data[i+3]=255;
+
+      const x=pos%w;
+      const y=Math.floor(pos/w);
+      const n1=pos-1;
+      const n2=pos+1;
+      const n3=pos-w;
+      const n4=pos+w;
+
+      if(x>0 && !seen[n1]){ seen[n1]=1; stack.push(n1); }
+      if(x<w-1 && !seen[n2]){ seen[n2]=1; stack.push(n2); }
+      if(y>0 && !seen[n3]){ seen[n3]=1; stack.push(n3); }
+      if(y<h-1 && !seen[n4]){ seen[n4]=1; stack.push(n4); }
+    }
+
+    ctx.putImageData(image,0,0);
+  }
+
+  function drawShapeStroke(stroke){
+    const r=canvas.getBoundingClientRect();
+    const pts=stroke.points||[];
+    if(pts.length<2){
+      return;
+    }
+
+    const a=pts[0];
+    const b=pts[pts.length-1];
+    const x1=a.x*r.width;
+    const y1=a.y*r.height;
+    const x2=b.x*r.width;
+    const y2=b.y*r.height;
+    const type=safeString(stroke.tool||stroke.kind,"pen",20);
+
+    ctx.strokeStyle=stroke.color;
+    ctx.lineWidth=clamp(Number(stroke.size)||7,2,30);
+    ctx.lineCap="round";
+    ctx.lineJoin="round";
+
+    if(type==="line"){
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+      return;
+    }
+
+    if(type==="rect"){
+      ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+      return;
+    }
+
+    if(type==="circle"){
+      const radius=Math.hypot(x2-x1,y2-y1);
+      ctx.beginPath();
+      ctx.arc(x1,y1,radius,0,Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
   function drawStroke(
     stroke
   ){
 
     if(
       !stroke ||
-      !Array.isArray(
-        stroke.points
-      ) ||
+      !Array.isArray(stroke.points) ||
       stroke.points.length<1 ||
       !ctx ||
       !canvas
     ){
-
       return;
     }
 
-    const r=
-      canvas.getBoundingClientRect();
+    const type=safeString(
+      stroke.tool||stroke.kind,
+      "pen",
+      20
+    );
 
-    const color=
-      safeString(
-        stroke.color,
-        "#151923",
-        20
-      );
-
-    const size=
-      clamp(
-        stroke.size,
-        2,
-        30
-      );
-
-    ctx.strokeStyle=
-      color;
-
-    ctx.lineWidth=
-      size;
-
-    ctx.lineCap=
-      "round";
-
-    ctx.lineJoin=
-      "round";
-
-    for(
-      let i=1;
-      i<stroke.points.length;
-      i++
-    ){
-
-      const a=
-        stroke.points[i-1];
-
-      const b=
-        stroke.points[i];
-
-      ctx.beginPath();
-
-      ctx.moveTo(
-        a.x*r.width,
-        a.y*r.height
-      );
-
-      ctx.lineTo(
-        b.x*r.width,
-        b.y*r.height
-      );
-
-      ctx.stroke();
+    if(type==="fill"){
+      floodFillAt(stroke.points[0],stroke.color||brushColor);
+      return;
     }
 
-    if(
-      stroke.points.length===1
-    ){
+    if(type==="line" || type==="rect" || type==="circle"){
+      drawShapeStroke(stroke);
+      return;
+    }
 
-      const a=
-        stroke.points[0];
+    const r=canvas.getBoundingClientRect();
+    const color=safeString(stroke.color,"#151923",20);
+    const size=clamp(Number(stroke.size)||7,2,30);
 
+    ctx.strokeStyle=color;
+    ctx.lineWidth=size;
+    ctx.lineCap="round";
+    ctx.lineJoin="round";
+
+    if(stroke.points.length===1){
+      const a=stroke.points[0];
       ctx.beginPath();
-
-      ctx.arc(
-        a.x*r.width,
-        a.y*r.height,
-        size/2,
-        0,
-        Math.PI*2
-      );
-
-      ctx.fillStyle=
-        color;
-
+      ctx.arc(a.x*r.width,a.y*r.height,size/2,0,Math.PI*2);
+      ctx.fillStyle=color;
       ctx.fill();
+      return;
     }
+
+    ctx.beginPath();
+    ctx.moveTo(
+      stroke.points[0].x*r.width,
+      stroke.points[0].y*r.height
+    );
+
+    for(let i=1;i<stroke.points.length;i++){
+      const p=stroke.points[i];
+      ctx.lineTo(p.x*r.width,p.y*r.height);
+    }
+
+    ctx.stroke();
   }
 
   function beginStroke(e){
 
     if(
       !isDrawer() ||
-      state!==
-        STATES.PLAYING ||
+      state!==STATES.PLAYING ||
       matchEnded ||
       currentTurnResolved
     ){
-
       return;
     }
 
@@ -6484,57 +6772,73 @@
       e.pointerType==="mouse" &&
       e.button!==0
     ){
-
       return;
     }
 
-    if(
-      drawingPointerId!==null
-    ){
-
+    if(drawingPointerId!==null){
       return;
     }
 
     e.preventDefault();
 
-    drawingPointerId=
-      e.pointerId;
-
+    drawingPointerId=e.pointerId;
     ensureAudio();
 
-    const p=
-      pointFromEvent(e);
+    const p=pointFromEvent(e);
 
-    const color=
-      tool==="eraser"
-        ?"#f7f8fb"
-        :brushColor;
+    /* 填充工具：一次點擊直接填滿目前所在區域 */
+    if(tool==="fill"){
+      const fillStroke={
+        id:
+          ME.id+"_"+Date.now().toString(36)+"_"+
+          Math.random().toString(36).slice(2,6),
+        color:brushColor,
+        size:brushSize,
+        tool:"fill",
+        points:[p]
+      };
+
+      knownStrokes.push(fillStroke);
+      localStrokeIds.push(fillStroke.id);
+
+      if(knownStrokes.length>CONFIG.MAX_STROKES){
+        knownStrokes.shift();
+      }
+
+      redrawCanvas();
+
+      sendEvent("GAME_EVENT",{
+        roundId,
+        type:"STROKE",
+        stroke:fillStroke,
+        turnIndex:currentTurnIndex
+      });
+
+      drawingPointerId=null;
+      playTone(520,.04);
+      vibrate(20);
+      return;
+    }
 
     currentStroke={
-
       id:
-        ME.id+
-        "_"+
-        Date.now().toString(36)+
-        "_"+
-        Math.random()
-          .toString(36)
-          .slice(2,6),
-
-      color,
-
-      size:
-        brushSize,
-
+        ME.id+"_"+Date.now().toString(36)+"_"+
+        Math.random().toString(36).slice(2,6),
+      color:
+        tool==="eraser"
+          ?"#f7f8fb"
+          :brushColor,
+      size:brushSize,
+      tool,
       points:[p]
     };
 
+    if(tool==="line" || tool==="rect" || tool==="circle"){
+      currentStroke.points.push({...p});
+    }
+
     try{
-
-      canvas.setPointerCapture(
-        e.pointerId
-      );
-
+      canvas.setPointerCapture(e.pointerId);
     }catch(_){}
   }
 
@@ -6548,7 +6852,6 @@
         e.pointerId!==drawingPointerId
       )
     ){
-
       return;
     }
 
@@ -6556,55 +6859,41 @@
       e.pointerType==="mouse" &&
       e.buttons===0
     ){
-
       return;
     }
 
     e.preventDefault();
 
     const events=
-      typeof
-        e.getCoalescedEvents===
-        "function"
+      typeof e.getCoalescedEvents==="function"
         ?e.getCoalescedEvents()
         :[e];
 
-    for(
-      const ev of events
-    ){
+    for(const ev of events){
+      const p=pointFromEvent(ev);
 
-      const p=
-        pointFromEvent(ev);
+      /* 幾何工具：第二點只是預覽端點，不累積成自由曲線。 */
+      if(
+        currentStroke.tool==="line" ||
+        currentStroke.tool==="rect" ||
+        currentStroke.tool==="circle"
+      ){
+        currentStroke.points[1]=p;
+        redrawCanvas();
+        drawStroke(currentStroke);
+        continue;
+      }
 
       const last=
         currentStroke.points[
           currentStroke.points.length-1
         ];
 
-      const r=
-        canvas.getBoundingClientRect();
+      const r=canvas.getBoundingClientRect();
+      const dx=(p.x-last.x)*r.width;
+      const dy=(p.y-last.y)*r.height;
 
-      const dx=
-        (
-          p.x-
-          last.x
-        )*
-        r.width;
-
-      const dy=
-        (
-          p.y-
-          last.y
-        )*
-        r.height;
-
-      if(
-        Math.hypot(
-          dx,
-          dy
-        )<1.4
-      ){
-
+      if(Math.hypot(dx,dy)<1.4){
         continue;
       }
 
@@ -6612,23 +6901,12 @@
         currentStroke.points.length<
         CONFIG.MAX_POINTS_PER_STROKE
       ){
-
-        currentStroke.points.push(
-          p
-        );
-
+        currentStroke.points.push(p);
         drawStroke({
-
-          color:
-            currentStroke.color,
-
-          size:
-            currentStroke.size,
-
-          points:[
-            last,
-            p
-          ]
+          color:currentStroke.color,
+          size:currentStroke.size,
+          tool:currentStroke.tool,
+          points:[last,p]
         });
       }
     }
@@ -6673,6 +6951,9 @@
       size:
         currentStroke.size,
 
+      tool:
+        safeString(currentStroke.tool,"pen",20),
+
       points:
         currentStroke.points.slice(
           0,
@@ -6687,6 +6968,14 @@
     localStrokeIds.push(
       stroke.id
     );
+
+    if(
+      stroke.tool==="line" ||
+      stroke.tool==="rect" ||
+      stroke.tool==="circle"
+    ){
+      redrawCanvas();
+    }
 
     if(
       knownStrokes.length>
@@ -6805,6 +7094,20 @@
       return;
     }
 
+    const allowedTools=new Set([
+      "pen",
+      "eraser",
+      "fill",
+      "line",
+      "rect",
+      "circle"
+    ]);
+
+    const safeTool=
+      allowedTools.has(stroke.tool)
+        ?stroke.tool
+        :"pen";
+
     const safeStroke={
 
       id:
@@ -6828,6 +7131,8 @@
           30
         ),
 
+      tool:safeTool,
+
       points:
         stroke.points
           .slice(
@@ -6837,19 +7142,8 @@
           .map(
             p=>({
 
-              x:
-                clamp(
-                  p.x,
-                  0,
-                  1
-                ),
-
-              y:
-                clamp(
-                  p.y,
-                  0,
-                  1
-                )
+              x:clamp(p.x,0,1),
+              y:clamp(p.y,0,1)
             })
           )
     };
@@ -6866,9 +7160,16 @@
       knownStrokes.shift();
     }
 
-    drawStroke(
-      safeStroke
-    );
+    if(
+      safeTool==="fill" ||
+      safeTool==="line" ||
+      safeTool==="rect" ||
+      safeTool==="circle"
+    ){
+      redrawCanvas();
+    }else{
+      drawStroke(safeStroke);
+    }
   }
 
   function removeKnownStroke(
@@ -6945,6 +7246,9 @@
 
     localStrokeIds=[];
 
+    currentStroke=null;
+    drawingPointerId=null;
+
     redrawCanvas();
 
     sendEvent(
@@ -6996,6 +7300,20 @@
               b.dataset.size
             )===
             brushSize
+          );
+        }
+      );
+
+    document
+      .querySelectorAll(
+        "[data-color]"
+      )
+      .forEach(
+        b=>{
+
+          b.classList.toggle(
+            "active",
+            b.dataset.color===brushColor
           );
         }
       );
