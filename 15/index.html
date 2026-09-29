@@ -809,7 +809,7 @@
     description:"依實際畫畫難度選題型，輪流作畫，搶猜得分！",
     entryCost:100,
     maxPlayers:10,
-    version:"1.8.0"
+    version:"1.9.0"
   };
 
   const CONFIG=Object.freeze({
@@ -1292,6 +1292,9 @@
   /* 每回合依猜中先後記錄第 1 / 2 / 3 名，
      不再因第一個人猜中就立刻結束回合。 */
   let correctGuessers=[];
+
+  /* 本回合真正需要幾名猜中才提前結束：2 人=1 名、3 人=2 名、4 人以上=3 名。 */
+  let currentRequiredCorrectCount=3;
 
   /* 可選：瀏覽器語音辨識。BoomRoom 目前提供的 SDK 介面沒有
      原始語音串流／語音轉文字 API，因此這裡不假裝直接讀取平台語音。 */
@@ -2619,6 +2622,7 @@
     currentDrawerId="";
 
     currentTurnResolved=false;
+    currentRequiredCorrectCount=getRequiredCorrectCount();
 
     currentWord=null;
 
@@ -2711,6 +2715,20 @@
     return participants.has(id);
   }
 
+  function getRequiredCorrectCount(){
+
+    const guesserCount=Math.max(0,participants.size-1);
+
+    if(guesserCount<=0){
+      return 1;
+    }
+
+    return Math.min(
+      CONFIG.GUESS_REWARDS.length,
+      guesserCount
+    );
+  }
+
   function startNextTurnAsHost(){
 
     /* 只有房主可以推進回合；其他玩家收到同步事件後只能顯示。 */
@@ -2746,6 +2764,7 @@
 
     currentTurnResolved=false;
     correctGuessers=[];
+    currentRequiredCorrectCount=getRequiredCorrectCount();
     speechFinalText="";
 
     knownStrokes=[];
@@ -2792,7 +2811,10 @@
         activeTurnSeconds,
 
       turnSeconds:
-        activeTurnSeconds
+        activeTurnSeconds,
+
+      requiredCorrectCount:
+        currentRequiredCorrectCount
     };
 
     sendEvent(
@@ -2940,6 +2962,11 @@
 
     currentTurnResolved=false;
     correctGuessers=[];
+    currentRequiredCorrectCount=intClamp(
+      payload.requiredCorrectCount || getRequiredCorrectCount(),
+      1,
+      Math.max(1,CONFIG.GUESS_REWARDS.length)
+    );
     speechFinalText="";
 
     selectedCategory=
@@ -3001,7 +3028,7 @@
       text:
         isDrawer()
           ?"🎨 第 "+(currentTurnIndex+1)+" 回合開始！答案共 "+getAnswerLength(currentWord)+" 字，開始作畫！"
-          :"🎨 第 "+(currentTurnIndex+1)+" 回合開始！提示：答案共 "+getAnswerLength(currentWord)+" 字，搶先猜！",
+          :"🎨 第 "+(currentTurnIndex+1)+" 回合開始！提示：答案共 "+getAnswerLength(currentWord)+" 字，搶先猜！本回合需 "+currentRequiredCorrectCount+" 名玩家猜中。",
 
       isCorrect:false,
 
@@ -3067,7 +3094,7 @@
       if(correctGuessers.some(x=>x.id===uid)){
         return;
       }
-      if(correctGuessers.length>=CONFIG.GUESS_REWARDS.length){
+      if(correctGuessers.length>=currentRequiredCorrectCount){
         return;
       }
 
@@ -3107,14 +3134,15 @@
         userScore:gp.score,
         drawerScore:drawer.score,
         answer:currentWord?currentWord.answer:"",
+        requiredCorrectCount:currentRequiredCorrectCount,
         at:Date.now()
       };
 
       sendEvent("GAME_EVENT",payload);
       applyGuessCorrect(payload);
 
-      /* 第三名猜中後立即結束本回合，進入下一回合。 */
-      if(rank>=CONFIG.GUESS_REWARDS.length){
+      /* 依實際參賽人數提前結束：2 人=第1名、3 人=第2名、4 人以上=第3名。 */
+      if(rank>=currentRequiredCorrectCount){
         endResolvedTurnAsHost("ALL_CORRECT",uid);
       }
       return;
@@ -3142,6 +3170,7 @@
       drawerScore:drawer?drawer.score:0,
       winnerScore:null,
       correctGuessers:correctGuessers.map(x=>({id:x.id,rank:x.rank,gain:x.gain})),
+      requiredCorrectCount:currentRequiredCorrectCount,
       at:Date.now()
     };
 
@@ -3274,9 +3303,15 @@
       })).sort((a,b)=>a.rank-b.rank);
     }
 
+    currentRequiredCorrectCount=intClamp(
+      payload.requiredCorrectCount || currentRequiredCorrectCount || getRequiredCorrectCount(),
+      1,
+      Math.max(1,CONFIG.GUESS_REWARDS.length)
+    );
+
     const winnerName=players.get(payload.winnerId)?.username||"玩家";
     if(payload.kind==="ALL_CORRECT"){
-      feedText="🎉 前 3 名全部猜中！準備下一回合";
+      feedText="🎉 本回合需要的猜中人數已達標！準備下一回合";
     }else if(payload.kind==="SKIP"){
       feedText="⏭️ 畫家跳過這題";
     }else{
@@ -3285,7 +3320,11 @@
 
     let msgText="";
     if(payload.kind==="ALL_CORRECT"){
-      msgText="🎉 第 1、2、3 名都已猜中！答案是「"+safeString(payload.answer,"題目",30)+"」";
+      const target=currentRequiredCorrectCount;
+      const rankSummary=target===1
+        ?"🎉 唯一搶答玩家已猜中！"
+        :"🎉 前 "+target+" 名已全部猜中！";
+      msgText=rankSummary+"答案是「"+safeString(payload.answer,"題目",30)+"」";
     }else if(payload.kind==="SKIP"){
       msgText="⏭️ 畫家跳過這題，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }else{
@@ -5434,7 +5473,8 @@
               :(
                 "❓ 答案長度："+
                 getAnswerLength(currentWord)+
-                " 字"
+                " 字 · 已猜 "+
+                correctGuessers.length+"/"+currentRequiredCorrectCount
               )
           }
 
