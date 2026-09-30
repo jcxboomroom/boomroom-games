@@ -813,177 +813,52 @@
   };
 
   const CONFIG=Object.freeze({
-
     ENTRY_FEE:100,
-
     PLATFORM_FEE_RATE:0.10,
-
     MIN_PLAYERS:1,
-
     MAX_PLAYERS:10,
-
     LOBBY_COUNTDOWN_SECONDS:10,
-
     TURN_SECONDS:30,
-
     COUNTDOWN_SECONDS:3,
-
     HEARTBEAT_MS:4000,
-
     PLAYER_TIMEOUT_MS:12000,
-
     MAX_NAME_LENGTH:24,
-
     MAX_AVATAR_LENGTH:300,
-
     MAX_GUESS_LENGTH:32,
-
     MAX_STROKES:140,
-
     MAX_POINTS_PER_STROKE:2000,
-
-  /* 猜中排名獎勵：第 1 / 2 / 3 名 */
-  GUESS_REWARDS:[150,120,90],
-
-  /* 畫家在本回合有人猜中後取得一次獎勵 */
-  DRAWER_CORRECT_REWARD:100
+    GUESS_REWARDS:[150,120,90],
+    DRAWER_CORRECT_REWARD:100
   });
 
   const STATES=Object.freeze({
-
     LOBBY:"LOBBY",
-
     PLAYING:"PLAYING",
-
     COUNTDOWN:"COUNTDOWN",
-
     RESULT:"RESULT"
   });
 
   /* =========================================================
      題型：依「實際畫畫難度」分類
-     ★ 簡單：輪廓直觀、幾筆就能畫出來
-     ★★ 中等：需要多一點特徵或細節
-     ★★★ 困難：仍然可以畫，但需要較完整的構圖
-     ========================================================= */
+  ========================================================= */
 
   const CATEGORIES=Object.freeze([
-    {
-      id:"food_easy",
-      name:"美食",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🍔",
-      hint:"一眼就能畫出的食物"
-    },
-    {
-      id:"animals_easy",
-      name:"動物",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🐱",
-      hint:"輪廓簡單、特徵明顯"
-    },
-    {
-      id:"daily_easy",
-      name:"日常用品",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🏠",
-      hint:"家裡常見、容易畫"
-    },
-    {
-      id:"school_easy",
-      name:"校園物品",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🎒",
-      hint:"學生熟悉、線條簡單"
-    },
-    {
-      id:"toys_easy",
-      name:"玩具",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🧸",
-      hint:"形狀好辨認"
-    },
-    {
-      id:"transport_easy",
-      name:"交通工具",
-      difficulty:"簡單",
-      difficultyStars:"★",
-      icon:"🚗",
-      hint:"車子、船、飛機等"
-    },
-    {
-      id:"food_medium",
-      name:"飲料甜點",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"🧋",
-      hint:"杯子、冰品、甜點造型"
-    },
-    {
-      id:"sports_medium",
-      name:"運動",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"⚽",
-      hint:"球類與簡單運動動作"
-    },
-    {
-      id:"jobs_medium",
-      name:"職業人物",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"🧑‍🍳",
-      hint:"用制服、道具表現職業"
-    },
-    {
-      id:"places_medium",
-      name:"地點場景",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"🏞️",
-      hint:"簡單場景與場所"
-    },
-    {
-      id:"nature_medium",
-      name:"自然",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"🌳",
-      hint:"植物、天氣、自然景象"
-    },
-    {
-      id:"festivals_medium",
-      name:"節慶",
-      difficulty:"中等",
-      difficultyStars:"★★",
-      icon:"🎉",
-      hint:"節日物品與慶祝元素"
-    },
-    {
-      id:"fantasy_hard",
-      name:"幻想",
-      difficulty:"困難",
-      difficultyStars:"★★★",
-      icon:"🐉",
-      hint:"需要靠特徵與組合畫出來"
-    },
-    {
-      id:"adventure_hard",
-      name:"冒險寶物",
-      difficulty:"困難",
-      difficultyStars:"★★★",
-      icon:"🗺️",
-      hint:"仍可具象作畫，但細節較多"
-    }
+    { id:"food_easy", name:"美食", difficulty:"簡單", difficultyStars:"★", icon:"🍔", hint:"一眼就能畫出的食物" },
+    { id:"animals_easy", name:"動物", difficulty:"簡單", difficultyStars:"★", icon:"🐱", hint:"輪廓簡單、特徵明顯" },
+    { id:"daily_easy", name:"日常用品", difficulty:"簡單", difficultyStars:"★", icon:"🏠", hint:"家裡常見、容易畫" },
+    { id:"school_easy", name:"校園物品", difficulty:"簡單", difficultyStars:"★", icon:"🎒", hint:"學生熟悉、線條簡單" },
+    { id:"toys_easy", name:"玩具", difficulty:"簡單", difficultyStars:"★", icon:"🧸", hint:"形狀好辨認" },
+    { id:"transport_easy", name:"交通工具", difficulty:"簡單", difficultyStars:"★", icon:"🚗", hint:"車子、船、飛機等" },
+    { id:"food_medium", name:"飲料甜點", difficulty:"中等", difficultyStars:"★★", icon:"🧋", hint:"杯子、冰品、甜點造型" },
+    { id:"sports_medium", name:"運動", difficulty:"中等", difficultyStars:"★★", icon:"⚽", hint:"球類與簡單運動動作" },
+    { id:"jobs_medium", name:"職業人物", difficulty:"中等", difficultyStars:"★★", icon:"🧑‍🍳", hint:"用制服、道具表現職業" },
+    { id:"places_medium", name:"地點場景", difficulty:"中等", difficultyStars:"★★", icon:"🏞️", hint:"簡單場景與場所" },
+    { id:"nature_medium", name:"自然", difficulty:"中等", difficultyStars:"★★", icon:"🌳", hint:"植物、天氣、自然景象" },
+    { id:"festivals_medium", name:"節慶", difficulty:"中等", difficultyStars:"★★", icon:"🎉", hint:"節日物品與慶祝元素" },
+    { id:"fantasy_hard", name:"幻想", difficulty:"困難", difficultyStars:"★★★", icon:"🐉", hint:"需要靠特徵與組合畫出來" },
+    { id:"adventure_hard", name:"冒險寶物", difficulty:"困難", difficultyStars:"★★★", icon:"🗺️", hint:"仍可具象作畫，但細節較多" }
   ]);
 
-  /* 題目全部以「實際能畫出來」為前提，移除太抽象、太複雜、
-     很難靠圖像猜出的詞。每個題型至少 30 題，足以支援多人多輪。 */
   const WORD_BANK={
     food_easy:[
       ["蘋果"],["香蕉"],["西瓜"],["草莓"],["葡萄"],["鳳梨"],["橘子"],["檸檬"],["芒果"],["水梨"],
@@ -1076,27 +951,16 @@
   };
 
   function buildWordBank(){
-
     const out={};
-
     for(const c of CATEGORIES){
-
       out[c.id]=
         (WORD_BANK[c.id]||[])
         .map((row,i)=>({
-
           id:c.id+"_"+i,
-
           answer:String(row[0]),
-
-          aliases:
-            Array.isArray(row[1])
-              ?row[1]
-              :[]
-
+          aliases: Array.isArray(row[1]) ? row[1] : []
         }));
     }
-
     return out;
   }
 
@@ -1110,92 +974,31 @@
 
   function seededRandom(seed){
     let x=(Number(seed)>>>0)||1;
-
     return ()=>{
-      x=
-        (Math.imul(
-          x ^ (x>>>15),
-          2246822519
-        )+3266489917)>>>0;
-
+      x=(Math.imul(x ^ (x>>>15), 2246822519)+3266489917)>>>0;
       x^=x>>>13;
-      x=Math.imul(
-        x,
-        1274126177
-      )>>>0;
-
+      x=Math.imul(x, 1274126177)>>>0;
       return (x>>>0)/4294967296;
     };
   }
 
-  function shuffledWordIndexes(
-    categoryId,
-    seed
-  ){
-    const key=
-      String(seed)+"|"+String(categoryId);
-
-    if(
-      WORD_ORDER_CACHE.has(key)
-    ){
+  function shuffledWordIndexes(categoryId, seed){
+    const key=String(seed)+"|"+String(categoryId);
+    if(WORD_ORDER_CACHE.has(key)){
       return WORD_ORDER_CACHE.get(key);
     }
-
-    const bank=
-      WORDS[
-        categoryId
-      ]||
-      [];
-
-    const arr=
-      bank.map(
-        (_,i)=>i
-      );
-
-    const rand=
-      seededRandom(
-        stableHash(key)
-      );
-
-    for(
-      let i=arr.length-1;
-      i>0;
-      i--
-    ){
-      const j=
-        Math.floor(
-          rand()*(i+1)
-        );
-
-      [
-        arr[i],
-        arr[j]
-      ]=[
-        arr[j],
-        arr[i]
-      ];
+    const bank=WORDS[categoryId]||[];
+    const arr=bank.map((_,i)=>i);
+    const rand=seededRandom(stableHash(key));
+    for(let i=arr.length-1; i>0; i--){
+      const j=Math.floor(rand()*(i+1));
+      [arr[i], arr[j]]=[arr[j], arr[i]];
     }
-
-    WORD_ORDER_CACHE.set(
-      key,
-      arr
-    );
-
-    if(
-      WORD_ORDER_CACHE.size>24
-    ){
-      const first=
-        WORD_ORDER_CACHE.keys()
-          .next()
-          .value;
-
-      if(first){
-        WORD_ORDER_CACHE.delete(
-          first
-        );
-      }
+    WORD_ORDER_CACHE.set(key, arr);
+    if(WORD_ORDER_CACHE.size>24){
+      const first=WORD_ORDER_CACHE.keys().next().value;
+      if(first){ WORD_ORDER_CACHE.delete(first); }
     }
-
     return arr;
   }
 
@@ -1210,189 +1013,94 @@
 
   function refreshLayout(){
     if(layoutResizeFrame){
-      cancelAnimationFrame(
-        layoutResizeFrame
-      );
+      cancelAnimationFrame(layoutResizeFrame);
     }
-
-    layoutResizeFrame=
-      requestAnimationFrame(
-        ()=>{
-          layoutResizeFrame=0;
-
-          if(canvas && ctx){
-            resizeCanvas();
-          }
-
-          scheduleChatScroll();
-        }
-      );
+    layoutResizeFrame=requestAnimationFrame(()=>{
+      layoutResizeFrame=0;
+      if(canvas && ctx){
+        resizeCanvas();
+      }
+      scheduleChatScroll();
+    });
   }
 
-  window.addEventListener(
-    "resize",
-    refreshLayout,
-    {passive:true}
-  );
-
-  window.addEventListener(
-    "orientationchange",
-    refreshLayout,
-    {passive:true}
-  );
+  window.addEventListener("resize", refreshLayout, {passive:true});
+  window.addEventListener("orientationchange", refreshLayout, {passive:true});
 
   let sdkIsHost=false;
-
   let gameRoomId="";
-
   let selectedCategory="food_easy";
-
   let selectedRounds=1;
-
   let selectedTurnSeconds=30;
-
   let activeTurnSeconds=30;
-
   let lobbyTimer=null;
-
-  let lobbySecondsLeft=
-    CONFIG.LOBBY_COUNTDOWN_SECONDS;
-
+  let lobbySecondsLeft=CONFIG.LOBBY_COUNTDOWN_SECONDS;
   let guessHistory=[];
 
-  /*
-    聊天訊息去重：先看 eventId，沒有 eventId 時再用
-    round / turn / 玩家 / 內容建立穩定 key。
-  */
   const chatSeenKeys=new Set();
-
-  /* 回合同步防重複：同一局同一回合只能套用一次開始／結束。 */
   const turnStartSeenKeys=new Set();
   const turnEndSeenKeys=new Set();
   let appliedRoundStartId="";
   let appliedRoundEndId="";
 
   let state=STATES.LOBBY;
-
   let gameOverCalled=false;
-
   let matchStarted=false;
-
   let matchEnded=false;
-
   let roundId="";
-
   let roundSeed=0;
-
   let currentHostId="";
-
   let currentTurnIndex=-1;
-
   let currentDrawerId="";
-
   let currentTurnStartedAt=0;
-
   let currentTurnResolved=false;
-
-  /* 每回合依猜中先後記錄第 1 / 2 / 3 名，
-     不再因第一個人猜中就立刻結束回合。 */
   let correctGuessers=[];
-
-  /* 本回合真正需要幾名猜中才提前結束：2 人=1 名、3 人=2 名、4 人以上=3 名。 */
   let currentRequiredCorrectCount=3;
 
-  /* 可選：瀏覽器語音辨識。BoomRoom 目前提供的 SDK 介面沒有
-     原始語音串流／語音轉文字 API，因此這裡不假裝直接讀取平台語音。 */
   let speechRecognition=null;
   let speechListening=false;
   let speechFinalText="";
 
   let currentWord=null;
-
   let knownStrokes=[];
-
   let localStrokeIds=[];
-
   let currentStroke=null;
-
   let tool="pen";
-
   let brushColor="#151923";
-
   let brushSize=6;
-
   let muted=false;
-
   let audioCtx=null;
-
   let soundCooldown=0;
-
   let totalPool=0;
-
   let platformFee=0;
-
   let prizePool=0;
-
   let finalReward=0;
-
   let finalRank=1;
-
   let finalReason="";
-
   let feedText="";
-
   let lastGuessAt=0;
-
-  let countdownValue=
-    CONFIG.COUNTDOWN_SECONDS;
-
+  let countdownValue=CONFIG.COUNTDOWN_SECONDS;
   let loopHandle=0;
-
   let lastFrame=0;
-
   let turnStateTimer=null;
-
   let heartbeatTimer=null;
-
   let rafRunning=true;
-
   let fps=0;
-
   let hiddenAt=0;
-
   let canvas=null;
-
   let ctx=null;
-
   let resizeBound=false;
-
   let roundStartAt=0;
-
-  /* 多輪 */
-
   let turnOrder=[];
-
   let totalTurnsPerPlayer=1;
-
   let totalTurnCount=0;
 
-  /* 玩家 */
-
   const participants=new Set();
-
   const players=new Map();
-
   const seenEvents=new Set();
-
-  /*
-    ★ 每位玩家自己的票
-  */
   const categoryVotes=new Map();
-
   const roundsVotes=new Map();
-
   const secondsVotes=new Map();
-
   let drawingPointerId=null;
 
   /* =========================================================
@@ -1400,311 +1108,118 @@
   ========================================================= */
 
   let ME={
-
-    id:
-      "local_"+
-      Math.random()
-        .toString(36)
-        .slice(2,10),
-
+    id:"local_"+Math.random().toString(36).slice(2,10),
     username:"本地玩家",
-
     avatar:"",
-
     joinedAt:Date.now()
   };
 
   currentHostId=ME.id;
-
-  addPlayer(
-    ME.id,
-    ME.username,
-    ME.avatar,
-    "READY"
-  );
+  addPlayer(ME.id, ME.username, ME.avatar, "READY");
 
   /* =========================================================
      UTIL
   ========================================================= */
 
-  function safeString(
-    v,
-    fallback,
-    maxLen
-  ){
-
-    if(
-      v===null ||
-      v===undefined
-    ){
-      return fallback;
-    }
-
-    const s=
-      String(v).trim();
-
-    return s
-      ?s.slice(0,maxLen)
-      :fallback;
+  function safeString(v, fallback, maxLen){
+    if(v===null || v===undefined){ return fallback; }
+    const s=String(v).trim();
+    return s ? s.slice(0,maxLen) : fallback;
   }
 
-  function finite(
-    v,
-    fallback=0
-  ){
-
-    return Number.isFinite(v)
-      ?v
-      :fallback;
+  function finite(v, fallback=0){
+    return Number.isFinite(v) ? v : fallback;
   }
 
-  function clamp(
-    v,
-    min,
-    max
-  ){
-
-    return Math.min(
-      max,
-      Math.max(
-        min,
-        finite(v,min)
-      )
-    );
+  function clamp(v, min, max){
+    return Math.min(max, Math.max(min, finite(v,min)));
   }
 
-  function intClamp(
-    v,
-    min,
-    max
-  ){
-
-    return Math.floor(
-      clamp(
-        v,
-        min,
-        max
-      )
-    );
+  function intClamp(v, min, max){
+    return Math.floor(clamp(v,min,max));
   }
 
   function esc(s){
-
-    return String(s)
-      .replace(
-        /[&<>"']/g,
-        c=>({
-
-          "&":"&amp;",
-          "<":"&lt;",
-          ">":"&gt;",
-          "\"":"&quot;",
-          "'":"&#39;"
-
-        }[c])
-      );
+    return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   }
 
   function stableHash(s){
-
     let h=2166136261>>>0;
-
-    for(
-      let i=0;
-      i<s.length;
-      i++
-    ){
-
-      h^=
-        s.charCodeAt(i);
-
-      h=
-        Math.imul(
-          h,
-          16777619
-        );
+    for(let i=0; i<s.length; i++){
+      h^=s.charCodeAt(i);
+      h=Math.imul(h, 16777619);
     }
-
     return h>>>0;
   }
 
   function makeRoundId(){
-
-    return "round_"+
-      Date.now().toString(36)+
-      "_"+
-      Math.random()
-        .toString(36)
-        .slice(2,8);
+    return "round_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);
   }
 
   function makeSeed(){
-
-    return (
-      Date.now() ^
-      Math.floor(
-        Math.random()*
-        0xffffffff
-      )
-    )>>>0;
+    return (Date.now() ^ Math.floor(Math.random()*0xffffffff))>>>0;
   }
 
   function normalizeText(s){
-
-    return String(s||"")
-      .normalize("NFKC")
-      .toLowerCase()
-      .replace(
-        /[\s\u3000，。！？、,.!?;；:：'"“”‘’()（）\[\]{}<>《》【】]/g,
-        ""
-      );
+    return String(s||"").normalize("NFKC").toLowerCase().replace(/[\s\u3000，。！？、,.!?;；:：'"“”‘’()（）\[\]{}<>《》【】]/g, "");
   }
 
-
   function getAnswerLength(word){
-    const answer=
-      safeString(
-        word?.answer,
-        "",
-        100
-      )
-      .replace(/\s+/g,"")
-      .trim();
-
+    const answer=safeString(word?.answer, "", 100).replace(/\s+/g,"").trim();
     return Array.from(answer).length;
   }
 
-  // 🌟 核心修改：模糊比對與別名支援
   function answerMatches(guess, word){
     const g = normalizeText(guess);
     if(!g || !word) return false;
-
     const ans = normalizeText(word.answer);
-
-    // 1. 包含關係 (例如: "是鴨子吧" 包含 "鴨子")
     if(g.includes(ans)) return true;
-
-    // 2. 檢查別名 (例如: "小鴨", "黑猩猩")
     if (Array.isArray(word.aliases)) {
       for(const a of word.aliases){
         const normA = normalizeText(a);
         if(g.includes(normA)) return true;
       }
     }
-
     return false;
   }
 
   function getCategory(id){
-
-    return (
-      CATEGORIES.find(
-        c=>c.id===id
-      )||
-      CATEGORIES[0]
-    );
+    return (CATEGORIES.find(c=>c.id===id)||CATEGORIES[0]);
   }
 
   /* =========================================================
      PLAYERS
   ========================================================= */
 
-  function addPlayer(
-    id,
-    username,
-    avatar,
-    status="READY"
-  ){
-
-    if(
-      id===null ||
-      id===undefined
-    ){
-      return null;
-    }
-
+  function addPlayer(id, username, avatar, status="READY"){
+    if(id===null || id===undefined){ return null; }
     id=String(id);
-
-    if(
-      !id ||
-      id.length>64
-    ){
-      return null;
-    }
-
-    let p=
-      players.get(id);
+    if(!id || id.length>64){ return null; }
+    let p=players.get(id);
 
     if(!p){
-
       p={
-
         id,
-
-        username:
-          safeString(
-            username,
-            "玩家",
-            CONFIG.MAX_NAME_LENGTH
-          ),
-
-        avatar:
-          safeString(
-            avatar,
-            "",
-            CONFIG.MAX_AVATAR_LENGTH
-          ),
-
+        username: safeString(username, "玩家", CONFIG.MAX_NAME_LENGTH),
+        avatar: safeString(avatar, "", CONFIG.MAX_AVATAR_LENGTH),
         status,
-
         paid:true,
-
         score:0,
-
         reward:0,
-
         lastSeen:Date.now(),
-
         joinedAt:Date.now(),
-
         correct:0,
-
         drawTurns:0,
-
         skips:0
       };
-
-      players.set(
-        id,
-        p
-      );
-
+      players.set(id, p);
     }else{
-
-      p.username=
-        safeString(
-          username,
-          p.username,
-          CONFIG.MAX_NAME_LENGTH
-        );
-
-      p.avatar=
-        safeString(
-          avatar,
-          p.avatar,
-          CONFIG.MAX_AVATAR_LENGTH
-        );
-
-      p.status=
-        status||
-        p.status;
-
-      p.lastSeen=
-        Date.now();
-
+      p.username=safeString(username, p.username, CONFIG.MAX_NAME_LENGTH);
+      p.avatar=safeString(avatar, p.avatar, CONFIG.MAX_AVATAR_LENGTH);
+      if(status) p.status = status;
+      p.lastSeen=Date.now();
       p.paid=true;
     }
-
     return p;
   }
 
@@ -1713,192 +1228,59 @@
   ========================================================= */
 
   function setupSDK(data){
-
     DEV=false;
 
     if(data.user){
-
-      players.delete(
-        ME.id
-      );
-
-      ME.id=
-        String(
-          data.user.id
-        );
-
-      ME.username=
-        safeString(
-          data.user.username,
-          "玩家",
-          CONFIG.MAX_NAME_LENGTH
-        );
-
-      ME.avatar=
-        safeString(
-          data.user.avatar,
-          "",
-          CONFIG.MAX_AVATAR_LENGTH
-        );
+      players.delete(ME.id);
+      ME.id=String(data.user.id);
+      ME.username=safeString(data.user.username, "玩家", CONFIG.MAX_NAME_LENGTH);
+      ME.avatar=safeString(data.user.avatar, "", CONFIG.MAX_AVATAR_LENGTH);
     }
 
-    sdkIsHost=
-      !!data.isHost;
+    sdkIsHost=!!data.isHost;
+    gameRoomId=data.roomId||"";
 
-    gameRoomId=
-      data.roomId||
-      "";
-
-    if(
-      Array.isArray(
-        data.roomPlayers
-      )
-    ){
-
-      data.roomPlayers.forEach(
-        rp=>{
-
-          addPlayer(
-            String(rp.id),
-            rp.username,
-            rp.avatar,
-            "READY"
-          );
-
-        }
-      );
+    if(Array.isArray(data.roomPlayers)){
+      data.roomPlayers.forEach(rp=>{
+        addPlayer(String(rp.id), rp.username, rp.avatar, "READY");
+      });
     }
 
     if(sdkIsHost){
-
-      currentHostId=
-        ME.id;
+      currentHostId=ME.id;
     }
 
-    addPlayer(
-      ME.id,
-      ME.username,
-      ME.avatar,
-      "READY"
-    );
+    addPlayer(ME.id, ME.username, ME.avatar, "READY");
 
-    /*
-      ★ 初始化自己的票
-    */
-
-    if(
-      !categoryVotes.has(
-        String(ME.id)
-      )
-    ){
-
-      categoryVotes.set(
-        String(ME.id),
-        selectedCategory
-      );
-    }
-
-    if(
-      !roundsVotes.has(
-        String(ME.id)
-      )
-    ){
-
-      roundsVotes.set(
-        String(ME.id),
-        selectedRounds
-      );
-    }
-
-    if(
-      !secondsVotes.has(
-        String(ME.id)
-      )
-    ){
-
-      secondsVotes.set(
-        String(ME.id),
-        selectedTurnSeconds
-      );
-    }
+    if(!categoryVotes.has(String(ME.id))){ categoryVotes.set(String(ME.id), selectedCategory); }
+    if(!roundsVotes.has(String(ME.id))){ roundsVotes.set(String(ME.id), selectedRounds); }
+    if(!secondsVotes.has(String(ME.id))){ secondsVotes.set(String(ME.id), selectedTurnSeconds); }
 
     render();
-
     startLobbyAutoCountdown();
   }
 
-  window.addEventListener(
-    "message",
-    e=>{
-
-      try{
-
-        const data=
-          typeof e.data==="string"
-            ?JSON.parse(e.data)
-            :e.data;
-
-        if(
-          data.action===
-          "initSDK"
-        ){
-
-          setupSDK(data);
-
-          return;
-        }
-
-        if(
-          !data ||
-          data.action!=="gameEventReceived"
-        ){
-
-          return;
-        }
-
-        const userId=
-          safeString(
-            data.userId,
-            "",
-            64
-          );
-
-        const eventName=
-          safeString(
-            data.eventName,
-            "",
-            40
-          );
-
-        const payload=
-          data.payload;
-
-        if(
-          !userId ||
-          !/^[A-Z0-9_]{1,40}$/
-            .test(eventName) ||
-          !payload ||
-          typeof payload!=="object"
-        ){
-
-          return;
-        }
-
-        handleEvent(
-          userId,
-          eventName,
-          payload
-        );
-
-      }catch(err){
-
-        console.error(
-          "message error",
-          err
-        );
+  window.addEventListener("message", e=>{
+    try{
+      const data = typeof e.data==="string" ? JSON.parse(e.data) : e.data;
+      if(data.action==="initSDK"){
+        setupSDK(data);
+        return;
       }
+      if(!data || data.action!=="gameEventReceived"){ return; }
+
+      const userId=safeString(data.userId, "", 64);
+      const eventName=safeString(data.eventName, "", 40);
+      const payload=data.payload;
+
+      if(!userId || !/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload!=="object"){
+        return;
+      }
+      handleEvent(userId, eventName, payload);
+    }catch(err){
+      console.error("message error", err);
     }
-  );
+  });
 
   window.initBoomRoomSDK = function(data) {
     setupSDK(data);
@@ -1919,151 +1301,48 @@
     window.onBoomRoomSDKReady();
   }
 
-  setTimeout(
-    ()=>{
-
-      if(DEV){
-
-        addPlayer(
-          ME.id,
-          ME.username,
-          ME.avatar,
-          "READY"
-        );
-
-        categoryVotes.set(
-          String(ME.id),
-          selectedCategory
-        );
-
-        roundsVotes.set(
-          String(ME.id),
-          selectedRounds
-        );
-
-        secondsVotes.set(
-          String(ME.id),
-          selectedTurnSeconds
-        );
-
-        render();
-
-        startLobbyAutoCountdown();
-      }
-
-    },
-    200
-  );
+  setTimeout(()=>{
+    if(DEV){
+      addPlayer(ME.id, ME.username, ME.avatar, "READY");
+      categoryVotes.set(String(ME.id), selectedCategory);
+      roundsVotes.set(String(ME.id), selectedRounds);
+      secondsVotes.set(String(ME.id), selectedTurnSeconds);
+      render();
+      startLobbyAutoCountdown();
+    }
+  }, 200);
 
   /* =========================================================
      SEND EVENT
   ========================================================= */
 
-  function sendEvent(
-    eventName,
-    payload
-  ){
-
-    if(DEV){
+  function sendEvent(eventName, payload){
+    if(DEV){ return false; }
+    if(!/^[A-Z0-9_]{1,40}$/.test(eventName) || !payload || typeof payload!=="object" || Array.isArray(payload)){
       return false;
     }
 
-    if(
-      !/^[A-Z0-9_]{1,40}$/
-        .test(eventName) ||
-      !payload ||
-      typeof payload!=="object" ||
-      Array.isArray(payload)
-    ){
+    const eventId=safeString(payload.eventId, ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7), 80);
+    const copy={ ...payload, eventId };
 
-      return false;
-    }
-
-    const eventId=
-      safeString(
-        payload.eventId,
-        ME.id+
-        "_"+
-        Date.now().toString(36)+
-        "_"+
-        Math.random()
-          .toString(36)
-          .slice(2,7),
-        80
-      );
-
-    const copy={
-      ...payload,
-      eventId
-    };
-
-    /*
-      SDK 常會把自己的事件再回傳一次。
-      送出端先記住 eventId，回傳時就不會再次處理。
-    */
-    seenEvents.add(
-      eventId
-    );
-
-    if(
-      seenEvents.size>1000
-    ){
-      const first=
-        seenEvents.values()
-          .next()
-          .value;
-
-      if(first){
-        seenEvents.delete(first);
-      }
+    seenEvents.add(eventId);
+    if(seenEvents.size>1000){
+      const first=seenEvents.values().next().value;
+      if(first){ seenEvents.delete(first); }
     }
 
     try{
-
-      if(
-        window.BoomRoomSDK &&
-        typeof
-          window.BoomRoomSDK
-            .sendGameEvent===
-          "function"
-      ){
-
-        window.BoomRoomSDK
-          .sendGameEvent(
-            eventName,
-            copy
-          );
-
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent==="function"){
+        window.BoomRoomSDK.sendGameEvent(eventName, copy);
         return true;
       }
-
-      if(
-        window.parent!==window
-      ){
-
-        window.parent.postMessage(
-          JSON.stringify({
-            action:
-              "sendGameEvent",
-
-            eventName,
-
-            payload:copy
-          }),
-          "*"
-        );
-
+      if(window.parent!==window){
+        window.parent.postMessage(JSON.stringify({ action:"sendGameEvent", eventName, payload:copy }), "*");
         return true;
       }
-
     }catch(err){
-
-      console.error(
-        "sendEvent error",
-        err
-      );
+      console.error("sendEvent error", err);
     }
-
     return false;
   }
 
@@ -2071,104 +1350,40 @@
      VOTING
   ========================================================= */
 
-  function setOwnVote(
-    map,
-    value
-  ){
-
-    map.set(
-      String(ME.id),
-      value
-    );
+  function setOwnVote(map, value){
+    map.set(String(ME.id), value);
   }
 
-  function countVotes(
-    map,
-    options
-  ){
-
-    return options.map(
-      value=>({
-
-        value,
-
-        count:
-          [...map.values()]
-            .filter(
-              v=>
-                String(v)===
-                String(value)
-            )
-            .length
-      })
-    );
-  }
-
-  function pickVoteWinner(
-    map,
-    options,
-    fallback
-  ){
-
-    const rows=
-      countVotes(
-        map,
-        options
-      );
-
-    const max=
-      Math.max(
-        0,
-        ...rows.map(
-          r=>r.count
-        )
-      );
-
-    if(max<=0){
-      return fallback;
+  // 🌟 修正：只計算目前在房間內的有效玩家票數，避免離線玩家被計入
+  function getVoteCount(map, value){
+    let count = 0;
+    for(const [uid, val] of map.entries()){
+      const p = players.get(uid);
+      if(p && p.status !== "LEFT" && p.status !== "TIMEOUT" && String(val) === String(value)){
+        count++;
+      }
     }
+    return count;
+  }
 
-    const tied=
-      rows
-        .filter(
-          r=>r.count===max
-        )
-        .map(
-          r=>r.value
-        );
+  function countVotes(map, options){
+    return options.map(value=>({
+      value,
+      count: getVoteCount(map, value)
+    }));
+  }
 
-    const hostVote=
-      map.get(
-        String(currentHostId)
-      );
+  function pickVoteWinner(map, options, fallback){
+    const rows=countVotes(map, options);
+    const max=Math.max(0, ...rows.map(r=>r.count));
+    if(max<=0){ return fallback; }
 
-    if(
-      tied.some(
-        v=>
-          String(v)===
-          String(hostVote)
-      )
-    ){
-
+    const tied=rows.filter(r=>r.count===max).map(r=>r.value);
+    const hostVote=map.get(String(currentHostId));
+    if(tied.some(v=>String(v)===String(hostVote))){
       return hostVote;
     }
-
-    return tied[0]??
-      fallback;
-  }
-
-  function getVoteCount(
-    map,
-    value
-  ){
-
-    return [...map.values()]
-      .filter(
-        v=>
-          String(v)===
-          String(value)
-      )
-      .length;
+    return tied[0] ?? fallback;
   }
 
   /* =========================================================
@@ -2176,469 +1391,168 @@
   ========================================================= */
 
   function startLobbyAutoCountdown(){
-
-    clearInterval(
-      lobbyTimer
-    );
-
-    lobbySecondsLeft=
-      CONFIG.LOBBY_COUNTDOWN_SECONDS;
-
+    clearInterval(lobbyTimer);
+    lobbySecondsLeft=CONFIG.LOBBY_COUNTDOWN_SECONDS;
     render();
 
-    lobbyTimer=
-      setInterval(
-        ()=>{
+    lobbyTimer=setInterval(()=>{
+      lobbySecondsLeft--;
+      const el=document.getElementById("lobbySecText");
+      if(el){ el.textContent=String(Math.max(0, lobbySecondsLeft)); }
 
-          lobbySecondsLeft--;
-
-          const el=
-            document.getElementById(
-              "lobbySecText"
-            );
-
-          if(el){
-
-            el.textContent=
-              String(
-                Math.max(
-                  0,
-                  lobbySecondsLeft
-                )
-              );
-          }
-
-          if(
-            lobbySecondsLeft<=0
-          ){
-
-            clearInterval(
-              lobbyTimer
-            );
-
-            if(
-              DEV ||
-              sdkIsHost
-            ){
-
-              resolveLobbyVotesAsHost();
-
-            }else{
-
-              lobbySecondsLeft=0;
-
-              render();
-            }
-          }
-
-        },
-        1000
-      );
+      if(lobbySecondsLeft<=0){
+        clearInterval(lobbyTimer);
+        if(DEV || sdkIsHost){
+          resolveLobbyVotesAsHost();
+        }else{
+          lobbySecondsLeft=0;
+          render();
+        }
+      }
+    }, 1000);
   }
 
   function resolveLobbyVotesAsHost(){
+    if(!DEV && !sdkIsHost){ return; }
 
-    if(
-      !DEV &&
-      !sdkIsHost
-    ){
-
-      return;
-    }
-
-    selectedCategory=
-      pickVoteWinner(
-        categoryVotes,
-        CATEGORIES.map(
-          c=>c.id
-        ),
-        selectedCategory
-      );
-
-    selectedRounds=
-      pickVoteWinner(
-        roundsVotes,
-        [1,3,5],
-        selectedRounds
-      );
-
-    selectedTurnSeconds=
-      pickVoteWinner(
-        secondsVotes,
-        [15,30,45,60],
-        selectedTurnSeconds
-      );
-
-    activeTurnSeconds=
-      selectedTurnSeconds;
+    selectedCategory=pickVoteWinner(categoryVotes, CATEGORIES.map(c=>c.id), selectedCategory);
+    selectedRounds=pickVoteWinner(roundsVotes, [1,3,5], selectedRounds);
+    selectedTurnSeconds=pickVoteWinner(secondsVotes, [15,30,45,60], selectedTurnSeconds);
+    activeTurnSeconds=selectedTurnSeconds;
 
     render();
-
     startDirectGameAsHost();
   }
 
   function startDirectGameAsHost(){
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchStarted){ return; }
+    clearInterval(lobbyTimer);
 
-    if(
-      !DEV &&
-      !sdkIsHost
-    ){
+    roundId=makeRoundId();
+    roundSeed=makeSeed();
+    currentHostId=ME.id;
+    activeTurnSeconds=selectedTurnSeconds;
+    addPlayer(ME.id, ME.username, ME.avatar, "READY");
 
-      return;
-    }
-
-    if(matchStarted){
-      return;
-    }
-
-    clearInterval(
-      lobbyTimer
-    );
-
-    roundId=
-      makeRoundId();
-
-    roundSeed=
-      makeSeed();
-
-    currentHostId=
-      ME.id;
-
-    activeTurnSeconds=
-      selectedTurnSeconds;
-
-    addPlayer(
-      ME.id,
-      ME.username,
-      ME.avatar,
-      "READY"
-    );
-
-    startRoundAsHost(
-      selectedCategory
-    );
+    startRoundAsHost(selectedCategory);
   }
 
   /* =========================================================
      ROUND START
   ========================================================= */
 
-  function startRoundAsHost(
-    category
-  ){
+  function startRoundAsHost(category){
+    if(matchStarted){ return; }
 
-    if(matchStarted){
-      return;
-    }
-
-    const allList=
-      [
-        ...players.values()
-      ].filter(
-        p=>
-          p &&
-          p.status!=="LEFT"
-      );
-
-    if(
-      allList.length===0
-    ){
-
-      allList.push(
-        players.get(
-          ME.id
-        )||
-        addPlayer(
-          ME.id,
-          ME.username,
-          ME.avatar,
-          "READY"
-        )
-      );
+    const allList=[...players.values()].filter(p=>p && p.status!=="LEFT" && p.status!=="TIMEOUT");
+    if(allList.length===0){
+      allList.push(players.get(ME.id)||addPlayer(ME.id, ME.username, ME.avatar, "READY"));
     }
 
     participants.clear();
+    allList.forEach(p=>{
+      if(!p) return;
+      p.paid=true;
+      p.status="READY";
+      p.score=0;
+      p.reward=0;
+      p.correct=0;
+      p.drawTurns=0;
+      p.skips=0;
+      participants.add(p.id);
+    });
 
-    allList.forEach(
-      p=>{
-
-        if(!p)return;
-
-        p.paid=true;
-
-        p.status="READY";
-
-        p.score=0;
-
-        p.reward=0;
-
-        p.correct=0;
-
-        p.drawTurns=0;
-
-        p.skips=0;
-
-        participants.add(
-          p.id
-        );
-      }
-    );
-
-    totalPool=
-      participants.size*
-      CONFIG.ENTRY_FEE;
-
-    platformFee=
-      Math.floor(
-        totalPool*
-        CONFIG.PLATFORM_FEE_RATE
-      );
-
-    prizePool=
-      totalPool-
-      platformFee;
+    totalPool=participants.size*CONFIG.ENTRY_FEE;
+    platformFee=Math.floor(totalPool*CONFIG.PLATFORM_FEE_RATE);
+    prizePool=totalPool-platformFee;
 
     matchStarted=true;
-
     matchEnded=false;
-
     gameOverCalled=false;
+    roundStartAt=Date.now()+1000;
 
-    roundStartAt=
-      Date.now()+1000;
-
-    const baseOrder=
-      [...participants];
-
+    const baseOrder=[...participants];
     turnOrder=[];
+    totalTurnsPerPlayer=intClamp(selectedRounds,1,5);
 
-    totalTurnsPerPlayer=
-      intClamp(
-        selectedRounds,
-        1,
-        5
-      );
-
-    for(
-      let r=0;
-      r<totalTurnsPerPlayer;
-      r++
-    ){
-
-      for(
-        const id of baseOrder
-      ){
-
+    for(let r=0; r<totalTurnsPerPlayer; r++){
+      for(const id of baseOrder){
         turnOrder.push(id);
       }
     }
 
-    totalTurnCount=
-      turnOrder.length;
+    totalTurnCount=turnOrder.length;
 
     const payload={
-
       roundId,
-
-      seed:
-        roundSeed,
-
-      startTime:
-        roundStartAt,
-
-      category:
-        selectedCategory,
-
-      participantIds:
-        baseOrder,
-
+      seed:roundSeed,
+      startTime:roundStartAt,
+      category:selectedCategory,
+      participantIds:baseOrder,
       turnOrder,
-
-      rounds:
-        totalTurnsPerPlayer,
-
-      turnSeconds:
-        selectedTurnSeconds
+      rounds:totalTurnsPerPlayer,
+      turnSeconds:selectedTurnSeconds
     };
 
-    sendEvent(
-      "ROUND_START",
-      payload
-    );
-
-    applyRoundStart(
-      payload
-    );
+    sendEvent("ROUND_START", payload);
+    applyRoundStart(payload);
   }
 
-  function applyRoundStart(
-    payload
-  ){
+  function applyRoundStart(payload){
+    if(!payload || typeof payload!=="object"){ return; }
 
-    if(
-      !payload ||
-      typeof payload!=="object"
-    ){
-
-      return;
-    }
-
-    const incomingRoundId=
-      safeString(
-        payload.roundId,
-        "",
-        100
-      );
-
-    if(!incomingRoundId){
-      return;
-    }
-
-    /* 同一局的 ROUND_START 可能被 SDK 重送，不能重新倒數／清空狀態。 */
-    if(incomingRoundId===appliedRoundStartId){
-      return;
-    }
+    const incomingRoundId=safeString(payload.roundId, "", 100);
+    if(!incomingRoundId){ return; }
+    if(incomingRoundId===appliedRoundStartId){ return; }
 
     appliedRoundStartId=incomingRoundId;
     appliedRoundEndId="";
     turnStartSeenKeys.clear();
     turnEndSeenKeys.clear();
 
-    if(payload.roundId){
-
-      roundId=
-        safeString(
-          payload.roundId,
-          roundId,
-          100
-        );
-    }
-
-    roundSeed=
-      finite(
-        payload.seed,
-        0
-      )>>>0;
-
-    roundStartAt=
-      finite(
-        payload.startTime,
-        Date.now()
-      );
-
-    selectedCategory=
-      safeString(
-        payload.category,
-        CATEGORIES[0].id,
-        30
-      );
+    if(payload.roundId){ roundId=safeString(payload.roundId, roundId, 100); }
+    roundSeed=finite(payload.seed, 0)>>>0;
+    roundStartAt=finite(payload.startTime, Date.now());
+    selectedCategory=safeString(payload.category, CATEGORIES[0].id, 30);
 
     if(payload.turnSeconds){
-
-      activeTurnSeconds=
-        Number(
-          payload.turnSeconds
-        );
-
-      selectedTurnSeconds=
-        activeTurnSeconds;
+      activeTurnSeconds=Number(payload.turnSeconds);
+      selectedTurnSeconds=activeTurnSeconds;
     }
 
-    const ids=
-      Array.isArray(
-        payload.participantIds
-      )
-        ?payload.participantIds
-            .filter(
-              x=>
-                typeof x==="string"
-            )
-        :[ME.id];
+    const ids=Array.isArray(payload.participantIds) ? payload.participantIds.filter(x=>typeof x==="string") : [ME.id];
+    const incomingOrder=Array.isArray(payload.turnOrder) ? payload.turnOrder.filter(x=>typeof x==="string") : [];
 
-    const incomingOrder=
-      Array.isArray(
-        payload.turnOrder
-      )
-        ?payload.turnOrder
-            .filter(
-              x=>
-                typeof x==="string"
-            )
-        :[];
-
-    turnOrder=
-      incomingOrder.length
-        ?incomingOrder
-        :ids;
-
-    totalTurnCount=
-      turnOrder.length;
-
-    totalTurnsPerPlayer=
-      intClamp(
-        payload.rounds||
-        selectedRounds,
-        1,
-        5
-      );
+    turnOrder=incomingOrder.length ? incomingOrder : ids;
+    totalTurnCount=turnOrder.length;
+    totalTurnsPerPlayer=intClamp(payload.rounds||selectedRounds, 1, 5);
 
     participants.clear();
-
-    /* 新局清空聊天與題目順序快取 */
     guessHistory=[];
     chatSeenKeys.clear();
     WORD_ORDER_CACHE.clear();
 
-    ids.forEach(
-      id=>{
-
-        participants.add(id);
-
-        const p=
-          players.get(id)||
-          addPlayer(
-            id,
-            "玩家",
-            "",
-            "READY"
-          );
-
-        if(p){
-
-          p.status="READY";
-
-          p.score=0;
-        }
-      }
-    );
+    ids.forEach(id=>{
+      participants.add(id);
+      const p=players.get(id)||addPlayer(id, "玩家", "", "READY");
+      if(p){ p.status="READY"; p.score=0; }
+    });
 
     currentTurnIndex=-1;
-
     currentDrawerId="";
-
     currentTurnResolved=false;
     currentRequiredCorrectCount=getRequiredCorrectCount();
-
     currentWord=null;
-
     knownStrokes=[];
-
     localStrokeIds=[];
-
     currentStroke=null;
-
     matchStarted=true;
-
     matchEnded=false;
-
-    state=
-      STATES.COUNTDOWN;
-
-    countdownValue=
-      CONFIG.COUNTDOWN_SECONDS;
+    state=STATES.COUNTDOWN;
+    countdownValue=CONFIG.COUNTDOWN_SECONDS;
 
     render();
-
     startCountdown();
   }
 
@@ -2647,51 +1561,22 @@
   ========================================================= */
 
   function startCountdown(){
-
-    clearTimeout(
-      turnStateTimer
-    );
-
-    countdownValue=
-      CONFIG.COUNTDOWN_SECONDS;
-
-    state=
-      STATES.COUNTDOWN;
-
+    clearTimeout(turnStateTimer);
+    countdownValue=CONFIG.COUNTDOWN_SECONDS;
+    state=STATES.COUNTDOWN;
     render();
 
     const tick=()=>{
-
-      if(matchEnded){
-        return;
-      }
-
-      if(
-        countdownValue<=0
-      ){
-
+      if(matchEnded){ return; }
+      if(countdownValue<=0){
         startNextTurnAsHost();
-
         return;
       }
-
-      playTone(
-        520+
-        countdownValue*80,
-        .06
-      );
-
+      playTone(520+countdownValue*80, .06);
       render();
-
       countdownValue--;
-
-      turnStateTimer=
-        setTimeout(
-          tick,
-          850
-        );
+      turnStateTimer=setTimeout(tick, 850);
     };
-
     tick();
   }
 
@@ -2700,358 +1585,124 @@
   ========================================================= */
 
   function isDrawer(){
-
-    return !!currentDrawerId &&
-      currentDrawerId===ME.id;
+    return !!currentDrawerId && currentDrawerId===ME.id;
   }
 
   function isParticipant(id){
-
     return participants.has(id);
   }
 
   function getRequiredCorrectCount(){
-
-    const guesserCount=Math.max(0,participants.size-1);
-
-    if(guesserCount<=0){
-      return 1;
-    }
-
-    return Math.min(
-      CONFIG.GUESS_REWARDS.length,
-      guesserCount
-    );
+    const guesserCount=Math.max(0, participants.size-1);
+    if(guesserCount<=0){ return 1; }
+    return Math.min(CONFIG.GUESS_REWARDS.length, guesserCount);
   }
 
   function startNextTurnAsHost(){
-
-    /* 只有房主可以推進回合；其他玩家收到同步事件後只能顯示。 */
-    if(!DEV && !sdkIsHost){
-      return;
-    }
-
-    if(matchEnded){
-      return;
-    }
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchEnded){ return; }
 
     currentTurnIndex++;
-
-    if(
-      currentTurnIndex>=
-      turnOrder.length
-    ){
-
-      finishMatchAsHost(
-        "所有玩家都完成畫畫"
-      );
-
+    if(currentTurnIndex>=turnOrder.length){
+      finishMatchAsHost("所有玩家都完成畫畫");
       return;
     }
 
-    currentDrawerId=
-      turnOrder[
-        currentTurnIndex
-      ];
-
-    currentTurnStartedAt=
-      Date.now()+250;
-
+    currentDrawerId=turnOrder[currentTurnIndex];
+    currentTurnStartedAt=Date.now()+250;
     currentTurnResolved=false;
     correctGuessers=[];
     currentRequiredCorrectCount=getRequiredCorrectCount();
     speechFinalText="";
-
     knownStrokes=[];
-
     localStrokeIds=[];
-
     currentStroke=null;
-
-    currentWord=
-      wordForTurn(
-        selectedCategory,
-        currentTurnIndex,
-        roundSeed
-      );
-
+    currentWord=wordForTurn(selectedCategory, currentTurnIndex, roundSeed);
     feedText="準備畫！";
 
     const payload={
-
       roundId,
-
-      turnIndex:
-        currentTurnIndex,
-
-      drawerId:
-        currentDrawerId,
-
-      category:
-        selectedCategory,
-
-      wordId:
-        currentWord.id,
-
-      wordIndex:
-        findWordIndex(
-          selectedCategory,
-          currentWord.id
-        ),
-
-      startTime:
-        currentTurnStartedAt,
-
-      duration:
-        activeTurnSeconds,
-
-      turnSeconds:
-        activeTurnSeconds,
-
-      requiredCorrectCount:
-        currentRequiredCorrectCount
+      turnIndex:currentTurnIndex,
+      drawerId:currentDrawerId,
+      category:selectedCategory,
+      wordId:currentWord.id,
+      wordIndex:findWordIndex(selectedCategory, currentWord.id),
+      startTime:currentTurnStartedAt,
+      duration:activeTurnSeconds,
+      turnSeconds:activeTurnSeconds,
+      requiredCorrectCount:currentRequiredCorrectCount
     };
 
-    sendEvent(
-      "TURN_START",
-      payload
-    );
-
-    applyTurnStart(
-      payload
-    );
+    sendEvent("TURN_START", payload);
+    applyTurnStart(payload);
   }
 
-  function findWordIndex(
-    categoryId,
-    wordId
-  ){
-
-    const bank=
-      WORDS[
-        categoryId
-      ]||
-      [];
-
-    const idx=
-      bank.findIndex(
-        w=>
-          w.id===wordId
-      );
-
-    return idx<0
-      ?0
-      :idx;
+  function findWordIndex(categoryId, wordId){
+    const bank=WORDS[categoryId]||[];
+    const idx=bank.findIndex(w=>w.id===wordId);
+    return idx<0 ? 0 : idx;
   }
 
-  function wordForTurn(
-    categoryId,
-    turnIndex,
-    seed
-  ){
-    const bank=
-      WORDS[
-        categoryId
-      ]||
-      [];
+  function wordForTurn(categoryId, turnIndex, seed){
+    const bank=WORDS[categoryId]||[];
+    if(!bank.length){ return { id:"empty", answer:"圖畫", aliases:[] }; }
 
-    if(!bank.length){
-      return {
-        id:"empty",
-        answer:"圖畫",
-        aliases:[]
-      };
-    }
-
-    const order=
-      shuffledWordIndexes(
-        categoryId,
-        seed
-      );
-
-    /*
-      每個回合取一次洗牌後的索引。
-      目前最大回合數為 10 人 × 5 輪 = 50，
-      每個題型都有足夠題量，因此同一局內盡量不重複。
-    */
-    const safeTurnIndex=
-      Math.max(
-        0,
-        intClamp(
-          turnIndex,
-          0,
-          100000
-        )
-      );
-
-    const idx=
-      order[
-        safeTurnIndex%order.length
-      ];
-
-    return (
-      bank[idx]||
-      bank[0]
-    );
+    const order=shuffledWordIndexes(categoryId, seed);
+    const safeTurnIndex=Math.max(0, intClamp(turnIndex, 0, 100000));
+    const idx=order[safeTurnIndex%order.length];
+    return bank[idx]||bank[0];
   }
 
-  function applyTurnStart(
-    payload
-  ){
+  function applyTurnStart(payload){
+    if(!payload || payload.roundId!==roundId){ return; }
 
-    if(
-      !payload ||
-      payload.roundId!==roundId
-    ){
+    const incomingTurnIndex=intClamp(payload.turnIndex, -1, Math.max(0, turnOrder.length));
+    const turnKey=String(payload.roundId)+"|"+String(incomingTurnIndex);
 
-      return;
-    }
-
-    const incomingTurnIndex=
-      intClamp(
-        payload.turnIndex,
-        -1,
-        Math.max(0, turnOrder.length)
-      );
-
-    const turnKey=
-      String(payload.roundId)+"|"+String(incomingTurnIndex);
-
-    /* 同一回合事件重送／不同 eventId 也只能套用一次。 */
-    if(turnStartSeenKeys.has(turnKey)){
-      return;
-    }
-
-    /* 舊回合的延遲封包不能把目前回合倒退。 */
-    if(
-      currentTurnIndex>=0 &&
-      incomingTurnIndex<currentTurnIndex
-    ){
-      return;
-    }
+    if(turnStartSeenKeys.has(turnKey)){ return; }
+    if(currentTurnIndex>=0 && incomingTurnIndex<currentTurnIndex){ return; }
 
     turnStartSeenKeys.add(turnKey);
 
     if(payload.turnSeconds){
-
-      activeTurnSeconds=
-        Number(
-          payload.turnSeconds
-        );
+      activeTurnSeconds=Number(payload.turnSeconds);
     }
 
     currentTurnIndex=incomingTurnIndex;
-
-    currentDrawerId=
-      safeString(
-        payload.drawerId,
-        "",
-        64
-      );
-
-    currentTurnStartedAt=
-      finite(
-        payload.startTime,
-        Date.now()
-      );
-
+    currentDrawerId=safeString(payload.drawerId, "", 64);
+    currentTurnStartedAt=finite(payload.startTime, Date.now());
     currentTurnResolved=false;
     correctGuessers=[];
-    currentRequiredCorrectCount=intClamp(
-      payload.requiredCorrectCount || getRequiredCorrectCount(),
-      1,
-      Math.max(1,CONFIG.GUESS_REWARDS.length)
-    );
+    currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount || getRequiredCorrectCount(), 1, Math.max(1,CONFIG.GUESS_REWARDS.length));
     speechFinalText="";
+    selectedCategory=safeString(payload.category, selectedCategory, 30);
 
-    selectedCategory=
-      safeString(
-        payload.category,
-        selectedCategory,
-        30
-      );
-
-    const bank=
-      WORDS[
-        selectedCategory
-      ]||
-      [];
-
-    const idx=
-      intClamp(
-        payload.wordIndex,
-        0,
-        Math.max(
-          0,
-          bank.length-1
-        )
-      );
-
-    currentWord=
-      bank[idx]||
-      null;
+    const bank=WORDS[selectedCategory]||[];
+    const idx=intClamp(payload.wordIndex, 0, Math.max(0, bank.length-1));
+    currentWord=bank[idx]||null;
 
     knownStrokes=[];
-
     localStrokeIds=[];
-
     currentStroke=null;
-
-    state=
-      STATES.PLAYING;
-
-    feedText=
-      isDrawer()
-        ?"輪到你！畫出題目，別寫字。"
-        :"快猜！先答對先得分。";
+    state=STATES.PLAYING;
+    feedText=isDrawer() ? "輪到你！畫出題目，別寫字。" : "快猜！先答對先得分。";
 
     appendChatMessage({
-
-      chatKey:
-        "TURN_START|"+
-        roundId+
-        "|"+
-        currentTurnIndex,
-
+      chatKey:"TURN_START|"+roundId+"|"+currentTurnIndex,
       roundId,
-
-      turnIndex:
-        currentTurnIndex,
-
+      turnIndex:currentTurnIndex,
       username:"系統",
-
-      text:
-        isDrawer()
-          ?"🎨 第 "+(currentTurnIndex+1)+" 回合開始！答案共 "+getAnswerLength(currentWord)+" 字，開始作畫！"
-          :"🎨 第 "+(currentTurnIndex+1)+" 回合開始！提示：答案共 "+getAnswerLength(currentWord)+" 字，搶先猜！本回合需 "+currentRequiredCorrectCount+" 名玩家猜中。",
-
+      text:isDrawer() ? "🎨 第 "+(currentTurnIndex+1)+" 回合開始！答案共 "+getAnswerLength(currentWord)+" 字，開始作畫！" : "🎨 第 "+(currentTurnIndex+1)+" 回合開始！提示：答案共 "+getAnswerLength(currentWord)+" 字，搶先猜！本回合需 "+currentRequiredCorrectCount+" 名玩家猜中。",
       isCorrect:false,
-
       isSystem:true
     });
 
-    const me=
-      players.get(
-        ME.id
-      );
-
-    if(me){
-
-      me.status=
-        "PLAYING";
-    }
+    const me=players.get(ME.id);
+    if(me){ me.status="PLAYING"; }
 
     render();
-
-    playTone(
-      740,
-      .08
-    );
-
-    setTimeout(
-      ensureCanvas,
-      50
-    );
+    playTone(740, .08);
+    setTimeout(ensureCanvas, 50);
 
     if(!isDrawer()){
       setTimeout(startVoiceGuess, 300);
@@ -3064,58 +1715,32 @@
      TURN END
   ========================================================= */
 
-  function resolveTurnAsHost(
-    kind,
-    winnerId=""
-  ){
+  function resolveTurnAsHost(kind, winnerId=""){
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchEnded || currentTurnResolved){ return; }
 
-    if(!DEV && !sdkIsHost){
-      return;
-    }
-
-    if(matchEnded || currentTurnResolved){
-      return;
-    }
-
-    /*
-      CORRECT 不再立即結束回合。
-      只有 TIMEOUT / SKIP / 第三位猜中才真正結束回合。
-    */
     if(kind==="CORRECT"){
       const uid=safeString(winnerId,"",64);
-      if(!uid || !participants.has(uid) || uid===currentDrawerId){
-        return;
-      }
-      if(correctGuessers.some(x=>x.id===uid)){
-        return;
-      }
-      if(correctGuessers.length>=currentRequiredCorrectCount){
-        return;
-      }
+      if(!uid || !participants.has(uid) || uid===currentDrawerId){ return; }
+      if(correctGuessers.some(x=>x.id===uid)){ return; }
+      if(correctGuessers.length>=currentRequiredCorrectCount){ return; }
 
       const rank=correctGuessers.length+1;
       const guesserGain=CONFIG.GUESS_REWARDS[rank-1]||0;
       const gp=players.get(uid);
       const drawer=players.get(currentDrawerId);
-      if(!gp || !drawer){
-        return;
-      }
+      if(!gp || !drawer){ return; }
 
-      gp.score=intClamp(gp.score+guesserGain,0,100000);
-      gp.correct=intClamp((gp.correct||0)+1,0,1000);
+      gp.score=intClamp(gp.score+guesserGain, 0, 100000);
+      gp.correct=intClamp((gp.correct||0)+1, 0, 1000);
 
       let drawerGain=0;
-      /* 畫家只在本回合第一次有人猜中時獎勵一次。 */
       if(correctGuessers.length===0){
         drawerGain=CONFIG.DRAWER_CORRECT_REWARD;
-        drawer.score=intClamp(drawer.score+drawerGain,0,100000);
+        drawer.score=intClamp(drawer.score+drawerGain, 0, 100000);
       }
 
-      correctGuessers.push({
-        id:uid,
-        rank,
-        gain:guesserGain
-      });
+      correctGuessers.push({ id:uid, rank, gain:guesserGain });
 
       const payload={
         roundId,
@@ -3133,12 +1758,11 @@
         at:Date.now()
       };
 
-      sendEvent("GAME_EVENT",payload);
+      sendEvent("GAME_EVENT", payload);
       applyGuessCorrect(payload);
 
-      /* 依實際參賽人數提前結束：2 人=第1名、3 人=第2名、4 人以上=第3名。 */
       if(rank>=currentRequiredCorrectCount){
-        endResolvedTurnAsHost("ALL_CORRECT",uid);
+        endResolvedTurnAsHost("ALL_CORRECT", uid);
       }
       return;
     }
@@ -3147,10 +1771,10 @@
 
     const drawer=players.get(currentDrawerId);
     if(kind==="SKIP" && drawer){
-      drawer.skips=intClamp((drawer.skips||0)+1,0,1000);
+      drawer.skips=intClamp((drawer.skips||0)+1, 0, 1000);
     }
     if(kind==="TIMEOUT" && drawer){
-      drawer.drawTurns=intClamp((drawer.drawTurns||0)+1,0,1000);
+      drawer.drawTurns=intClamp((drawer.drawTurns||0)+1, 0, 1000);
     }
 
     const payload={
@@ -3164,69 +1788,55 @@
       guesserGain:0,
       drawerScore:drawer?drawer.score:0,
       winnerScore:null,
-      correctGuessers:correctGuessers.map(x=>({id:x.id,rank:x.rank,gain:x.gain})),
+      correctGuessers:correctGuessers.map(x=>({id:x.id, rank:x.rank, gain:x.gain})),
       requiredCorrectCount:currentRequiredCorrectCount,
       at:Date.now()
     };
 
-    sendEvent("TURN_END",payload);
+    sendEvent("TURN_END", payload);
     applyTurnEnd(payload);
   }
 
   function applyGuessCorrect(payload){
+    if(!payload || payload.roundId!==roundId){ return; }
 
-    if(!payload || payload.roundId!==roundId){
-      return;
-    }
+    const uid=safeString(payload.userId, "", 64);
+    const rank=intClamp(payload.rank, 1, 3);
+    if(!uid || rank<1 || rank>3){ return; }
 
-    const uid=safeString(payload.userId,"",64);
-    const rank=intClamp(payload.rank,1,3);
-    if(!uid || rank<1 || rank>3){
-      return;
-    }
-
-    /* 同一玩家同一回合只能拿一次名次。 */
     const alreadyRecorded=correctGuessers.some(x=>x.id===uid);
     if(!alreadyRecorded){
       correctGuessers.push({
         id:uid,
         rank,
-        gain:intClamp(payload.guesserGain,0,100000)
+        gain:intClamp(payload.guesserGain, 0, 100000)
       });
       correctGuessers.sort((a,b)=>a.rank-b.rank);
     }
 
     const gp=players.get(uid);
     if(gp){
-      gp.score=intClamp(payload.userScore,0,100000);
-      if(!alreadyRecorded){
-        gp.correct=intClamp((gp.correct||0)+1,0,1000);
-      }
+      gp.score=intClamp(payload.userScore, 0, 100000);
+      if(!alreadyRecorded){ gp.correct=intClamp((gp.correct||0)+1, 0, 1000); }
     }
 
     const drawer=players.get(payload.drawerId);
     if(drawer){
-      drawer.score=intClamp(payload.drawerScore,0,100000);
+      drawer.score=intClamp(payload.drawerScore, 0, 100000);
     }
 
     const winnerName=gp?.username||"玩家";
     const drawerName=drawer?.username||"畫家";
     const rankText=["","🥇 第 1 名","🥈 第 2 名","🥉 第 3 名"][rank]||("第 "+rank+" 名");
 
-    feedText=
-      rankText+" "+winnerName+
-      " 猜中！ +"+intClamp(payload.guesserGain,0,100000)+" 分"+
-      (payload.drawerGain>0
-        ?"；🎨 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分"
-        :"");
+    feedText=rankText+" "+winnerName+" 猜中！ +"+intClamp(payload.guesserGain,0,100000)+" 分"+(payload.drawerGain>0 ? "；🎨 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分" : "");
 
     appendChatMessage({
       chatKey:"GUESS_CORRECT|"+roundId+"|"+payload.turnIndex+"|"+uid+"|"+rank,
       roundId,
       turnIndex:payload.turnIndex,
       username:"系統",
-      text:rankText+" "+winnerName+" 猜中了！+"+intClamp(payload.guesserGain,0,100000)+" 分"+
-        (payload.drawerGain>0?"，畫家 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分":""),
+      text:rankText+" "+winnerName+" 猜中了！+"+intClamp(payload.guesserGain,0,100000)+" 分"+(payload.drawerGain>0 ? "，畫家 "+drawerName+" +"+intClamp(payload.drawerGain,0,100000)+" 分" : ""),
       isCorrect:true,
       isSystem:true
     });
@@ -3238,16 +1848,13 @@
     vibrate(rank===1?90:45);
   }
 
-  function endResolvedTurnAsHost(kind,winnerId=""){
-    if(!DEV && !sdkIsHost){
-      return;
-    }
-    if(matchEnded || currentTurnResolved){
-      return;
-    }
-    currentTurnResolved=true;
+  function endResolvedTurnAsHost(kind, winnerId=""){
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchEnded || currentTurnResolved){ return; }
 
+    currentTurnResolved=true;
     const drawer=players.get(currentDrawerId);
+
     const payload={
       roundId,
       turnIndex:currentTurnIndex,
@@ -3263,66 +1870,43 @@
       at:Date.now()
     };
 
-    sendEvent("TURN_END",payload);
+    sendEvent("TURN_END", payload);
     applyTurnEnd(payload);
   }
 
-  function applyTurnEnd(
-    payload
-  ){
+  function applyTurnEnd(payload){
+    if(!payload || payload.roundId!==roundId){ return; }
 
-    if(!payload || payload.roundId!==roundId){
-      return;
-    }
-
-    const incomingTurnIndex=intClamp(payload.turnIndex,-1,Math.max(0,turnOrder.length));
+    const incomingTurnIndex=intClamp(payload.turnIndex, -1, Math.max(0, turnOrder.length));
     const turnKey=String(payload.roundId)+"|"+String(incomingTurnIndex);
 
-    if(turnEndSeenKeys.has(turnKey)){
-      return;
-    }
-    if(currentTurnIndex!==incomingTurnIndex && !matchEnded){
-      return;
-    }
+    if(turnEndSeenKeys.has(turnKey)){ return; }
+    if(currentTurnIndex!==incomingTurnIndex && !matchEnded){ return; }
     turnEndSeenKeys.add(turnKey);
 
     if(payload.drawerId && players.has(payload.drawerId)){
-      players.get(payload.drawerId).score=intClamp(payload.drawerScore,0,100000);
+      players.get(payload.drawerId).score=intClamp(payload.drawerScore, 0, 100000);
     }
 
     if(Array.isArray(payload.correctGuessers)){
       correctGuessers=payload.correctGuessers.map(x=>({
         id:String(x.id),
-        rank:intClamp(x.rank,1,3),
-        gain:intClamp(x.gain,0,100000)
+        rank:intClamp(x.rank, 1, 3),
+        gain:intClamp(x.gain, 0, 100000)
       })).sort((a,b)=>a.rank-b.rank);
     }
 
-    currentRequiredCorrectCount=intClamp(
-      payload.requiredCorrectCount || currentRequiredCorrectCount || getRequiredCorrectCount(),
-      1,
-      Math.max(1,CONFIG.GUESS_REWARDS.length)
-    );
-
-    const winnerName=players.get(payload.winnerId)?.username||"玩家";
-    if(payload.kind==="ALL_CORRECT"){
-      feedText="🎉 本回合需要的猜中人數已達標！準備下一回合";
-    }else if(payload.kind==="SKIP"){
-      feedText="⏭️ 畫家跳過這題";
-    }else{
-      feedText="⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
-    }
+    currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount || currentRequiredCorrectCount || getRequiredCorrectCount(), 1, Math.max(1,CONFIG.GUESS_REWARDS.length));
 
     let msgText="";
     if(payload.kind==="ALL_CORRECT"){
-      const target=currentRequiredCorrectCount;
-      const rankSummary=target===1
-        ?"🎉 唯一搶答玩家已猜中！"
-        :"🎉 前 "+target+" 名已全部猜中！";
-      msgText=rankSummary+"答案是「"+safeString(payload.answer,"題目",30)+"」";
+      feedText="🎉 本回合需要的猜中人數已達標！準備下一回合";
+      msgText=(currentRequiredCorrectCount===1?"🎉 唯一搶答玩家已猜中！":"🎉 前 "+currentRequiredCorrectCount+" 名已全部猜中！")+"答案是「"+safeString(payload.answer,"題目",30)+"」";
     }else if(payload.kind==="SKIP"){
+      feedText="⏭️ 畫家跳過這題";
       msgText="⏭️ 畫家跳過這題，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }else{
+      feedText="⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
       msgText="⏰ 時間到，答案是「"+safeString(payload.answer,"題目",30)+"」";
     }
 
@@ -3338,14 +1922,14 @@
 
     state=STATES.PLAYING;
     render();
-    setTimeout(ensureCanvas,50);
+    setTimeout(ensureCanvas, 50);
     scheduleChatScroll();
 
     clearTimeout(turnStateTimer);
     turnStateTimer=setTimeout(()=>{
       if(matchEnded || (!DEV && !sdkIsHost)) return;
       startNextTurnAsHost();
-    },1050);
+    }, 1050);
   }
 
   /* =========================================================
@@ -3353,425 +1937,142 @@
   ========================================================= */
 
   let chatScrollFrame=0;
-
   function scrollChatToBottom(){
-    const chatBox=
-      document.getElementById(
-        "guessChatBox"
-      );
-
-    if(!chatBox){
-      return;
-    }
-
-    chatBox.scrollTop=
-      chatBox.scrollHeight;
+    const chatBox=document.getElementById("guessChatBox");
+    if(!chatBox){ return; }
+    chatBox.scrollTop=chatBox.scrollHeight;
   }
 
   function scheduleChatScroll(){
-    if(chatScrollFrame){
-      cancelAnimationFrame(
-        chatScrollFrame
-      );
-    }
-
-    chatScrollFrame=
-      requestAnimationFrame(
-        ()=>{
-          chatScrollFrame=0;
-
-          scrollChatToBottom();
-
-          /*
-            innerHTML / 字型完成後有些 WebView
-            會再更新一次高度，再補一次到底。
-          */
-          requestAnimationFrame(
-            scrollChatToBottom
-          );
-        }
-      );
+    if(chatScrollFrame){ cancelAnimationFrame(chatScrollFrame); }
+    chatScrollFrame=requestAnimationFrame(()=>{
+      chatScrollFrame=0;
+      scrollChatToBottom();
+      requestAnimationFrame(scrollChatToBottom);
+    });
   }
 
   /* =========================================================
      GUESS
   ========================================================= */
 
-  function appendChatMessage(
-    row
-  ){
-    const text=
-      safeString(
-        row?.text,
-        "",
-        CONFIG.MAX_GUESS_LENGTH
-      );
+  function appendChatMessage(row){
+    const text=safeString(row?.text, "", CONFIG.MAX_GUESS_LENGTH);
+    if(!text){ return false; }
 
-    if(!text){
-      return false;
-    }
+    const eventId=safeString(row?.eventId, "", 100);
+    const rowRoundId=safeString(row?.roundId, roundId||"LOBBY", 100);
+    const rowTurnIndex=Number.isFinite(Number(row?.turnIndex)) ? Number(row.turnIndex) : currentTurnIndex;
+    const rowUserId=safeString(row?.userId, safeString(row?.username, "玩家", CONFIG.MAX_NAME_LENGTH), 80);
 
-    const eventId=
-      safeString(
-        row?.eventId,
-        "",
-        100
-      );
+    const explicitKey=safeString(row?.chatKey, "", 160);
+    const contentKey="content:"+rowRoundId+"|"+rowTurnIndex+"|"+rowUserId+"|"+normalizeText(text);
+    const dedupeKey=explicitKey||(eventId ? "event:"+eventId : contentKey);
 
-    const rowRoundId=
-      safeString(
-        row?.roundId,
-        roundId||"LOBBY",
-        100
-      );
+    if(chatSeenKeys.has(dedupeKey) || chatSeenKeys.has(contentKey)){ return false; }
 
-    const rowTurnIndex=
-      Number.isFinite(
-        Number(row?.turnIndex)
-      )
-        ?Number(
-          row.turnIndex
-        )
-        :currentTurnIndex;
+    chatSeenKeys.add(dedupeKey);
+    chatSeenKeys.add(contentKey);
 
-    const rowUserId=
-      safeString(
-        row?.userId,
-        safeString(
-          row?.username,
-          "玩家",
-          CONFIG.MAX_NAME_LENGTH
-        ),
-        80
-      );
-
-    const explicitKey=
-      safeString(
-        row?.chatKey,
-        "",
-        160
-      );
-
-    const contentKey=
-      "content:"+
-      rowRoundId+
-      "|"+
-      rowTurnIndex+
-      "|"+
-      rowUserId+
-      "|"+
-      normalizeText(text);
-
-    const dedupeKey=
-      explicitKey||
-      (
-        eventId
-          ?"event:"+eventId
-          :contentKey
-      );
-
-    /*
-      同一玩家、同一回合、完全相同內容，
-      即使平台錯誤產生不同 eventId 也不重複顯示。
-    */
-    if(
-      chatSeenKeys.has(
-        dedupeKey
-      ) ||
-      chatSeenKeys.has(
-        contentKey
-      )
-    ){
-      return false;
-    }
-
-    chatSeenKeys.add(
-      dedupeKey
-    );
-
-    chatSeenKeys.add(
-      contentKey
-    );
-
-    if(
-      chatSeenKeys.size>1500
-    ){
-      const first=
-        chatSeenKeys.values()
-          .next()
-          .value;
-
-      if(first){
-        chatSeenKeys.delete(first);
-      }
+    if(chatSeenKeys.size>1500){
+      const first=chatSeenKeys.values().next().value;
+      if(first){ chatSeenKeys.delete(first); }
     }
 
     guessHistory.push({
-
-      eventId:
-        eventId||
-        dedupeKey,
-
-      chatKey:
-        dedupeKey,
-
-      userId:
-        rowUserId,
-
-      roundId:
-        rowRoundId,
-
-      turnIndex:
-        rowTurnIndex,
-
-      username:
-        safeString(
-          row?.username,
-          "玩家",
-          CONFIG.MAX_NAME_LENGTH
-        ),
-
+      eventId: eventId||dedupeKey,
+      chatKey: dedupeKey,
+      userId: rowUserId,
+      roundId: rowRoundId,
+      turnIndex: rowTurnIndex,
+      username: safeString(row?.username, "玩家", CONFIG.MAX_NAME_LENGTH),
       text,
-
-      isCorrect:
-        !!row?.isCorrect,
-
-      isSystem:
-        !!row?.isSystem
+      isCorrect: !!row?.isCorrect,
+      isSystem: !!row?.isSystem
     });
 
-    if(
-      guessHistory.length>80
-    ){
-      guessHistory.splice(
-        0,
-        guessHistory.length-80
-      );
+    if(guessHistory.length>80){
+      guessHistory.splice(0, guessHistory.length-80);
     }
-
     scheduleChatScroll();
-
     return true;
   }
 
   function submitGuess(){
+    if(state!==STATES.PLAYING || isDrawer() || matchEnded || !isParticipant(ME.id) || Date.now()-lastGuessAt<140){ return; }
 
-    if(
-      state!==
-        STATES.PLAYING ||
-      isDrawer() ||
-      matchEnded ||
-      !isParticipant(
-        ME.id
-      ) ||
-      Date.now()-
-        lastGuessAt<140
-    ){
+    const input=document.getElementById("guessInput");
+    if(!input){ return; }
 
-      return;
-    }
-
-    const input=
-      document.getElementById(
-        "guessInput"
-      );
-
-    if(!input){
-      return;
-    }
-
-    const guess=
-      safeString(
-        input.value,
-        "",
-        CONFIG.MAX_GUESS_LENGTH
-      );
-
+    const guess=safeString(input.value, "", CONFIG.MAX_GUESS_LENGTH);
     input.value="";
 
-    if(!guess){
-      return;
-    }
-
-    lastGuessAt=
-      Date.now();
-
+    if(!guess){ return; }
+    lastGuessAt=Date.now();
     ensureAudio();
 
-    const eventId=
-      ME.id+
-      "_"+
-      Date.now().toString(36)+
-      "_"+
-      Math.random()
-        .toString(36)
-        .slice(2,8);
-
+    const eventId=ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);
     const payload={
-
       roundId,
-
       type:"GUESS",
-
-      userId:
-        ME.id,
-
-      username:
-        ME.username,
-
-      turnIndex:
-        currentTurnIndex,
-
+      userId:ME.id,
+      username:ME.username,
+      turnIndex:currentTurnIndex,
       guess,
-
       eventId
     };
 
-    /*
-      ★ 不先把玩家輸入直接顯示到聊天。
-      必須等房主判定：
-      - 猜錯：公布「玩家：答案」
-      - 猜中：只公布「第幾名猜中」，絕不公布答案
-      這樣第 2、3 名不能直接照抄第 1 名的答案。
-    */
-
-    sendEvent(
-      "GAME_EVENT",
-      payload
-    );
-
-    if(DEV || sdkIsHost){
-      processGuessAsHost(payload);
-    }
+    sendEvent("GAME_EVENT", payload);
+    if(DEV || sdkIsHost){ processGuessAsHost(payload); }
 
     render();
-
-    setTimeout(
-      ensureCanvas,
-      50
-    );
-
+    setTimeout(ensureCanvas, 50);
     scheduleChatScroll();
   }
 
-  function processGuessAsHost(
-    payload
-  ){
+  function processGuessAsHost(payload){
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchEnded || currentTurnResolved || state!==STATES.PLAYING || payload.turnIndex!==currentTurnIndex){ return; }
 
-    if(!DEV && !sdkIsHost){
-      return;
-    }
+    const uid=safeString(payload.userId, "", 64);
+    if(!participants.has(uid) || uid===currentDrawerId){ return; }
 
-    if(
-      matchEnded ||
-      currentTurnResolved ||
-      state!==
-        STATES.PLAYING ||
-      payload.turnIndex!==
-        currentTurnIndex
-    ){
-
-      return;
-    }
-
-    const uid=
-      safeString(
-        payload.userId,
-        "",
-        64
-      );
-
-    if(
-      !participants.has(uid) ||
-      uid===currentDrawerId
-    ){
-
-      return;
-    }
-
-    const guess=
-      safeString(
-        payload.guess,
-        "",
-        CONFIG.MAX_GUESS_LENGTH
-      );
-
-    if(!guess){
-      return;
-    }
+    const guess=safeString(payload.guess, "", CONFIG.MAX_GUESS_LENGTH);
+    if(!guess){ return; }
 
     if(answerMatches(guess,currentWord)){
-      /* 答對：不傳答案、不公布玩家輸入內容。 */
-      resolveTurnAsHost("CORRECT",uid);
+      resolveTurnAsHost("CORRECT", uid);
       return;
     }
 
-    /*
-      猜錯：由房主統一公布，避免送出的原始 GUESS 被 UI 直接顯示。
-    */
     const resultPayload={
       roundId,
       turnIndex:currentTurnIndex,
       type:"GUESS_RESULT",
       userId:uid,
-      username:
-        safeString(
-          payload.username,
-          players.get(uid)?.username||"玩家",
-          CONFIG.MAX_NAME_LENGTH
-        ),
+      username:safeString(payload.username, players.get(uid)?.username||"玩家", CONFIG.MAX_NAME_LENGTH),
       guess,
-      sourceEventId:
-        safeString(payload.eventId,"",100),
+      sourceEventId:safeString(payload.eventId, "", 100),
       at:Date.now()
     };
 
-    sendEvent("GAME_EVENT",resultPayload);
+    sendEvent("GAME_EVENT", resultPayload);
     applyGuessResult(resultPayload);
   }
 
   function applyGuessResult(payload){
-    if(
-      !payload ||
-      payload.roundId!==roundId ||
-      payload.turnIndex!==currentTurnIndex ||
-      payload.type!=="GUESS_RESULT"
-    ){
-      return;
-    }
+    if(!payload || payload.roundId!==roundId || payload.turnIndex!==currentTurnIndex || payload.type!=="GUESS_RESULT"){ return; }
 
-    const uid=safeString(
-      payload.userId,
-      "",
-      64
-    );
-
-    const guess=safeString(
-      payload.guess,
-      "",
-      CONFIG.MAX_GUESS_LENGTH
-    );
-
-    if(!uid || !guess){
-      return;
-    }
+    const uid=safeString(payload.userId, "", 64);
+    const guess=safeString(payload.guess, "", CONFIG.MAX_GUESS_LENGTH);
+    if(!uid || !guess){ return; }
 
     appendChatMessage({
-      chatKey:
-        "GUESS_RESULT|"+
-        roundId+"|"+
-        currentTurnIndex+"|"+
-        uid+"|"+
-        safeString(payload.sourceEventId,"",100),
+      chatKey:"GUESS_RESULT|"+roundId+"|"+currentTurnIndex+"|"+uid+"|"+safeString(payload.sourceEventId,"",100),
       roundId,
       turnIndex:currentTurnIndex,
       userId:uid,
-      username:
-        safeString(
-          payload.username,
-          players.get(uid)?.username||"玩家",
-          CONFIG.MAX_NAME_LENGTH
-        ),
+      username:safeString(payload.username, players.get(uid)?.username||"玩家", CONFIG.MAX_NAME_LENGTH),
       text:guess,
       isCorrect:false,
       isSystem:false
@@ -3786,39 +2087,10 @@
   ========================================================= */
 
   function skipTurn(){
-
-    if(
-      !isDrawer() ||
-      state!==
-        STATES.PLAYING ||
-      matchEnded ||
-      currentTurnResolved
-    ){
-
-      return;
-    }
-
+    if(!isDrawer() || state!==STATES.PLAYING || matchEnded || currentTurnResolved){ return; }
     ensureAudio();
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId,
-
-        type:"SKIP_TURN",
-
-        userId:
-          ME.id,
-
-        turnIndex:
-          currentTurnIndex
-      }
-    );
-
-    resolveTurnAsHost(
-      "SKIP",
-      ME.id
-    );
+    sendEvent("GAME_EVENT", { roundId, type:"SKIP_TURN", userId:ME.id, turnIndex:currentTurnIndex });
+    resolveTurnAsHost("SKIP", ME.id);
   }
 
   /* =========================================================
@@ -3826,368 +2098,117 @@
   ========================================================= */
 
   function participantPlayers(){
-
-    return [
-      ...participants
-    ]
-      .map(
-        id=>
-          players.get(id)
-      )
-      .filter(Boolean);
+    return [...participants].map(id=>players.get(id)).filter(Boolean);
   }
 
   function buildRewards(){
-
-    const all=
-      participantPlayers()
-        .sort(
-          (a,b)=>
-            finite(
-              b.score,
-              0
-            )-
-            finite(
-              a.score,
-              0
-            )||
-            a.id.localeCompare(
-              b.id
-            )
-        );
-
+    const all=participantPlayers().sort((a,b)=>finite(b.score, 0)-finite(a.score, 0)||a.id.localeCompare(b.id));
     const rewards={};
+    const scoreTotal=all.reduce((sum,p)=>sum+intClamp(p.score, 0, 100000), 0);
 
-    const scoreTotal=
-      all.reduce(
-        (sum,p)=>
-          sum+
-          intClamp(
-            p.score,
-            0,
-            100000
-          ),
-        0
-      );
-
-    if(
-      scoreTotal<=0
-    ){
-
-      const each=
-        all.length
-          ?Math.floor(
-            prizePool/
-            all.length
-          )
-          :0;
-
-      all.forEach(
-        p=>{
-
-          p.reward=
-            each;
-
-          rewards[p.id]=
-            each;
-        }
-      );
-
+    if(scoreTotal<=0){
+      const each=all.length ? Math.floor(prizePool/all.length) : 0;
+      all.forEach(p=>{ p.reward=each; rewards[p.id]=each; });
     }else{
-
       let used=0;
-
-      all.forEach(
-        (p,i)=>{
-
-          let reward;
-
-          if(
-            i===
-            all.length-1
-          ){
-
-            reward=
-              prizePool-used;
-
-          }else{
-
-            reward=
-              Math.floor(
-                prizePool*
-                p.score/
-                scoreTotal
-              );
-
-            used+=reward;
-          }
-
-          p.reward=
-            intClamp(
-              reward,
-              0,
-              prizePool
-            );
-
-          rewards[p.id]=
-            p.reward;
-        }
-      );
+      all.forEach((p,i)=>{
+        let reward;
+        if(i===all.length-1){ reward=prizePool-used; }
+        else{ reward=Math.floor(prizePool*p.score/scoreTotal); used+=reward; }
+        p.reward=intClamp(reward, 0, prizePool);
+        rewards[p.id]=p.reward;
+      });
     }
-
-    return {
-      all,
-      rewards
-    };
+    return { all, rewards };
   }
 
-  function finishMatchAsHost(
-    reason
-  ){
-
-    if(!DEV && !sdkIsHost){
-      return;
-    }
-
-    if(matchEnded){
-      return;
-    }
+  function finishMatchAsHost(reason){
+    if(!DEV && !sdkIsHost){ return; }
+    if(matchEnded){ return; }
 
     matchEnded=true;
     stopVoiceGuess();
+    state=STATES.RESULT;
+    finalReason=reason;
 
-    state=
-      STATES.RESULT;
-
-    finalReason=
-      reason;
-
-    const result=
-      buildRewards();
-
-    const snapshot=
-      result.all.map(
-        p=>({
-
-          id:p.id,
-
-          username:
-            p.username,
-
-          score:
-            intClamp(
-              p.score,
-              0,
-              100000
-            ),
-
-          reward:
-            intClamp(
-              p.reward,
-              0,
-              prizePool
-            )
-        })
-      );
+    const result=buildRewards();
+    const snapshot=result.all.map(p=>({
+      id:p.id,
+      username:p.username,
+      score:intClamp(p.score, 0, 100000),
+      reward:intClamp(p.reward, 0, prizePool)
+    }));
 
     const payload={
-
       roundId,
-
       reason,
-
       prizePool,
-
-      rewards:
-        result.rewards,
-
-      scores:
-        snapshot,
-
-      at:
-        Date.now()
+      rewards:result.rewards,
+      scores:snapshot,
+      at:Date.now()
     };
 
-    sendEvent(
-      "ROUND_END",
-      payload
-    );
-
-    applyRoundEnd(
-      payload
-    );
+    sendEvent("ROUND_END", payload);
+    applyRoundEnd(payload);
   }
 
-  function callGameOver(
-    reward
-  ){
-
-    if(gameOverCalled){
-      return;
-    }
-
+  // 🌟 修正：統一處理 gameOver，精準傳遞 winAmount 與 score
+  function callGameOver(reward, score){
+    if(gameOverCalled){ return; }
     gameOverCalled=true;
-
     try{
+      const finalReward = intClamp(reward, 0, prizePool);
+      const finalScore = intClamp(score, 0, 100000);
 
-      if(
-        window.BoomRoomSDK &&
-        typeof
-          window.BoomRoomSDK
-            .gameOver===
-          "function"
-      ){
-
-        window.BoomRoomSDK.gameOver({
-
-          reward:
-            intClamp(
-              reward,
-              0,
-              prizePool
-            )
-        });
+      if(window.BoomRoomJS){
+        window.BoomRoomJS.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward, score: finalScore }));
+      } else if (window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward, score: finalScore }), "*");
+      } else if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==="function"){
+        window.BoomRoomSDK.gameOver(finalReward, finalScore); // For backward compatibility if SDK injects it
       }
-
     }catch(err){
-
-      console.warn(
-        "gameOver callback error",
-        err
-      );
+      console.warn("gameOver callback error", err);
     }
   }
 
-  function applyRoundEnd(
-    payload
-  ){
-
-    if(
-      !payload ||
-      payload.roundId!==roundId
-    ){
-
-      return;
-    }
-
-    if(appliedRoundEndId===roundId){
-      return;
-    }
+  function applyRoundEnd(payload){
+    if(!payload || payload.roundId!==roundId){ return; }
+    if(appliedRoundEndId===roundId){ return; }
 
     appliedRoundEndId=roundId;
     matchEnded=true;
+    state=STATES.RESULT;
+    finalReason=safeString(payload.reason, "本局已結束", 60);
 
-    state=
-      STATES.RESULT;
-
-    finalReason=
-      safeString(
-        payload.reason,
-        "本局已結束",
-        60
-      );
-
-    const snapshot=
-      Array.isArray(
-        payload.scores
-      )
-        ?payload.scores
-        :[];
-
-    for(
-      const row of snapshot
-    ){
-
-      if(
-        row.id==null
-      ){
-        continue;
-      }
-
-      const rowId=
-        String(row.id);
-
-      const p=
-        players.get(rowId)||
-        addPlayer(
-          rowId,
-          row.username||
-            "玩家",
-          ""
-        );
-
+    const snapshot=Array.isArray(payload.scores) ? payload.scores : [];
+    for(const row of snapshot){
+      if(row.id==null){ continue; }
+      const rowId=String(row.id);
+      const p=players.get(rowId)||addPlayer(rowId, row.username||"玩家", "");
       if(p){
-
-        p.score=
-          intClamp(
-            row.score,
-            0,
-            100000
-          );
-
-        p.reward=
-          intClamp(
-            row.reward,
-            0,
-            prizePool
-          );
+        p.score=intClamp(row.score, 0, 100000);
+        p.reward=intClamp(row.reward, 0, prizePool);
       }
     }
 
-    const meRow=
-      snapshot.find(
-        x=>
-          String(x.id)===
-          String(ME.id)
-      );
+    const meRow=snapshot.find(x=>String(x.id)===String(ME.id));
+    finalReward=intClamp(meRow?meRow.reward:0, 0, prizePool);
+    const myScore = meRow ? intClamp(meRow.score, 0, 100000) : 0; // 🌟 擷取玩家最終分數，回傳給 Flutter 以更新排行榜
 
-    finalReward=
-      intClamp(
-        meRow
-          ?meRow.reward
-          :0,
-        0,
-        prizePool
-      );
+    const ranking=[...snapshot].sort((a,b)=>intClamp(b.score, 0, 100000)-intClamp(a.score, 0, 100000));
+    const myIndex=ranking.findIndex(x=>String(x.id)===String(ME.id));
+    finalRank=myIndex>=0 ? myIndex+1 : 1;
 
-    const ranking=
-      [...snapshot]
-        .sort(
-          (a,b)=>
-            intClamp(
-              b.score,
-              0,
-              100000
-            )-
-            intClamp(
-              a.score,
-              0,
-              100000
-            )
-        );
-
-    const myIndex=
-      ranking.findIndex(
-        x=>
-          String(x.id)===
-          String(ME.id)
-      );
-
-    finalRank=
-      myIndex>=0
-        ?myIndex+1
-        :1;
-
-    callGameOver(
-      finalReward
-    );
+    // 🌟 傳遞 Reward (贏得銀幣) 與 Score (最終得分)
+    callGameOver(finalReward, myScore);
 
     render();
 
     setTimeout(() => {
-      if (window.parent && window.parent !== window) {
+      if (window.parent && window.parent !== window && !window.BoomRoomJS) {
         window.parent.postMessage({ action: 'leaveGame' }, '*');
-      } else {
+      } else if (!window.BoomRoomJS) {
         try { window.close(); } catch(e){}
       }
     }, 3000);
@@ -4195,171 +2216,35 @@
 
   /* =========================================================
      VOTE CLICK
-     ★ 這裡是這次最重要的修改
   ========================================================= */
 
-  function bindCategoryClick(
-    id
-  ){
-
-    const valid=
-      CATEGORIES.some(
-        c=>c.id===id
-      );
-
-    if(!valid){
-      return;
-    }
-
-    /*
-      ★ 立即更新自己的選擇
-      renderLobby() 的 active
-      就會立刻移到新的項目
-    */
-
+  function bindCategoryClick(id){
+    const valid=CATEGORIES.some(c=>c.id===id);
+    if(!valid){ return; }
     selectedCategory=id;
-
-    setOwnVote(
-      categoryVotes,
-      id
-    );
-
-    playTone(
-      660,
-      0.06
-    );
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId:
-          roundId||
-          "LOBBY",
-
-        type:
-          "SELECT_CAT",
-
-        categoryId:
-          id,
-
-        voterId:
-          ME.id
-      }
-    );
-
+    setOwnVote(categoryVotes, id);
+    playTone(660, 0.06);
+    sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_CAT", categoryId: id, voterId: ME.id });
     render();
   }
 
-  function bindRoundsClick(
-    r
-  ){
-
-    const value=
-      intClamp(
-        Number(r),
-        1,
-        5
-      );
-
-    if(
-      ![1,3,5].includes(value)
-    ){
-
-      return;
-    }
-
-    /*
-      ★ 立即更新自己的選擇
-    */
-
-    selectedRounds=
-      value;
-
-    setOwnVote(
-      roundsVotes,
-      value
-    );
-
-    playTone(
-      660,
-      0.06
-    );
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId:
-          roundId||
-          "LOBBY",
-
-        type:
-          "SELECT_RND",
-
-        rounds:
-          value,
-
-        voterId:
-          ME.id
-      }
-    );
-
+  function bindRoundsClick(r){
+    const value=intClamp(Number(r), 1, 5);
+    if(![1,3,5].includes(value)){ return; }
+    selectedRounds=value;
+    setOwnVote(roundsVotes, value);
+    playTone(660, 0.06);
+    sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_RND", rounds: value, voterId: ME.id });
     render();
   }
 
-  function bindSecondsClick(
-    s
-  ){
-
-    const value=
-      intClamp(
-        Number(s),
-        15,
-        60
-      );
-
-    if(
-      ![15,30,45,60]
-        .includes(value)
-    ){
-
-      return;
-    }
-
-    /*
-      ★ 立即更新自己的選擇
-    */
-
-    selectedTurnSeconds=
-      value;
-
-    setOwnVote(
-      secondsVotes,
-      value
-    );
-
-    playTone(
-      660,
-      0.06
-    );
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId:
-          roundId||
-          "LOBBY",
-
-        type:
-          "SELECT_SEC",
-
-        turnSeconds:
-          value,
-
-        voterId:
-          ME.id
-      }
-    );
-
+  function bindSecondsClick(s){
+    const value=intClamp(Number(s), 15, 60);
+    if(![15,30,45,60].includes(value)){ return; }
+    selectedTurnSeconds=value;
+    setOwnVote(secondsVotes, value);
+    playTone(660, 0.06);
+    sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_SEC", turnSeconds: value, voterId: ME.id });
     render();
   }
 
@@ -4367,326 +2252,60 @@
      EVENT HANDLER
   ========================================================= */
 
-  function handleEvent(
-    userId,
-    eventName,
-    payload
-  ){
-    /*
-      所有 SDK 事件統一去重，不只 GUESS。
-      這可避免 TURN_START / TURN_END / ROUND_END
-      被房間重送後再次執行與再次顯示。
-    */
-    const incomingEventId=
-      safeString(
-        payload?.eventId,
-        "",
-        100
-      );
-
+  function handleEvent(userId, eventName, payload){
+    const incomingEventId=safeString(payload?.eventId, "", 100);
     if(incomingEventId){
-      if(
-        seenEvents.has(
-          incomingEventId
-        )
-      ){
-        return;
-      }
-
-      seenEvents.add(
-        incomingEventId
-      );
-
-      if(
-        seenEvents.size>1000
-      ){
-        const first=
-          seenEvents.values()
-            .next()
-            .value;
-
-        if(first){
-          seenEvents.delete(
-            first
-          );
-        }
+      if(seenEvents.has(incomingEventId)){ return; }
+      seenEvents.add(incomingEventId);
+      if(seenEvents.size>1000){
+        const first=seenEvents.values().next().value;
+        if(first){ seenEvents.delete(first); }
       }
     }
 
-    const knownUser=
-      players.get(
-        userId
-      );
+    const knownUser=players.get(userId);
+    if(knownUser){ knownUser.lastSeen=Date.now(); }
 
-    if(knownUser){
-
-      knownUser.lastSeen=
-        Date.now();
-    }
-
-    if(
-      eventName===
-      "PLAYER_HELLO"
-    ){
-
-      addPlayer(
-        userId,
-        payload.username,
-        payload.avatar,
-        "READY"
-      );
-
+    if(eventName==="PLAYER_HELLO"){
+      addPlayer(userId, payload.username, payload.avatar, "READY");
       render();
-
       return;
     }
 
-    if(
-      eventName===
-      "ROUND_START"
-    ){
+    if(eventName==="ROUND_START"){ applyRoundStart(payload); return; }
+    if(eventName==="TURN_START"){ applyTurnStart(payload); return; }
+    if(eventName==="TURN_END"){ applyTurnEnd(payload); return; }
 
-      applyRoundStart(
-        payload
-      );
-
-      return;
-    }
-
-    if(
-      eventName===
-      "TURN_START"
-    ){
-
-      applyTurnStart(
-        payload
-      );
-
-      return;
-    }
-
-    if(
-      eventName===
-      "TURN_END"
-    ){
-
-      applyTurnEnd(
-        payload
-      );
-
-      return;
-    }
-
-    if(
-      eventName===
-      "GAME_EVENT"
-    ){
-
-      if(
-        !payload ||
-        typeof payload!=="object"
-      ){
-
-        return;
-      }
-
-      /* 題型投票 */
-
-      if(
-        payload.type===
-        "SELECT_CAT"
-      ){
-
-        const value=
-          safeString(
-            payload.categoryId,
-            "",
-            30
-          );
-
-        if(
-          CATEGORIES.some(
-            c=>c.id===value
-          )
-        ){
-
-          categoryVotes.set(
-            String(userId),
-            value
-          );
-        }
-
+    if(eventName==="GAME_EVENT"){
+      if(!payload || typeof payload!=="object"){ return; }
+      if(payload.type==="SELECT_CAT"){
+        const value=safeString(payload.categoryId, "", 30);
+        if(CATEGORIES.some(c=>c.id===value)){ categoryVotes.set(String(userId), value); }
         render();
-
       }
-
-      /* 輪數投票 */
-
-      else if(
-        payload.type===
-        "SELECT_RND"
-      ){
-
-        const value=
-          intClamp(
-            Number(
-              payload.rounds
-            ),
-            1,
-            5
-          );
-
-        if(
-          [1,3,5]
-            .includes(value)
-        ){
-
-          roundsVotes.set(
-            String(userId),
-            value
-          );
-        }
-
+      else if(payload.type==="SELECT_RND"){
+        const value=intClamp(Number(payload.rounds), 1, 5);
+        if([1,3,5].includes(value)){ roundsVotes.set(String(userId), value); }
         render();
-
       }
-
-      /* 秒數投票 */
-
-      else if(
-        payload.type===
-        "SELECT_SEC"
-      ){
-
-        const value=
-          intClamp(
-            Number(
-              payload.turnSeconds
-            ),
-            15,
-            60
-          );
-
-        if(
-          [15,30,45,60]
-            .includes(value)
-        ){
-
-          secondsVotes.set(
-            String(userId),
-            value
-          );
-        }
-
+      else if(payload.type==="SELECT_SEC"){
+        const value=intClamp(Number(payload.turnSeconds), 15, 60);
+        if([15,30,45,60].includes(value)){ secondsVotes.set(String(userId), value); }
         render();
-
       }
-
-      /* 猜答案：先給房主判定，不能直接顯示原文 */
-
-      else if(
-        payload.type===
-        "GUESS"
-      ){
-
-        if(DEV || sdkIsHost){
-          processGuessAsHost(payload);
-        }
-
+      else if(payload.type==="GUESS"){
+        if(DEV || sdkIsHost){ processGuessAsHost(payload); }
       }
-
-      /* 猜錯後才把原猜詞同步給所有人 */
-
-      else if(
-        payload.type===
-        "GUESS_RESULT"
-      ){
-
-        applyGuessResult(payload);
-
-      }
-
-      /* 猜中排名同步：第 1 / 2 / 3 名各自獨立計分 */
-
-      else if(
-        payload.type===
-        "GUESS_CORRECT"
-      ){
-
-        applyGuessCorrect(payload);
-
-      }
-
-      /* 跳過 */
-
-      else if(
-        payload.type===
-        "SKIP_TURN" &&
-        payload.turnIndex===
-          currentTurnIndex
-      ){
-
-        resolveTurnAsHost(
-          "SKIP",
-          payload.userId
-        );
-
-      }
-
-      /* 畫筆 */
-
-      else if(
-        payload.type===
-        "STROKE" &&
-        !isDrawer()
-      ){
-
-        receiveStroke(
-          payload.stroke
-        );
-
-      }
-
-      /* 清除 */
-
-      else if(
-        payload.type===
-        "CLEAR_CANVAS" &&
-        !isDrawer()
-      ){
-
-        knownStrokes=[];
-
-        redrawCanvas();
-      }
-
-      /* 復原 */
-
-      else if(
-        payload.type===
-        "UNDO_STROKE" &&
-        !isDrawer()
-      ){
-
-        removeKnownStroke(
-          payload.strokeId
-        );
-
-        redrawCanvas();
-      }
-
+      else if(payload.type==="GUESS_RESULT"){ applyGuessResult(payload); }
+      else if(payload.type==="GUESS_CORRECT"){ applyGuessCorrect(payload); }
+      else if(payload.type==="SKIP_TURN" && payload.turnIndex===currentTurnIndex){ resolveTurnAsHost("SKIP", payload.userId); }
+      else if(payload.type==="STROKE" && !isDrawer()){ receiveStroke(payload.stroke); }
+      else if(payload.type==="CLEAR_CANVAS" && !isDrawer()){ knownStrokes=[]; redrawCanvas(); }
+      else if(payload.type==="UNDO_STROKE" && !isDrawer()){ removeKnownStroke(payload.strokeId); redrawCanvas(); }
       return;
     }
 
-    if(
-      eventName===
-      "ROUND_END"
-    ){
-
-      applyRoundEnd(
-        payload
-      );
-    }
+    if(eventName==="ROUND_END"){ applyRoundEnd(payload); }
   }
 
   /* =========================================================
@@ -4694,30 +2313,8 @@
   ========================================================= */
 
   function renderPlayers(){
-
-    const arr=
-      [...players.values()]
-        .sort(
-          (a,b)=>
-            finite(
-              a.joinedAt,
-              0
-            )-
-            finite(
-              b.joinedAt,
-              0
-            )||
-            a.id.localeCompare(
-              b.id
-            )
-        )
-        .slice(
-          0,
-          10
-        );
-
+    const arr=[...players.values()].filter(p=>p.status!=="LEFT" && p.status!=="TIMEOUT").sort((a,b)=>finite(a.joinedAt,0)-finite(b.joinedAt,0)||a.id.localeCompare(b.id)).slice(0,10);
     if(!arr.length){
-
       return `
         <div class="player">
           <b>尚無玩家</b>
@@ -4725,92 +2322,17 @@
         </div>
       `;
     }
-
-    return arr.map(
-      p=>{
-
-        const you=
-          p.id===ME.id;
-
-        const turn=
-          p.id===
-          currentDrawerId;
-
-        const role=
-          turn
-            ?" 🎨"
-            :"";
-
-        return `
-
-          <div class="player ${
-            you
-              ?"me "
-              :""
-          }${
-            turn
-              ?"drawer"
-              :""
-          }">
-
-            <b>
-
-              ${esc(
-                p.username
-              )}
-
-              ${role}
-
-              ${
-                you
-                  ?" · 你"
-                  :""
-              }
-
-            </b>
-
-            <em>
-
-              ${
-                matchStarted &&
-                participants.has(
-                  p.id
-                )
-                  ?intClamp(
-                      p.score,
-                      0,
-                      100000
-                    )+
-                    " 分"
-                  :"參賽中"
-              }
-
-            </em>
-
-          </div>
-
-        `;
-      }
-    ).join("")+
-    (
-      players.size>10
-        ?`
-
-          <div class="player">
-
-            <b>
-              +${players.size-10}
-            </b>
-
-            <em>
-              更多玩家
-            </em>
-
-          </div>
-
-        `
-        :""
-    );
+    return arr.map(p=>{
+      const you=p.id===ME.id;
+      const turn=p.id===currentDrawerId;
+      const role=turn?" 🎨":"";
+      return `
+        <div class="player ${you?"me ":""}${turn?"drawer":""}">
+          <b>${esc(p.username)}${role}${you?" · 你":""}</b>
+          <em>${matchStarted && participants.has(p.id) ? intClamp(p.score,0,100000)+" 分" : "參賽中"}</em>
+        </div>
+      `;
+    }).join("")+(players.size>10 ? `<div class="player"><b>+${players.size-10}</b><em>更多玩家</em></div>` : "");
   }
 
   /* =========================================================
@@ -4818,89 +2340,18 @@
   ========================================================= */
 
   function render(){
-
     try{
+      const main=document.getElementById("main");
+      if(!main){ return; }
 
-      const main=
-        document.getElementById(
-          "main"
-        );
-
-      if(!main){
-        return;
-      }
-
-      if(
-        state===
-        STATES.LOBBY
-      ){
-
-        renderLobby(
-          main
-        );
-
-        return;
-      }
-
-      if(
-        state===
-          STATES.COUNTDOWN ||
-        state===
-          STATES.PLAYING
-      ){
-
-        renderGame(
-          main
-        );
-
-        return;
-      }
-
-      renderResult(
-        main
-      );
-
+      if(state===STATES.LOBBY){ renderLobby(main); return; }
+      if(state===STATES.COUNTDOWN || state===STATES.PLAYING){ renderGame(main); return; }
+      renderResult(main);
     }catch(err){
-
-      console.error(
-        "Render error:",
-        err
-      );
-
-      const main=
-        document.getElementById(
-          "main"
-        );
-
+      console.error("Render error:", err);
+      const main=document.getElementById("main");
       if(main){
-
-        main.innerHTML=`
-
-          <div
-            class="panel"
-            style="
-              color:#ff637a;
-              padding:20px;
-            "
-          >
-
-            <h3>
-              程式錯誤
-            </h3>
-
-            <pre
-              style="
-                white-space:pre-wrap;
-                user-select:text;
-                color:#ffb5c0;
-              "
-            >${esc(
-              err.stack||
-              String(err)
-            )}</pre>
-
-          </div>
-        `;
+        main.innerHTML=`<div class="panel" style="color:#ff637a;padding:20px;"><h3>程式錯誤</h3><pre style="white-space:pre-wrap;user-select:text;color:#ffb5c0;">${esc(err.stack||String(err))}</pre></div>`;
       }
     }
   }
@@ -4909,402 +2360,83 @@
      LOBBY RENDER
   ========================================================= */
 
-  function renderLobby(
-    main
-  ){
-
+  function renderLobby(main){
     main.innerHTML=`
-
-      <div
-        class="notice"
-        style="
-          background:#112333;
-          border:1px solid var(--cyan);
-          border-radius:12px;
-          padding:8px;
-          font-size:13px;
-          font-weight:bold;
-          color:var(--cyan);
-        "
-      >
-
+      <div class="notice" style="background:#112333;border:1px solid var(--cyan);border-radius:12px;padding:8px;font-size:13px;font-weight:bold;color:var(--cyan);">
         🗳️ 多人投票中
-
-        <span
-          style="
-            color:#dce2f2;
-            font-weight:600;
-          "
-        >
-          （題型／輪數／秒數分開計票）
-        </span>
-
+        <span style="color:#dce2f2;font-weight:600;">（題型／輪數／秒數分開計票）</span>
         倒數
-
-        <b
-          id="lobbySecText"
-          style="
-            font-size:18px;
-            color:var(--gold);
-            margin:0 4px;
-          "
-        >
-          ${lobbySecondsLeft}
-        </b>
-
+        <b id="lobbySecText" style="font-size:18px;color:var(--gold);margin:0 4px;">${lobbySecondsLeft}</b>
         秒將自動開始！
-
       </div>
 
       <section class="panel">
-
-        <div class="sectionTitle">
-
-          🎨 題型投票｜依實際畫畫難度
-
-          <span class="muted tiny">
-            （每人 1 票）
-          </span>
-
-        </div>
-
+        <div class="sectionTitle">🎨 題型投票｜依實際畫畫難度<span class="muted tiny">（每人 1 票）</span></div>
         <div class="voteGrid">
-
-          ${
-            CATEGORIES.map(
-              c=>`
-
-                <div
-                  class="chip ${
-                    selectedCategory===
-                      c.id
-                      ?"active"
-                      :""
-                  }"
-                  id="cat_${c.id}"
-                >
-
-                  ${c.icon}
-                  ${c.name}
-                  <span
-                    style="
-                      display:inline-block;
-                      margin-left:4px;
-                      padding:2px 5px;
-                      border-radius:999px;
-                      background:#151c2b;
-                      color:${c.difficulty==="簡單"?"#71e6a3":c.difficulty==="中等"?"#ffd166":"#ff8d9d"};
-                      font-size:9px;
-                      font-weight:1000;
-                    "
-                  >${c.difficultyStars} ${c.difficulty}</span>
-
-                  <small>
-
-                    ${c.hint}
-
-                    · 🗳️
-
-                    ${getVoteCount(
-                      categoryVotes,
-                      c.id
-                    )}
-
-                    票
-
-                  </small>
-
-                </div>
-
-              `
-            ).join("")
-          }
-
+          ${CATEGORIES.map(c=>`
+            <div class="chip ${selectedCategory===c.id?"active":""}" id="cat_${c.id}">
+              ${c.icon} ${c.name}
+              <span style="display:inline-block;margin-left:4px;padding:2px 5px;border-radius:999px;background:#151c2b;color:${c.difficulty==="簡單"?"#71e6a3":c.difficulty==="中等"?"#ffd166":"#ff8d9d"};font-size:9px;font-weight:1000;">${c.difficultyStars} ${c.difficulty}</span>
+              <small>${c.hint} · 🗳️ ${getVoteCount(categoryVotes, c.id)} 票</small>
+            </div>
+          `).join("")}
         </div>
-
       </section>
 
       <section class="panel">
-
-        <div class="sectionTitle">
-
-          ⚙️ 輪數投票
-
-          <span class="muted tiny">
-            （每人 1 票）
-          </span>
-
+        <div class="sectionTitle">⚙️ 輪數投票<span class="muted tiny">（每人 1 票）</span></div>
+        <div class="voteGrid" style="grid-template-columns:repeat(3,1fr);">
+          ${[1,3,5].map(r=>`
+            <div class="chip ${selectedRounds===r?"active":""}" id="rnd_${r}">
+              ${r} 輪
+              <small>${r===1?"快速局":r===3?"標準局":"馬拉松"} · 🗳️ ${getVoteCount(roundsVotes, r)} 票</small>
+            </div>
+          `).join("")}
         </div>
-
-        <div
-          class="voteGrid"
-          style="
-            grid-template-columns:
-            repeat(3,1fr);
-          "
-        >
-
-          ${
-            [1,3,5].map(
-              r=>`
-
-                <div
-                  class="chip ${
-                    selectedRounds===
-                      r
-                      ?"active"
-                      :""
-                  }"
-                  id="rnd_${r}"
-                >
-
-                  ${r} 輪
-
-                  <small>
-
-                    ${
-                      r===1
-                        ?"快速局"
-                        :r===3
-                          ?"標準局"
-                          :"馬拉松"
-                    }
-
-                    · 🗳️
-
-                    ${getVoteCount(
-                      roundsVotes,
-                      r
-                    )}
-
-                    票
-
-                  </small>
-
-                </div>
-
-              `
-            ).join("")
-          }
-
-        </div>
-
       </section>
 
       <section class="panel">
-
-        <div class="sectionTitle">
-
-          ⏱️ 每回合秒數投票
-
-          <span class="muted tiny">
-            （每人 1 票）
-          </span>
-
+        <div class="sectionTitle">⏱️ 每回合秒數投票<span class="muted tiny">（每人 1 票）</span></div>
+        <div class="voteGrid" style="grid-template-columns:repeat(4,1fr);">
+          ${[15,30,45,60].map(s=>`
+            <div class="chip ${selectedTurnSeconds===s?"active":""}" id="sec_${s}">
+              ${s} 秒
+              <small>${s===15?"極速":s===30?"標準":s===45?"充裕":"細繪"} · 🗳️ ${getVoteCount(secondsVotes, s)} 票</small>
+            </div>
+          `).join("")}
         </div>
-
-        <div
-          class="voteGrid"
-          style="
-            grid-template-columns:
-            repeat(4,1fr);
-          "
-        >
-
-          ${
-            [15,30,45,60].map(
-              s=>`
-
-                <div
-                  class="chip ${
-                    selectedTurnSeconds===
-                      s
-                      ?"active"
-                      :""
-                  }"
-                  id="sec_${s}"
-                >
-
-                  ${s} 秒
-
-                  <small>
-
-                    ${
-                      s===15
-                        ?"極速"
-                        :s===30
-                          ?"標準"
-                          :s===45
-                            ?"充裕"
-                            :"細繪"
-                    }
-
-                    · 🗳️
-
-                    ${getVoteCount(
-                      secondsVotes,
-                      s
-                    )}
-
-                    票
-
-                  </small>
-
-                </div>
-
-              `
-            ).join("")
-          }
-
-        </div>
-
       </section>
 
       <section class="panel">
-
-        <div class="sectionTitle">
-          房內玩家
-        </div>
-
-        <div class="players">
-
-          ${renderPlayers()}
-
-        </div>
-
+        <div class="sectionTitle">房內玩家</div>
+        <div class="players">${renderPlayers()}</div>
       </section>
 
-      <button
-        id="hostStartBtn"
-        class="cta"
-        style="margin-top:10px;"
-        ${
-          (!DEV&&!sdkIsHost)
-            ?"disabled"
-            :""
-        }
-      >
-
-        ${
-          (!DEV&&!sdkIsHost)
-            ?"⏳ 等待房主開始"
-            :"🚀 立即依票數開始"
-        }
-
+      <button id="hostStartBtn" class="cta" style="margin-top:10px;" ${(!DEV&&!sdkIsHost)?"disabled":""}>
+        ${(!DEV&&!sdkIsHost)?"⏳ 等待房主開始":"🚀 立即依票數開始"}
       </button>
-
     `;
 
-    /*
-      ★ 題型點擊
-    */
+    CATEGORIES.forEach(c=>{
+      const el=document.getElementById("cat_"+c.id);
+      if(el){ el.onclick=e=>{ e.preventDefault(); bindCategoryClick(c.id); }; }
+    });
+    [1,3,5].forEach(r=>{
+      const el=document.getElementById("rnd_"+r);
+      if(el){ el.onclick=e=>{ e.preventDefault(); bindRoundsClick(r); }; }
+    });
+    [15,30,45,60].forEach(s=>{
+      const el=document.getElementById("sec_"+s);
+      if(el){ el.onclick=e=>{ e.preventDefault(); bindSecondsClick(s); }; }
+    });
 
-    CATEGORIES.forEach(
-      c=>{
-
-        const el=
-          document.getElementById(
-            "cat_"+c.id
-          );
-
-        if(!el){
-          return;
-        }
-
-        el.onclick=
-          e=>{
-
-            e.preventDefault();
-
-            bindCategoryClick(
-              c.id
-            );
-          };
-      }
-    );
-
-    /*
-      ★ 輪數點擊
-    */
-
-    [1,3,5].forEach(
-      r=>{
-
-        const el=
-          document.getElementById(
-            "rnd_"+r
-          );
-
-        if(!el){
-          return;
-        }
-
-        el.onclick=
-          e=>{
-
-            e.preventDefault();
-
-            bindRoundsClick(
-              r
-            );
-          };
-      }
-    );
-
-    /*
-      ★ 秒數點擊
-    */
-
-    [15,30,45,60].forEach(
-      s=>{
-
-        const el=
-          document.getElementById(
-            "sec_"+s
-          );
-
-        if(!el){
-          return;
-        }
-
-        el.onclick=
-          e=>{
-
-            e.preventDefault();
-
-            bindSecondsClick(
-              s
-            );
-          };
-      }
-    );
-
-    /*
-      ★ 房主立即開始
-    */
-
-    const hostBtn=
-      document.getElementById(
-        "hostStartBtn"
-      );
-
+    const hostBtn=document.getElementById("hostStartBtn");
     if(hostBtn){
-
-      hostBtn.onclick=
-        e=>{
-
-          e.preventDefault();
-
-          ensureAudio();
-
-          if(
-            DEV||
-            sdkIsHost
-          ){
-
-            resolveLobbyVotesAsHost();
-          }
-        };
+      hostBtn.onclick=e=>{
+        e.preventDefault();
+        ensureAudio();
+        if(DEV||sdkIsHost){ resolveLobbyVotesAsHost(); }
+      };
     }
   }
 
@@ -5312,598 +2444,125 @@
      GAME RENDER
   ========================================================= */
 
-  function renderGame(
-    main
-  ){
-
-    const drawer=
-      isDrawer();
-
-    const remain=
-      Math.max(
-        0,
-        Math.ceil(
-          (
-            currentTurnStartedAt+
-            activeTurnSeconds*1000-
-            Date.now()
-          )/1000
-        )
-      );
-
-    const my=
-      players.get(
-        ME.id
-      );
-
-    const turnPlayer=
-      players.get(
-        currentDrawerId
-      );
-
-    const roundNo=
-      Math.floor(
-        currentTurnIndex/
-        Math.max(
-          1,
-          participants.size
-        )
-      )+1;
+  function renderGame(main){
+    const drawer=isDrawer();
+    const remain=Math.max(0, Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-Date.now())/1000));
+    const my=players.get(ME.id);
+    const turnPlayer=players.get(currentDrawerId);
+    const roundNo=Math.floor(currentTurnIndex/Math.max(1,participants.size))+1;
 
     main.innerHTML=`
-
       <div class="hud">
-
-        <div
-          class="pill ${
-            remain<=4
-              ?"timerWarn"
-              :""
-          }"
-        >
-
-          ⏱
-
-          <b id="gameTimer">
-            ${remain}
-          </b>
-
-          秒
-
+        <div class="pill ${remain<=4?"timerWarn":""}">
+          ⏱ <b id="gameTimer">${remain}</b> 秒
         </div>
-
-        <div
-          class="pill centerText"
-        >
-
-          ${
-            getCategory(
-              selectedCategory
-            ).icon
-          }
-
-          <b>
-
-            ${esc(
-              getCategory(
-                selectedCategory
-              ).name
-            )}
-
-          </b>
-
+        <div class="pill centerText">
+          ${getCategory(selectedCategory).icon}
+          <b>${esc(getCategory(selectedCategory).name)}</b>
         </div>
-
-        <div
-          class="pill"
-          style="text-align:right"
-        >
-
-          🏆
-
-          <b>
-
-            ${intClamp(
-              prizePool,
-              0,
-              1000000
-            )}
-
-          </b>
-
+        <div class="pill" style="text-align:right">
+          🏆 <b>${intClamp(prizePool, 0, 1000000)}</b>
         </div>
-
       </div>
 
       <section id="canvasWrap">
-
         <canvas id="drawCanvas"></canvas>
-
-        <div class="roleBadge">
-
-          ${
-            drawer
-              ?"🎨 你是畫家"
-              :"🔎 搶答中"
-          }
-
-        </div>
-
-        <div class="turnBadge">
-
-          第
-          ${roundNo}
-          /
-          ${totalTurnsPerPlayer}
-          輪
-
-          ·
-
-          回合
-          ${currentTurnIndex+1}
-          /
-          ${totalTurnCount}
-
-          ·
-
-          ${esc(
-            turnPlayer
-              ?turnPlayer.username
-              :"畫家"
-          )}
-
-        </div>
-
-        <div class="wordBadge">
-
-          ${
-            drawer
-              ?(
-                currentWord
-                  ?"題目："+
-                    esc(currentWord.answer)+
-                    " · "+getAnswerLength(currentWord)+"字"
-                  :"題目準備中"
-              )
-              :(
-                "❓ 答案長度："+
-                getAnswerLength(currentWord)+
-                " 字 · 已猜 "+
-                correctGuessers.length+"/"+currentRequiredCorrectCount
-              )
-          }
-
-        </div>
-
-        <div class="cursorHint">
-
-          ${
-            drawer
-              ?"手指拖曳作畫，不要直接寫答案"
-              :"知道答案就輸入文字送出"
-          }
-
-        </div>
-
+        <div class="roleBadge">${drawer?"🎨 你是畫家":"🔎 搶答中"}</div>
+        <div class="turnBadge">第 ${roundNo} / ${totalTurnsPerPlayer} 輪 · 回合 ${currentTurnIndex+1} / ${totalTurnCount} · ${esc(turnPlayer?turnPlayer.username:"畫家")}</div>
+        <div class="wordBadge">${drawer?(currentWord?"題目："+esc(currentWord.answer)+" · "+getAnswerLength(currentWord)+"字":"題目準備中"):("❓ 答案長度："+getAnswerLength(currentWord)+" 字 · 已猜 "+correctGuessers.length+"/"+currentRequiredCorrectCount)}</div>
+        <div class="cursorHint">${drawer?"手指拖曳作畫，不要直接寫答案":"知道答案就輸入文字送出"}</div>
       </section>
 
-      <div
-        class="guessChatBox"
-        id="guessChatBox"
-        aria-live="polite"
-        aria-atomic="false"
-      >
-
-        ${
-          guessHistory.map(
-            h=>`
-
-              <div
-                style="
-                  color:${
-                    h.isCorrect
-                      ?"var(--green)"
-                      :(
-                        h.isSystem
-                          ?"var(--yellow)"
-                          :"#e2e8f0"
-                      )
-                  };
-                "
-              >
-
-                <b>
-                  ${esc(
-                    h.username
-                  )}：
-                </b>
-
-                ${esc(
-                  h.text
-                )}
-
-              </div>
-
-            `
-          ).join("")
-        }
-
+      <div class="guessChatBox" id="guessChatBox" aria-live="polite" aria-atomic="false">
+        ${guessHistory.map(h=>`
+          <div style="color:${h.isCorrect?"var(--green)":(h.isSystem?"var(--yellow)":"#e2e8f0")};">
+            <b>${esc(h.username)}：</b>${esc(h.text)}
+          </div>
+        `).join("")}
       </div>
 
-      ${
-        drawer
-          ?`
-
-            <div class="tools">
-
-              <button
-                class="tool ${tool==="pen"?"active":""}"
-                data-tool="pen"
-                type="button"
-              >
-                ✏️ 鉛筆
-              </button>
-
-              <button
-                class="tool ${tool==="eraser"?"active":""}"
-                data-tool="eraser"
-                type="button"
-              >
-                🧽 橡皮
-              </button>
-
-              <button
-                class="tool ${tool==="fill"?"active":""}"
-                data-tool="fill"
-                type="button"
-              >
-                🪣 填充
-              </button>
-
-              <button
-                class="tool ${tool==="line"?"active":""}"
-                data-tool="line"
-                type="button"
-              >
-                ╱ 直線
-              </button>
-
-              <button
-                class="tool ${tool==="rect"?"active":""}"
-                data-tool="rect"
-                type="button"
-              >
-                ▢ 方框
-              </button>
-
-              <button
-                class="tool ${tool==="circle"?"active":""}"
-                data-tool="circle"
-                type="button"
-              >
-                ◯ 圓形
-              </button>
-
-              <button class="tool color" data-color="#151923" style="background:#151923"></button>
-              <button class="tool color" data-color="#ffffff" style="background:#ffffff;border-color:#667085;box-shadow:inset 0 0 0 1px #8b95a7"></button>
-              <button class="tool color" data-color="#6b7280" style="background:#6b7280"></button>
-              <button class="tool color" data-color="#e34d5d" style="background:#e34d5d"></button>
-              <button class="tool color" data-color="#ff7b54" style="background:#ff7b54"></button>
-              <button class="tool color" data-color="#f39a28" style="background:#f39a28"></button>
-              <button class="tool color" data-color="#ffd166" style="background:#ffd166"></button>
-              <button class="tool color" data-color="#9ad64b" style="background:#9ad64b"></button>
-              <button class="tool color" data-color="#37a66a" style="background:#37a66a"></button>
-              <button class="tool color" data-color="#1ec8a5" style="background:#1ec8a5"></button>
-              <button class="tool color" data-color="#3275e8" style="background:#3275e8"></button>
-              <button class="tool color" data-color="#6f5cff" style="background:#6f5cff"></button>
-              <button class="tool color" data-color="#a353d5" style="background:#a353d5"></button>
-              <button class="tool color" data-color="#ff5fa2" style="background:#ff5fa2"></button>
-              <button class="tool color" data-color="#8b5e3c" style="background:#8b5e3c"></button>
-
-              <button
-                class="tool sizeBtn ${brushSize===3?"active":""}"
-                data-size="3"
-              >細
-              </button>
-
-              <button
-                class="tool sizeBtn ${brushSize===6?"active":""}"
-                data-size="6"
-              >中
-              </button>
-
-              <button
-                class="tool sizeBtn ${brushSize===10?"active":""}"
-                data-size="10"
-              >粗
-              </button>
-
-              <button
-                class="tool sizeBtn ${brushSize===18?"active":""}"
-                data-size="18"
-              >很粗
-              </button>
-
-              <button
-                class="tool sizeBtn ${brushSize===26?"active":""}"
-                data-size="26"
-              >超粗
-              </button>
-
-              <button
-                class="tool"
-                id="undoBtn"
-              >
-                ↶
-              </button>
-
-              <button
-                class="tool"
-                id="clearBtn"
-              >
-                清除
-              </button>
-
-              <button
-                class="skipBtn"
-                id="skipBtn"
-              >
-                跳過（0 分）
-              </button>
-
-            </div>
-
-          `
-          :`
-
-            <div class="guessArea">
-
-              <input
-                id="guessInput"
-                inputmode="text"
-                autocomplete="off"
-                maxlength="${CONFIG.MAX_GUESS_LENGTH}"
-                placeholder="輸入答案…"
-              >
-
-              <button
-                id="voiceBtn"
-                type="button"
-                title="語音猜題"
-                style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;"
-              >
-                🎤
-              </button>
-
-              <button
-                id="guessBtn"
-              >
-                猜！
-              </button>
-
-            </div>
-
-          `
-      }
+      ${drawer?`
+        <div class="tools">
+          <button class="tool ${tool==="pen"?"active":""}" data-tool="pen" type="button">✏️ 鉛筆</button>
+          <button class="tool ${tool==="eraser"?"active":""}" data-tool="eraser" type="button">🧽 橡皮</button>
+          <button class="tool ${tool==="fill"?"active":""}" data-tool="fill" type="button">🪣 填充</button>
+          <button class="tool ${tool==="line"?"active":""}" data-tool="line" type="button">╱ 直線</button>
+          <button class="tool ${tool==="rect"?"active":""}" data-tool="rect" type="button">▢ 方框</button>
+          <button class="tool ${tool==="circle"?"active":""}" data-tool="circle" type="button">◯ 圓形</button>
+          <button class="tool color" data-color="#151923" style="background:#151923"></button>
+          <button class="tool color" data-color="#ffffff" style="background:#ffffff;border-color:#667085;box-shadow:inset 0 0 0 1px #8b95a7"></button>
+          <button class="tool color" data-color="#6b7280" style="background:#6b7280"></button>
+          <button class="tool color" data-color="#e34d5d" style="background:#e34d5d"></button>
+          <button class="tool color" data-color="#ff7b54" style="background:#ff7b54"></button>
+          <button class="tool color" data-color="#f39a28" style="background:#f39a28"></button>
+          <button class="tool color" data-color="#ffd166" style="background:#ffd166"></button>
+          <button class="tool color" data-color="#9ad64b" style="background:#9ad64b"></button>
+          <button class="tool color" data-color="#37a66a" style="background:#37a66a"></button>
+          <button class="tool color" data-color="#1ec8a5" style="background:#1ec8a5"></button>
+          <button class="tool color" data-color="#3275e8" style="background:#3275e8"></button>
+          <button class="tool color" data-color="#6f5cff" style="background:#6f5cff"></button>
+          <button class="tool color" data-color="#a353d5" style="background:#a353d5"></button>
+          <button class="tool color" data-color="#ff5fa2" style="background:#ff5fa2"></button>
+          <button class="tool color" data-color="#8b5e3c" style="background:#8b5e3c"></button>
+          <button class="tool sizeBtn ${brushSize===3?"active":""}" data-size="3">細</button>
+          <button class="tool sizeBtn ${brushSize===6?"active":""}" data-size="6">中</button>
+          <button class="tool sizeBtn ${brushSize===10?"active":""}" data-size="10">粗</button>
+          <button class="tool sizeBtn ${brushSize===18?"active":""}" data-size="18">很粗</button>
+          <button class="tool sizeBtn ${brushSize===26?"active":""}" data-size="26">超粗</button>
+          <button class="tool" id="undoBtn">↶</button>
+          <button class="tool" id="clearBtn">清除</button>
+          <button class="skipBtn" id="skipBtn">跳過（0 分）</button>
+        </div>
+      `:`
+        <div class="guessArea">
+          <input id="guessInput" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
+          <button id="voiceBtn" type="button" title="語音猜題" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;">🎤</button>
+          <button id="guessBtn">猜！</button>
+        </div>
+      `}
 
       <div class="turnFeed">
-
-        <div class="feedText">
-
-          ${esc(
-            feedText||
-            (
-              drawer
-                ?"畫得像一點！"
-                :"搶在別人前猜中！"
-            )
-          )}
-
-        </div>
-
-        <div class="turnScore">
-
-          你的總分
-
-          <b>
-
-            ${intClamp(
-              my
-                ?my.score
-                :0,
-              0,
-              100000
-            )}
-
-          </b>
-
-        </div>
-
+        <div class="feedText">${esc(feedText||(drawer?"畫得像一點！":"搶在別人前猜中！"))}</div>
+        <div class="turnScore">你的總分 <b>${intClamp(my?my.score:0, 0, 100000)}</b></div>
       </div>
-
-      <div class="players">
-
-        ${renderPlayers()}
-
-      </div>
-
+      <div class="players">${renderPlayers()}</div>
     `;
 
-    /* 每次重繪聊天 DOM 後自動捲到底部 */
     scheduleChatScroll();
-
-    if(
-      ensureCanvas()
-    ){
-
-      redrawCanvas();
-    }
+    if(ensureCanvas()){ redrawCanvas(); }
 
     if(drawer){
-
-      document
-        .querySelectorAll(
-          "[data-color]"
-        )
-        .forEach(
-          b=>{
-
-            b.addEventListener(
-              "click",
-              ()=>{
-
-                tool="pen";
-
-                brushColor=
-                  b.dataset.color;
-
-                syncTools();
-
-                playTone(
-                  620,
-                  .04
-                );
-              }
-            );
-          }
-        );
-
-      document
-        .querySelectorAll(
-          "[data-tool]"
-        )
-        .forEach(
-          b=>{
-
-            b.addEventListener(
-              "click",
-              ()=>{
-
-                tool=
-                  b.dataset.tool;
-
-                syncTools();
-
-                playTone(
-                  tool==="eraser"
-                    ?360
-                    :620,
-                  .04
-                );
-              }
-            );
-          }
-        );
-
-      document
-        .querySelectorAll(
-          "[data-size]"
-        )
-        .forEach(
-          b=>{
-
-            b.addEventListener(
-              "click",
-              ()=>{
-
-                brushSize=
-                  intClamp(
-                    Number(
-                      b.dataset.size
-                    ),
-                    3,
-                    26
-                  );
-
-                syncTools();
-
-                playTone(
-                  560,
-                  .04
-                );
-              }
-            );
-          }
-        );
-
-      document
-        .getElementById(
-          "undoBtn"
-        )
-        ?.addEventListener(
-          "click",
-          undoLastStroke
-        );
-
-      document
-        .getElementById(
-          "clearBtn"
-        )
-        ?.addEventListener(
-          "click",
-          clearAllCanvas
-        );
-
-      document
-        .getElementById(
-          "skipBtn"
-        )
-        ?.addEventListener(
-          "click",
-          skipTurn
-        );
-
+      document.querySelectorAll("[data-color]").forEach(b=>{
+        b.addEventListener("click", ()=>{ tool="pen"; brushColor=b.dataset.color; syncTools(); playTone(620, .04); });
+      });
+      document.querySelectorAll("[data-tool]").forEach(b=>{
+        b.addEventListener("click", ()=>{ tool=b.dataset.tool; syncTools(); playTone(tool==="eraser"?360:620, .04); });
+      });
+      document.querySelectorAll("[data-size]").forEach(b=>{
+        b.addEventListener("click", ()=>{ brushSize=intClamp(Number(b.dataset.size), 3, 26); syncTools(); playTone(560, .04); });
+      });
+      document.getElementById("undoBtn")?.addEventListener("click", undoLastStroke);
+      document.getElementById("clearBtn")?.addEventListener("click", clearAllCanvas);
+      document.getElementById("skipBtn")?.addEventListener("click", skipTurn);
     }else{
-
-      document
-        .getElementById(
-          "guessBtn"
-        )
-        ?.addEventListener(
-          "click",
-          submitGuess
-        );
-
-      document
-        .getElementById("voiceBtn")
-        ?.addEventListener("click",startVoiceGuess);
-
-      document
-        .getElementById(
-          "guessInput"
-        )
-        ?.addEventListener(
-          "keydown",
-          e=>{
-
-            if(
-              e.key==="Enter" &&
-              !e.isComposing &&
-              !e.shiftKey
-            ){
-
-              e.preventDefault();
-
-              e.stopPropagation();
-
-              submitGuess();
-            }
-          }
-        );
+      document.getElementById("guessBtn")?.addEventListener("click", submitGuess);
+      document.getElementById("voiceBtn")?.addEventListener("click", startVoiceGuess);
+      document.getElementById("guessInput")?.addEventListener("keydown", e=>{
+        if(e.key==="Enter" && !e.isComposing && !e.shiftKey){
+          e.preventDefault(); e.stopPropagation(); submitGuess();
+        }
+      });
     }
   }
 
   /* =========================================================
-     VOICE GUESS (雙軌制：Flutter 原生橋接 + Web Speech API 優化)
+     VOICE GUESS
   ========================================================= */
 
   function stopVoiceGuess(){
-    // 1. 如果是 APK 版，通知 Flutter 停止錄音
     if (window.BoomRoomJS) {
       window.BoomRoomJS.postMessage(JSON.stringify({ action: 'stopVoiceRecognition' }));
     }
-
-    // 2. 如果是 Web 版，停止 Web Speech API
     if(speechRecognition){
       try{ speechRecognition.stop(); }catch(_){}
     }
@@ -5915,24 +2574,19 @@
     }
   }
 
-// 🌟 接收來自 Flutter 原生語音辨識的結果
   window.receiveVoiceText = function(text, isFinal) {
     if(!text || text.trim() === "") return;
     const cleanText = text.trim();
-
     const input = document.getElementById("guessInput");
     if(input) input.value = cleanText;
 
-    // 🌟 隨時檢查是否包含正確答案 (模糊比對)
     if(currentWord && answerMatches(cleanText, currentWord)){
-      submitGuess(); // 猜中時送出，系統會判定正確並隱藏答案，不會洗版
+      submitGuess();
       showToast("🎙️ 語音偵測到正確答案！");
       stopVoiceGuess();
     }
-    // ⚠️ 移除了 isFinal 自動送出的邏輯，避免錯誤的語音辨識瘋狂洗版聊天室！
   };
 
-  // 🌟 接收 Flutter 語音停止的通知，恢復按鈕狀態
   window.onFlutterSpeechStopped = function() {
     speechListening = false;
     const btn = document.getElementById("voiceBtn");
@@ -5949,8 +2603,6 @@
     }
 
     const btn=document.getElementById("voiceBtn");
-
-    // 🌟 核心修改 1：如果是 APK (有注入 BoomRoomJS)，直接呼叫 Flutter 原生語音辨識
     if (window.BoomRoomJS) {
       if (speechListening) return;
       speechListening = true;
@@ -5959,7 +2611,6 @@
       return;
     }
 
-    // 🌟 核心修改 2：如果是 Web 瀏覽器，使用優化版的 Web Speech API
     const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Recognition){
       if(btn){ btn.textContent="❌ 瀏覽器不支援"; }
@@ -5968,14 +2619,12 @@
     }
 
     if(speechListening) return;
-
     ensureAudio();
     speechFinalText="";
+
     try{
       speechRecognition=new Recognition();
       speechRecognition.lang="zh-TW";
-
-      // ⚠️ 手機版 Chrome 不支援 continuous=true，會導致直接失效，因此動態判斷
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       speechRecognition.continuous = !isMobile;
       speechRecognition.interimResults=true;
@@ -6000,10 +2649,8 @@
              interimTranscript += transcript;
           }
         }
-
         const currentText = (finalTranscript + interimTranscript).trim();
         if(currentText) {
-           // 呼叫統一的處理函數，傳入 isFinal
            window.receiveVoiceText(currentText, hasFinal);
         }
       };
@@ -6016,7 +2663,6 @@
 
       speechRecognition.onend=()=>{
         speechListening=false;
-        // 如果還在遊戲中且沒猜中，自動重啟 (解決手機瀏覽器容易自動斷開的問題)
         if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
           setTimeout(startVoiceGuess, 300);
         } else {
@@ -6035,251 +2681,39 @@
      RESULT RENDER
   ========================================================= */
 
-  function renderResult(
-    main
-  ){
-
-    const mine=
-      finalReward>0;
-
-    const all=
-      participantPlayers()
-        .sort(
-          (a,b)=>
-            finite(
-              b.score,
-              0
-            )-
-            finite(
-              a.score,
-              0
-            )
-        );
+  function renderResult(main){
+    const mine=finalReward>0;
+    const all=participantPlayers().sort((a,b)=>finite(b.score, 0)-finite(a.score, 0));
 
     main.innerHTML=`
-
-      <section
-        class="panel hero center result"
-      >
-
-        <div class="resultTitle">
-
-          ${
-            mine
-              ?"🏆 你贏了！"
-              :"本局已結束"
-          }
-
-        </div>
-
-        <p>
-
-          ${esc(
-            finalReason||
-            "所有玩家完成輪流作畫"
-          )}
-
-        </p>
-
-        <div class="reward">
-
-          +${intClamp(
-            finalReward,
-            0,
-            prizePool
-          )}
-
-          銀幣
-
-        </div>
-
+      <section class="panel hero center result">
+        <div class="resultTitle">${mine?"🏆 你贏了！":"本局已結束"}</div>
+        <p>${esc(finalReason||"所有玩家完成輪流作畫")}</p>
+        <div class="reward">+${intClamp(finalReward, 0, prizePool)} 銀幣</div>
         <div class="stats">
-
-          <div class="stat">
-
-            <b>
-              第 ${finalRank}
-            </b>
-
-            <span>
-              最終排名
-            </span>
-
-          </div>
-
-          <div class="stat">
-
-            <b>
-
-              ${intClamp(
-                players.get(
-                  ME.id
-                )?.score||
-                0,
-                0,
-                100000
-              )}
-
-            </b>
-
-            <span>
-              總分
-            </span>
-
-          </div>
-
-          <div class="stat">
-
-            <b>
-
-              ${intClamp(
-                prizePool,
-                0,
-                1000000
-              )}
-
-            </b>
-
-            <span>
-              獎池
-            </span>
-
-          </div>
-
-          <div class="stat">
-
-            <b>
-              ${totalTurnsPerPlayer}
-            </b>
-
-            <span>
-              每人輪數
-            </span>
-
-          </div>
-
+          <div class="stat"><b>第 ${finalRank}</b><span>最終排名</span></div>
+          <div class="stat"><b>${intClamp(players.get(ME.id)?.score||0, 0, 100000)}</b><span>總分</span></div>
+          <div class="stat"><b>${intClamp(prizePool, 0, 1000000)}</b><span>獎池</span></div>
+          <div class="stat"><b>${totalTurnsPerPlayer}</b><span>每人輪數</span></div>
         </div>
-
       </section>
 
       <section class="panel">
-
-        <div class="sectionTitle">
-          最終排名
-        </div>
-
+        <div class="sectionTitle">最終排名</div>
         <div class="rankList">
-
-          ${
-            all
-              .slice(0,10)
-              .map(
-                (p,i)=>{
-
-                  const name=
-                    (
-                      p.username &&
-                      p.username!=="玩家"
-                    )
-                      ?p.username
-                      :(
-                        p.id===ME.id
-                          ?ME.username
-                          :"玩家_"+
-                            String(
-                              p.id
-                            ).slice(-4)
-                      );
-
-                  return `
-
-                    <div
-                      class="rankRow"
-                    >
-
-                      <div class="rankNo">
-                        ${i+1}
-                      </div>
-
-                      <div
-                        class="rankName"
-                      >
-
-                        ${esc(
-                          name
-                        )}
-
-                        ${
-                          p.id===ME.id
-                            ?" · 你"
-                            :""
-                        }
-
-                      </div>
-
-                      <div
-                        class="rankScore"
-                      >
-
-                        ${intClamp(
-                          p.score,
-                          0,
-                          100000
-                        )}
-
-                        分
-
-                      </div>
-
-                      <div
-                        class="rankReward"
-                      >
-
-                        猜中
-                        ${intClamp(
-                          p.correct||
-                          0,
-                          0,
-                          1000
-                        )}
-                        次
-
-                        ·
-
-                        跳過
-                        ${intClamp(
-                          p.skips||
-                          0,
-                          0,
-                          1000
-                        )}
-                        次
-
-                        ·
-
-                        +${intClamp(
-                          p.reward||
-                          0,
-                          0,
-                          prizePool
-                        )}
-
-                        銀幣
-
-                      </div>
-
-                    </div>
-
-                  `;
-                }
-              )
-              .join("")
-          }
-
+          ${all.slice(0,10).map((p,i)=>{
+            const name=(p.username && p.username!=="玩家") ? p.username : (p.id===ME.id ? ME.username : "玩家_"+String(p.id).slice(-4));
+            return `
+              <div class="rankRow">
+                <div class="rankNo">${i+1}</div>
+                <div class="rankName">${esc(name)}${p.id===ME.id?" · 你":""}</div>
+                <div class="rankScore">${intClamp(p.score, 0, 100000)} 分</div>
+                <div class="rankReward">猜中 ${intClamp(p.correct||0, 0, 1000)} 次 · 跳過 ${intClamp(p.skips||0, 0, 1000)} 次 · +${intClamp(p.reward||0, 0, prizePool)} 銀幣</div>
+              </div>
+            `;
+          }).join("")}
         </div>
-
       </section>
-
     `;
   }
 
@@ -6288,82 +2722,31 @@
   ========================================================= */
 
   function gameLoop(ts){
-
-    if(!rafRunning){
-      return;
-    }
-
-    const dt=
-      Math.min(
-        Math.max(
-          (ts-lastFrame)/1000,
-          0
-        ),
-        0.033
-      );
-
+    if(!rafRunning){ return; }
+    const dt=Math.min(Math.max((ts-lastFrame)/1000, 0), 0.033);
     lastFrame=ts;
+    fps=0.9*fps+0.1*(1/Math.max(dt, 0.001));
 
-    fps=
-      0.9*fps+
-      0.1*
-      (
-        1/
-        Math.max(
-          dt,
-          0.001
-        )
-      );
+    if(state===STATES.PLAYING && !matchEnded){
+      const now=Date.now();
 
-    if(
-      state===
-        STATES.PLAYING &&
-      !matchEnded
-    ){
-
-      const now=
-        Date.now();
-
-      if(
-        (DEV || sdkIsHost) &&
-        now>=
-        currentTurnStartedAt+
-        activeTurnSeconds*1000
-      ){
-
-        resolveTurnAsHost(
-          "TIMEOUT",
-          ""
-        );
+      // Safety check: if current drawer leaves, skip their turn immediately
+      if(DEV || sdkIsHost){
+        const currentDrawer = players.get(currentDrawerId);
+        if(!currentDrawer || currentDrawer.status === "LEFT" || currentDrawer.status === "TIMEOUT"){
+          resolveTurnAsHost("SKIP", "");
+        }
       }
 
-      const timer=
-        document.getElementById(
-          "gameTimer"
-        );
-
+      if((DEV || sdkIsHost) && now>=currentTurnStartedAt+activeTurnSeconds*1000){
+        resolveTurnAsHost("TIMEOUT", "");
+      }
+      const timer=document.getElementById("gameTimer");
       if(timer){
-
-        timer.textContent=
-          String(
-            Math.max(
-              0,
-              Math.ceil(
-                (
-                  currentTurnStartedAt+
-                  activeTurnSeconds*1000-
-                  now
-                )/1000
-              )
-            )
-          );
+        timer.textContent=String(Math.max(0, Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-now)/1000)));
       }
     }
-
-    loopHandle=
-      requestAnimationFrame(
-        gameLoop
-      );
+    loopHandle=requestAnimationFrame(gameLoop);
   }
 
   /* =========================================================
@@ -6371,45 +2754,13 @@
   ========================================================= */
 
   function heartbeat(){
+    if(!ME.id){ return; }
+    sendEvent("PLAYER_HEARTBEAT", { roundId: roundId||"LOBBY", userId: ME.id, status: state, timestamp: Date.now() });
 
-    if(!ME.id){
-      return;
-    }
-
-    sendEvent(
-      "PLAYER_HEARTBEAT",
-      {
-        roundId:
-          roundId||
-          "LOBBY",
-
-        userId:
-          ME.id,
-
-        status:
-          state,
-
-        timestamp:
-          Date.now()
-      }
-    );
-
-    const now=
-      Date.now();
-
-    for(
-      const [id,p]
-      of players
-    ){
-
-      if(
-        id!==ME.id &&
-        now-p.lastSeen>
-          CONFIG.PLAYER_TIMEOUT_MS
-      ){
-
-        p.status=
-          "TIMEOUT";
+    const now=Date.now();
+    for(const [id,p] of players){
+      if(id!==ME.id && now-p.lastSeen>CONFIG.PLAYER_TIMEOUT_MS){
+        p.status="TIMEOUT";
       }
     }
   }
@@ -6418,265 +2769,81 @@
      VISIBILITY
   ========================================================= */
 
-  document.addEventListener(
-    "visibilitychange",
-    ()=>{
-
-      if(
-        document.hidden
-      ){
-
-        hiddenAt=
-          Date.now();
-
-      }else{
-
-        if(
-          state===
-            STATES.PLAYING &&
-          hiddenAt &&
-          Date.now()-
-            hiddenAt>
-            2500
-        ){
-
-          hiddenAt=0;
-        }
-      }
+  document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){ hiddenAt=Date.now(); }
+    else{
+      if(state===STATES.PLAYING && hiddenAt && Date.now()-hiddenAt>2500){ hiddenAt=0; }
     }
-  );
+  });
 
-  window.addEventListener(
-    "pagehide",
-    ()=>{
-
-      clearTimeout(
-        turnStateTimer
-      );
-
-      clearInterval(
-        lobbyTimer
-      );
-
-      clearInterval(
-        heartbeatTimer
-      );
-
-      cancelAnimationFrame(
-        loopHandle
-      );
-
-      rafRunning=false;
-    }
-  );
+  window.addEventListener("pagehide", ()=>{
+    clearTimeout(turnStateTimer);
+    clearInterval(lobbyTimer);
+    clearInterval(heartbeatTimer);
+    cancelAnimationFrame(loopHandle);
+    rafRunning=false;
+  });
 
   /* =========================================================
      CANVAS
   ========================================================= */
 
   function ensureCanvas(){
-
-    canvas=
-      document.getElementById(
-        "drawCanvas"
-      );
-
-    if(!canvas){
-      return false;
-    }
-
-    ctx=
-      canvas.getContext(
-        "2d",
-        {
-          alpha:true,
-          desynchronized:true
-        }
-      );
-
-    if(!ctx){
-      return false;
-    }
-
+    canvas=document.getElementById("drawCanvas");
+    if(!canvas){ return false; }
+    ctx=canvas.getContext("2d", { alpha:true, desynchronized:true });
+    if(!ctx){ return false; }
     if(!resizeBound){
-
-      window.addEventListener(
-        "resize",
-        resizeCanvas,
-        {
-          passive:true
-        }
-      );
-
+      window.addEventListener("resize", resizeCanvas, { passive:true });
       resizeBound=true;
     }
-
     resizeCanvas();
-
     attachCanvasEvents();
-
     return true;
   }
 
   function resizeCanvas(){
-
-    if(
-      !canvas||
-      !ctx
-    ){
-
-      return;
-    }
-
-    const r=
-      canvas.getBoundingClientRect();
-
-    const w=
-      r.width>10
-        ?r.width
-        :340;
-
-    const h=
-      r.height>10
-        ?r.height
-        :260;
-
-    const dpr=
-      Math.min(
-        window.devicePixelRatio||
-        1,
-        2
-      );
-
-    canvas.width=
-      Math.max(
-        1,
-        Math.floor(
-          w*dpr
-        )
-      );
-
-    canvas.height=
-      Math.max(
-        1,
-        Math.floor(
-          h*dpr
-        )
-      );
-
-    ctx.setTransform(
-      dpr,
-      0,
-      0,
-      dpr,
-      0,
-      0
-    );
-
-    ctx.fillStyle=
-      "#f7f8fb";
-
-    ctx.fillRect(
-      0,
-      0,
-      w,
-      h
-    );
-
+    if(!canvas||!ctx){ return; }
+    const r=canvas.getBoundingClientRect();
+    const w=r.width>10 ? r.width : 340;
+    const h=r.height>10 ? r.height : 260;
+    const dpr=Math.min(window.devicePixelRatio||1, 2);
+    canvas.width=Math.max(1, Math.floor(w*dpr));
+    canvas.height=Math.max(1, Math.floor(h*dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle="#f7f8fb";
+    ctx.fillRect(0, 0, w, h);
     redrawCanvas();
   }
 
   function redrawCanvas(){
-
-    if(
-      !canvas||
-      !ctx
-    ){
-
-      return;
-    }
-
-    const r=
-      canvas.getBoundingClientRect();
-
-    ctx.fillStyle=
-      "#f7f8fb";
-
-    ctx.fillRect(
-      0,
-      0,
-      r.width,
-      r.height
-    );
-
-    for(
-      const s of knownStrokes
-    ){
-
-      drawStroke(s);
-    }
+    if(!canvas||!ctx){ return; }
+    const r=canvas.getBoundingClientRect();
+    ctx.fillStyle="#f7f8fb";
+    ctx.fillRect(0, 0, r.width, r.height);
+    for(const s of knownStrokes){ drawStroke(s); }
   }
 
   function pointFromEvent(e){
-
-    const r=
-      canvas.getBoundingClientRect();
-
+    const r=canvas.getBoundingClientRect();
     return {
-
-      x:
-        clamp(
-          (
-            e.clientX-
-            r.left
-          )/
-          Math.max(
-            1,
-            r.width
-          ),
-          0,
-          1
-        ),
-
-      y:
-        clamp(
-          (
-            e.clientY-
-            r.top
-          )/
-          Math.max(
-            1,
-            r.height
-          ),
-          0,
-          1
-        )
+      x: clamp((e.clientX-r.left)/Math.max(1, r.width), 0, 1),
+      y: clamp((e.clientY-r.top)/Math.max(1, r.height), 0, 1)
     };
   }
 
   function normalizedColorRgb(color){
     const value=safeString(color,"#151923",20).trim();
     const m=value.match(/^#([0-9a-f]{6})$/i);
-    if(!m){
-      return [21,25,35];
-    }
-    return [
-      parseInt(m[1].slice(0,2),16),
-      parseInt(m[1].slice(2,4),16),
-      parseInt(m[1].slice(4,6),16)
-    ];
+    if(!m){ return [21,25,35]; }
+    return [parseInt(m[1].slice(0,2),16), parseInt(m[1].slice(2,4),16), parseInt(m[1].slice(4,6),16)];
   }
 
   function floodFillAt(point,color){
-    if(!canvas || !ctx || !point){
-      return;
-    }
-
+    if(!canvas || !ctx || !point){ return; }
     const w=canvas.width;
     const h=canvas.height;
-    if(w<2 || h<2){
-      return;
-    }
+    if(w<2 || h<2){ return; }
 
     const sx=clamp(Number(point.x),0,1);
     const sy=clamp(Number(point.y),0,1);
@@ -6693,12 +2860,7 @@
     const targetA=data[seedIndex+3];
     const fillRgb=normalizedColorRgb(color);
 
-    if(
-      Math.abs(targetR-fillRgb[0])<=2 &&
-      Math.abs(targetG-fillRgb[1])<=2 &&
-      Math.abs(targetB-fillRgb[2])<=2 &&
-      targetA>=250
-    ){
+    if(Math.abs(targetR-fillRgb[0])<=2 && Math.abs(targetG-fillRgb[1])<=2 && Math.abs(targetB-fillRgb[2])<=2 && targetA>=250){
       return;
     }
 
@@ -6709,705 +2871,226 @@
 
     const matches=(pos)=>{
       const i=pos*4;
-      return (
-        Math.abs(data[i]-targetR)<=tolerance &&
-        Math.abs(data[i+1]-targetG)<=tolerance &&
-        Math.abs(data[i+2]-targetB)<=tolerance &&
-        Math.abs(data[i+3]-targetA)<=tolerance
-      );
+      return (Math.abs(data[i]-targetR)<=tolerance && Math.abs(data[i+1]-targetG)<=tolerance && Math.abs(data[i+2]-targetB)<=tolerance && Math.abs(data[i+3]-targetA)<=tolerance);
     };
 
     while(stack.length){
       const pos=stack.pop();
-      if(!matches(pos)){
-        continue;
-      }
+      if(!matches(pos)){ continue; }
 
       const i=pos*4;
-      data[i]=fillRgb[0];
-      data[i+1]=fillRgb[1];
-      data[i+2]=fillRgb[2];
-      data[i+3]=255;
+      data[i]=fillRgb[0]; data[i+1]=fillRgb[1]; data[i+2]=fillRgb[2]; data[i+3]=255;
 
-      const x=pos%w;
-      const y=Math.floor(pos/w);
-      const n1=pos-1;
-      const n2=pos+1;
-      const n3=pos-w;
-      const n4=pos+w;
+      const x=pos%w; const y=Math.floor(pos/w);
+      const n1=pos-1; const n2=pos+1; const n3=pos-w; const n4=pos+w;
 
       if(x>0 && !seen[n1]){ seen[n1]=1; stack.push(n1); }
       if(x<w-1 && !seen[n2]){ seen[n2]=1; stack.push(n2); }
       if(y>0 && !seen[n3]){ seen[n3]=1; stack.push(n3); }
       if(y<h-1 && !seen[n4]){ seen[n4]=1; stack.push(n4); }
     }
-
     ctx.putImageData(image,0,0);
   }
 
   function drawShapeStroke(stroke){
     const r=canvas.getBoundingClientRect();
     const pts=stroke.points||[];
-    if(pts.length<2){
-      return;
-    }
+    if(pts.length<2){ return; }
 
-    const a=pts[0];
-    const b=pts[pts.length-1];
-    const x1=a.x*r.width;
-    const y1=a.y*r.height;
-    const x2=b.x*r.width;
-    const y2=b.y*r.height;
+    const a=pts[0]; const b=pts[pts.length-1];
+    const x1=a.x*r.width; const y1=a.y*r.height;
+    const x2=b.x*r.width; const y2=b.y*r.height;
     const type=safeString(stroke.tool||stroke.kind,"pen",20);
 
     ctx.strokeStyle=stroke.color;
     ctx.lineWidth=clamp(Number(stroke.size)||7,2,30);
-    ctx.lineCap="round";
-    ctx.lineJoin="round";
+    ctx.lineCap="round"; ctx.lineJoin="round";
 
     if(type==="line"){
-      ctx.beginPath();
-      ctx.moveTo(x1,y1);
-      ctx.lineTo(x2,y2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
       return;
     }
-
     if(type==="rect"){
       ctx.strokeRect(x1,y1,x2-x1,y2-y1);
       return;
     }
-
     if(type==="circle"){
       const radius=Math.hypot(x2-x1,y2-y1);
-      ctx.beginPath();
-      ctx.arc(x1,y1,radius,0,Math.PI*2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(x1,y1,radius,0,Math.PI*2); ctx.stroke();
     }
   }
 
-  function drawStroke(
-    stroke
-  ){
+  function drawStroke(stroke){
+    if(!stroke || !Array.isArray(stroke.points) || stroke.points.length<1 || !ctx || !canvas){ return; }
 
-    if(
-      !stroke ||
-      !Array.isArray(stroke.points) ||
-      stroke.points.length<1 ||
-      !ctx ||
-      !canvas
-    ){
-      return;
-    }
-
-    const type=safeString(
-      stroke.tool||stroke.kind,
-      "pen",
-      20
-    );
-
-    if(type==="fill"){
-      floodFillAt(stroke.points[0],stroke.color||brushColor);
-      return;
-    }
-
-    if(type==="line" || type==="rect" || type==="circle"){
-      drawShapeStroke(stroke);
-      return;
-    }
+    const type=safeString(stroke.tool||stroke.kind,"pen",20);
+    if(type==="fill"){ floodFillAt(stroke.points[0],stroke.color||brushColor); return; }
+    if(type==="line" || type==="rect" || type==="circle"){ drawShapeStroke(stroke); return; }
 
     const r=canvas.getBoundingClientRect();
     const color=safeString(stroke.color,"#151923",20);
     const size=clamp(Number(stroke.size)||7,2,30);
 
-    ctx.strokeStyle=color;
-    ctx.lineWidth=size;
-    ctx.lineCap="round";
-    ctx.lineJoin="round";
+    ctx.strokeStyle=color; ctx.lineWidth=size; ctx.lineCap="round"; ctx.lineJoin="round";
 
     if(stroke.points.length===1){
       const a=stroke.points[0];
-      ctx.beginPath();
-      ctx.arc(a.x*r.width,a.y*r.height,size/2,0,Math.PI*2);
-      ctx.fillStyle=color;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(a.x*r.width,a.y*r.height,size/2,0,Math.PI*2);
+      ctx.fillStyle=color; ctx.fill();
       return;
     }
 
     ctx.beginPath();
-    ctx.moveTo(
-      stroke.points[0].x*r.width,
-      stroke.points[0].y*r.height
-    );
-
+    ctx.moveTo(stroke.points[0].x*r.width, stroke.points[0].y*r.height);
     for(let i=1;i<stroke.points.length;i++){
       const p=stroke.points[i];
       ctx.lineTo(p.x*r.width,p.y*r.height);
     }
-
     ctx.stroke();
   }
 
   function beginStroke(e){
-
-    if(
-      !isDrawer() ||
-      state!==STATES.PLAYING ||
-      matchEnded ||
-      currentTurnResolved
-    ){
-      return;
-    }
-
-    if(
-      e.pointerType==="mouse" &&
-      e.button!==0
-    ){
-      return;
-    }
-
-    if(drawingPointerId!==null){
-      return;
-    }
+    if(!isDrawer() || state!==STATES.PLAYING || matchEnded || currentTurnResolved){ return; }
+    if(e.pointerType==="mouse" && e.button!==0){ return; }
+    if(drawingPointerId!==null){ return; }
 
     e.preventDefault();
-
     drawingPointerId=e.pointerId;
     ensureAudio();
-
     const p=pointFromEvent(e);
 
-    /* 填充工具：一次點擊直接填滿目前所在區域 */
     if(tool==="fill"){
       const fillStroke={
-        id:
-          ME.id+"_"+Date.now().toString(36)+"_"+
-          Math.random().toString(36).slice(2,6),
-        color:brushColor,
-        size:brushSize,
-        tool:"fill",
-        points:[p]
+        id: ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6),
+        color:brushColor, size:brushSize, tool:"fill", points:[p]
       };
-
-      knownStrokes.push(fillStroke);
-      localStrokeIds.push(fillStroke.id);
-
-      if(knownStrokes.length>CONFIG.MAX_STROKES){
-        knownStrokes.shift();
-      }
-
+      knownStrokes.push(fillStroke); localStrokeIds.push(fillStroke.id);
+      if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
       redrawCanvas();
-
-      sendEvent("GAME_EVENT",{
-        roundId,
-        type:"STROKE",
-        stroke:fillStroke,
-        turnIndex:currentTurnIndex
-      });
-
-      drawingPointerId=null;
-      playTone(520,.04);
-      vibrate(20);
+      sendEvent("GAME_EVENT",{ roundId, type:"STROKE", stroke:fillStroke, turnIndex:currentTurnIndex });
+      drawingPointerId=null; playTone(520,.04); vibrate(20);
       return;
     }
 
     currentStroke={
-      id:
-        ME.id+"_"+Date.now().toString(36)+"_"+
-        Math.random().toString(36).slice(2,6),
-      color:
-        tool==="eraser"
-          ?"#f7f8fb"
-          :brushColor,
-      size:brushSize,
-      tool,
-      points:[p]
+      id: ME.id+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,6),
+      color: tool==="eraser" ? "#f7f8fb" : brushColor,
+      size:brushSize, tool, points:[p]
     };
 
-    if(tool==="line" || tool==="rect" || tool==="circle"){
-      currentStroke.points.push({...p});
-    }
-
-    try{
-      canvas.setPointerCapture(e.pointerId);
-    }catch(_){}
+    if(tool==="line" || tool==="rect" || tool==="circle"){ currentStroke.points.push({...p}); }
+    try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
   }
 
   function moveStroke(e){
-
-    if(
-      !currentStroke ||
-      !canvas ||
-      (
-        drawingPointerId!==null &&
-        e.pointerId!==drawingPointerId
-      )
-    ){
-      return;
-    }
-
-    if(
-      e.pointerType==="mouse" &&
-      e.buttons===0
-    ){
-      return;
-    }
+    if(!currentStroke || !canvas || (drawingPointerId!==null && e.pointerId!==drawingPointerId)){ return; }
+    if(e.pointerType==="mouse" && e.buttons===0){ return; }
 
     e.preventDefault();
-
-    const events=
-      typeof e.getCoalescedEvents==="function"
-        ?e.getCoalescedEvents()
-        :[e];
-
+    const events=typeof e.getCoalescedEvents==="function" ? e.getCoalescedEvents() : [e];
     for(const ev of events){
       const p=pointFromEvent(ev);
-
-      /* 幾何工具：第二點只是預覽端點，不累積成自由曲線。 */
-      if(
-        currentStroke.tool==="line" ||
-        currentStroke.tool==="rect" ||
-        currentStroke.tool==="circle"
-      ){
+      if(currentStroke.tool==="line" || currentStroke.tool==="rect" || currentStroke.tool==="circle"){
         currentStroke.points[1]=p;
         redrawCanvas();
         drawStroke(currentStroke);
         continue;
       }
-
-      const last=
-        currentStroke.points[
-          currentStroke.points.length-1
-        ];
-
+      const last=currentStroke.points[currentStroke.points.length-1];
       const r=canvas.getBoundingClientRect();
-      const dx=(p.x-last.x)*r.width;
-      const dy=(p.y-last.y)*r.height;
+      const dx=(p.x-last.x)*r.width; const dy=(p.y-last.y)*r.height;
+      if(Math.hypot(dx,dy)<1.4){ continue; }
 
-      if(Math.hypot(dx,dy)<1.4){
-        continue;
-      }
-
-      if(
-        currentStroke.points.length<
-        CONFIG.MAX_POINTS_PER_STROKE
-      ){
+      if(currentStroke.points.length<CONFIG.MAX_POINTS_PER_STROKE){
         currentStroke.points.push(p);
-        drawStroke({
-          color:currentStroke.color,
-          size:currentStroke.size,
-          tool:currentStroke.tool,
-          points:[last,p]
-        });
+        drawStroke({ color:currentStroke.color, size:currentStroke.size, tool:currentStroke.tool, points:[last,p] });
       }
     }
   }
 
   function endStroke(e){
-
-    if(
-      drawingPointerId!==null &&
-      e &&
-      e.pointerId!==undefined &&
-      e.pointerId!==drawingPointerId
-    ){
-
-      return;
-    }
-
-    if(!currentStroke){
-
-      drawingPointerId=
-        null;
-
-      return;
-    }
-
-    if(
-      e &&
-      e.preventDefault
-    ){
-
-      e.preventDefault();
-    }
+    if(drawingPointerId!==null && e && e.pointerId!==undefined && e.pointerId!==drawingPointerId){ return; }
+    if(!currentStroke){ drawingPointerId=null; return; }
+    if(e && e.preventDefault){ e.preventDefault(); }
 
     const stroke={
-
-      id:
-        currentStroke.id,
-
-      color:
-        currentStroke.color,
-
-      size:
-        currentStroke.size,
-
-      tool:
-        safeString(currentStroke.tool,"pen",20),
-
-      points:
-        currentStroke.points.slice(
-          0,
-          CONFIG.MAX_POINTS_PER_STROKE
-        )
+      id: currentStroke.id,
+      color: currentStroke.color,
+      size: currentStroke.size,
+      tool: safeString(currentStroke.tool,"pen",20),
+      points: currentStroke.points.slice(0, CONFIG.MAX_POINTS_PER_STROKE)
     };
 
-    knownStrokes.push(
-      stroke
-    );
+    knownStrokes.push(stroke); localStrokeIds.push(stroke.id);
+    if(stroke.tool==="line" || stroke.tool==="rect" || stroke.tool==="circle"){ redrawCanvas(); }
+    if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
 
-    localStrokeIds.push(
-      stroke.id
-    );
-
-    if(
-      stroke.tool==="line" ||
-      stroke.tool==="rect" ||
-      stroke.tool==="circle"
-    ){
-      redrawCanvas();
-    }
-
-    if(
-      knownStrokes.length>
-      CONFIG.MAX_STROKES
-    ){
-
-      knownStrokes.shift();
-    }
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId,
-
-        type:
-          "STROKE",
-
-        stroke,
-
-        turnIndex:
-          currentTurnIndex
-      }
-    );
-
-    currentStroke=
-      null;
-
-    drawingPointerId=
-      null;
+    sendEvent("GAME_EVENT", { roundId, type: "STROKE", stroke, turnIndex: currentTurnIndex });
+    currentStroke=null; drawingPointerId=null;
   }
 
   function attachCanvasEvents(){
-
-    if(
-      !canvas ||
-      canvas.dataset.bound==="1"
-    ){
-
-      return;
-    }
-
+    if(!canvas || canvas.dataset.bound==="1"){ return; }
     canvas.dataset.bound="1";
-
-    canvas.addEventListener(
-      "pointerdown",
-      beginStroke,
-      {
-        passive:false
-      }
-    );
-
-    canvas.addEventListener(
-      "pointermove",
-      moveStroke,
-      {
-        passive:false
-      }
-    );
-
-    canvas.addEventListener(
-      "pointerup",
-      endStroke,
-      {
-        passive:false
-      }
-    );
-
-    canvas.addEventListener(
-      "pointercancel",
-      endStroke,
-      {
-        passive:false
-      }
-    );
-
-    canvas.addEventListener(
-      "lostpointercapture",
-      endStroke,
-      {
-        passive:false
-      }
-    );
-
-    canvas.addEventListener(
-      "dragstart",
-      e=>
-        e.preventDefault()
-    );
+    canvas.addEventListener("pointerdown", beginStroke, { passive:false });
+    canvas.addEventListener("pointermove", moveStroke, { passive:false });
+    canvas.addEventListener("pointerup", endStroke, { passive:false });
+    canvas.addEventListener("pointercancel", endStroke, { passive:false });
+    canvas.addEventListener("lostpointercapture", endStroke, { passive:false });
+    canvas.addEventListener("dragstart", e=>e.preventDefault());
   }
 
-  function receiveStroke(
-    stroke
-  ){
+  function receiveStroke(stroke){
+    if(!stroke || !Array.isArray(stroke.points) || stroke.points.length>CONFIG.MAX_POINTS_PER_STROKE){ return; }
+    if(stroke.id && knownStrokes.some(s=>s.id===stroke.id)){ return; }
 
-    if(
-      !stroke ||
-      !Array.isArray(
-        stroke.points
-      ) ||
-      stroke.points.length>
-        CONFIG.MAX_POINTS_PER_STROKE
-    ){
-
-      return;
-    }
-
-    if(
-      stroke.id &&
-      knownStrokes.some(
-        s=>
-          s.id===
-          stroke.id
-      )
-    ){
-
-      return;
-    }
-
-    const allowedTools=new Set([
-      "pen",
-      "eraser",
-      "fill",
-      "line",
-      "rect",
-      "circle"
-    ]);
-
-    const safeTool=
-      allowedTools.has(stroke.tool)
-        ?stroke.tool
-        :"pen";
+    const allowedTools=new Set(["pen", "eraser", "fill", "line", "rect", "circle"]);
+    const safeTool=allowedTools.has(stroke.tool) ? stroke.tool : "pen";
 
     const safeStroke={
-
-      id:
-        safeString(
-          stroke.id,
-          "remote",
-          100
-        ),
-
-      color:
-        safeString(
-          stroke.color,
-          "#151923",
-          20
-        ),
-
-      size:
-        clamp(
-          stroke.size,
-          2,
-          30
-        ),
-
-      tool:safeTool,
-
-      points:
-        stroke.points
-          .slice(
-            0,
-            CONFIG.MAX_POINTS_PER_STROKE
-          )
-          .map(
-            p=>({
-
-              x:clamp(p.x,0,1),
-              y:clamp(p.y,0,1)
-            })
-          )
+      id: safeString(stroke.id, "remote", 100),
+      color: safeString(stroke.color, "#151923", 20),
+      size: clamp(stroke.size, 2, 30),
+      tool: safeTool,
+      points: stroke.points.slice(0, CONFIG.MAX_POINTS_PER_STROKE).map(p=>({ x:clamp(p.x,0,1), y:clamp(p.y,0,1) }))
     };
 
-    knownStrokes.push(
-      safeStroke
-    );
+    knownStrokes.push(safeStroke);
+    if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
 
-    if(
-      knownStrokes.length>
-      CONFIG.MAX_STROKES
-    ){
-
-      knownStrokes.shift();
-    }
-
-    if(
-      safeTool==="fill" ||
-      safeTool==="line" ||
-      safeTool==="rect" ||
-      safeTool==="circle"
-    ){
+    if(safeTool==="fill" || safeTool==="line" || safeTool==="rect" || safeTool==="circle"){
       redrawCanvas();
     }else{
       drawStroke(safeStroke);
     }
   }
 
-  function removeKnownStroke(
-    id
-  ){
-
-    if(
-      typeof id!=="string"
-    ){
-
-      return;
-    }
-
-    knownStrokes=
-      knownStrokes.filter(
-        s=>
-          s.id!==id
-      );
+  function removeKnownStroke(id){
+    if(typeof id!=="string"){ return; }
+    knownStrokes=knownStrokes.filter(s=>s.id!==id);
   }
 
   function undoLastStroke(){
-
-    if(
-      !isDrawer() ||
-      !localStrokeIds.length ||
-      matchEnded
-    ){
-
-      return;
-    }
-
-    const id=
-      localStrokeIds.pop();
-
-    removeKnownStroke(
-      id
-    );
-
+    if(!isDrawer() || !localStrokeIds.length || matchEnded){ return; }
+    const id=localStrokeIds.pop();
+    removeKnownStroke(id);
     redrawCanvas();
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId,
-
-        type:
-          "UNDO_STROKE",
-
-        strokeId:
-          id,
-
-        turnIndex:
-          currentTurnIndex
-      }
-    );
-
-    playTone(
-      400,
-      .05
-    );
+    sendEvent("GAME_EVENT", { roundId, type: "UNDO_STROKE", strokeId: id, turnIndex: currentTurnIndex });
+    playTone(400, .05);
   }
 
   function clearAllCanvas(){
-
-    if(
-      !isDrawer() ||
-      matchEnded
-    ){
-
-      return;
-    }
-
-    knownStrokes=[];
-
-    localStrokeIds=[];
-
-    currentStroke=null;
-    drawingPointerId=null;
-
+    if(!isDrawer() || matchEnded){ return; }
+    knownStrokes=[]; localStrokeIds=[]; currentStroke=null; drawingPointerId=null;
     redrawCanvas();
-
-    sendEvent(
-      "GAME_EVENT",
-      {
-        roundId,
-
-        type:
-          "CLEAR_CANVAS",
-
-        turnIndex:
-          currentTurnIndex
-      }
-    );
-
-    playTone(
-      350,
-      .05
-    );
+    sendEvent("GAME_EVENT", { roundId, type: "CLEAR_CANVAS", turnIndex: currentTurnIndex });
+    playTone(350, .05);
   }
 
   function syncTools(){
-
-    document
-      .querySelectorAll(
-        "[data-tool]"
-      )
-      .forEach(
-        b=>{
-
-          b.classList.toggle(
-            "active",
-            b.dataset.tool===
-              tool
-          );
-        }
-      );
-
-    document
-      .querySelectorAll(
-        "[data-size]"
-      )
-      .forEach(
-        b=>{
-
-          b.classList.toggle(
-            "active",
-            Number(
-              b.dataset.size
-            )===
-            brushSize
-          );
-        }
-      );
-
-    document
-      .querySelectorAll(
-        "[data-color]"
-      )
-      .forEach(
-        b=>{
-
-          b.classList.toggle(
-            "active",
-            b.dataset.color===brushColor
-          );
-        }
-      );
+    document.querySelectorAll("[data-tool]").forEach(b=>{ b.classList.toggle("active", b.dataset.tool===tool); });
+    document.querySelectorAll("[data-size]").forEach(b=>{ b.classList.toggle("active", Number(b.dataset.size)===brushSize); });
+    document.querySelectorAll("[data-color]").forEach(b=>{ b.classList.toggle("active", b.dataset.color===brushColor); });
   }
 
   /* =========================================================
@@ -7415,123 +3098,41 @@
   ========================================================= */
 
   function ensureAudio(){
-
-    if(muted){
-      return;
-    }
-
+    if(muted){ return; }
     try{
-
       if(!audioCtx){
-
-        const AudioContextClass=
-          window.AudioContext||
-          window.webkitAudioContext;
-
-        if(!AudioContextClass){
-          return;
-        }
-
-        audioCtx=
-          new AudioContextClass();
+        const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+        if(!AudioContextClass){ return; }
+        audioCtx=new AudioContextClass();
       }
-
-      if(
-        audioCtx.state===
-        "suspended"
-      ){
-
-        audioCtx.resume();
-      }
-
+      if(audioCtx.state==="suspended"){ audioCtx.resume(); }
     }catch(_){}
   }
 
-  function playTone(
-    freq,
-    duration=.08
-  ){
-
-    if(muted){
-      return;
-    }
-
-    const now=
-      performance.now();
-
-    if(
-      now-soundCooldown<35
-    ){
-
-      return;
-    }
-
-    soundCooldown=
-      now;
-
+  function playTone(freq, duration=.08){
+    if(muted){ return; }
+    const now=performance.now();
+    if(now-soundCooldown<35){ return; }
+    soundCooldown=now;
     ensureAudio();
-
-    if(!audioCtx){
-      return;
-    }
+    if(!audioCtx){ return; }
 
     try{
-
-      const o=
-        audioCtx.createOscillator();
-
-      const g=
-        audioCtx.createGain();
-
-      o.type=
-        "sine";
-
-      o.frequency.value=
-        clamp(
-          freq,
-          120,
-          1700
-        );
-
-      g.gain.value=
-        .28;
-
+      const o=audioCtx.createOscillator();
+      const g=audioCtx.createGain();
+      o.type="sine";
+      o.frequency.value=clamp(freq, 120, 1700);
+      g.gain.value=.28;
       o.connect(g);
-
-      g.connect(
-        audioCtx.destination
-      );
-
+      g.connect(audioCtx.destination);
       o.start();
-
-      g.gain.exponentialRampToValueAtTime(
-        .0001,
-        audioCtx.currentTime+
-        duration
-      );
-
-      o.stop(
-        audioCtx.currentTime+
-        duration
-      );
-
+      g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime+duration);
+      o.stop(audioCtx.currentTime+duration);
     }catch(_){}
   }
 
   function vibrate(ms){
-
-    try{
-
-      if(
-        navigator.vibrate
-      ){
-
-        navigator.vibrate(
-          ms
-        );
-      }
-
-    }catch(_){}
+    try{ if(navigator.vibrate){ navigator.vibrate(ms); } }catch(_){}
   }
 
   /* =========================================================
@@ -7539,40 +3140,12 @@
   ========================================================= */
 
   function showToast(t){
-
-    const el=
-      document.getElementById(
-        "toast"
-      );
-
-    if(!el){
-      return;
-    }
-
-    el.textContent=
-      safeString(
-        t,
-        "",
-        100
-      );
-
-    el.classList.add(
-      "show"
-    );
-
-    clearTimeout(
-      showToast.t
-    );
-
-    showToast.t=
-      setTimeout(
-        ()=>{
-          el.classList.remove(
-            "show"
-          );
-        },
-        1200
-      );
+    const el=document.getElementById("toast");
+    if(!el){ return; }
+    el.textContent=safeString(t, "", 100);
+    el.classList.add("show");
+    clearTimeout(showToast.t);
+    showToast.t=setTimeout(()=>{ el.classList.remove("show"); }, 1200);
   }
 
   /* =========================================================
@@ -7580,63 +3153,22 @@
   ========================================================= */
 
   function boot(){
+    const main=document.getElementById("main");
+    if(!main){ setTimeout(boot, 50); return; }
 
-    const main=
-      document.getElementById(
-        "main"
-      );
-
-    if(!main){
-
-      setTimeout(
-        boot,
-        50
-      );
-
-      return;
-    }
-
-    /*
-      初始化自己的票
-    */
-
-    categoryVotes.set(
-      String(ME.id),
-      selectedCategory
-    );
-
-    roundsVotes.set(
-      String(ME.id),
-      selectedRounds
-    );
-
-    secondsVotes.set(
-      String(ME.id),
-      selectedTurnSeconds
-    );
+    categoryVotes.set(String(ME.id), selectedCategory);
+    roundsVotes.set(String(ME.id), selectedRounds);
+    secondsVotes.set(String(ME.id), selectedTurnSeconds);
 
     render();
-
-    lastFrame=
-      performance.now();
-
+    lastFrame=performance.now();
     rafRunning=true;
-
-    loopHandle=
-      requestAnimationFrame(
-        gameLoop
-      );
-
-    heartbeatTimer=
-      setInterval(
-        heartbeat,
-        CONFIG.HEARTBEAT_MS
-      );
+    loopHandle=requestAnimationFrame(gameLoop);
+    heartbeatTimer=setInterval(heartbeat, CONFIG.HEARTBEAT_MS);
   }
 
   boot();
 
 </script>
-
 </body>
 </html>
