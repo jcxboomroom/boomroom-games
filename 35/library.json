@@ -1,156 +1,487 @@
 {
-  "version": 2,
-  "mode": "melody-rhythm-v26.3",
+  "version": 12,
+  "mode": "midi-lyric-phrase-performance-v32.0",
   "songs": [
     {
-      "id": "en",
-      "title": "EN",
-      "filename": "EN.mp3",
-      "bpm": 109.96,
-      "duration": 205.009,
+      "id": "avex官方-a-lin-給我一個理由忘記-mv完整版",
+      "title": "[avex官方] A-Lin 給我一個理由忘記 (MV完整版)",
+      "filename": "[avex官方] A-Lin 給我一個理由忘記 (MV完整版).mp3",
+      "bpm": 133.93,
+      "duration": 286.604,
       "stats": {
         "easy": {
-          "bpm": 109.96,
-          "duration": 205.009,
-          "notes": 374
+          "notes": 536,
+          "tapCount": 480,
+          "holdCount": 56,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.0241,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "normal": {
-          "bpm": 109.96,
-          "duration": 205.009,
-          "notes": 482
+          "notes": 726,
+          "tapCount": 627,
+          "holdCount": 99,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.0239,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "hard": {
-          "bpm": 109.96,
-          "duration": 205.009,
-          "notes": 516
+          "notes": 697,
+          "tapCount": 518,
+          "holdCount": 179,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.0238,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
+        },
+        "special": {
+          "notes": 973,
+          "tapCount": 625,
+          "holdCount": 348,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.02402,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 619,
+            "syncopation": 426,
+            "terminalReleases": 0,
+            "handCrossings": 388
+          }
         }
       },
       "charts": {
-        "easy": "./charts/en_easy.json",
-        "normal": "./charts/en_normal.json",
-        "hard": "./charts/en_hard.json"
+        "easy": "./charts/avex%E5%AE%98%E6%96%B9-a-lin-%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98-mv%E5%AE%8C%E6%95%B4%E7%89%88_easy.json",
+        "normal": "./charts/avex%E5%AE%98%E6%96%B9-a-lin-%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98-mv%E5%AE%8C%E6%95%B4%E7%89%88_normal.json",
+        "hard": "./charts/avex%E5%AE%98%E6%96%B9-a-lin-%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98-mv%E5%AE%8C%E6%95%B4%E7%89%88_hard.json",
+        "special": "./charts/avex%E5%AE%98%E6%96%B9-a-lin-%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98-mv%E5%AE%8C%E6%95%B4%E7%89%88_special.json"
       },
-      "audioUrl": "./music/EN.mp3"
+      "pianoRollUrl": "./piano_rolls/avex%E5%AE%98%E6%96%B9-a-lin-%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98-mv%E5%AE%8C%E6%95%B4%E7%89%88.json",
+      "audioUrl": "./music/%5Bavex%E5%AE%98%E6%96%B9%5D%20A-Lin%20%E7%B5%A6%E6%88%91%E4%B8%80%E5%80%8B%E7%90%86%E7%94%B1%E5%BF%98%E8%A8%98%20%28MV%E5%AE%8C%E6%95%B4%E7%89%88%29.mp3",
+      "chartEngine": "midi-lyric-phrase-v32.0",
+      "hasLyricsTiming": false,
+      "sourceMode": "AUDIO",
+      "midiStats": {}
     },
     {
-      "id": "wifi歪歪---就忘了吧-在那些和你錯開的時間里-我騙過我自己-以為能忘了你-lyrics-video",
-      "title": "WiFi歪歪 - 就忘了吧『在那些和你錯開的時間里 我騙過我自己 以為能忘了你』【Lyrics Video】",
-      "filename": "WiFi歪歪 - 就忘了吧『在那些和你錯開的時間里 我騙過我自己 以為能忘了你』【Lyrics Video】.mp3",
-      "bpm": 123.05,
-      "duration": 229.622,
+      "id": "bang-bang-bang",
+      "title": "BANG BANG BANG",
+      "filename": "BANG BANG BANG.mp3",
+      "bpm": 120.0,
+      "duration": 220.218,
       "stats": {
         "easy": {
-          "bpm": 123.05,
-          "duration": 229.622,
-          "notes": 469
+          "notes": 301,
+          "tapCount": 288,
+          "holdCount": 13,
+          "chordGroups": 25,
+          "signatureHookGroups": 60,
+          "chordHistogram": {
+            "2": 25
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 21,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "normal": {
-          "bpm": 123.05,
-          "duration": 229.622,
-          "notes": 652
+          "notes": 442,
+          "tapCount": 421,
+          "holdCount": 21,
+          "chordGroups": 72,
+          "signatureHookGroups": 60,
+          "chordHistogram": {
+            "2": 72
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 21,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "hard": {
-          "bpm": 123.05,
-          "duration": 229.622,
-          "notes": 692
+          "notes": 426,
+          "tapCount": 395,
+          "holdCount": 31,
+          "chordGroups": 71,
+          "signatureHookGroups": 60,
+          "chordHistogram": {
+            "2": 68,
+            "3": 3
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 21,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
+        },
+        "special": {
+          "notes": 521,
+          "tapCount": 433,
+          "holdCount": 88,
+          "chordGroups": 86,
+          "signatureHookGroups": 60,
+          "chordHistogram": {
+            "2": 63,
+            "3": 19,
+            "4": 4
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 21,
+          "performanceGrammar": {
+            "legato": 66,
+            "syncopation": 160,
+            "terminalReleases": 50,
+            "handCrossings": 69
+          }
         }
       },
       "charts": {
-        "easy": "./charts/wifi%E6%AD%AA%E6%AD%AA---%E5%B0%B1%E5%BF%98%E4%BA%86%E5%90%A7-%E5%9C%A8%E9%82%A3%E4%BA%9B%E5%92%8C%E4%BD%A0%E9%8C%AF%E9%96%8B%E7%9A%84%E6%99%82%E9%96%93%E9%87%8C-%E6%88%91%E9%A8%99%E9%81%8E%E6%88%91%E8%87%AA%E5%B7%B1-%E4%BB%A5%E7%82%BA%E8%83%BD%E5%BF%98%E4%BA%86%E4%BD%A0-lyrics-video_easy.json",
-        "normal": "./charts/wifi%E6%AD%AA%E6%AD%AA---%E5%B0%B1%E5%BF%98%E4%BA%86%E5%90%A7-%E5%9C%A8%E9%82%A3%E4%BA%9B%E5%92%8C%E4%BD%A0%E9%8C%AF%E9%96%8B%E7%9A%84%E6%99%82%E9%96%93%E9%87%8C-%E6%88%91%E9%A8%99%E9%81%8E%E6%88%91%E8%87%AA%E5%B7%B1-%E4%BB%A5%E7%82%BA%E8%83%BD%E5%BF%98%E4%BA%86%E4%BD%A0-lyrics-video_normal.json",
-        "hard": "./charts/wifi%E6%AD%AA%E6%AD%AA---%E5%B0%B1%E5%BF%98%E4%BA%86%E5%90%A7-%E5%9C%A8%E9%82%A3%E4%BA%9B%E5%92%8C%E4%BD%A0%E9%8C%AF%E9%96%8B%E7%9A%84%E6%99%82%E9%96%93%E9%87%8C-%E6%88%91%E9%A8%99%E9%81%8E%E6%88%91%E8%87%AA%E5%B7%B1-%E4%BB%A5%E7%82%BA%E8%83%BD%E5%BF%98%E4%BA%86%E4%BD%A0-lyrics-video_hard.json"
+        "easy": "./charts/bang-bang-bang_easy.json",
+        "normal": "./charts/bang-bang-bang_normal.json",
+        "hard": "./charts/bang-bang-bang_hard.json",
+        "special": "./charts/bang-bang-bang_special.json"
       },
-      "audioUrl": "./music/WiFi%E6%AD%AA%E6%AD%AA%20-%20%E5%B0%B1%E5%BF%98%E4%BA%86%E5%90%A7%E3%80%8E%E5%9C%A8%E9%82%A3%E4%BA%9B%E5%92%8C%E4%BD%A0%E9%8C%AF%E9%96%8B%E7%9A%84%E6%99%82%E9%96%93%E9%87%8C%20%E6%88%91%E9%A8%99%E9%81%8E%E6%88%91%E8%87%AA%E5%B7%B1%20%E4%BB%A5%E7%82%BA%E8%83%BD%E5%BF%98%E4%BA%86%E4%BD%A0%E3%80%8F%E3%80%90Lyrics%20Video%E3%80%91.mp3"
+      "pianoRollUrl": "./piano_rolls/bang-bang-bang.json",
+      "audioUrl": "./music/BANG%20BANG%20BANG.mp3",
+      "chartEngine": "midi-lyric-phrase-v32.0",
+      "hasLyricsTiming": true,
+      "lyricsUrl": "./music/BANG%20BANG%20BANG.lrc",
+      "midiUrl": "./music/BANG%20BANG%20BANG.mid",
+      "sourceMode": "MIDI_FIRST_V32",
+      "midiStats": {
+        "melody": 264,
+        "harmony": 103,
+        "bass": 45,
+        "tempo": 120.0,
+        "audioBpm": 133.93
+      }
     },
     {
-      "id": "五月天-温柔-女声翻唱-完整版-五月天温柔-女声翻唱-空灵女声-治愈女声-经典老歌-治愈音乐-疗愈歌曲",
-      "title": "五月天《温柔》女声翻唱 完整版。#五月天温柔 #女声翻唱 #空灵女声 #治愈女声 #经典老歌 #治愈音乐 #疗愈歌曲",
-      "filename": "五月天《温柔》女声翻唱 完整版。#五月天温柔 #女声翻唱 #空灵女声 #治愈女声 #经典老歌 #治愈音乐 #疗愈歌曲.mp3",
-      "bpm": 147.66,
-      "duration": 244.738,
+      "id": "独家live-王赫野-姚晓棠-最后一页-唱出爱情里说不清道不明的遗憾-天赐的声音5-ep1-20240426",
+      "title": "【独家LIVE】王赫野&姚晓棠《最后一页》 唱出爱情里说不清道不明的遗憾 #天赐的声音5 EP1 20240426",
+      "filename": "【独家LIVE】王赫野&姚晓棠《最后一页》 唱出爱情里说不清道不明的遗憾 #天赐的声音5 EP1 20240426.mp3",
+      "bpm": 120.0,
+      "duration": 280.01,
       "stats": {
         "easy": {
-          "bpm": 147.66,
-          "duration": 244.738,
-          "notes": 566
+          "notes": 370,
+          "tapCount": 313,
+          "holdCount": 57,
+          "chordGroups": 11,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 11
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 10,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "normal": {
-          "bpm": 147.66,
-          "duration": 244.738,
-          "notes": 652
+          "notes": 616,
+          "tapCount": 508,
+          "holdCount": 108,
+          "chordGroups": 16,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 16
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 10,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "hard": {
-          "bpm": 147.66,
-          "duration": 244.738,
-          "notes": 681
+          "notes": 590,
+          "tapCount": 396,
+          "holdCount": 194,
+          "chordGroups": 14,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 13,
+            "3": 1
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 10,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
+        },
+        "special": {
+          "notes": 735,
+          "tapCount": 479,
+          "holdCount": 256,
+          "chordGroups": 45,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 44,
+            "3": 1
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 10,
+          "performanceGrammar": {
+            "legato": 135,
+            "syncopation": 337,
+            "terminalReleases": 27,
+            "handCrossings": 202
+          }
         }
       },
       "charts": {
-        "easy": "./charts/%E4%BA%94%E6%9C%88%E5%A4%A9-%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E5%AE%8C%E6%95%B4%E7%89%88-%E4%BA%94%E6%9C%88%E5%A4%A9%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E7%A9%BA%E7%81%B5%E5%A5%B3%E5%A3%B0-%E6%B2%BB%E6%84%88%E5%A5%B3%E5%A3%B0-%E7%BB%8F%E5%85%B8%E8%80%81%E6%AD%8C-%E6%B2%BB%E6%84%88%E9%9F%B3%E4%B9%90-%E7%96%97%E6%84%88%E6%AD%8C%E6%9B%B2_easy.json",
-        "normal": "./charts/%E4%BA%94%E6%9C%88%E5%A4%A9-%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E5%AE%8C%E6%95%B4%E7%89%88-%E4%BA%94%E6%9C%88%E5%A4%A9%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E7%A9%BA%E7%81%B5%E5%A5%B3%E5%A3%B0-%E6%B2%BB%E6%84%88%E5%A5%B3%E5%A3%B0-%E7%BB%8F%E5%85%B8%E8%80%81%E6%AD%8C-%E6%B2%BB%E6%84%88%E9%9F%B3%E4%B9%90-%E7%96%97%E6%84%88%E6%AD%8C%E6%9B%B2_normal.json",
-        "hard": "./charts/%E4%BA%94%E6%9C%88%E5%A4%A9-%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E5%AE%8C%E6%95%B4%E7%89%88-%E4%BA%94%E6%9C%88%E5%A4%A9%E6%B8%A9%E6%9F%94-%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1-%E7%A9%BA%E7%81%B5%E5%A5%B3%E5%A3%B0-%E6%B2%BB%E6%84%88%E5%A5%B3%E5%A3%B0-%E7%BB%8F%E5%85%B8%E8%80%81%E6%AD%8C-%E6%B2%BB%E6%84%88%E9%9F%B3%E4%B9%90-%E7%96%97%E6%84%88%E6%AD%8C%E6%9B%B2_hard.json"
+        "easy": "./charts/%E7%8B%AC%E5%AE%B6live-%E7%8E%8B%E8%B5%AB%E9%87%8E-%E5%A7%9A%E6%99%93%E6%A3%A0-%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5-%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE-%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35-ep1-20240426_easy.json",
+        "normal": "./charts/%E7%8B%AC%E5%AE%B6live-%E7%8E%8B%E8%B5%AB%E9%87%8E-%E5%A7%9A%E6%99%93%E6%A3%A0-%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5-%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE-%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35-ep1-20240426_normal.json",
+        "hard": "./charts/%E7%8B%AC%E5%AE%B6live-%E7%8E%8B%E8%B5%AB%E9%87%8E-%E5%A7%9A%E6%99%93%E6%A3%A0-%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5-%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE-%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35-ep1-20240426_hard.json",
+        "special": "./charts/%E7%8B%AC%E5%AE%B6live-%E7%8E%8B%E8%B5%AB%E9%87%8E-%E5%A7%9A%E6%99%93%E6%A3%A0-%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5-%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE-%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35-ep1-20240426_special.json"
       },
-      "audioUrl": "./music/%E4%BA%94%E6%9C%88%E5%A4%A9%E3%80%8A%E6%B8%A9%E6%9F%94%E3%80%8B%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1%20%E5%AE%8C%E6%95%B4%E7%89%88%E3%80%82%23%E4%BA%94%E6%9C%88%E5%A4%A9%E6%B8%A9%E6%9F%94%20%23%E5%A5%B3%E5%A3%B0%E7%BF%BB%E5%94%B1%20%23%E7%A9%BA%E7%81%B5%E5%A5%B3%E5%A3%B0%20%23%E6%B2%BB%E6%84%88%E5%A5%B3%E5%A3%B0%20%23%E7%BB%8F%E5%85%B8%E8%80%81%E6%AD%8C%20%23%E6%B2%BB%E6%84%88%E9%9F%B3%E4%B9%90%20%23%E7%96%97%E6%84%88%E6%AD%8C%E6%9B%B2.mp3"
+      "pianoRollUrl": "./piano_rolls/%E7%8B%AC%E5%AE%B6live-%E7%8E%8B%E8%B5%AB%E9%87%8E-%E5%A7%9A%E6%99%93%E6%A3%A0-%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5-%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE-%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35-ep1-20240426.json",
+      "audioUrl": "./music/%E3%80%90%E7%8B%AC%E5%AE%B6LIVE%E3%80%91%E7%8E%8B%E8%B5%AB%E9%87%8E%26%E5%A7%9A%E6%99%93%E6%A3%A0%E3%80%8A%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5%E3%80%8B%20%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE%20%23%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35%20EP1%2020240426.mp3",
+      "chartEngine": "midi-lyric-phrase-v32.0",
+      "hasLyricsTiming": true,
+      "lyricsUrl": "./music/%E3%80%90%E7%8B%AC%E5%AE%B6LIVE%E3%80%91%E7%8E%8B%E8%B5%AB%E9%87%8E%26%E5%A7%9A%E6%99%93%E6%A3%A0%E3%80%8A%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5%E3%80%8B%20%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE%20%23%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35%20EP1%2020240426.lrc",
+      "midiUrl": "./music/%E3%80%90%E7%8B%AC%E5%AE%B6LIVE%E3%80%91%E7%8E%8B%E8%B5%AB%E9%87%8E%26%E5%A7%9A%E6%99%93%E6%A3%A0%E3%80%8A%E6%9C%80%E5%90%8E%E4%B8%80%E9%A1%B5%E3%80%8B%20%E5%94%B1%E5%87%BA%E7%88%B1%E6%83%85%E9%87%8C%E8%AF%B4%E4%B8%8D%E6%B8%85%E9%81%93%E4%B8%8D%E6%98%8E%E7%9A%84%E9%81%97%E6%86%BE%20%23%E5%A4%A9%E8%B5%90%E7%9A%84%E5%A3%B0%E9%9F%B35%20EP1%2020240426.mid",
+      "sourceMode": "MIDI_FIRST_V32",
+      "midiStats": {
+        "melody": 512,
+        "harmony": 683,
+        "bass": 41,
+        "tempo": 120.0,
+        "audioBpm": 133.93
+      }
     },
     {
-      "id": "曾沛慈---一個人想著一個人-終極一班2-電視原聲帶-official-hd-完整版-mv",
-      "title": "曾沛慈 - 一個人想著一個人 [終極一班2 電視原聲帶] (Official HD 完整版 MV)",
-      "filename": "曾沛慈 - 一個人想著一個人 [終極一班2 電視原聲帶] (Official HD 完整版 MV).mp3",
-      "bpm": 136.0,
-      "duration": 244.158,
+      "id": "李佳薇-甲乙丙丁",
+      "title": "李佳薇 甲乙丙丁",
+      "filename": "李佳薇 甲乙丙丁.mp3",
+      "bpm": 133.93,
+      "duration": 210.512,
       "stats": {
         "easy": {
-          "bpm": 136.0,
-          "duration": 244.158,
-          "notes": 550
+          "notes": 490,
+          "tapCount": 444,
+          "holdCount": 46,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.02338,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "normal": {
-          "bpm": 136.0,
-          "duration": 244.158,
-          "notes": 695
+          "notes": 650,
+          "tapCount": 564,
+          "holdCount": 86,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.02314,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "hard": {
-          "bpm": 136.0,
-          "duration": 244.158,
-          "notes": 729
+          "notes": 645,
+          "tapCount": 479,
+          "holdCount": 166,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.02359,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
+        },
+        "special": {
+          "notes": 905,
+          "tapCount": 594,
+          "holdCount": 311,
+          "chordGroups": 0,
+          "signatureHookGroups": 0,
+          "chordHistogram": {},
+          "averageGridError": 0.0233,
+          "hookEvents": 0,
+          "performanceGrammar": {
+            "legato": 688,
+            "syncopation": 466,
+            "terminalReleases": 0,
+            "handCrossings": 387
+          }
         }
       },
       "charts": {
-        "easy": "./charts/%E6%9B%BE%E6%B2%9B%E6%85%88---%E4%B8%80%E5%80%8B%E4%BA%BA%E6%83%B3%E8%91%97%E4%B8%80%E5%80%8B%E4%BA%BA-%E7%B5%82%E6%A5%B5%E4%B8%80%E7%8F%AD2-%E9%9B%BB%E8%A6%96%E5%8E%9F%E8%81%B2%E5%B8%B6-official-hd-%E5%AE%8C%E6%95%B4%E7%89%88-mv_easy.json",
-        "normal": "./charts/%E6%9B%BE%E6%B2%9B%E6%85%88---%E4%B8%80%E5%80%8B%E4%BA%BA%E6%83%B3%E8%91%97%E4%B8%80%E5%80%8B%E4%BA%BA-%E7%B5%82%E6%A5%B5%E4%B8%80%E7%8F%AD2-%E9%9B%BB%E8%A6%96%E5%8E%9F%E8%81%B2%E5%B8%B6-official-hd-%E5%AE%8C%E6%95%B4%E7%89%88-mv_normal.json",
-        "hard": "./charts/%E6%9B%BE%E6%B2%9B%E6%85%88---%E4%B8%80%E5%80%8B%E4%BA%BA%E6%83%B3%E8%91%97%E4%B8%80%E5%80%8B%E4%BA%BA-%E7%B5%82%E6%A5%B5%E4%B8%80%E7%8F%AD2-%E9%9B%BB%E8%A6%96%E5%8E%9F%E8%81%B2%E5%B8%B6-official-hd-%E5%AE%8C%E6%95%B4%E7%89%88-mv_hard.json"
+        "easy": "./charts/%E6%9D%8E%E4%BD%B3%E8%96%87-%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81_easy.json",
+        "normal": "./charts/%E6%9D%8E%E4%BD%B3%E8%96%87-%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81_normal.json",
+        "hard": "./charts/%E6%9D%8E%E4%BD%B3%E8%96%87-%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81_hard.json",
+        "special": "./charts/%E6%9D%8E%E4%BD%B3%E8%96%87-%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81_special.json"
       },
-      "audioUrl": "./music/%E6%9B%BE%E6%B2%9B%E6%85%88%20-%20%E4%B8%80%E5%80%8B%E4%BA%BA%E6%83%B3%E8%91%97%E4%B8%80%E5%80%8B%E4%BA%BA%20%5B%E7%B5%82%E6%A5%B5%E4%B8%80%E7%8F%AD2%20%E9%9B%BB%E8%A6%96%E5%8E%9F%E8%81%B2%E5%B8%B6%5D%20%28Official%20HD%20%E5%AE%8C%E6%95%B4%E7%89%88%20MV%29.mp3"
+      "pianoRollUrl": "./piano_rolls/%E6%9D%8E%E4%BD%B3%E8%96%87-%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81.json",
+      "audioUrl": "./music/%E6%9D%8E%E4%BD%B3%E8%96%87%20%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81.mp3",
+      "chartEngine": "midi-lyric-phrase-v32.0",
+      "hasLyricsTiming": false,
+      "sourceMode": "AUDIO",
+      "midiStats": {}
     },
     {
-      "id": "林俊傑-jj-lin---那些你很冒險的夢-those-were-the-days-官方完整-hd-高畫質版-mv",
-      "title": "林俊傑 JJ Lin - 那些你很冒險的夢 Those Were The Days (官方完整 HD 高畫質版 MV)",
-      "filename": "林俊傑 JJ Lin - 那些你很冒險的夢 Those Were The Days (官方完整 HD 高畫質版 MV).mp3",
-      "bpm": 136.0,
-      "duration": 252.053,
+      "id": "看着我的眼睛说",
+      "title": "看着我的眼睛说",
+      "filename": "看着我的眼睛说.mp3",
+      "bpm": 120.0,
+      "duration": 276.016,
       "stats": {
         "easy": {
-          "bpm": 136.0,
-          "duration": 252.053,
-          "notes": 563
+          "notes": 399,
+          "tapCount": 339,
+          "holdCount": 60,
+          "chordGroups": 14,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 14
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 12,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "normal": {
-          "bpm": 136.0,
-          "duration": 252.053,
-          "notes": 792
+          "notes": 661,
+          "tapCount": 573,
+          "holdCount": 88,
+          "chordGroups": 24,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 24
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 12,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
         },
         "hard": {
-          "bpm": 136.0,
-          "duration": 252.053,
-          "notes": 843
+          "notes": 631,
+          "tapCount": 478,
+          "holdCount": 153,
+          "chordGroups": 22,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 18,
+            "3": 4
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 12,
+          "performanceGrammar": {
+            "legato": 0,
+            "syncopation": 0,
+            "terminalReleases": 0,
+            "handCrossings": 0
+          }
+        },
+        "special": {
+          "notes": 788,
+          "tapCount": 564,
+          "holdCount": 224,
+          "chordGroups": 59,
+          "signatureHookGroups": 0,
+          "chordHistogram": {
+            "2": 55,
+            "3": 3,
+            "4": 1
+          },
+          "averageGridError": 0.0,
+          "hookEvents": 12,
+          "performanceGrammar": {
+            "legato": 132,
+            "syncopation": 319,
+            "terminalReleases": 43,
+            "handCrossings": 198
+          }
         }
       },
       "charts": {
-        "easy": "./charts/%E6%9E%97%E4%BF%8A%E5%82%91-jj-lin---%E9%82%A3%E4%BA%9B%E4%BD%A0%E5%BE%88%E5%86%92%E9%9A%AA%E7%9A%84%E5%A4%A2-those-were-the-days-%E5%AE%98%E6%96%B9%E5%AE%8C%E6%95%B4-hd-%E9%AB%98%E7%95%AB%E8%B3%AA%E7%89%88-mv_easy.json",
-        "normal": "./charts/%E6%9E%97%E4%BF%8A%E5%82%91-jj-lin---%E9%82%A3%E4%BA%9B%E4%BD%A0%E5%BE%88%E5%86%92%E9%9A%AA%E7%9A%84%E5%A4%A2-those-were-the-days-%E5%AE%98%E6%96%B9%E5%AE%8C%E6%95%B4-hd-%E9%AB%98%E7%95%AB%E8%B3%AA%E7%89%88-mv_normal.json",
-        "hard": "./charts/%E6%9E%97%E4%BF%8A%E5%82%91-jj-lin---%E9%82%A3%E4%BA%9B%E4%BD%A0%E5%BE%88%E5%86%92%E9%9A%AA%E7%9A%84%E5%A4%A2-those-were-the-days-%E5%AE%98%E6%96%B9%E5%AE%8C%E6%95%B4-hd-%E9%AB%98%E7%95%AB%E8%B3%AA%E7%89%88-mv_hard.json"
+        "easy": "./charts/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4_easy.json",
+        "normal": "./charts/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4_normal.json",
+        "hard": "./charts/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4_hard.json",
+        "special": "./charts/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4_special.json"
       },
-      "audioUrl": "./music/%E6%9E%97%E4%BF%8A%E5%82%91%20JJ%20Lin%20-%20%E9%82%A3%E4%BA%9B%E4%BD%A0%E5%BE%88%E5%86%92%E9%9A%AA%E7%9A%84%E5%A4%A2%20Those%20Were%20The%20Days%20%28%E5%AE%98%E6%96%B9%E5%AE%8C%E6%95%B4%20HD%20%E9%AB%98%E7%95%AB%E8%B3%AA%E7%89%88%20MV%29.mp3"
+      "pianoRollUrl": "./piano_rolls/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4.json",
+      "audioUrl": "./music/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4.mp3",
+      "chartEngine": "midi-lyric-phrase-v32.0",
+      "hasLyricsTiming": true,
+      "lyricsUrl": "./music/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4.lrc",
+      "midiUrl": "./music/%E7%9C%8B%E7%9D%80%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AF%B4.mid",
+      "sourceMode": "MIDI_FIRST_V32",
+      "midiStats": {
+        "melody": 475,
+        "harmony": 917,
+        "bass": 83,
+        "tempo": 120.0,
+        "audioBpm": 144.23
+      }
     }
   ]
 }
