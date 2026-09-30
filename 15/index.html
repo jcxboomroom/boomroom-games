@@ -992,10 +992,15 @@
       ["拉麵"],["炒飯"],["牛排"],["火鍋"],["爆米花"],["巧克力"]
     ],
     animals_easy:[
-      ["貓咪",["貓"]],["狗狗",["狗"]],["兔子"],["老虎"],["獅子"],["大象"],["猴子"],["熊貓"],["無尾熊"],["黑熊"],
-      ["馬"],["乳牛"],["豬"],["綿羊"],["山羊"],["雞"],["鴨子"],["鵝"],["鸚鵡"],["貓頭鷹"],
-      ["企鵝"],["海豚"],["鯨魚"],["鯊魚"],["章魚"],["螃蟹"],["海星"],["烏龜"],["青蛙"],["蛇"],
-      ["長頸鹿"],["斑馬"],["狐狸"],["狼"],["袋鼠"],["松鼠"],["刺蝟"],["蜜蜂"]
+      ["貓咪",["貓", "小貓", "貓貓"]], ["狗狗",["狗", "小狗", "犬", "汪汪"]], ["兔子", ["小兔"]],
+      ["老虎", ["大老虎"]], ["獅子"], ["大象", ["象"]], ["猴子", ["小猴子"]], ["熊貓", ["貓熊", "大熊貓"]],
+      ["無尾熊"], ["黑熊", ["台灣黑熊", "熊"]], ["馬", ["小馬"]], ["乳牛", ["牛", "小牛"]], ["豬", ["小豬", "豬豬"]],
+      ["綿羊", ["羊", "小羊"]], ["山羊"], ["雞", ["公雞", "母雞", "小雞"]],
+      ["鴨子", ["鴨", "小鴨", "鴨鴨", "可達鴨"]], ["鵝", ["天鵝"]], ["鸚鵡"], ["貓頭鷹"],
+      ["企鵝", ["小企鵝"]], ["海豚"], ["鯨魚", ["大鯨魚"]], ["鯊魚", ["大白鯊"]], ["章魚", ["八爪魚"]],
+      ["螃蟹"], ["海星"], ["烏龜", ["海龜", "龜"]], ["青蛙", ["蛙"]], ["蛇", ["蟒蛇"]],
+      ["長頸鹿"], ["斑馬"], ["狐狸"], ["狼", ["大野狼"]], ["袋鼠"], ["松鼠"], ["刺蝟"], ["蜜蜂"],
+      ["猩猩", ["大猩猩", "黑猩猩", "金剛", "紅毛猩猩"]]
     ],
     daily_easy:[
       ["雨傘"],["眼鏡"],["手機"],["手錶"],["牙刷"],["書包"],["背包"],["鉛筆"],["橡皮擦"],["尺"],
@@ -1569,35 +1574,25 @@
     return Array.from(answer).length;
   }
 
-  function answerMatches(
-    guess,
-    word
-  ){
+  // 🌟 核心修改：模糊比對與別名支援
+  function answerMatches(guess, word){
+    const g = normalizeText(guess);
+    if(!g || !word) return false;
 
-    const g=
-      normalizeText(guess);
+    const ans = normalizeText(word.answer);
 
-    if(
-      !g ||
-      !word
-    ){
-      return false;
+    // 1. 包含關係 (例如: "是鴨子吧" 包含 "鴨子")
+    if(g.includes(ans)) return true;
+
+    // 2. 檢查別名 (例如: "小鴨", "黑猩猩")
+    if (Array.isArray(word.aliases)) {
+      for(const a of word.aliases){
+        const normA = normalizeText(a);
+        if(g.includes(normA)) return true;
+      }
     }
 
-    if(
-      g===
-      normalizeText(
-        word.answer
-      )
-    ){
-      return true;
-    }
-
-    return word.aliases.some(
-      a=>
-        g===
-        normalizeText(a)
-    );
+    return false;
   }
 
   function getCategory(id){
@@ -5920,18 +5915,30 @@
     }
   }
 
-  // 🌟 新增：專門接收來自 Flutter 原生語音辨識的結果
-  window.receiveVoiceText = function(text) {
+// 🌟 接收來自 Flutter 原生語音辨識的結果
+  window.receiveVoiceText = function(text, isFinal) {
     if(!text || text.trim() === "") return;
     const cleanText = text.trim();
 
     const input = document.getElementById("guessInput");
     if(input) input.value = cleanText;
 
+    // 🌟 隨時檢查是否包含正確答案 (模糊比對)
     if(currentWord && answerMatches(cleanText, currentWord)){
-      submitGuess();
-      showToast("🎙️ 語音偵測到正確答案：「" + cleanText + "」！");
-      stopVoiceGuess(); // 猜中就停止
+      submitGuess(); // 猜中時送出，系統會判定正確並隱藏答案，不會洗版
+      showToast("🎙️ 語音偵測到正確答案！");
+      stopVoiceGuess();
+    }
+    // ⚠️ 移除了 isFinal 自動送出的邏輯，避免錯誤的語音辨識瘋狂洗版聊天室！
+  };
+
+  // 🌟 接收 Flutter 語音停止的通知，恢復按鈕狀態
+  window.onFlutterSpeechStopped = function() {
+    speechListening = false;
+    const btn = document.getElementById("voiceBtn");
+    if(btn) {
+      btn.textContent = "🎙️ 語音房通暢中 (打字答題)";
+      btn.title = "語音即時答題中";
     }
   };
 
@@ -5981,18 +5988,23 @@
 
       speechRecognition.onresult=(event)=>{
         let interimTranscript = '';
+        let finalTranscript = '';
+        let hasFinal = false;
+
         for(let i=event.resultIndex; i<event.results.length; i++){
           const transcript = event.results[i][0]?.transcript || "";
           if (event.results[i].isFinal) {
-             window.receiveVoiceText(transcript);
+             finalTranscript += transcript;
+             hasFinal = true;
           } else {
              interimTranscript += transcript;
           }
         }
-        // 即時顯示正在說的話
-        if(interimTranscript.trim()){
-           const input = document.getElementById("guessInput");
-           if(input) input.value = interimTranscript.trim();
+
+        const currentText = (finalTranscript + interimTranscript).trim();
+        if(currentText) {
+           // 呼叫統一的處理函數，傳入 isFinal
+           window.receiveVoiceText(currentText, hasFinal);
         }
       };
 
