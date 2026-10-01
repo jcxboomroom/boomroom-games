@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#06070f">
-<title>BoomRoom Rhythm V32.20</title>
+<title>BoomRoom Rhythm V32.21</title>
 <style>
 :root{
   --bg:#05060d; --panel:#0d1020; --panel2:#11152b; --line:#262d4a; --text:#f8fbff; --muted:#8d96b4;
@@ -25,7 +25,8 @@ button{font:inherit;color:inherit;border:0}
 .pill.hot{border-color:#ff55bd88;box-shadow:0 0 20px #ff55bd14}.pill.accuracy{padding-bottom:8px}
 .accBar{position:absolute;left:7px;right:7px;bottom:4px;height:3px;border-radius:99px;background:#22273d;overflow:hidden}.accBar i{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--red),var(--gold),var(--green),var(--cyan));transform-origin:left center}
 #stage{position:relative;min-height:0;flex:1;border-radius:19px;overflow:hidden;border:1px solid #303754;background:#060710;box-shadow:inset 0 0 100px #000,0 15px 60px #0009;touch-action:none}
-#bgCanvas,#canvas,#fxCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#bgCanvas,#canvas,#fxCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;backface-visibility:hidden;-webkit-backface-visibility:hidden;contain:strict;transform:translateZ(0)}
+#bgCanvas{display:none !important}
 #bgCanvas{z-index:0;pointer-events:none}
 #canvas{z-index:1;pointer-events:none}
 #fxCanvas{z-index:2;pointer-events:none}
@@ -745,17 +746,12 @@ function updateRenderQuality(now){
   if(!renderPerf.lastNow){renderPerf.lastNow=now;return}
   const ms=clamp(now-renderPerf.lastNow,8,50);renderPerf.lastNow=now;
   renderPerf.avgMs=renderPerf.avgMs*.93+ms*.07;renderPerf.sampleMs+=ms;renderPerf.sampleCount++;
+  // V32.21: never change quality/DPR in the middle of a song. Rebuilding Canvas/ImageBitmap
+  // caches or resizing a GPU surface while the WebView is presenting frames can look like flicker.
+  // The round keeps the quality chosen at startRound(); the next round can choose a different tier.
+  if(state===STATE.PLAY || state===STATE.COUNT)return;
   if(renderPerf.sampleCount<45)return;
-  const prev=renderPerf.quality;
-  if(renderPerf.avgMs>23&&renderPerf.quality>0)renderPerf.quality--;
-  else if(renderPerf.avgMs<17.4&&renderPerf.quality<2)renderPerf.quality++;
   renderPerf.sampleCount=0;renderPerf.sampleMs=0;
-  const deviceDpr=Number(window.devicePixelRatio||1);
-  const mobileLike=window.matchMedia?.('(pointer:coarse)').matches || Math.min(window.innerWidth,window.innerHeight)<=820;
-  const maxDpr=mobileLike?1.28:1.55;
-  const target=renderPerf.quality===0?1.05:renderPerf.quality===1?(mobileLike?1.16:1.34):Math.min(maxDpr,deviceDpr);
-  if(Math.abs(target-renderPerf.dpr)>.04){renderPerf.dpr=target;invalidateRenderCache()}
-  if(prev!==renderPerf.quality)invalidateRenderCache();
 }
 function ensureRenderCache(w,h){
   const key=`${Math.round(w)}x${Math.round(h)}|${song?.color||''}|q${renderPerf.quality}`;
@@ -1544,35 +1540,43 @@ function ensureStageCanvasSize(c,w,h,dpr,alpha=true){
 }
 function ensureStageContexts(){
   const main=$('canvas'),bg=$('bgCanvas'),fx=$('fxCanvas');
-  if(!main||!bg||!fx)return null;
-  if(!renderCtx)renderCtx=main.getContext('2d',{alpha:true,desynchronized:true})||main.getContext('2d');
-  if(!bgCtx)bgCtx=bg.getContext('2d',{alpha:false,desynchronized:true})||bg.getContext('2d');
-  if(!fxCtx)fxCtx=fx.getContext('2d',{alpha:true,desynchronized:true})||fx.getContext('2d');
+  if(!main||!fx)return null;
+  // V32.21: use stable non-desynchronized 2D contexts. Some Android WebViews can visibly tear
+  // when desynchronized canvases are composited over animated DOM/filter layers.
+  if(!renderCtx)renderCtx=main.getContext('2d',{alpha:false,desynchronized:false})||main.getContext('2d');
+  if(!fxCtx)fxCtx=fx.getContext('2d',{alpha:true,desynchronized:false})||fx.getContext('2d');
   return {main,bg,fx};
 }
 function draw(now){
   updateRenderQuality(now);
   const ctxs=ensureStageContexts();if(!ctxs)return;
-  const {main,bg,fx}=ctxs;
+  const {main,fx}=ctxs;
   const dpr=Math.min(renderPerf.dpr||1.5,window.devicePixelRatio||1.5),w=main.clientWidth,h=main.clientHeight;
-  const resizedBg=ensureStageCanvasSize(bg,w,h,dpr,false);
-  const resizedMain=ensureStageCanvasSize(main,w,h,dpr,true);
+  const resizedMain=ensureStageCanvasSize(main,w,h,dpr,false);
   const resizedFx=ensureStageCanvasSize(fx,w,h,dpr,true);
-  if(resizedMain||resizedFx){renderCtx=main.getContext('2d',{alpha:true,desynchronized:true})||renderCtx;fxCtx=fx.getContext('2d',{alpha:true,desynchronized:true})||fxCtx;}
-  const scale=dpr;
-  if(resizedBg||resizedMain||resizedFx)renderPerf.stageBgKey='';
-
-  const cache=ensureRenderCache(w,h);
-  const bgKey=`${renderPerf.cacheKey}|d${Math.round(dpr*100)}`;
-  if(renderPerf.stageBgKey!==bgKey){
-    bgCtx.setTransform(scale,0,0,scale,0,0);bgCtx.clearRect(0,0,w,h);bgCtx.drawImage(cache.bg,0,0,w,h);bgCtx.drawImage(cache.lanes,0,0,w,h);renderPerf.stageBgKey=bgKey;
+  if(resizedMain||resizedFx){
+    renderCtx=main.getContext('2d',{alpha:false,desynchronized:false})||renderCtx;
+    fxCtx=fx.getContext('2d',{alpha:true,desynchronized:false})||fxCtx;
   }
+  const scale=dpr;
+  const cache=ensureRenderCache(w,h);
 
-  renderCtx.setTransform(scale,0,0,scale,0,0);renderCtx.clearRect(0,0,w,h);
-  fxCtx.setTransform(scale,0,0,scale,0,0);fxCtx.clearRect(0,0,w,h);
+  // V32.21 stability change: the gameplay canvas is opaque and paints the cached base
+  // background every frame. This avoids transparent-canvas compositing flashes that can
+  // occur when the Android WebView presents bgCanvas + gameplayCanvas on different frames.
+  renderCtx.setTransform(scale,0,0,scale,0,0);
+  renderCtx.globalAlpha=1;
+  renderCtx.globalCompositeOperation='source-over';
+  renderCtx.drawImage(cache.bg,0,0,w,h);
+  renderCtx.drawImage(cache.lanes,0,0,w,h);
+
+  fxCtx.setTransform(scale,0,0,scale,0,0);
+  fxCtx.globalAlpha=1;
+  fxCtx.globalCompositeOperation='source-over';
+  fxCtx.clearRect(0,0,w,h);
 
   const t=state===STATE.PLAY?localTime(now):0;
-  // Dynamic background glow goes to the FX layer, so the expensive full-stage base is never redrawn.
+  // Dynamic background glow goes to the FX layer, so the expensive full-stage base remains cached.
   const beatPhase=((t/CFG.BEAT)%1+1)%1;
   const p=Math.pow(1-beatPhase,3)*(.55+backgroundPulse*.45),hot=(CFG.ROUND-t)<12;
   if(p>.01||hot){fxCtx.save();fxCtx.globalAlpha=hot?.45:Math.min(.55,.10+p*.42);fxCtx.drawImage(hot?cache.hotGlow:cache.dynamicGlow,0,0,w,h);fxCtx.restore();}
@@ -1594,7 +1598,6 @@ function draw(now){
   rhDrawParticles(fxCtx);
   backgroundPulse*=.92;overTakeFlash*=.92;
 }
-
 function renderRoster(){const el=$('roster');if(!el)return;const arr=[...players.values()].sort((a,b)=>(b.score||0)-(a.score||0));const myRank=arr.findIndex(p=>p.id===me.id)+1;if(myRank&&myRank<highestLocalRank){highestLocalRank=myRank;overTakeFlash=.6}el.innerHTML=arr.map((p,i)=>{const lead=arr[0]?.score?clamp((p.score||0)/arr[0].score*100,0,100):0;return `<div class="player ${p.id===me.id?'me ':''}${p.attack?'attack':''}"><b>${escapeHtml(p.username)} ${p.id===me.id?'· 你':''}</b><span>#${i+1}　${Math.floor(p.score||0).toLocaleString()}　${p.combo?'🔥'+p.combo:'—'}</span><i class="playerLead" style="width:${lead}%"></i></div>`}).join('')}
 function render(){applyComboFxClasses();if(!FX_DEBUG_LEVEL){document.body.classList.remove('combo50Mode','combo100Mode','gameplayActive');}const main=$('main');if(state===STATE.RESULT){renderResult(main);return}if(state===STATE.LOADING){main.innerHTML='<section class="panel"><div style="text-align:center;font-weight:1000;font-size:22px">載入節奏場…</div></section>';return}if(state===STATE.MENU){renderMenu(main);return}
   main.innerHTML=`<section class="game"><div id="comboInfernoFrame" class="comboInfernoFrame" aria-hidden="true"></div><div class="gameTopInfo"><div class="gameMeta"><b id="gameSongTitle">${escapeHtml(song.name||"音樂")}</b><span id="gameSongMeta">${fmtTime(song.duration||activeChart?.duration||CFG.ROUND)} · ${Number(activeChart?.notes?.length||song?.stats?.[chosenDifficulty]?.notes||0).toLocaleString()} 音符</span></div><div class="difficultyBadge" id="difficultyBadge">${difficulty.label} · ${difficulty.name}</div></div><div class="hud"><div class="pill" id="timerBox">⏱ <b id="timer">${CFG.COUNT}</b><br><span>剩餘秒數</span></div><div class="pill">🏆 <b id="score">0</b><br><span>分數</span></div><div class="pill comboMainPill"><span class="comboLabel">COMBO</span><b id="combo">0</b><small>最高 <i id="maxCombo">0</i></small></div><div class="pill accuracy">🎯 <b id="acc">100%</b><br><span>節拍準確度</span><div class="accBar"><i id="accBar"></i></div></div><div class="pill"><span>⚡ 干擾</span><br><b id="attackCount">0</b><small class="hudMini">發動 · 被幹擾 <i id="incomingJamCount">0</i></small></div><div class="pill pulsePill"><div class="pulseTopLine"><span>💥 PULSE</span><button id="pulseBtn" class="powerAction">SPACE</button></div><div class="miniPulseBar"><i id="pulseBar"></i></div></div></div><div class="topRosterWrap"><div class="roster" id="roster"></div></div>
