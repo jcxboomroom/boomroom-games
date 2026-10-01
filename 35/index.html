@@ -82,6 +82,82 @@ button{font:inherit;color:inherit;border:0}
 @media(min-width:601px){.songScroll{max-height:min(40vh,320px)}}
 </style>
 
+<style id="v34MusicGameMenu">
+.menuWrap{background:
+  radial-gradient(circle at 12% 12%,#54eaff0b,transparent 28%),
+  radial-gradient(circle at 88% 18%,#ff55bd0a,transparent 30%),
+  linear-gradient(180deg,#05070f,#070a14 55%,#05060d)}
+.menuCardPro{width:min(1040px,100%);max-height:min(940px,calc(100dvh - 18px));padding:clamp(14px,2vw,22px)}
+.menuKicker{animation:menuKickerPulse 2.4s ease-in-out infinite}
+@keyframes menuKickerPulse{50%{text-shadow:0 0 16px #54eaff66}}
+.songShelfBar{display:flex;align-items:center;gap:6px;margin:0 0 9px;flex-wrap:wrap}
+.songShelfTabs{display:flex;gap:5px;align-items:center}
+.songShelfTab{height:28px;padding:0 9px;border-radius:9px;background:#090e19;border:1px solid #25304a;color:#77839f;font-size:7px;font-weight:1000;cursor:pointer;transition:.15s ease}
+.songShelfTab:hover:not(:disabled){border-color:#4b5a80;color:#cfe9ff}
+.songShelfTab.active{color:#e8fbff;border-color:#54eaff66;background:linear-gradient(180deg,#101c2d,#0b1320);box-shadow:0 0 18px #54eaff10}
+.previewState{margin-left:auto;max-width:min(260px,44%);font-size:6px;color:#65728e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.songChoicePro{grid-template-columns:22px 54px minmax(0,1fr) 58px!important;min-height:106px!important;cursor:pointer;overflow:hidden}
+.songChoicePro.isRecent::after{content:"RECENT";position:absolute;top:7px;left:7px;z-index:4;padding:2px 4px;border-radius:999px;background:#ffd65b22;border:1px solid #ffd65b44;color:#ffe6a0;font-size:5px;font-weight:1000;letter-spacing:.7px}
+.songChoicePro.active{transform:translateY(-1px)!important}
+.songChoicePro.previewing{border-color:#54eaffaa!important;box-shadow:0 0 32px #54eaff18,inset 0 0 25px #54eaff08!important}
+.songChoicePro[aria-disabled="true"]{opacity:.46;cursor:not-allowed}
+.songCover{position:relative;z-index:2;width:54px;height:54px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:
+ radial-gradient(circle at 30% 20%,#fff5,transparent 23%),
+ radial-gradient(circle at 70% 35%,color-mix(in srgb,var(--cover-accent) 70%,#111827),transparent 54%),
+ linear-gradient(145deg,color-mix(in srgb,var(--cover-accent) 35%,#12192a),#070b13 72%);border:1px solid color-mix(in srgb,var(--cover-accent) 33%,#293450);box-shadow:0 8px 22px #0007,inset 0 0 20px color-mix(in srgb,var(--cover-accent) 12%,transparent);flex:none}
+.songCover.hasImage{background:#090d16}
+.songCover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.coverFallback{position:relative;z-index:1;font-size:25px;filter:drop-shadow(0 3px 9px #0008)}
+.songCover.hasImage .coverFallback{opacity:0}
+.songCover:not(.hasImage) .coverFallback{opacity:1}
+.coverShine{position:absolute;inset:0;background:linear-gradient(130deg,#fff3 0%,transparent 32%,transparent 70%,#fff1 100%);pointer-events:none}
+.songChoicePro .songCopy{padding-top:12px;min-width:0}
+.songCopy strong{font-size:11px!important}
+.songArtist{display:block;margin-top:2px;color:#6f7d9c;font-size:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.songMetaLine{display:flex;align-items:center;gap:6px;margin-top:6px;min-width:0}
+.songStars{color:#ffd65b;font-size:8px;letter-spacing:.4px;white-space:nowrap;text-shadow:0 0 9px #ffd65b22}
+.songLevel{font-size:6px;color:#8996b3;font-weight:1000;padding:2px 4px;border-radius:999px;border:1px solid #28334d;background:#0a1019;white-space:nowrap}
+.songMeta{margin-top:0!important}
+.songActions{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;gap:5px;align-self:center}
+.songAction{width:34px;height:26px;border-radius:8px;background:#0a101b;border:1px solid #27324a;color:#74819e;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.13s ease}
+.songAction:hover{border-color:#54eaff55;color:#dffbff;transform:translateY(-1px)}
+.songAction.active{background:#ff55bd12;border-color:#ff55bd66;color:#ff9fdc;box-shadow:0 0 14px #ff55bd12}
+.songPreview{font-size:11px}
+.previewProgress{width:34px;height:3px;border-radius:99px;background:#182238;overflow:hidden;opacity:.75}
+.previewProgress i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#54eaff,#956bff,#ff55bd);transition:width .1s linear}
+.previewTime{font-size:5px;color:#67748f;white-space:nowrap}
+.songChoicePro.previewing .songPreview{color:#9fefff;border-color:#54eaff66;box-shadow:0 0 12px #54eaff14}
+.songBadgeRow{position:absolute;top:8px;right:65px;z-index:4;display:flex;gap:4px}
+.songBadge{padding:2px 4px;border-radius:999px;border:1px solid #28344d;background:#08101aee;color:#8795b2;font-size:5px;font-weight:1000}
+.songBadge.recent{display:none;color:#ffe5a2;border-color:#ffd65b44}.songChoicePro.isRecent .songBadge.recent{display:block}
+.songChoicePro.active .songCover{box-shadow:0 10px 28px color-mix(in srgb,var(--song-accent) 23%,transparent),0 0 26px color-mix(in srgb,var(--song-accent) 15%,transparent)}
+.songScroll{scrollbar-color:#3a4767 transparent}
+.selectedSummaryPro{grid-template-columns:minmax(0,1fr) auto!important}
+.summaryIdentity{display:flex;align-items:center;gap:10px;min-width:0}
+.summaryCover{width:48px;height:48px;flex:none}.summaryCoverArt{width:48px;height:48px;border-radius:12px}
+.summaryArtist{display:block;color:#687694;font-size:6px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:370px}
+.summaryRating{display:flex;align-items:center;gap:5px;margin-top:3px}.summaryRating small{font-size:5px;color:#697793;font-weight:1000}.summaryStars{color:#ffd65b;letter-spacing:.35px;font-size:7px}
+.selectedSummaryPro .summaryDiff{align-self:start;margin-top:3px}
+.previewPanel{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;margin-top:6px;border-radius:10px;background:#080d17;border:1px solid #1e2941}
+.previewPanel span{font-size:6px;color:#62708c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.previewPanel b{font-size:6px;color:#a7b4d0}
+@media(max-width:780px){.songGridPro{grid-template-columns:repeat(2,minmax(0,1fr));}.songChoicePro{grid-template-columns:20px 48px minmax(0,1fr) 50px!important}.songCover{width:48px;height:48px}.coverFallback{font-size:22px}.songActions{gap:4px}.songAction{width:31px;height:24px}.previewProgress{width:31px}.previewTime{display:none}}
+@media(max-width:650px){
+  .menuCardPro{padding:10px 9px}
+  .songShelfBar{margin-bottom:7px}.songShelfTab{height:26px;padding:0 8px;font-size:6px}.previewState{font-size:5px;max-width:46%}
+  .songGridPro{grid-template-columns:1fr}
+  .songChoicePro{min-height:82px!important;grid-template-columns:18px 46px minmax(0,1fr) 44px!important;gap:7px!important;padding:8px!important}
+  .songChoicePro .songCopy{padding-top:8px}.songCover{width:46px;height:46px;border-radius:12px}.coverFallback{font-size:20px}.songCopy strong{font-size:10px!important}.songArtist{font-size:5.5px}.songDesc{font-size:5.5px!important;min-height:13px}.songStars{font-size:7px}.songLevel{font-size:5px}.songMeta{font-size:5.5px!important}.songAction{width:29px;height:23px}.previewTime{display:none}
+  .selectedSummaryPro{grid-template-columns:1fr!important}.summaryDiff{justify-self:start}.summaryArtist{max-width:240px}.summaryCover,.summaryCoverArt{width:42px;height:42px}.summaryIdentity{gap:8px}
+}
+@media(max-width:650px) and (orientation:landscape){.songChoicePro{min-height:70px!important}.songCover,.summaryCover,.summaryCoverArt{width:40px;height:40px}.coverFallback{font-size:18px}.songChoicePro .songCopy{padding-top:4px}.songDesc{display:none!important}.songMetaLine{margin-top:3px}.menuStep.songStep{min-height:0}.songScroll{min-height:76px}.songChoicePro{grid-template-columns:18px 40px minmax(0,1fr) 42px!important}}
+</style>
+
+
+<style id="v34DifficultyStars">
+.difficultyChoicePro{position:relative}.difficultyChoicePro .diffStars{display:block;margin-top:7px;color:var(--diff-accent);font-size:8px;letter-spacing:.7px;text-shadow:0 0 10px color-mix(in srgb,var(--diff-accent) 35%,transparent)}.difficultyChoicePro .diffLevel{position:absolute;right:29px;bottom:9px;color:#6f7c99;font-size:6px;font-weight:1000}.difficultyChoicePro.active .diffLevel{color:var(--diff-accent)}
+@media(max-width:650px){.difficultyChoicePro .diffStars{font-size:7px;margin-top:5px}.difficultyChoicePro .diffLevel{display:none}}
+</style>
 
 <style id="v24JudgementStyle">
 /* V24 judgement clarity: the bottom edge, not an inner dot, is the hit point. */
@@ -893,12 +969,13 @@ function scheduleMusic(){
 function resumeAudio(){if(!audio)return;try{if(audio.state==='suspended'||audio.state==='interrupted')audio.resume().catch(()=>{})}catch(_){} }
 window.addEventListener('pointerdown',()=>{ensureAudio(true)},{passive:true});
 window.addEventListener('keydown',()=>{ensureAudio(true)},{passive:true});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){resumeAudio();if(state===STATE.COUNT||state===STATE.PLAY) scheduleMusic()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopSongPreview();else{resumeAudio();if(state===STATE.COUNT||state===STATE.PLAY) scheduleMusic()}});
 window.addEventListener('pageshow',()=>{resumeAudio();if(state===STATE.COUNT||state===STATE.PLAY) scheduleMusic()});
 
 function songEntries(){
-  return librarySongs.map((x,i)=>{const id=x.id||String(i);const cached=songMetaCache.get(String(id))||{};return [id,{id,name:x.title||x.filename||x.id||`歌曲 ${i+1}`,icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||Number(cached.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`,charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}];});
+  return librarySongs.map((x,i)=>{const id=x.id||String(i);const cached=songMetaCache.get(String(id))||{};const audioUrl=x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`;return [id,{id,name:x.title||x.name||x.filename||x.id||`歌曲 ${i+1}`,artist:x.artist||x.author||x.creator||'',icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||Number(cached.duration)||0,stats:x.stats||{},audioUrl,previewUrl:x.previewUrl||x.preview||x.audioPreviewUrl||audioUrl,previewStart:Number(x.previewStart??x.previewAt??0)||0,coverUrl:x.coverUrl||x.cover||x.artwork||x.albumArt||x.imageUrl||x.image||'',charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}];});
 }
+const DIFF_RATING_FALLBACK={easy:1,normal:3,hard:5,special:8};
 function getSongMenuMeta(songObj,diff=chosenDifficulty){
   const id=String(songObj?.id||'');
   const cached=songMetaCache.get(id)||{};
@@ -907,18 +984,42 @@ function getSongMenuMeta(songObj,diff=chosenDifficulty){
   const duration=Number(songObj?.duration||st.duration||cst.duration||cached.duration||0);
   const notes=Number(st.notes||cst.notes||0);
   const bpm=Number(st.bpm||cst.bpm||songObj?.bpm||cached.bpm||0);
-  return {duration:Number.isFinite(duration)?duration:0,notes:Number.isFinite(notes)?notes:0,bpm:Number.isFinite(bpm)?bpm:0};
+  const ratingRaw=Number(st.stars??st.rating??st.level??cst.stars??cst.rating??cst.level??DIFF_RATING_FALLBACK[diff]??3);
+  const rating=Number.isFinite(ratingRaw)?Math.max(1,Math.min(10,ratingRaw)):3;
+  return {duration:Number.isFinite(duration)?duration:0,notes:Number.isFinite(notes)?notes:0,bpm:Number.isFinite(bpm)?bpm:0,rating};
 }
+function ratingStars(rating){const count=Math.max(1,Math.min(5,Math.ceil((Number(rating)||1)/2)));return '★'.repeat(count)+'☆'.repeat(5-count)}
+function ratingLabel(rating){return `LV ${Math.round(Number(rating)||1)}`}
 function formatMenuMeta(meta){
   const d=fmtTime(meta.duration);
   const n=meta.notes?meta.notes.toLocaleString():'—';
   const b=meta.bpm?Math.round(meta.bpm):'—';
   return `${d} · ${n} 音符 · BPM ${b}`;
 }
+
+const MENU_PREF_KEY='boomroomRhythmMenuV1';
+let menuShelfMode='all';
+let menuPrefs={favorites:[],recent:[]};
+let previewAudio=null,previewSongId='',previewStopTimer=null,previewUiTimer=null;
+function readMenuPrefs(){try{const raw=JSON.parse(localStorage.getItem(MENU_PREF_KEY)||'{}');menuPrefs={favorites:Array.isArray(raw.favorites)?raw.favorites.map(String):[],recent:Array.isArray(raw.recent)?raw.recent.filter(x=>x&&x.id).map(x=>({id:String(x.id),t:Number(x.t)||0})):[]}}catch(_){menuPrefs={favorites:[],recent:[]}}return menuPrefs}
+function writeMenuPrefs(){try{localStorage.setItem(MENU_PREF_KEY,JSON.stringify(menuPrefs))}catch(_){}}
+function isFavoriteSong(id){readMenuPrefs();return menuPrefs.favorites.includes(String(id))}
+function getRecentSongIds(){readMenuPrefs();return menuPrefs.recent.slice().sort((a,b)=>b.t-a.t).map(x=>x.id)}
+function toggleSongFavorite(id){readMenuPrefs();id=String(id);const i=menuPrefs.favorites.indexOf(id);if(i>=0)menuPrefs.favorites.splice(i,1);else menuPrefs.favorites.unshift(id);menuPrefs.favorites=menuPrefs.favorites.slice(0,80);writeMenuPrefs();updateMenuShelfUI()}
+function touchRecentSong(id){readMenuPrefs();id=String(id);menuPrefs.recent=[{id,t:Date.now()},...menuPrefs.recent.filter(x=>String(x.id)!==id)].slice(0,20);writeMenuPrefs()}
+function stopSongPreview(){if(previewStopTimer){clearTimeout(previewStopTimer);previewStopTimer=null}if(previewUiTimer){clearInterval(previewUiTimer);previewUiTimer=null}try{previewAudio?.pause()}catch(_){}if(previewAudio){previewAudio.currentTime=0;previewAudio.src=''}const oldId=previewSongId;previewSongId='';const card=oldId?[...document.querySelectorAll('.songChoice')].find(x=>String(x.dataset.song)===String(oldId)):null;if(card){card.classList.remove('previewing');const btn=card.querySelector('.songPreview');if(btn)btn.innerHTML='▶'}const state=$('previewState');if(state)state.textContent='選擇歌曲後可試聽 15 秒預覽'}
+function updatePreviewUi(){const card=previewSongId?[...document.querySelectorAll('.songChoice')].find(x=>String(x.dataset.song)===String(previewSongId)):null;if(!card||!previewAudio)return;const progress=card.querySelector('.previewProgress i');const timer=card.querySelector('.previewTime');const dur=Number.isFinite(previewAudio.duration)&&previewAudio.duration>0?previewAudio.duration:15;const cur=Math.max(0,previewAudio.currentTime||0);if(progress)progress.style.width=Math.min(100,cur/dur*100)+'%';if(timer)timer.textContent=`${fmtTime(cur)} / ${fmtTime(Math.min(dur,15))}`;}
+function previewSong(id,btn){const found=songEntries().find(([k])=>String(k)===String(id));if(!found)return;const s=found[1];const src=s.previewUrl||s.audioUrl;if(!src)return;if(previewSongId===String(id)&&previewAudio&&!previewAudio.paused){stopSongPreview();return}stopSongPreview();previewSongId=String(id);previewAudio=previewAudio||document.createElement('audio');previewAudio.preload='auto';previewAudio.playsInline=true;previewAudio.volume=.62;previewAudio.src=src;previewAudio.onended=()=>stopSongPreview();previewAudio.onerror=()=>{const card=[...document.querySelectorAll('.songChoice')].find(x=>String(x.dataset.song)===String(id));card?.classList.remove('previewing');toast('這首歌曲目前無法試聽','#ff6174');previewSongId='';};const card=[...document.querySelectorAll('.songChoice')].find(x=>String(x.dataset.song)===String(id));if(card){card.classList.add('previewing');if(btn)btn.innerHTML='■'}const state=$('previewState');if(state)state.textContent=`正在試聽：${s.name}`;try{previewAudio.currentTime=Math.max(0,Number(s.previewStart)||0)}catch(_){}const p=previewAudio.play();if(p&&p.catch)p.catch(()=>{toast('瀏覽器阻擋音訊播放，請再點一次試聽','#ffd65b');stopSongPreview()});previewStopTimer=setTimeout(stopSongPreview,15000);previewUiTimer=setInterval(updatePreviewUi,100);}
+function songCoverMarkup(s,cls=''){const color=s?.color||'#54eaff';const icon=escapeHtml(s?.icon||'🎵');if(s?.coverUrl){return `<span class="songCover ${cls} hasImage" style="--cover-accent:${color}"><img src="${escapeHtml(s.coverUrl)}" alt="" loading="lazy" onerror="this.style.display='none';this.parentElement.classList.remove('hasImage');"><span class="coverFallback">${icon}</span><span class="coverShine"></span></span>`}return `<span class="songCover ${cls}" style="--cover-accent:${color}"><span class="coverFallback">${icon}</span><span class="coverShine"></span></span>`}
+function applySongShelfFilter(){const q=String($('songSearch')?.value||'').trim().toLowerCase();const fav=new Set(menuPrefs.favorites.map(String));const recent=new Set(getRecentSongIds());let visible=0;document.querySelectorAll('.songChoice').forEach(card=>{const text=String(card.dataset.search||'');const matchesSearch=!q||text.includes(q);const matchesShelf=menuShelfMode==='favorites'?fav.has(String(card.dataset.song)):menuShelfMode==='recent'?recent.has(String(card.dataset.song)):true;const ok=matchesSearch&&matchesShelf;card.hidden=!ok;if(ok)visible++});const empty=$('songFilterEmpty');if(empty){empty.hidden=visible!==0;const title=empty.querySelector('b'),span=empty.querySelector('span');if(title)title.textContent=menuShelfMode==='favorites'?'還沒有收藏歌曲':menuShelfMode==='recent'?'還沒有最近遊玩的歌曲':'找不到符合的歌曲';if(span)span.textContent=menuShelfMode==='favorites'?'按歌曲上的 ♡ 收藏你喜歡的曲目。':menuShelfMode==='recent'?'開始遊玩歌曲後，最近紀錄會自動出現在這裡。':'換個關鍵字或切換分類試試看。'}}
+function updateMenuShelfUI(){readMenuPrefs();document.querySelectorAll('.songChoice').forEach(card=>{const id=String(card.dataset.song);const fav=menuPrefs.favorites.includes(id);const recent=getRecentSongIds().includes(id);card.classList.toggle('isFavorite',fav);card.classList.toggle('isRecent',recent);const fb=card.querySelector('.songFavorite');if(fb){fb.classList.toggle('active',fav);fb.setAttribute('aria-label',fav?'取消收藏':'加入收藏');fb.textContent=fav?'♥':'♡'}const rb=card.querySelector('.recentBadge');if(rb)rb.hidden=!recent});document.querySelectorAll('[data-shelf]').forEach(b=>b.classList.toggle('active',b.dataset.shelf===menuShelfMode));applySongShelfFilter()}
+readMenuPrefs();
+
 function updateMenuSongNode(songId,meta,diff=chosenDifficulty){
   const btn=[...document.querySelectorAll('.songChoice')].find(el=>String(el.dataset.song)===String(songId));
   if(!btn)return;
   const span=btn.querySelector('.songMeta');if(span)span.textContent=formatMenuMeta(meta);
+  const stars=btn.querySelector('.songStars');if(stars){stars.textContent=ratingStars(meta.rating);stars.title=`${ratingLabel(meta.rating)} · ${difficulty.name}`;}
 }
 function updateMenuSelectionUI(){
   if(state!==STATE.MENU)return;
@@ -927,8 +1028,10 @@ function updateMenuSelectionUI(){
   const found=songEntries().find(([k])=>String(k)===String(chosenSong));
   const obj=found?found[1]:song;const meta=getSongMenuMeta(obj,chosenDifficulty);
   const sum=$('summaryText');if(sum)sum.textContent=obj?.name||song.name||'尚未選擇歌曲';
-  const icon=$('summaryIcon');if(icon)icon.textContent=obj?.icon||'🎵';
+  const summaryCover=$('summaryCover');if(summaryCover)summaryCover.innerHTML=songCoverMarkup(obj,'summaryCoverArt');
+  const summaryArtist=$('summaryArtist');if(summaryArtist)summaryArtist.textContent=obj?.artist||'BOOMROOM MUSIC';
   const summaryDesc=$('summaryDesc');if(summaryDesc)summaryDesc.textContent=obj?.desc||'準備好後即可開始節奏挑戰';
+  const summaryRating=$('summaryRating');if(summaryRating){summaryRating.innerHTML=`<span class="summaryStars">${ratingStars(meta.rating)}</span><small>${ratingLabel(meta.rating)}</small>`;}
   const summaryDiff=$('summaryDiff');if(summaryDiff)summaryDiff.textContent=`${difficulty.label} · ${difficulty.name}`;
   const summary=document.querySelector('.selectedSummaryPro');if(summary)summary.style.setProperty('--selected-accent',obj?.color||'#54eaff');
   const box=document.querySelector('.selectedSummary .songStats');
@@ -1061,7 +1164,7 @@ async function hydrateSongChartMeta(songId,songObj,diff=chosenDifficulty){
   }
 }
 
-function normalizeSongEntry(k,obj){return {id:obj.id||k,name:obj.name||obj.title||k,icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||0,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',charts:obj.charts||{},lyricsUrl:obj.lyricsUrl||''}}
+function normalizeSongEntry(k,obj){obj=obj||{};return {id:obj.id||k,name:obj.name||obj.title||k,artist:obj.artist||obj.author||obj.creator||'',icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||0,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',previewUrl:obj.previewUrl||obj.preview||obj.audioPreviewUrl||obj.audioUrl||'',previewStart:Number(obj.previewStart??obj.previewAt??0)||0,coverUrl:obj.coverUrl||obj.cover||obj.artwork||obj.albumArt||obj.imageUrl||obj.image||'',charts:obj.charts||{},lyricsUrl:obj.lyricsUrl||''}}
 
 function lyricCandidates(songObj){
   const out=[];
@@ -1261,8 +1364,9 @@ function handleEvent(name,p={},senderId){
 }
 function receiveJam(from,kind){incomingJamCount++;attackUntil=Math.max(attackUntil,performance.now()+1300);const o=$('attackOverlay');if(o){o.classList.remove('on');void o.offsetWidth;o.classList.add('on')}document.querySelectorAll('.lane').forEach(b=>{b.classList.remove('jammed');void b.offsetWidth;b.classList.add('jammed')});toast('⚡ '+escapeHtml(from)+' 發動 '+kind+'！','#ff9edf');backgroundPulse=Math.max(backgroundPulse,1.2);vibrate([30,20,40])}
 function difficultyLabel(){return difficulty.name}
-function showMenu(){state=STATE.MENU;backgroundPulseVisual=0;renderPerf.lastPerfCueId=null;renderCtx=null;invalidateRenderCache();render();}
+function showMenu(){stopSongPreview();state=STATE.MENU;backgroundPulseVisual=0;renderPerf.lastPerfCueId=null;renderCtx=null;invalidateRenderCache();render();}
 function renderMenu(main){
+  readMenuPrefs();
   const entries=songEntries();
   const selectedEntry=entries.find(([k])=>String(k)===String(chosenSong));
   const selectedSongObj=selectedEntry?selectedEntry[1]:song;
@@ -1271,18 +1375,20 @@ function renderMenu(main){
   const canControl=Boolean(isRoomHost||isStandalone);
   const controlText=canControl?(isRoomHost?'室長控制':'單機模式'):'等待室長';
   const selectedColor=selectedSongObj?.color||'#54eaff';
+  const recentIds=getRecentSongIds();
   main.innerHTML=`<section class="menuWrap"><div class="menuCard menuCardPro">
     <div class="menuHeader menuHeaderPro">
-      <div class="menuBrandRow"><div class="menuBrandIcon">♪</div><div class="menuBrandCopy"><div class="menuKicker">BOOMROOM RHYTHM</div><h1>選擇你的節奏</h1><p>挑選難度與歌曲，準備進入本局。房間模式由室長統一決定歌曲與難度。</p></div><div class="menuRoomState ${canControl?'isControl':'isWaiting'}"><i></i><span>${controlText}</span></div></div>
+      <div class="menuBrandRow"><div class="menuBrandIcon">♪</div><div class="menuBrandCopy"><div class="menuKicker">BOOMROOM RHYTHM · MUSIC SELECT</div><h1>選擇你的節奏</h1><p>像正式音樂遊戲一樣挑選曲目：先看難度，再用封面與預覽找到想玩的歌。</p></div><div class="menuRoomState ${canControl?'isControl':'isWaiting'}"><i></i><span>${controlText}</span></div></div>
       <div class="menuTopActions"><span class="libraryBadge">${librarySongs.length?`🎵 已載入 ${librarySongs.length} 首歌曲`:'🎵 使用內建示範歌曲'}</span><button id="refreshLibrary" class="menuRefresh" ${canControl?'':'disabled'} title="重新讀取 library.json">↻ 重新載入</button></div>
     </div>
-    <div class="menuStep"><div class="stepHead"><span class="stepNo">01</span><div><b>選擇難度</b><small>譜面密度與和弦複雜度會隨難度提升</small></div><span class="stepState">${difficulty.label}</span></div>
-      <div class="difficultyRow difficultyRowPro">${Object.entries(DIFFS).map(([k,d],i)=>`<button type="button" class="difficultyChoice difficultyChoicePro ${k===chosenDifficulty?'active':''}" data-diff="${k}" ${canControl?'':'disabled'} style="--diff-accent:${['#55dfff','#8e7bff','#ff67c3','#ffd65b'][i]}"><span class="diffIndex">0${i+1}</span><strong>${d.name}</strong><em>${d.label}</em><small>${escapeHtml(d.desc)}</small><i class="diffCheck">✓</i></button>`).join('')}</div>
+    <div class="menuStep"><div class="stepHead"><span class="stepNo">01</span><div><b>選擇難度</b><small>星級代表這個難度層級；實際譜面仍以 charts/*.json 為準</small></div><span class="stepState">${difficulty.label}</span></div>
+      <div class="difficultyRow difficultyRowPro">${Object.entries(DIFFS).map(([k,d],i)=>{const rating=DIFF_RATING_FALLBACK[k]||3;return `<button type="button" class="difficultyChoice difficultyChoicePro ${k===chosenDifficulty?'active':''}" data-diff="${k}" ${canControl?'':'disabled'} style="--diff-accent:${['#55dfff','#8e7bff','#ff67c3','#ffd65b'][i]}"><span class="diffIndex">0${i+1}</span><strong>${d.name}</strong><em>${d.label}</em><small>${escapeHtml(d.desc)}</small><span class="diffStars">${ratingStars(rating)}</span><span class="diffLevel">LV ${rating}</span><i class="diffCheck">✓</i></button>`}).join('')}</div>
     </div>
-    <div class="menuStep songStep"><div class="stepHead"><span class="stepNo">02</span><div><b>選擇音樂</b><small>點擊歌曲查看本局譜面資料</small></div><div class="songSearchBox"><span>⌕</span><input id="songSearch" type="search" autocomplete="off" placeholder="搜尋歌曲…" aria-label="搜尋歌曲"></div></div>
-      <div class="songScroll" id="songScroll"><div class="songGrid songGridPro">${entries.length?entries.map(([k,s],i)=>{const st=getSongMenuMeta(s,chosenDifficulty);const color=s.color||'#54eaff';const query=String(`${s.name||k} ${s.desc||''}`).toLowerCase();return `<button type="button" class="songChoice songChoicePro ${String(k)===String(chosenSong)?'active':''}" data-song="${escapeHtml(String(k))}" data-search="${escapeHtml(query)}" ${canControl?'':'disabled'} style="--song-accent:${color}"><span class="songNo">${String(i+1).padStart(2,'0')}</span><span class="songIconWrap"><span class="songIcon">${s.icon||'🎵'}</span></span><span class="songCopy"><strong>${escapeHtml(s.name||k)}</strong><span class="songDesc">${escapeHtml(s.desc||'準備好開始節奏挑戰')}</span><span class="songMeta">${formatMenuMeta(st)}</span></span><span class="songPick">✓</span></button>`}).join(''):`<div class="songEmpty"><div>♫</div><b>還沒有歌曲</b><span>請先建立 library.json、music 與 charts，再重新載入歌曲庫。</span></div>`}</div><div id="songFilterEmpty" class="songEmpty songFilterEmpty" hidden><div>⌕</div><b>找不到符合的歌曲</b><span>換個關鍵字試試看。</span></div></div>
+    <div class="menuStep songStep"><div class="stepHead"><span class="stepNo">02</span><div><b>選擇音樂</b><small>封面、試聽、收藏與最近遊玩都會記錄在你的瀏覽器</small></div><div class="songSearchBox"><span>⌕</span><input id="songSearch" type="search" autocomplete="off" placeholder="搜尋歌曲、歌手…" aria-label="搜尋歌曲、歌手"></div></div>
+      <div class="songShelfBar"><div class="songShelfTabs"><button type="button" class="songShelfTab ${menuShelfMode==='all'?'active':''}" data-shelf="all">全部</button><button type="button" class="songShelfTab ${menuShelfMode==='favorites'?'active':''}" data-shelf="favorites">♥ 收藏 ${menuPrefs.favorites.length?`· ${menuPrefs.favorites.length}`:''}</button><button type="button" class="songShelfTab ${menuShelfMode==='recent'?'active':''}" data-shelf="recent">◷ 最近 ${recentIds.length?`· ${recentIds.length}`:''}</button></div><span id="previewState" class="previewState">選擇歌曲後可試聽 15 秒預覽</span></div>
+      <div class="songScroll" id="songScroll"><div class="songGrid songGridPro">${entries.length?entries.map(([k,s],i)=>{const st=getSongMenuMeta(s,chosenDifficulty);const color=s.color||'#54eaff';const query=String(`${s.name||k} ${s.artist||''} ${s.desc||''}`).toLowerCase();const fav=menuPrefs.favorites.includes(String(k));const recent=recentIds.includes(String(k));const playable=Boolean(s.previewUrl||s.audioUrl);return `<div class="songChoice songChoicePro ${String(k)===String(chosenSong)?'active':''} ${fav?'isFavorite':''} ${recent?'isRecent':''}" data-song="${escapeHtml(String(k))}" data-search="${escapeHtml(query)}" ${canControl?'':'aria-disabled="true"'} role="button" tabindex="${canControl?'0':'-1'}" style="--song-accent:${color}"><span class="songNo">${String(i+1).padStart(2,'0')}</span>${songCoverMarkup(s)}<span class="songCopy"><strong>${escapeHtml(s.name||k)}</strong><span class="songArtist">${escapeHtml(s.artist||'BOOMROOM ORIGINAL')}</span><span class="songDesc">${escapeHtml(s.desc||'準備好開始節奏挑戰')}</span><span class="songMetaLine"><span class="songStars" title="${ratingLabel(st.rating)} · ${escapeHtml(difficulty.name)}">${ratingStars(st.rating)}</span><span class="songLevel">${ratingLabel(st.rating)}</span><span class="songMeta">${formatMenuMeta(st)}</span></span></span><span class="songActions"><button type="button" class="songAction songFavorite ${fav?'active':''}" aria-label="${fav?'取消收藏':'加入收藏'}">${fav?'♥':'♡'}</button><button type="button" class="songAction songPreview" aria-label="${playable?'播放歌曲預覽':'沒有預覽音訊'}" ${playable?'':'disabled'}>${previewSongId===String(k)?'■':'▶'}</button><span class="previewProgress"><i></i></span><span class="previewTime">0:00 / 0:15</span></span><span class="songBadgeRow"><span class="songBadge recent">RECENT</span></span></div>`}).join(''):`<div class="songEmpty"><div>♫</div><b>還沒有歌曲</b><span>請先建立 library.json、music 與 charts，再重新載入歌曲庫。</span></div>`}</div><div id="songFilterEmpty" class="songEmpty songFilterEmpty" hidden><div>⌕</div><b>找不到符合的歌曲</b><span>換個關鍵字、切換收藏或最近遊玩。</span></div></div>
     </div>
-    <div class="menuBottom menuBottomPro"><div class="selectedSummary compact selectedSummaryPro" style="--selected-accent:${selectedColor}"><div class="summaryIdentity"><div id="summaryIcon" class="summaryIcon">${selectedSongObj?.icon||'🎵'}</div><div><span class="summaryLabel">本局歌曲</span><b id="summaryText">${escapeHtml(selectedSongObj?.name||song.name||'尚未選擇歌曲')}</b><small id="summaryDesc">${escapeHtml(selectedSongObj?.desc||'準備好後即可開始節奏挑戰')}</small></div></div><span id="summaryDiff" class="summaryDiff">${difficulty.label} · ${difficulty.name}</span><div class="songStats"><span><strong>${escapeHtml(fmtTime(meta.duration))}</strong><small>時長</small></span><span><strong>${meta.notes?meta.notes.toLocaleString():'—'}</strong><small>${escapeHtml(difficulty.name)} 音符</small></span><span><strong>${meta.bpm?Math.round(meta.bpm):'—'}</strong><small>BPM</small></span></div></div>
+    <div class="menuBottom menuBottomPro"><div class="selectedSummary compact selectedSummaryPro" style="--selected-accent:${selectedColor}"><div class="summaryIdentity"><div id="summaryCover" class="summaryCover">${songCoverMarkup(selectedSongObj,'summaryCoverArt')}</div><div><span class="summaryLabel">本局歌曲</span><b id="summaryText">${escapeHtml(selectedSongObj?.name||song.name||'尚未選擇歌曲')}</b><small id="summaryArtist" class="summaryArtist">${escapeHtml(selectedSongObj?.artist||'BOOMROOM MUSIC')}</small><small id="summaryDesc">${escapeHtml(selectedSongObj?.desc||'準備好後即可開始節奏挑戰')}</small><div id="summaryRating" class="summaryRating"><span class="summaryStars">${ratingStars(meta.rating)}</span><small>${ratingLabel(meta.rating)}</small></div></div></div><span id="summaryDiff" class="summaryDiff">${difficulty.label} · ${difficulty.name}</span><div class="songStats"><span><strong>${escapeHtml(fmtTime(meta.duration))}</strong><small>時長</small></span><span><strong>${meta.notes?meta.notes.toLocaleString():'—'}</strong><small>${escapeHtml(difficulty.name)} 音符</small></span><span><strong>${meta.bpm?Math.round(meta.bpm):'—'}</strong><small>BPM</small></span></div></div>
       <div class="timingTune compact timingTunePro"><div><b>判定手感校準</b><span id="timingTuneValue">${timingCalibrationLabel()}</span></div><input id="timingTuneRange" type="range" min="-60" max="60" step="1" value="${timingOffsetMs}" aria-label="判定手動校準"><small>＋ 判定稍後　／　－ 判定稍前</small></div>
       <button type="button" id="startGame" class="startBtn startBtnPro" ${entries.length&&canControl?'':'disabled'}><span>${!entries.length?'請先建立歌曲':(canControl?'▶ 開始遊玩':'⏳ 等待室長選擇歌曲與難度…')}</span><small>${entries.length&&canControl?'準備完成後將倒數 3 秒起播':'房間會由室長統一開始本局'}</small></button>
       <div class="menuFoot menuFootPro"><span>${entries.length?'開始後會鎖定歌曲與難度，並在倒數結束後同步起播':'先建立至少一首歌曲，遊戲才會出現可玩的曲目。'}</span></div>
@@ -1294,18 +1400,26 @@ function renderMenu(main){
   if(hydrateSelected)hydrateList.unshift(hydrateSelected);
   const seen=new Set();
   for(const [k,s] of hydrateList){if(seen.has(String(k)))continue;seen.add(String(k));const meta0=getSongMenuMeta(s,chosenDifficulty);if(!meta0.duration)hydrateSongDuration(k,s.audioUrl||`./music/${encodeURIComponent(s.filename||'')}`);if(!meta0.notes||!meta0.bpm)hydrateSongChartMeta(k,s,chosenDifficulty);}
-  if(canControl){
-    document.querySelectorAll('.difficultyChoice').forEach(b=>b.onclick=()=>{chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty]||DIFFS.normal;setRuntimeConfig();updateMenuSelectionUI();const current=songEntries();const selected=current.find(([k])=>String(k)===String(chosenSong));if(selected){const m=getSongMenuMeta(selected[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,selected[1],chosenDifficulty)}for(const [k,s] of current.slice(0,16)){const m=getSongMenuMeta(s,chosenDifficulty);updateMenuSongNode(k,m);if(!m.notes||!m.bpm)hydrateSongChartMeta(k,s,chosenDifficulty)}});
-    document.querySelectorAll('.songChoice').forEach(b=>b.onclick=()=>{chosenSong=b.dataset.song;const current=songEntries();const found=current.find(([k])=>String(k)===String(chosenSong));if(found){song=normalizeSongEntry(...found);setRuntimeConfig();updateMenuSelectionUI();const m=getSongMenuMeta(found[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.duration)hydrateSongDuration(chosenSong,found[1].audioUrl||`./music/${encodeURIComponent(found[1].filename||'')}`);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,found[1],chosenDifficulty);const activeBtn=[...document.querySelectorAll('.songChoice')].find(x=>String(x.dataset.song)===String(chosenSong));activeBtn?.scrollIntoView({block:'nearest',behavior:'smooth'});}});
-    $('refreshLibrary').onclick=async()=>{const btn=$('refreshLibrary');if(!btn)return;btn.disabled=true;btn.textContent='載入中…';try{await loadLibrary()}finally{renderMenu(main)}};
-  }
-  const tune=$('timingTuneRange'),tuneLabel=$('timingTuneValue');if(tune&&tuneLabel)tune.oninput=()=>{timingOffsetMs=Number(tune.value)||0;localStorage.setItem('boomroomTimingOffsetMs',String(timingOffsetMs));tuneLabel.textContent=timingCalibrationLabel();};
-  const search=$('songSearch');if(search)search.oninput=()=>{const q=String(search.value||'').trim().toLowerCase();let visible=0;document.querySelectorAll('.songChoice').forEach(card=>{const ok=!q||String(card.dataset.search||'').includes(q);card.hidden=!ok;if(ok)visible++});const empty=$('songFilterEmpty');if(empty)empty.hidden=visible!==0||!q;};
+  document.querySelectorAll('[data-shelf]').forEach(b=>b.onclick=()=>{menuShelfMode=b.dataset.shelf||'all';updateMenuShelfUI()});
+  document.querySelectorAll('.difficultyChoice').forEach(b=>b.onclick=()=>{chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty]||DIFFS.normal;setRuntimeConfig();updateMenuSelectionUI();const current=songEntries();const selected=current.find(([k])=>String(k)===String(chosenSong));if(selected){const m=getSongMenuMeta(selected[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,selected[1],chosenDifficulty)}for(const [k,s] of current.slice(0,16)){const m=getSongMenuMeta(s,chosenDifficulty);updateMenuSongNode(k,getSongMenuMeta(s,chosenDifficulty));if(!m.notes||!m.bpm)hydrateSongChartMeta(k,s,chosenDifficulty)}});
+  document.querySelectorAll('.songChoice').forEach(card=>{
+    const select=()=>{if(card.getAttribute('aria-disabled')==='true')return;chosenSong=String(card.dataset.song);const current=songEntries();const found=current.find(([k])=>String(k)===String(chosenSong));if(found){song=normalizeSongEntry(...found);setRuntimeConfig();updateMenuSelectionUI();const m=getSongMenuMeta(found[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.duration)hydrateSongDuration(chosenSong,found[1].audioUrl||`./music/${encodeURIComponent(found[1].filename||'')}`);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,found[1],chosenDifficulty);card.scrollIntoView({block:'nearest',behavior:'smooth'})}};
+    card.onclick=e=>{if(e.target.closest('.songAction'))return;select()};
+    card.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('.songAction')){e.preventDefault();select()}};
+    card.querySelector('.songFavorite')?.addEventListener('click',e=>{e.stopPropagation();toggleSongFavorite(card.dataset.song)});
+    card.querySelector('.songPreview')?.addEventListener('click',e=>{e.stopPropagation();previewSong(card.dataset.song,e.currentTarget)});
+  });
+  $('refreshLibrary').onclick=async()=>{const btn=$('refreshLibrary');if(!btn)return;btn.disabled=true;btn.textContent='載入中…';try{await loadLibrary()}finally{renderMenu(main)}};
+  const tune=$('timingTuneRange'),tuneLabel=$('timingTuneValue');if(tune&&tuneLabel)tune.oninput=()=>{timingOffsetMs=Number(tune.value)||0;try{localStorage.setItem('boomroomTimingOffsetMs',String(timingOffsetMs))}catch(_){}tuneLabel.textContent=timingCalibrationLabel();};
+  const search=$('songSearch');if(search)search.oninput=applySongShelfFilter;
+  updateMenuShelfUI();
   if($('startGame')&&canControl){$('startGame').onclick=()=>{if(!entries.length)return;const btn=$('startGame');btn.disabled=true;const span=btn.querySelector('span');if(span)span.textContent='⏳ 連線同步中…';const small=btn.querySelector('small');if(small)small.textContent='正在通知房間成員';sdkSend('RHYTHM_HOST_START',{song:chosenSong,diff:chosenDifficulty});startSyncedGame(chosenSong,chosenDifficulty);};}
 }
 
 function startSyncedGame(songId,diffId){
+  stopSongPreview();
   chosenSong=String(songId||chosenSong);chosenDifficulty=DIFFS[diffId]?diffId:'normal';difficulty=DIFFS[chosenDifficulty]||DIFFS.normal;
+  touchRecentSong(chosenSong);
   const btn=$('startGame');if(btn){btn.disabled=true;const span=btn.querySelector('span');if(span)span.textContent='⏳ 載入節奏…';const small=btn.querySelector('small');if(small)small.textContent='正在準備歌曲與譜面';}
   setSongAndDifficulty();ensureAudio(true);if(song.audioUrl)primeMusic(song.audioUrl);
   startRound().catch(err=>{console.error('startRound failed',err);if(btn){btn.disabled=false;const span=btn.querySelector('span');if(span)span.textContent='▶ 重新開始';const small=btn.querySelector('small');if(small)small.textContent='載入失敗，請再試一次';}toast('載入失敗：'+(err?.message||err),'#ff6174');});
