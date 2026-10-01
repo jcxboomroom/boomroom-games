@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#06070f">
-<title>BoomRoom Rhythm V32.0</title>
+<title>BoomRoom Rhythm V32.13</title>
 <style>
 :root{
   --bg:#05060d; --panel:#0d1020; --panel2:#11152b; --line:#262d4a; --text:#f8fbff; --muted:#8d96b4;
@@ -580,7 +580,8 @@ let me={id:'local_'+Math.random().toString(36).slice(2,8),username:'你'};
 let players=new Map(),notes=[],seed=0,startAt=0,endAt=0,last=0,raf=0,countdownStartAt=0,countdownGoAt=0;
 let score=0,combo=0,maxCombo=0,perfect=0,good=0,miss=0,streak=0,pulse=0,pulseReady=false,muted=false;
 let audio=null,master=null,sfxBus=null,musicBus=null,musicTimer=null,musicNext=0,musicStep=0,musicStartAudio=0,musicWatchdog=null,engineWatchdog=null,lastAudioKeepalive=0;
-let musicBuffer=null,musicSource=null,musicGain=null,librarySongs=[],activeChart=null,assetsLoading=false;
+let musicBuffer=null,musicSource=null,musicGain=null,librarySongs=[],activeChart=null,assetsLoading=false,libraryLoaded=false;
+// V32.13: charts-only library runtime; piano_rolls is intentionally unused.
 // V27.0: explicit HTMLAudioElement runtime state. These must exist before the Start button can call primeMusic().
 let hudLastUpdate=0;
 let musicProgressLastUpdate=0;
@@ -589,7 +590,7 @@ let roundId='',autoResult=false,feedback='',feedbackColor='#fff',attackUntil=0,a
 let lyricsLines=[],lyricsLoaded=false,lyricsMode='lrc',lyricsSource='',lyricsAbort=null;
 let timingOffsetMs=Number(localStorage.getItem('boomroomTimingOffsetMs')||0);
 let audioOutputCompSec=0;
-let chosenDifficulty='normal',chosenSong='neon',difficulty=DIFFS.normal,song=SONGS.neon;
+let chosenDifficulty='normal',chosenSong='',difficulty=DIFFS.normal,song={id:'',name:'尚未選擇歌曲',audioUrl:'',charts:{},stats:{}};
 let rhHeld=new Set(),rhPressSources=new Map(),rhHolds=new Map(),rhSlide=null,rhParticles=[],rhDouble=new Map(),rhPointers=new Map(),stagePointer=null;
 
 // V32 performance renderer: keep input/judgement timing independent from visual quality.
@@ -735,12 +736,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){resumeAud
 window.addEventListener('pageshow',()=>{resumeAudio();if(state===STATE.COUNT||state===STATE.PLAY) scheduleMusic()});
 
 function songEntries(){
-  if(librarySongs.length){
-    return librarySongs.map((x,i)=>[x.id,{id:x.id,name:x.title||x.filename,icon:'🎵',root:220,color:['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:[0,2,4,7,9],desc:'',bpm:Number(x.bpm)||120,duration:Number(x.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl,charts:x.charts}]);
-  }
-  return Object.entries(SONGS);
+  return librarySongs.map((x,i)=>[x.id||String(i),{id:x.id||String(i),name:x.title||x.filename||x.id||`歌曲 ${i+1}`,icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`,charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}]);
 }
-function normalizeSongEntry(k,obj){return {id:obj.id||k,name:obj.name||obj.title||k,icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||120,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',charts:obj.charts||{}}}
+function normalizeSongEntry(k,obj){return {id:obj.id||k,name:obj.name||obj.title||k,icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||0,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',charts:obj.charts||{},lyricsUrl:obj.lyricsUrl||''}}
 
 function lyricCandidates(songObj){
   const out=[];
@@ -821,17 +819,19 @@ function updateLyrics(now){
   }
 }
 async function loadLibrary(){
+  libraryLoaded=true;
   try{
     const res=await fetch('./library.json',{cache:'no-store'});
     if(!res.ok)throw new Error('library unavailable');
     const data=await res.json();
-    librarySongs=Array.isArray(data.songs)?data.songs.filter(x=>!x.error):[];
+    librarySongs=Array.isArray(data.songs)?data.songs.filter(x=>!x.error).map(x=>{const o={...x};delete o.pianoRollUrl;delete o.piano_roll;delete o.pianoRoll;return o}):[];
     const entries=songEntries();
     if(entries.length){const picked=entries.find(([k])=>String(k)===String(chosenSong))||entries[0];chosenSong=picked[0];song=normalizeSongEntry(...picked);}
+    else {chosenSong='';song={id:'',name:'尚未選擇歌曲',audioUrl:'',charts:{},stats:{}};activeChart=null;}
     return librarySongs;
   }catch(err){
     console.warn('static library load failed',err);
-    librarySongs=[];
+    librarySongs=[];chosenSong='';song={id:'',name:'尚未選擇歌曲',audioUrl:'',charts:{},stats:{}};activeChart=null;
     return [];
   }
 }
@@ -923,30 +923,30 @@ function renderMenu(main){
   main.innerHTML=`<section class="menuWrap"><div class="menuCard">
     <div class="menuHeader">
       <p class="menuDesc" style="font-size:13px;color:#dfe6ff;font-weight:900;margin-top:0">選擇難度與音樂後開始</p>
-      <p class="menuDesc">四種難度都來自同一套音樂時間軸，只改變取樣深度、長音與和弦複雜度。</p>
+      <p class="menuDesc">四種難度都來自同一套音樂時間軸，只改變取樣深度、長音與和弦複雜度。譜面完全以 charts/*.json 為準。</p>
       <div style="display:flex;gap:7px;align-items:center;justify-content:space-between;margin:5px 0 5px"><span class="miniTag">${librarySongs.length?`已偵測 ${librarySongs.length} 首 MP3`:'使用內建示範歌曲'}</span><button id="refreshLibrary" class="powerAction">↻ 重新載入</button></div>
       <div class="selectTitle">① 選擇難度</div>
       <div class="difficultyRow">${Object.entries(DIFFS).map(([k,d])=>`<button class="difficultyChoice ${k===chosenDifficulty?'active':''}" data-diff="${k}"><strong>${d.name}</strong><em>${d.label}</em></button>`).join('')}</div>
     </div>
     <div class="songScrollWrap">
       <div class="selectTitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>② 選擇音樂</span><span class="songScrollHint">上下滑動選歌</span></div>
-      <div class="songScroll" id="songScroll"><div class="songGrid">${entries.map(([k,s])=>{const st=s.stats?.[chosenDifficulty]||{};const dur=Number(s.duration||st.duration||0);const cnt=Number(st.notes||0);return `<button class="songChoice ${String(k)===String(chosenSong)?'active':''}" data-song="${escapeHtml(String(k))}"><em>${s.icon||'🎵'}</em><strong>${escapeHtml(s.name||k)}</strong><span>${fmtTime(dur)} · ${cnt?cnt.toLocaleString():'—'} 音符</span></button>`}).join('')}</div></div>
+      <div class="songScroll" id="songScroll"><div class="songGrid">${entries.length?entries.map(([k,s])=>{const st=s.stats?.[chosenDifficulty]||{};const dur=Number(s.duration||st.duration||0);const cnt=Number(st.notes||0);return `<button class="songChoice ${String(k)===String(chosenSong)?'active':''}" data-song="${escapeHtml(String(k))}"><em>${s.icon||'🎵'}</em><strong>${escapeHtml(s.name||k)}</strong><span>${fmtTime(dur)} · ${cnt?cnt.toLocaleString():'—'} 音符</span></button>`}).join(''):'<div style="padding:24px 14px;text-align:center;color:#8d96b4;font-size:11px;line-height:1.7">尚未建立歌曲。<br>請先用譜面編輯器設定 Music、charts 與 library.json，再匯出歌曲。</div>'}</div></div>
     </div>
     <div class="menuBottom">
       <div class="selectedSummary compact"><span>本局歌曲</span><b id="summaryText">${escapeHtml(currentName)}</b><div class="songStats"><span><strong>${fmtTime(songDuration)}</strong><small>時長</small></span><span><strong>${selectedNoteCount?selectedNoteCount.toLocaleString():'—'}</strong><small>${difficulty.name} 音符</small></span></div></div>
       <div class="timingTune compact"><div><b>③ 判定手感校準</b><span id="timingTuneValue">${timingCalibrationLabel()}</span></div><input id="timingTuneRange" type="range" min="-60" max="60" step="1" value="${timingOffsetMs}" aria-label="判定手動校準"><small>＋：判定稍後　－：判定稍前</small></div>
-      <button id="startGame" class="startBtn">▶ 開始遊玩</button>
-      <div class="menuFoot"><span>按下開始後會鎖定歌曲與難度，再倒數 3 秒正式起播</span></div>
+      <button id="startGame" class="startBtn" ${entries.length?'':'disabled'}>${entries.length?'▶ 開始遊玩':'請先建立歌曲'}</button>
+      <div class="menuFoot"><span>${entries.length?'按下開始後會鎖定歌曲與難度，再倒數 3 秒正式起播':'先建立 library.json 與至少一首歌曲，遊戲才會出現可玩的歌曲。'}</span></div>
     </div>
   </div></section>`;
   document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty];setRuntimeConfig();renderMenu(main)});
   document.querySelectorAll('[data-song]').forEach(b=>b.onclick=()=>{chosenSong=b.dataset.song;const found=entries.find(([k])=>String(k)===String(chosenSong));if(found)song=normalizeSongEntry(...found);setRuntimeConfig();renderMenu(main)});
   $('refreshLibrary').onclick=async()=>{const btn=$('refreshLibrary');btn.disabled=true;btn.textContent='載入中…';await loadLibrary();renderMenu(main)};
   const tune=$('timingTuneRange'),tuneLabel=$('timingTuneValue');if(tune&&tuneLabel){tune.oninput=()=>{timingOffsetMs=Number(tune.value)||0;localStorage.setItem('boomroomTimingOffsetMs',String(timingOffsetMs));tuneLabel.textContent=timingCalibrationLabel();};}
-  $('startGame').onclick=()=>{const btn=$('startGame');btn.disabled=true;btn.textContent='載入節奏…';setSongAndDifficulty();ensureAudio(true);if(song.audioUrl)primeMusic(song.audioUrl);startRound().catch(err=>{console.error('startRound failed',err);btn.disabled=false;btn.textContent='▶ 重新開始';toast('載入失敗：'+(err?.message||err),'#ff6174')});};
+  if($('startGame'))$('startGame').onclick=()=>{if(!entries.length)return;const btn=$('startGame');btn.disabled=true;btn.textContent='載入節奏…';setSongAndDifficulty();ensureAudio(true);if(song.audioUrl)primeMusic(song.audioUrl);startRound().catch(err=>{console.error('startRound failed',err);btn.disabled=false;btn.textContent='▶ 重新開始';toast('載入失敗：'+(err?.message||err),'#ff6174')});};
 }
 
-function setSongAndDifficulty(){difficulty=DIFFS[chosenDifficulty]||DIFFS.normal;const entries=songEntries();const found=entries.find(([k])=>String(k)===String(chosenSong));if(found)song=normalizeSongEntry(...found);setRuntimeConfig()}
+function setSongAndDifficulty(){difficulty=DIFFS[chosenDifficulty]||DIFFS.normal;const entries=songEntries();const found=entries.find(([k])=>String(k)===String(chosenSong));if(found)song=normalizeSongEntry(...found);else song={id:'',name:'尚未選擇歌曲',audioUrl:'',charts:{},stats:{}};setRuntimeConfig()}
 function proceduralChart(s){setSongAndDifficulty();const r=rngFactory(s^hash(chosenDifficulty+'|'+chosenSong)),out=[];let beatIndex=0,t=1.15,lastLane=1,doubleId=0;const chordSize=difficulty.chordMax||2;const lastEnd=[-10,-10,-10,-10];while(t<CFG.ROUND-1.2){let lane=Math.floor(r()*4);if(lane===lastLane&&r()<.62)lane=(lane+1+Math.floor(r()*3))%4;const beat=beatIndex%4,canSpecial=r()<difficulty.density;let created=false;
   if(canSpecial&&beatIndex%8===6&&r()<difficulty.double){const size=2+((chordSize-2)>0&&r()<.28?1:0)+((chordSize>=4&&r()<.12)?1:0);const gid='C'+doubleId++;let lanes=[lane];for(let z=1;z<size;z++){const opts=[lane-1,lane+1,0,3].filter(q=>q>=0&&q<4&&!lanes.includes(q));lanes.push(opts[Math.floor(r()*opts.length)]||((lane+z)%4));}lanes=[...new Set(lanes)].slice(0,chordSize);if(lanes.length>=2&&lanes.every(q=>t-lastEnd[q]>.24)){lanes.forEach((q,ii)=>{out.push({id:'c'+out.length,t,lane:q,type:'tap',done:false,hit:false,group:'chord',groupId:gid,groupSize:lanes.length,chordIndex:ii});lastEnd[q]=t});created=true}}
   if(!created&&canSpecial&&beatIndex%12===4&&r()<difficulty.slide){const dir=r()<.5?1:-1,path=[lane,(lane+dir+4)%4,(lane+2*dir+4)%4];const gap=CFG.BEAT*.5;if(path.every((q,i)=>t+i*gap-lastEnd[q]>.12)){out.push({id:'s'+out.length,t,lane,type:'slide',path,step:0,started:false,done:false,group:'slide',groupId:'S'+beatIndex,stepGap:gap});path.forEach((q,i)=>lastEnd[q]=t+i*gap);created=true}}

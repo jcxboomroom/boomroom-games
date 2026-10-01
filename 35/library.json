@@ -1,110 +1,40 @@
 {
-  "version": 12,
-  "mode": "midi-lyric-phrase-performance-v32.0",
+  "version": 13,
+  "mode": "manual-performer-v2",
   "songs": [
     {
-      "id": "bang-bang-bang",
-      "title": "BANG BANG BANG",
-      "filename": "BANG BANG BANG.mp3",
-      "bpm": 120.0,
-      "duration": 220.218,
-      "stats": {
-        "easy": {
-          "notes": 301,
-          "tapCount": 288,
-          "holdCount": 13,
-          "chordGroups": 25,
-          "signatureHookGroups": 60,
-          "chordHistogram": {
-            "2": 25
-          },
-          "averageGridError": 0.0,
-          "hookEvents": 21,
-          "performanceGrammar": {
-            "legato": 0,
-            "syncopation": 0,
-            "terminalReleases": 0,
-            "handCrossings": 0
-          }
-        },
-        "normal": {
-          "notes": 442,
-          "tapCount": 421,
-          "holdCount": 21,
-          "chordGroups": 72,
-          "signatureHookGroups": 60,
-          "chordHistogram": {
-            "2": 72
-          },
-          "averageGridError": 0.0,
-          "hookEvents": 21,
-          "performanceGrammar": {
-            "legato": 0,
-            "syncopation": 0,
-            "terminalReleases": 0,
-            "handCrossings": 0
-          }
-        },
-        "hard": {
-          "notes": 426,
-          "tapCount": 395,
-          "holdCount": 31,
-          "chordGroups": 71,
-          "signatureHookGroups": 60,
-          "chordHistogram": {
-            "2": 68,
-            "3": 3
-          },
-          "averageGridError": 0.0,
-          "hookEvents": 21,
-          "performanceGrammar": {
-            "legato": 0,
-            "syncopation": 0,
-            "terminalReleases": 0,
-            "handCrossings": 0
-          }
-        },
-        "special": {
-          "notes": 521,
-          "tapCount": 433,
-          "holdCount": 88,
-          "chordGroups": 86,
-          "signatureHookGroups": 60,
-          "chordHistogram": {
-            "2": 63,
-            "3": 19,
-            "4": 4
-          },
-          "averageGridError": 0.0,
-          "hookEvents": 21,
-          "performanceGrammar": {
-            "legato": 66,
-            "syncopation": 160,
-            "terminalReleases": 50,
-            "handCrossings": 69
-          }
-        }
-      },
+      "id": "李佳薇---甲乙丙丁",
+      "title": "李佳薇 - 甲乙丙丁",
+      "filename": "李佳薇 - 甲乙丙丁.mp3",
+      "bpm": 120,
       "charts": {
-        "easy": "./charts/bang-bang-bang_easy.json",
-        "normal": "./charts/bang-bang-bang_normal.json",
-        "hard": "./charts/bang-bang-bang_hard.json",
-        "special": "./charts/bang-bang-bang_special.json"
+        "easy": "./charts/李佳薇---甲乙丙丁_easy.json",
+        "normal": "./charts/李佳薇---甲乙丙丁_normal.json",
+        "hard": "./charts/李佳薇---甲乙丙丁_hard.json",
+        "special": "./charts/李佳薇---甲乙丙丁_special.json"
       },
-      "pianoRollUrl": "./piano_rolls/bang-bang-bang.json",
-      "audioUrl": "./music/BANG%20BANG%20BANG.mp3",
-      "chartEngine": "midi-lyric-phrase-v32.0",
-      "hasLyricsTiming": true,
-      "lyricsUrl": "./music/BANG%20BANG%20BANG.lrc",
-      "midiUrl": "./music/BANG%20BANG%20BANG.mid",
-      "sourceMode": "MIDI_FIRST_V32",
-      "midiStats": {
-        "melody": 264,
-        "harmony": 103,
-        "bass": 45,
-        "tempo": 120.0,
-        "audioBpm": 133.93
-      }
+      "audioUrl": "./music/%E6%9D%8E%E4%BD%B3%E8%96%87%20-%20%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81.mp3",
+      "duration": 209.072472
+    },
+    {
+      "id": "bang-bang-bang",
+      "title": "bang bang bang",
+      "filename": "BANG BANG BANG.mp3",
+      "bpm": null
+    },
+    {
+      "id": "en-囂張",
+      "title": "en-囂張",
+      "filename": "en-囂張.mp3",
+      "bpm": 120,
+      "charts": {
+        "easy": "./charts/en-囂張_easy.json",
+        "normal": "./charts/en-囂張_normal.json",
+        "hard": "./charts/en-囂張_hard.json",
+        "special": "./charts/en-囂張_special.json"
+      },
+      "audioUrl": "./music/en-%E5%9B%82%E5%BC%B5.mp3",
+      "duration": 254.281723
     }
   ]
 }

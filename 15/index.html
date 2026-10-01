@@ -782,6 +782,25 @@
         height:clamp(90px,13dvh,150px);
       }
     }
+    /* =========================
+       VOICE MIC ANIMATION
+    ========================= */
+    #voiceBtn {
+      transition: all 0.2s ease-in-out;
+    }
+
+    #voiceBtn.voice-active {
+      background: #ff4757 !important; /* 變成醒目的紅色 */
+      border-color: #ff4757 !important;
+      box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+      animation: pulseMic 1.2s infinite;
+    }
+
+    @keyframes pulseMic {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 
@@ -2556,21 +2575,24 @@
   }
 
   /* =========================================================
-     VOICE GUESS
+     VOICE GUESS (全平台統一交由 Flutter 接管)
   ========================================================= */
 
   function stopVoiceGuess(){
+    // 🌟 統一通知 Flutter 停止辨識並恢復麥克風
     if (window.BoomRoomJS) {
       window.BoomRoomJS.postMessage(JSON.stringify({ action: 'stopVoiceRecognition' }));
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: 'stopVoiceRecognition' }), "*");
     }
+
     if(speechRecognition){
       try{ speechRecognition.stop(); }catch(_){}
     }
     speechListening=false;
     const btn=document.getElementById("voiceBtn");
     if(btn){
-      btn.textContent="🎙️ 語音房通暢中 (打字答題)";
-      btn.title="語音即時答題中";
+      btn.classList.remove("voice-active"); // 移除發光動畫
     }
   }
 
@@ -2591,8 +2613,7 @@
     speechListening = false;
     const btn = document.getElementById("voiceBtn");
     if(btn) {
-      btn.textContent = "🎙️ 語音房通暢中 (打字答題)";
-      btn.title = "語音即時答題中";
+      btn.classList.remove("voice-active"); // 移除發光動畫
     }
   };
 
@@ -2603,22 +2624,29 @@
     }
 
     const btn=document.getElementById("voiceBtn");
+    if (speechListening) return;
+    speechListening = true;
+    if(btn) btn.classList.add("voice-active"); // 加上發光動畫
+
+    // 🌟 核心關鍵：無論是 APK 還是 Web，都統一發送指令給 Flutter 處理！
+    // 這樣 Flutter 才能確保在語音辨識時，把 WebRTC 語音交談靜音，防止回音與作弊。
     if (window.BoomRoomJS) {
-      if (speechListening) return;
-      speechListening = true;
-      if(btn) btn.textContent="🎙️ APP 語音辨識中";
       window.BoomRoomJS.postMessage(JSON.stringify({ action: 'startVoiceRecognition' }));
       return;
-    }
-
-    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!Recognition){
-      if(btn){ btn.textContent="❌ 瀏覽器不支援"; }
-      showToast("您的瀏覽器不支援語音辨識，請使用打字或下載 APP 版");
+    } else if (window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: 'startVoiceRecognition' }), "*");
       return;
     }
 
-    if(speechListening) return;
+    // --- 以下為純本地端 HTML 測試用的 Fallback (當沒有 Flutter 包覆時才會執行) ---
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Recognition){
+      showToast("您的瀏覽器不支援語音辨識，請使用打字或下載 APP 版");
+      speechListening = false;
+      if(btn) btn.classList.remove("voice-active");
+      return;
+    }
+
     ensureAudio();
     speechFinalText="";
 
@@ -2629,11 +2657,6 @@
       speechRecognition.continuous = !isMobile;
       speechRecognition.interimResults=true;
       speechRecognition.maxAlternatives=1;
-
-      speechRecognition.onstart=()=>{
-        speechListening=true;
-        if(btn){ btn.textContent="🎙️ 網頁語音辨識中"; }
-      };
 
       speechRecognition.onresult=(event)=>{
         let interimTranscript = '';
@@ -2658,7 +2681,7 @@
       speechRecognition.onerror=(event)=>{
         if(event?.error === "no-speech") return;
         speechListening=false;
-        if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+        if(btn) btn.classList.remove("voice-active");
       };
 
       speechRecognition.onend=()=>{
@@ -2666,14 +2689,14 @@
         if(state===STATES.PLAYING && !isDrawer() && !matchEnded && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
           setTimeout(startVoiceGuess, 300);
         } else {
-          if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+          if(btn) btn.classList.remove("voice-active");
         }
       };
 
       speechRecognition.start();
     }catch(_){
       speechListening=false;
-      if(btn){ btn.textContent="🎙️ 語音房通暢中 (打字答題)"; }
+      if(btn) btn.classList.remove("voice-active");
     }
   }
 
@@ -3147,6 +3170,21 @@
     clearTimeout(showToast.t);
     showToast.t=setTimeout(()=>{ el.classList.remove("show"); }, 1200);
   }
+
+  /* =========================================================
+     GLOBAL KEYBOARD SHORTCUTS
+  ========================================================= */
+  document.addEventListener("keydown", (e) => {
+    // 當按下 Enter 且遊戲進行中、自己不是畫家時
+    if (e.key === "Enter" && state === STATES.PLAYING && !isDrawer()) {
+      const input = document.getElementById("guessInput");
+      // 如果當前焦點不在輸入框上，就強制聚焦
+      if (input && document.activeElement !== input) {
+        input.focus();
+        e.preventDefault(); // 阻止預設行為 (避免畫面跳動)
+      }
+    }
+  });
 
   /* =========================================================
      BOOT
