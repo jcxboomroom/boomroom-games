@@ -122,8 +122,8 @@
       "id": "姚曉棠---座位",
       "title": "姚曉棠 - 座位",
       "filename": "姚曉棠 - 座位.mp3",
-      "bpm": 120,
-      "duration": 245.063401,
+      "bpm": null,
+      "duration": 245.063,
       "charts": {
         "easy": "./charts/姚曉棠---座位_easy.json",
         "normal": "./charts/姚曉棠---座位_normal.json",
@@ -133,28 +133,53 @@
       "stats": {
         "easy": {
           "notes": 416,
-          "duration": 245.063401
+          "duration": 245.063
         },
         "normal": {
           "notes": 478,
-          "duration": 245.063401
+          "duration": 245.063
         },
         "hard": {
           "notes": 593,
-          "duration": 245.063401
+          "duration": 245.063
         },
         "special": {
           "notes": 719,
-          "duration": 245.063401
+          "duration": 245.063
         }
-      },
-      "audioUrl": "./music/%E5%A7%9A%E6%9B%89%E6%A3%A0%20-%20%E5%BA%A7%E4%BD%8D.mp3"
+      }
     },
     {
       "id": "姚曉棠-張遠---看著我的眼睛說-live",
       "title": "姚曉棠_張遠 - 看著我的眼睛說 (live)",
       "filename": "姚曉棠_張遠 - 看著我的眼睛說 (Live).mp3",
-      "bpm": null
+      "bpm": 120,
+      "duration": 278.012517,
+      "charts": {
+        "easy": "./charts/姚曉棠-張遠---看著我的眼睛說-live_easy.json",
+        "normal": "./charts/姚曉棠-張遠---看著我的眼睛說-live_normal.json",
+        "hard": "./charts/姚曉棠-張遠---看著我的眼睛說-live_hard.json",
+        "special": "./charts/姚曉棠-張遠---看著我的眼睛說-live_special.json"
+      },
+      "stats": {
+        "easy": {
+          "notes": 482,
+          "duration": 278.012517
+        },
+        "normal": {
+          "notes": 568,
+          "duration": 278.012517
+        },
+        "hard": {
+          "notes": 705,
+          "duration": 278.012517
+        },
+        "special": {
+          "notes": 850,
+          "duration": 278.012517
+        }
+      },
+      "audioUrl": "./music/%E5%A7%9A%E6%9B%89%E6%A3%A0_%E5%BC%B5%E9%81%A0%20-%20%E7%9C%8B%E8%91%97%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AA%AA%20(live).mp3"
     },
     {
       "id": "派偉俊patrick-brasca---別戀",
