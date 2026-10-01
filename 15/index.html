@@ -1286,6 +1286,24 @@
         setupSDK(data);
         return;
       }
+
+      // 🌟 新增：攔截 Flutter Web 傳來的語音辨識結果
+      if(data.action === "flutterSpeechResult"){
+        if(typeof window.receiveVoiceText === 'function') {
+          window.receiveVoiceText(data.text, data.isFinal);
+        }
+        return;
+      }
+
+      // 🌟 新增：攔截 Flutter Web 傳來的語音停止事件
+      if(data.action === "flutterSpeechStopped"){
+        if(typeof window.onFlutterSpeechStopped === 'function') {
+          window.onFlutterSpeechStopped();
+        }
+        return;
+      }
+
+      // 原本的遊戲事件攔截
       if(!data || data.action!=="gameEventReceived"){ return; }
 
       const userId=safeString(data.userId, "", 64);
@@ -2597,7 +2615,12 @@
   }
 
   window.receiveVoiceText = function(text, isFinal) {
-    if(!text || text.trim() === "") return;
+    // 🌟 終極防呆：如果玩家什麼都沒說就結束了，必須停止發光動畫
+    if(!text || text.trim() === "") {
+      if (isFinal) stopVoiceGuess();
+      return;
+    }
+
     const cleanText = text.trim();
     const input = document.getElementById("guessInput");
     if(input) input.value = cleanText;
@@ -2605,6 +2628,9 @@
     if(currentWord && answerMatches(cleanText, currentWord)){
       submitGuess();
       showToast("🎙️ 語音偵測到正確答案！");
+      stopVoiceGuess();
+    } else if (isFinal) {
+      submitGuess();
       stopVoiceGuess();
     }
   };

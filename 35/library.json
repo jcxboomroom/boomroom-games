@@ -31,12 +31,6 @@
       "duration": 220.21805
     },
     {
-      "id": "en---我走後",
-      "title": "en - 我走後",
-      "filename": "En - 我走後.mp3",
-      "bpm": null
-    },
-    {
       "id": "en---根本你不懂得愛我",
       "title": "en - 根本你不懂得愛我",
       "filename": "en - 根本你不懂得愛我.mp3",
@@ -49,6 +43,38 @@
       },
       "audioUrl": "./music/en%20-%20%E6%A0%B9%E6%9C%AC%E4%BD%A0%E4%B8%8D%E6%87%82%E5%BE%97%E6%84%9B%E6%88%91.mp3",
       "duration": 233.012245
+    },
+    {
+      "id": "en---匿名的好友",
+      "title": "en - 匿名的好友",
+      "filename": "en - 匿名的好友.mp3",
+      "bpm": 120,
+      "duration": 219.010612,
+      "charts": {
+        "easy": "./charts/en---匿名的好友_easy.json",
+        "normal": "./charts/en---匿名的好友_normal.json",
+        "hard": "./charts/en---匿名的好友_hard.json",
+        "special": "./charts/en---匿名的好友_special.json"
+      },
+      "stats": {
+        "easy": {
+          "notes": 397,
+          "duration": 219.010612
+        },
+        "normal": {
+          "notes": 445,
+          "duration": 219.010612
+        },
+        "hard": {
+          "notes": 581,
+          "duration": 219.010612
+        },
+        "special": {
+          "notes": 680,
+          "duration": 219.010612
+        }
+      },
+      "audioUrl": "./music/en%20-%20%E5%8C%BF%E5%90%8D%E7%9A%84%E5%A5%BD%E5%8F%8B.mp3"
     },
     {
       "id": "en-囂張",
