@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;border:0}
 #fxCanvas{z-index:2;pointer-events:none}
 .stageFX{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .vignette{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,transparent 30%,#02030a44 72%,#000a 100%)}
-.centerPulse{position:absolute;left:50%;top:48%;width:14vw;height:14vw;max-width:150px;max-height:150px;min-width:62px;min-height:62px;border-radius:50%;border:1px solid #54eaff22;transform:translate(-50%,-50%) scale(.9);box-shadow:0 0 30px #54eaff14;opacity:.8}
+.centerPulse{position:absolute;left:50%;top:48%;width:14vw;height:14vw;max-width:150px;max-height:150px;min-width:62px;min-height:62px;border-radius:50%;border:1px solid #54eaff22;transform:translate(-50%,-50%) scale(.9);box-shadow:0 0 18px #54eaff10;opacity:.62;will-change:transform}
 .centerPulse.beat{animation:centerBeat .22s ease-out}
 .beatReadout{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);font-weight:1000;font-size:clamp(12px,2.8vw,18px);letter-spacing:2px;color:#bcefff;opacity:.28;pointer-events:none;text-align:center}
 .beatText{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.7);font-size:clamp(32px,9vw,78px);font-weight:1000;opacity:0;pointer-events:none;text-shadow:0 0 30px currentColor,0 0 80px currentColor}.beatText.show{animation:pop .5s ease-out}
@@ -46,7 +46,7 @@ button{font:inherit;color:inherit;border:0}
 .attackOverlay{position:absolute;inset:0;background:repeating-linear-gradient(135deg,#ff55bd12 0 12px,#ff55bd00 12px 24px);mix-blend-mode:screen;opacity:0;pointer-events:none}.attackOverlay.on{animation:jamFlash .65s ease-out 2}
 @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
 @keyframes msPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.08)}}
-@keyframes centerBeat{0%{transform:translate(-50%,-50%) scale(.85);box-shadow:0 0 16px #54eaff22}55%{transform:translate(-50%,-50%) scale(1.05);box-shadow:0 0 50px #54eaff32}100%{transform:translate(-50%,-50%) scale(.92)}}
+@keyframes centerBeat{0%{transform:translate(-50%,-50%) scale(.92);box-shadow:0 0 16px #54eaff10}55%{transform:translate(-50%,-50%) scale(1.015);box-shadow:0 0 26px #54eaff18}100%{transform:translate(-50%,-50%) scale(.96);box-shadow:0 0 18px #54eaff10}}
 @keyframes jamShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @keyframes jamFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
 @media(min-width:700px){.shell{padding-top:9px}.game{max-height:calc(100dvh - 14px)}}
@@ -597,7 +597,7 @@ let musicBuffer=null,musicSource=null,musicGain=null,librarySongs=[],activeChart
 let hudLastUpdate=0;
 let musicProgressLastUpdate=0;
 let musicEl=null,musicDuration=0,musicActuallyPlaying=false,musicGesturePrimed=false,musicStallSince=0,musicLastTickPerf=0,musicLastTickTime=0,musicBlocked=false,musicEnded=false,musicStartedAtPerf=0,musicEverPlayed=false,musicSyncTimer=null;
-let roundId='',autoResult=false,feedback='',feedbackColor='#fff',attackUntil=0,attackCount=0,incomingJamCount=0,backgroundPulse=0,lastPlayerShare=0,highestLocalRank=99,lastLeaderScore=0,clashCount=0,slideProgress=0,lastAccuracy=100,overTakeFlash=0,lastBeat=-1;
+let roundId='',autoResult=false,feedback='',feedbackColor='#fff',attackUntil=0,attackCount=0,incomingJamCount=0,backgroundPulse=0,backgroundPulseVisual=0,lastPlayerShare=0,highestLocalRank=99,lastLeaderScore=0,clashCount=0,slideProgress=0,lastAccuracy=100,overTakeFlash=0,lastBeat=-1;
 let lyricsLines=[],lyricsLoaded=false,lyricsMode='lrc',lyricsSource='',lyricsAbort=null;
 let timingOffsetMs=Number(localStorage.getItem('boomroomTimingOffsetMs')||0);
 let audioOutputCompSec=0;
@@ -753,6 +753,8 @@ function updateRenderQuality(now){
   if(renderPerf.sampleCount<45)return;
   renderPerf.sampleCount=0;renderPerf.sampleMs=0;
 }
+function hexRgb(v){const s=String(v||'').trim().replace('#','');if(s.length===3)return s.split('').map(x=>parseInt(x+x,16));if(/^[0-9a-fA-F]{6}$/.test(s))return [parseInt(s.slice(0,2),16),parseInt(s.slice(2,4),16),parseInt(s.slice(4,6),16)];return [84,234,255];}
+function mixColor(a,b,t){const A=hexRgb(a),B=hexRgb(b),u=clamp(Number(t)||0,0,1);return '#'+[0,1,2].map(i=>Math.round(A[i]*(1-u)+B[i]*u).toString(16).padStart(2,'0')).join('');}
 function ensureRenderCache(w,h){
   const key=`${Math.round(w)}x${Math.round(h)}|${song?.color||''}|q${renderPerf.quality}`;
   if(renderPerf.cache&&renderPerf.cacheKey===key)return renderPerf.cache;
@@ -763,11 +765,17 @@ function ensureRenderCache(w,h){
   const g=b.createRadialGradient(w*.5,h*.55,10,w*.5,h*.55,Math.max(w,h)*.72);
   g.addColorStop(0,(song?.color||'#54eaff')+'18');g.addColorStop(.4,'#080c1b');g.addColorStop(1,'#03040a');
   b.fillStyle=g;b.fillRect(0,0,w,h);
-  const glow=b.createRadialGradient(w*.5,h*.55,10,w*.5,h*.55,Math.max(w,h)*.72);
-  glow.addColorStop(0,(song?.color||'#54eaff')+'38');glow.addColorStop(1,'#03040a00');
-  const hot=b.createRadialGradient(w*.5,h*.55,10,w*.5,h*.55,Math.max(w,h)*.72);
-  hot.addColorStop(0,'#4b103650');hot.addColorStop(1,'#03040a00');
-  // Cache the expensive gradients once; the live renderer only changes globalAlpha.
+  // V32.22: the old dynamicGlow covered almost the entire stage with a transparent
+  // full-screen radial gradient. On some Android WebViews that became a visible white
+  // center flash when its alpha changed. Keep the beat-glow effect, but rasterize only
+  // a compact center halo into the opaque gameplay canvas.
+  const haloR=Math.max(90,Math.min(Math.max(w,h)*.34,Math.min(w,h)*.72));
+  const glow=b.createRadialGradient(w*.5,h*.55,4,w*.5,h*.55,haloR);
+  glow.addColorStop(0,mixColor(song?.color||'#54eaff','#54eaff',.68)+'28');
+  glow.addColorStop(.42,mixColor(song?.color||'#54eaff','#8d7cff',.35)+'18');
+  glow.addColorStop(1,'#03040a00');
+  const hot=b.createRadialGradient(w*.5,h*.55,4,w*.5,h*.55,haloR*.9);
+  hot.addColorStop(0,'#7a3b7a2c');hot.addColorStop(.48,'#4b103610');hot.addColorStop(1,'#03040a00');
   const dynamicGlow=document.createElement('canvas');dynamicGlow.width=bg.width;dynamicGlow.height=bg.height;const dg=dynamicGlow.getContext('2d');dg.fillStyle=glow;dg.fillRect(0,0,w,h);
   const hotGlow=document.createElement('canvas');hotGlow.width=bg.width;hotGlow.height=bg.height;const hg=hotGlow.getContext('2d');hg.fillStyle=hot;hg.fillRect(0,0,w,h);
   const grid=renderPerf.quality>=1?34:52; b.save();b.globalAlpha=renderPerf.quality>=1?.28:.18;
@@ -1209,7 +1217,7 @@ window.addEventListener('message',e=>{let d;try{d=typeof e.data==='string'?JSON.
 function handleEvent(name,p={}){if(name==='RHYTHM_SCORE'&&p.userId){const q=addPlayer(p.userId,p.username||'玩家',Number(p.score)||0,Number(p.combo)||0,p.alive!==false);q.lastTs=performance.now();q.comboPeak=Math.max(q.comboPeak||0,Number(p.maxCombo||p.combo)||0);q.finalAccuracy=Number.isFinite(Number(p.accuracy))?Number(p.accuracy):q.finalAccuracy;renderRoster()}if(name==='RHYTHM_RESULT'&&p.userId){const q=addPlayer(p.userId,p.username||'玩家',Number(p.score)||0,Number(p.maxCombo)||0,p.alive!==false);q.score=Number(p.score)||0;q.combo=Number(p.combo)||0;q.comboPeak=Math.max(q.comboPeak||0,Number(p.maxCombo)||Number(p.combo)||0);q.finalSubmitted=true;q.finalAccuracy=Number.isFinite(Number(p.accuracy))?Number(p.accuracy):q.finalAccuracy;q.finalPerfect=Number(p.perfect)||0;q.finalGood=Number(p.good)||0;q.finalMiss=Number(p.miss)||0;q.finalPulse=Number(p.attackCount)||0;q.attack=q.finalPulse;q.incomingJam=Number(p.incomingJamCount)||0;if(state===STATE.RESULT){renderResult($('main'))}else renderRoster()}if(name==='RHYTHM_PULSE'&&p.userId&&p.userId!==me.id)receiveJam(p.username||'玩家','脈衝');if(name==='RHYTHM_JAM'&&p.userId&&p.userId!==me.id)receiveJam(p.username||'玩家','干擾');if(name==='RHYTHM_OUT'&&p.userId){const q=players.get(String(p.userId));if(q){q.alive=false;renderRoster()}}}
 function receiveJam(from,kind){incomingJamCount++;attackUntil=Math.max(attackUntil,performance.now()+1300);const o=$('attackOverlay');if(o){o.classList.remove('on');void o.offsetWidth;o.classList.add('on')}document.querySelectorAll('.lane').forEach(b=>{b.classList.remove('jammed');void b.offsetWidth;b.classList.add('jammed')});toast('⚡ '+escapeHtml(from)+' 發動 '+kind+'！','#ff9edf');backgroundPulse=Math.max(backgroundPulse,1.2);vibrate([30,20,40])}
 function difficultyLabel(){return difficulty.name}
-function showMenu(){state=STATE.MENU;renderPerf.lastPerfCueId=null;renderCtx=null;invalidateRenderCache();render();}
+function showMenu(){state=STATE.MENU;backgroundPulseVisual=0;renderPerf.lastPerfCueId=null;renderCtx=null;invalidateRenderCache();render();}
 function renderMenu(main){
   const entries=songEntries();
   const selectedEntry=entries.find(([k])=>String(k)===String(chosenSong));
@@ -1576,10 +1584,14 @@ function draw(now){
   fxCtx.clearRect(0,0,w,h);
 
   const t=state===STATE.PLAY?localTime(now):0;
-  // Dynamic background glow goes to the FX layer, so the expensive full-stage base remains cached.
+  // V32.22: draw the beat glow on the opaque gameplay canvas, not the transparent FX layer.
+  // Smooth the visual pulse separately from gameplay timing so it cannot pop between frames.
   const beatPhase=((t/CFG.BEAT)%1+1)%1;
-  const p=Math.pow(1-beatPhase,3)*(.55+backgroundPulse*.45),hot=(CFG.ROUND-t)<12;
-  if(p>.01||hot){fxCtx.save();fxCtx.globalAlpha=hot?.45:Math.min(.55,.10+p*.42);fxCtx.drawImage(hot?cache.hotGlow:cache.dynamicGlow,0,0,w,h);fxCtx.restore();}
+  const targetPulse=state===STATE.PLAY?Math.pow(1-beatPhase,3):0;
+  backgroundPulseVisual += (targetPulse + Math.min(1,backgroundPulse)*.28 - backgroundPulseVisual)*.105;
+  const hot=(CFG.ROUND-t)<12;
+  const glowAlpha=hot?.17:Math.min(.22,.025+backgroundPulseVisual*.12);
+  if(glowAlpha>.008){renderCtx.save();renderCtx.globalAlpha=glowAlpha;renderCtx.drawImage(hot?cache.hotGlow:cache.dynamicGlow,0,0,w,h);renderCtx.restore();}
 
   if(state===STATE.PLAY)drawBeatLines(renderCtx,w,h,h*JUDGE_Y_RATIO,t);
   const judgeY=h*JUDGE_Y_RATIO,phase=state===STATE.PLAY?Math.pow(1-(((t/CFG.BEAT)%1+1)%1),3):0;
@@ -1656,7 +1668,7 @@ function getHoldActiveSprite(n,r){
   const pad=Math.ceil(r*2.7)+8,c=document.createElement('canvas');c.width=c.height=pad*2;const g=c.getContext('2d');g.translate(pad,pad);const color=noteLaneColor(n),q=renderPerf.quality;g.shadowBlur=q>=1?(q===2?22:10):0;g.shadowColor=color;g.fillStyle=color;drawDiamondPath(g,r*1.08,.18);g.fill();g.strokeStyle='#fff';g.lineWidth=2;drawDiamondPath(g,r*1.08,.18);g.stroke();g.fillStyle='#061019';g.font='1000 '+Math.max(8,Math.floor(r*.68))+'px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText('↕',0,-r*.12);g.font='1000 '+Math.max(7,Math.floor(r*.36))+'px system-ui';g.fillText('ASDF'[clamp(Number(n.lane)||0,0,3)],0,r*.37);renderPerf.noteSprites.set(key,c);return c;
 }
 
-async function startRound(){
+async function startRound(){backgroundPulseVisual=0;
   setSongAndDifficulty();
   // Lyrics are optional and never block game startup. Same-basename .lrc/.txt/.lyrics files are auto-detected.
   loadLyricsForSong(song).catch(()=>{});
