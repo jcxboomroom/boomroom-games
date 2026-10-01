@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#06070f">
-<title>BoomRoom Rhythm V32.17</title>
+<title>BoomRoom Rhythm V32.20</title>
 <style>
 :root{
   --bg:#05060d; --panel:#0d1020; --panel2:#11152b; --line:#262d4a; --text:#f8fbff; --muted:#8d96b4;
@@ -65,17 +65,17 @@ button{font:inherit;color:inherit;border:0}
 .menuHeader{flex:none}.menuHeader .menuDesc:last-child{margin-bottom:8px}
 .difficultyRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;flex:none}
 .difficultyChoice{position:relative;min-width:0;height:56px;padding:8px 5px;border-radius:12px;background:#090d18;border:1px solid #252e4c;cursor:pointer;text-align:center;transition:.15s transform,.15s border-color,.15s box-shadow}
-.difficultyChoice:hover{transform:translateY(-1px)}.difficultyChoice.active{border-color:#54eaff99;box-shadow:0 0 24px #54eaff15,inset 0 0 16px #54eaff0b}
+.difficultyChoice:hover{transform:none}.difficultyChoice.active{border-color:#54eaff99;box-shadow:0 0 24px #54eaff15,inset 0 0 16px #54eaff0b}
 .difficultyChoice strong{display:block;font-size:12px;line-height:1.1;white-space:nowrap}.difficultyChoice em{display:block;margin-top:4px;font-size:7px;color:#66749f;font-style:normal;letter-spacing:.5px}
 .songScrollWrap{display:flex;flex-direction:column;min-height:0;flex:1;margin-top:1px}.songScrollHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none}
 .songScrollHint{font-size:7px;color:#697794;white-space:nowrap}.songScroll{min-height:92px;max-height:min(42vh,330px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 4px 8px 1px;margin-right:-2px;scrollbar-width:thin;scrollbar-color:#35405f transparent}
 .songScroll::-webkit-scrollbar{width:5px}.songScroll::-webkit-scrollbar-track{background:transparent}.songScroll::-webkit-scrollbar-thumb{background:#35405f;border-radius:99px}
 .songGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.songChoice{position:relative;text-align:left;padding:10px 11px;border-radius:13px;background:#090d18;border:1px solid #252e4c;cursor:pointer;min-height:63px;transition:.15s transform,.15s border-color,.15s box-shadow}
-.songChoice:hover{transform:translateY(-1px)}.songChoice.active{border-color:#54eaff99;box-shadow:0 0 30px #54eaff17,inset 0 0 18px #54eaff0b}
-.songChoice strong{display:block;font-size:12px;margin:0 26px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.songChoice span{display:block;color:#8993b2;font-size:8px;line-height:1.3}.songChoice em{position:absolute;top:9px;right:9px;font-size:15px;color:#fff;font-style:normal}
+.songChoice:hover{transform:none}.songChoice.active{border-color:#54eaff99;box-shadow:0 0 30px #54eaff17,inset 0 0 18px #54eaff0b}
+.songChoice strong{display:block;font-size:12px;line-height:16px;height:16px;margin:0 26px 5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.songChoice span{display:block;min-height:10px;color:#8993b2;font-size:8px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.songChoice em{position:absolute;top:9px;right:9px;font-size:15px;line-height:16px;color:#fff;font-style:normal}.songChoice .songMeta{display:block}
 .menuBottom{flex:none;margin-top:6px;padding-top:7px;border-top:1px solid #1e2641;background:linear-gradient(180deg,#0b0f1c 0%,#090d19 78%)}
-.selectedSummary.compact{margin-top:0;padding:6px 8px;gap:5px}.selectedSummary.compact>span{font-size:7px;color:#7380a1}.selectedSummary.compact>b{font-size:10px}.selectedSummary.compact .songStats{gap:5px}.selectedSummary.compact .songStats>span{padding:5px 4px}.selectedSummary.compact .songStats strong{font-size:11px}.selectedSummary.compact .songStats small{font-size:6px}
-.timingTune.compact{margin-top:6px;padding:6px 8px}.timingTune.compact>div{font-size:7px}.timingTune.compact b{font-size:8px}.timingTune.compact input{margin:4px 0 1px;height:15px}.timingTune.compact small{font-size:6px}.startBtn{margin-top:7px;width:100%;height:50px;flex:none}
+.selectedSummary.compact{margin-top:0;padding:6px 8px;gap:5px}.selectedSummary.compact>span{font-size:7px;color:#7380a1}.selectedSummary.compact>b{font-size:10px}.selectedSummary.compact .songStats{gap:5px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.selectedSummary.compact .songStats>span{padding:5px 4px}.selectedSummary.compact .songStats strong{font-size:11px}.selectedSummary.compact .songStats small{font-size:6px}
+.timingTune.compact{margin-top:6px;padding:6px 8px}.timingTune.compact>div{font-size:7px}.timingTune.compact b{font-size:8px}.timingTune.compact input{margin:4px 0 1px;height:15px}.timingTune.compact small{font-size:6px}.startBtn{margin-top:7px;width:100%;height:50px;flex:none}.startBtn{appearance:none;-webkit-appearance:none;border:1px solid #54eaff66;border-radius:12px;background:linear-gradient(135deg,#172442 0%,#102a42 52%,#16304a 100%);color:#eafcff;box-shadow:0 0 24px #54eaff16,inset 0 1px 0 #ffffff16;font-weight:1000;letter-spacing:.3px}.startBtn:hover{background:linear-gradient(135deg,#1b2d50 0%,#123553 52%,#183b59 100%)}.startBtn:active{transform:translateY(1px)}.startBtn:disabled{background:linear-gradient(135deg,#10172a 0%,#101a2a 52%,#111d2d 100%);border-color:#35425e;color:#7f8ba6;opacity:1;box-shadow:none;cursor:wait}
 .menuFoot{margin-top:4px;font-size:7px;line-height:1.3}.menuFoot span{display:block;text-align:center}
 @media(max-width:600px){.menuWrap{align-items:stretch;padding:0}.menuCard{max-height:100%;height:100%;border-radius:18px;padding:12px 11px}.menuHeader .menuDesc:first-child{font-size:12px!important;margin-bottom:3px!important}.menuHeader .menuDesc:nth-child(2){font-size:8px;margin-bottom:7px}.selectTitle{margin:8px 0 5px;font-size:9px}.difficultyRow{gap:5px}.difficultyChoice{height:48px;padding:7px 4px}.difficultyChoice strong{font-size:10px}.difficultyChoice em{font-size:6px;margin-top:3px}.songScroll{max-height:none;flex:1;min-height:110px}.songGrid{grid-template-columns:1fr;gap:6px}.songChoice{min-height:58px;padding:9px 10px}.songChoice strong{font-size:11px;margin-bottom:4px}.songChoice span{font-size:8px}.menuBottom{padding-top:6px}.selectedSummary.compact{padding:6px 8px}.timingTune.compact{padding:5px 8px}.timingTune.compact small{display:none}.timingTune.compact input{margin:2px 0 0;height:14px}.startBtn{height:48px;font-size:13px;margin-top:6px}.menuFoot{margin-top:4px}}
 @media(min-width:601px){.songScroll{max-height:min(40vh,320px)}}
@@ -879,7 +879,164 @@ window.addEventListener('pageshow',()=>{resumeAudio();if(state===STATE.COUNT||st
 function songEntries(){
   return librarySongs.map((x,i)=>{const id=x.id||String(i);const cached=songMetaCache.get(String(id))||{};return [id,{id,name:x.title||x.filename||x.id||`歌曲 ${i+1}`,icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||Number(cached.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`,charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}];});
 }
-function hydrateSongDuration(songId,src){const id=String(songId);const existing=songMetaCache.get(id)||{};if(existing.duration||existing.loading||!src)return;existing.loading=true;songMetaCache.set(id,existing);const a=new Audio();a.preload='metadata';a.src=src;const done=(dur)=>{existing.loading=false;if(Number.isFinite(dur)&&dur>0){existing.duration=dur;const item=librarySongs.find(x=>String(x.id)===id);if(item)item.duration=dur;}songMetaCache.set(id,existing);if(state===STATE.MENU)renderMenu($('main'));};a.addEventListener('loadedmetadata',()=>done(a.duration),{once:true});a.addEventListener('error',()=>done(0),{once:true});try{a.load()}catch(_){done(0)}}
+function getSongMenuMeta(songObj,diff=chosenDifficulty){
+  const id=String(songObj?.id||'');
+  const cached=songMetaCache.get(id)||{};
+  const st=(songObj?.stats&&songObj.stats[diff])||{};
+  const cst=(cached.stats&&cached.stats[diff])||{};
+  const duration=Number(songObj?.duration||st.duration||cst.duration||cached.duration||0);
+  const notes=Number(st.notes||cst.notes||0);
+  const bpm=Number(st.bpm||cst.bpm||songObj?.bpm||cached.bpm||0);
+  return {duration:Number.isFinite(duration)?duration:0,notes:Number.isFinite(notes)?notes:0,bpm:Number.isFinite(bpm)?bpm:0};
+}
+function formatMenuMeta(meta){
+  const d=fmtTime(meta.duration);
+  const n=meta.notes?meta.notes.toLocaleString():'—';
+  const b=meta.bpm?Math.round(meta.bpm):'—';
+  return `${d} · ${n} 音符 · BPM ${b}`;
+}
+function updateMenuSongNode(songId,meta,diff=chosenDifficulty){
+  const btn=[...document.querySelectorAll('.songChoice')].find(el=>String(el.dataset.song)===String(songId));
+  if(!btn)return;
+  const span=btn.querySelector('.songMeta');if(span)span.textContent=formatMenuMeta(meta);
+}
+function updateMenuSelectionUI(){
+  if(state!==STATE.MENU)return;
+  document.querySelectorAll('.difficultyChoice').forEach(b=>b.classList.toggle('active',b.dataset.diff===chosenDifficulty));
+  document.querySelectorAll('.songChoice').forEach(b=>b.classList.toggle('active',String(b.dataset.song)===String(chosenSong)));
+  const found=songEntries().find(([k])=>String(k)===String(chosenSong));
+  const obj=found?found[1]:song;
+  const meta=getSongMenuMeta(obj,chosenDifficulty);
+  const sum=$('summaryText');if(sum)sum.textContent=obj?.name||song.name||'尚未選擇歌曲';
+  const box=document.querySelector('.selectedSummary .songStats');
+  if(box){
+    const vals=[fmtTime(meta.duration),meta.notes?meta.notes.toLocaleString():'—',meta.bpm?String(Math.round(meta.bpm)):'—'];
+    const labels=['時長',`${difficulty.name} 音符`,'BPM'];
+    box.innerHTML=vals.map((v,i)=>`<span><strong>${escapeHtml(v)}</strong><small>${escapeHtml(labels[i])}</small></span>`).join('');
+  }
+}
+function hydrateSongDuration(songId,src){
+  const id=String(songId);const existing=songMetaCache.get(id)||{};
+  if(existing.duration||existing.durationLoading||!src)return;
+  existing.durationLoading=true;songMetaCache.set(id,existing);
+  const a=new Audio();a.preload='metadata';a.src=src;
+  const done=(dur)=>{
+    existing.durationLoading=false;
+    if(Number.isFinite(dur)&&dur>0){
+      existing.duration=dur;
+      const item=librarySongs.find(x=>String(x.id)===id);if(item&&!Number(item.duration))item.duration=dur;
+    }
+    songMetaCache.set(id,existing);
+    if(state===STATE.MENU){
+      const found=songEntries().find(([k])=>String(k)===id);
+      if(found)updateMenuSongNode(id,getSongMenuMeta(found[1],chosenDifficulty));
+      updateMenuSelectionUI();
+      const checked=getSongMenuMeta(found?found[1]:song,chosenDifficulty);
+      if(!checked.bpm)hydrateSongBpmFromAudio(id,found?found[1]:song);
+    }
+  };
+  a.addEventListener('loadedmetadata',()=>done(a.duration),{once:true});a.addEventListener('error',()=>done(0),{once:true});try{a.load()}catch(_){done(0)}
+}
+async function estimateAudioBpm(url){
+  if(!url)return 0;
+  try{
+    const res=await fetch(url,{cache:'force-cache'});if(!res.ok)throw new Error(String(res.status));
+    const buf=await res.arrayBuffer();
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return 0;
+    const ctx=new C();
+    let audio=await ctx.decodeAudioData(buf.slice(0));
+    try{await ctx.close()}catch(_){ }
+    const sr=audio.sampleRate||44100,channels=audio.numberOfChannels||1;
+    const frames=Math.min(audio.length,Math.floor(sr*120));
+    const mono=new Float32Array(frames);
+    for(let ch=0;ch<channels;ch++){
+      const data=audio.getChannelData(ch);
+      for(let i=0;i<frames;i++)mono[i]+=data[i]/channels;
+    }
+    // ~43 Hz energy envelope, enough resolution for beat-period detection but much lighter than raw samples.
+    const hop=Math.max(256,Math.round(sr/43));
+    const env=[];
+    for(let i=0;i+hop<frames;i+=hop){
+      let sum=0;for(let j=0;j<hop;j+=4){const v=mono[i+j]||0;sum+=v*v;}
+      env.push(Math.sqrt(sum/Math.max(1,Math.ceil(hop/4))));
+    }
+    audio=null;
+    if(env.length<80)return 0;
+    // Positive spectral-flux-like envelope, then normalize.
+    const flux=new Float32Array(env.length);let mean=0;
+    for(let i=1;i<env.length;i++){const d=env[i]-env[i-1];flux[i]=d>0?d:0;mean+=flux[i];}
+    mean/=Math.max(1,flux.length-1);
+    let energy=0;for(let i=1;i<flux.length;i++){const q=flux[i]-mean;if(q>0)energy+=q*q;}
+    if(energy<=1e-10)return 0;
+    // Score candidate BPMs by phase-aligned onset energy. Half/double interpretations are handled below.
+    const minBpm=70,maxBpm=210,step=.5,rate=sr/hop;
+    let best={bpm:0,score:-Infinity};
+    for(let bpm=minBpm;bpm<=maxBpm;bpm+=step){
+      const period=rate*60/bpm;if(period<2||period>rate*1.2)continue;
+      let score=0,weight=0;
+      for(let lag=1;lag<=Math.min(flux.length-1,Math.round(period*8));lag++){
+        const w=1/(1+Math.abs(lag-period)/Math.max(1,period)*3);if(w<.14)continue;
+        let corr=0,count=0;
+        for(let i=lag;i<flux.length;i+=2){corr+=flux[i]*flux[i-lag];count++;}
+        if(count){score+=corr/count*w;weight+=w;}
+      }
+      score=weight?score/weight:0;
+      if(score>best.score)best={bpm,score};
+    }
+    let bpm=best.bpm;
+    if(bpm){
+      // Prefer the musically natural interpretation when the estimate is a strong half/double duplicate.
+      const test=[bpm/2,bpm,bpm*2].filter(v=>v>=70&&v<=210);
+      let best2={bpm,score:-Infinity};
+      for(const cand of test){
+        const period=rate*60/cand;let score=0,count=0;
+        for(let i=Math.max(1,Math.round(period));i<flux.length;i+=Math.max(1,Math.round(period/2))){score+=flux[i];count++;}
+        score/=Math.max(1,count);
+        if(score>best2.score)best2={bpm:cand,score};
+      }
+      bpm=best2.bpm;
+    }
+    return bpm?Math.round(bpm):0;
+  }catch(_){return 0;}
+}
+async function hydrateSongBpmFromAudio(songId,songObj){
+  const id=String(songId);const existing=songMetaCache.get(id)||{};
+  existing.stats=existing.stats||{};
+  if(existing.bpmLoading||existing.bpmEstimate)return existing.bpmEstimate||0;
+  const current=Number(songObj?.bpm||0);if(current>0)return current;
+  const url=songObj?.audioUrl||`./music/${encodeURIComponent(songObj?.filename||'')}`;if(!url)return 0;
+  existing.bpmLoading=true;songMetaCache.set(id,existing);
+  const bpm=await estimateAudioBpm(url);
+  existing.bpmLoading=false;existing.bpmEstimate=bpm;
+  if(bpm>0){existing.bpm=bpm;const item=librarySongs.find(x=>String(x.id)===id);if(item&&!Number(item.bpm))item.bpm=bpm;if(String(chosenSong)===id)song.bpm=bpm;}
+  songMetaCache.set(id,existing);
+  if(state===STATE.MENU){const found=songEntries().find(([k])=>String(k)===id);if(found)updateMenuSongNode(id,getSongMenuMeta(found[1],chosenDifficulty));updateMenuSelectionUI();}
+  return bpm;
+}
+async function hydrateSongChartMeta(songId,songObj,diff=chosenDifficulty){
+  const id=String(songId);const existing=songMetaCache.get(id)||{};existing.stats=existing.stats||{};existing.chartLoading=existing.chartLoading||{};
+  if(existing.stats[diff]?.notes||existing.stats[diff]?.bpm||existing.chartLoading[diff]){songMetaCache.set(id,existing);return;}
+  const url=chartUrlFor(songObj,diff);if(!url){songMetaCache.set(id,existing);return;}
+  existing.chartLoading[diff]=true;songMetaCache.set(id,existing);
+  try{
+    const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error(String(res.status));
+    const raw=await res.json();const root=raw&&raw.chart?raw.chart:raw;
+    const arr=Array.isArray(raw)?raw:(Array.isArray(root?.notes)?root.notes:(Array.isArray(root?.events)?root.events:[]));
+    const bpm=Number(root?.bpm??raw?.bpm??songObj?.bpm??0);
+    const duration=Number(root?.duration??raw?.duration??songObj?.duration??0);
+    existing.stats[diff]={notes:Array.isArray(arr)?arr.length:0,bpm:Number.isFinite(bpm)?bpm:0,duration:Number.isFinite(duration)?duration:0};
+    if(duration>0&&!existing.duration){existing.duration=duration;const item=librarySongs.find(x=>String(x.id)===id);if(item&&!Number(item.duration))item.duration=duration;}
+  }catch(_){
+    existing.stats[diff]=existing.stats[diff]||{};
+  }finally{
+    existing.chartLoading[diff]=false;songMetaCache.set(id,existing);
+    if(state===STATE.MENU){
+      const found=songEntries().find(([k])=>String(k)===id);
+      if(found)updateMenuSongNode(id,getSongMenuMeta(found[1],chosenDifficulty));
+      updateMenuSelectionUI();
+    }
+  }
+}
 
 function normalizeSongEntry(k,obj){return {id:obj.id||k,name:obj.name||obj.title||k,icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||0,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',charts:obj.charts||{},lyricsUrl:obj.lyricsUrl||''}}
 
@@ -1061,32 +1218,52 @@ function renderMenu(main){
   const entries=songEntries();
   const selectedEntry=entries.find(([k])=>String(k)===String(chosenSong));
   const selectedSongObj=selectedEntry?selectedEntry[1]:song;
-  const currentName=selectedSongObj?.name||song.name||SONGS[chosenSong]?.name||chosenSong;
-  const selectedStats=selectedSongObj?.stats?.[chosenDifficulty]||{};
-  const songDuration=Number(selectedSongObj?.duration||selectedStats.duration||0);
-  const selectedNoteCount=Number(selectedStats.notes||0);
+  const meta=getSongMenuMeta(selectedSongObj,chosenDifficulty);
   main.innerHTML=`<section class="menuWrap"><div class="menuCard">
     <div class="menuHeader">
       <p class="menuDesc" style="font-size:13px;color:#dfe6ff;font-weight:900;margin-top:0">選擇難度與音樂後開始</p>
       <p class="menuDesc">四種難度都來自同一套音樂時間軸，只改變取樣深度、長音與和弦複雜度。譜面完全以 charts/*.json 為準。</p>
       <div style="display:flex;gap:7px;align-items:center;justify-content:space-between;margin:5px 0 5px"><span class="miniTag">${librarySongs.length?`已偵測 ${librarySongs.length} 首 MP3`:'使用內建示範歌曲'}</span><button id="refreshLibrary" class="powerAction">↻ 重新載入</button></div>
       <div class="selectTitle">① 選擇難度</div>
-      <div class="difficultyRow">${Object.entries(DIFFS).map(([k,d])=>`<button class="difficultyChoice ${k===chosenDifficulty?'active':''}" data-diff="${k}"><strong>${d.name}</strong><em>${d.label}</em></button>`).join('')}</div>
+      <div class="difficultyRow">${Object.entries(DIFFS).map(([k,d])=>`<button type="button" class="difficultyChoice ${k===chosenDifficulty?'active':''}" data-diff="${k}"><strong>${d.name}</strong><em>${d.label}</em></button>`).join('')}</div>
     </div>
     <div class="songScrollWrap">
       <div class="selectTitle" style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>② 選擇音樂</span><span class="songScrollHint">上下滑動選歌</span></div>
-      <div class="songScroll" id="songScroll"><div class="songGrid">${entries.length?entries.map(([k,s])=>{const st=s.stats?.[chosenDifficulty]||{};const dur=Number(s.duration||st.duration||0);const cnt=Number(st.notes||0);return `<button class="songChoice ${String(k)===String(chosenSong)?'active':''}" data-song="${escapeHtml(String(k))}"><em>${s.icon||'🎵'}</em><strong>${escapeHtml(s.name||k)}</strong><span>${fmtTime(dur)} · ${cnt?cnt.toLocaleString():'—'} 音符</span></button>`}).join(''):'<div style="padding:24px 14px;text-align:center;color:#8d96b4;font-size:11px;line-height:1.7">尚未建立歌曲。<br>請先用譜面編輯器設定 Music、charts 與 library.json，再匯出歌曲。</div>'}</div></div>
+      <div class="songScroll" id="songScroll"><div class="songGrid">${entries.length?entries.map(([k,s])=>{const st=getSongMenuMeta(s,chosenDifficulty);return `<button type="button" class="songChoice ${String(k)===String(chosenSong)?'active':''}" data-song="${escapeHtml(String(k))}"><em>${s.icon||'🎵'}</em><strong>${escapeHtml(s.name||k)}</strong><span class="songMeta">${formatMenuMeta(st)}</span></button>`}).join(''):'<div style="padding:24px 14px;text-align:center;color:#8d96b4;font-size:11px;line-height:1.7">尚未建立歌曲。<br>請先用譜面編輯器設定 Music、charts 與 library.json，再匯出歌曲。</div>'}</div></div>
     </div>
     <div class="menuBottom">
-      <div class="selectedSummary compact"><span>本局歌曲</span><b id="summaryText">${escapeHtml(currentName)}</b><div class="songStats"><span><strong>${fmtTime(songDuration)}</strong><small>時長</small></span><span><strong>${selectedNoteCount?selectedNoteCount.toLocaleString():'—'}</strong><small>${difficulty.name} 音符</small></span></div></div>
+      <div class="selectedSummary compact"><span>本局歌曲</span><b id="summaryText">${escapeHtml(selectedSongObj?.name||song.name||'尚未選擇歌曲')}</b><div class="songStats"><span><strong>${escapeHtml(fmtTime(meta.duration))}</strong><small>時長</small></span><span><strong>${meta.notes?meta.notes.toLocaleString():'—'}</strong><small>${escapeHtml(difficulty.name)} 音符</small></span><span><strong>${meta.bpm?Math.round(meta.bpm):'—'}</strong><small>BPM</small></span></div></div>
       <div class="timingTune compact"><div><b>③ 判定手感校準</b><span id="timingTuneValue">${timingCalibrationLabel()}</span></div><input id="timingTuneRange" type="range" min="-60" max="60" step="1" value="${timingOffsetMs}" aria-label="判定手動校準"><small>＋：判定稍後　－：判定稍前</small></div>
-      <button id="startGame" class="startBtn" ${entries.length?'':'disabled'}>${entries.length?'▶ 開始遊玩':'請先建立歌曲'}</button>
+      <button type="button" id="startGame" class="startBtn" ${entries.length?'':'disabled'}>${entries.length?'▶ 開始遊玩':'請先建立歌曲'}</button>
       <div class="menuFoot"><span>${entries.length?'按下開始後會鎖定歌曲與難度，再倒數 3 秒正式起播':'先建立 library.json 與至少一首歌曲，遊戲才會出現可玩的歌曲。'}</span></div>
     </div>
   </div></section>`;
-  const seenHydrate=new Set();const hydrateList=[...entries.slice(0,12)];const hydrateSelected=entries.find(([k])=>String(k)===String(chosenSong));if(hydrateSelected)hydrateList.unshift(hydrateSelected);for(const [k,s] of hydrateList){if(seenHydrate.has(String(k)))continue;seenHydrate.add(String(k));const dur=Number(s.duration||s.stats?.[chosenDifficulty]?.duration||0);if(!dur)hydrateSongDuration(k,s.audioUrl||`./music/${encodeURIComponent(s.filename||'')}`)}
-  document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty];setRuntimeConfig();renderMenu(main)});
-  document.querySelectorAll('[data-song]').forEach(b=>b.onclick=()=>{chosenSong=b.dataset.song;const found=entries.find(([k])=>String(k)===String(chosenSong));if(found)song=normalizeSongEntry(...found);setRuntimeConfig();renderMenu(main)});
+
+  // Hydrate duration + chart metadata without rebuilding the menu DOM.
+  const hydrateList=[...entries.slice(0,16)];
+  const hydrateSelected=entries.find(([k])=>String(k)===String(chosenSong));
+  if(hydrateSelected)hydrateList.unshift(hydrateSelected);
+  const seen=new Set();
+  for(const [k,s] of hydrateList){
+    if(seen.has(String(k)))continue;seen.add(String(k));
+    const meta0=getSongMenuMeta(s,chosenDifficulty);
+    if(!meta0.duration)hydrateSongDuration(k,s.audioUrl||`./music/${encodeURIComponent(s.filename||'')}`);
+    if(!meta0.notes||!meta0.bpm)hydrateSongChartMeta(k,s,chosenDifficulty);
+  }
+
+  document.querySelectorAll('.difficultyChoice').forEach(b=>b.onclick=()=>{
+    chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty];setRuntimeConfig();
+    updateMenuSelectionUI();
+    const current=songEntries();
+    const selected=current.find(([k])=>String(k)===String(chosenSong));
+    if(selected){const m=getSongMenuMeta(selected[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,selected[1],chosenDifficulty);}
+    for(const [k,s] of current.slice(0,16)){const m=getSongMenuMeta(s,chosenDifficulty);updateMenuSongNode(k,m);if(!m.notes||!m.bpm)hydrateSongChartMeta(k,s,chosenDifficulty);}
+  });
+  document.querySelectorAll('.songChoice').forEach(b=>b.onclick=()=>{
+    chosenSong=b.dataset.song;
+    const current=songEntries();const found=current.find(([k])=>String(k)===String(chosenSong));
+    if(found){song=normalizeSongEntry(...found);setRuntimeConfig();updateMenuSelectionUI();const m=getSongMenuMeta(found[1],chosenDifficulty);updateMenuSongNode(chosenSong,m);if(!m.duration)hydrateSongDuration(chosenSong,found[1].audioUrl||`./music/${encodeURIComponent(found[1].filename||'')}`);if(!m.notes||!m.bpm)hydrateSongChartMeta(chosenSong,found[1],chosenDifficulty);}
+  });
   $('refreshLibrary').onclick=async()=>{const btn=$('refreshLibrary');btn.disabled=true;btn.textContent='載入中…';await loadLibrary();renderMenu(main)};
   const tune=$('timingTuneRange'),tuneLabel=$('timingTuneValue');if(tune&&tuneLabel){tune.oninput=()=>{timingOffsetMs=Number(tune.value)||0;localStorage.setItem('boomroomTimingOffsetMs',String(timingOffsetMs));tuneLabel.textContent=timingCalibrationLabel();};}
   if($('startGame'))$('startGame').onclick=()=>{if(!entries.length)return;const btn=$('startGame');btn.disabled=true;btn.textContent='載入節奏…';setSongAndDifficulty();ensureAudio(true);if(song.audioUrl)primeMusic(song.audioUrl);startRound().catch(err=>{console.error('startRound failed',err);btn.disabled=false;btn.textContent='▶ 重新開始';toast('載入失敗：'+(err?.message||err),'#ff6174')});};
@@ -1269,8 +1446,8 @@ function getHoldRailSprite(color,width,active=false){
   const cx=c.width*.5;
   g.lineCap='round';
   if(q>=1){g.shadowBlur=q===2?12:6;g.shadowColor=active?color:color+'99';}
-  g.strokeStyle=color+(active?'aa':'55');g.lineWidth=w*.9;g.beginPath();g.moveTo(cx,10);g.lineTo(cx,h-10);g.stroke();
-  g.shadowBlur=0;g.strokeStyle=active?'#ffffffff':color+'cc';g.lineWidth=Math.max(2,w*.46);g.beginPath();g.moveTo(cx,10);g.lineTo(cx,h-10);g.stroke();
+  g.strokeStyle=color+(active?'aa':'55');g.lineWidth=w*.9;g.beginPath();g.moveTo(cx,0);g.lineTo(cx,h);g.stroke();
+  g.shadowBlur=0;g.strokeStyle=active?'#ffffffff':color+'cc';g.lineWidth=Math.max(2,w*.46);g.beginPath();g.moveTo(cx,0);g.lineTo(cx,h);g.stroke();
   renderPerf.holdSprites.set(key,c);return c;
 }
 function getHoldProgressSprite(width){
@@ -1320,12 +1497,15 @@ function drawNotes(x,w,h,t,judgeY){
     if(n.type==='hold'){
       const topTime=n.t+(n.len||0);
       const endYActive=noteY(n,t,h,judgeY,topTime);
-      const railBottom=activeHold?judgeY:y;
-      const railTop=Math.min(railBottom-18,endYActive);
+      const railStart=activeHold?judgeY:y;
+      const railEnd=endYActive;
+      const railTop=Math.min(railStart,railEnd);
+      const railBottom=Math.max(railStart,railEnd);
       const totalSpan=Math.max(18,railBottom-railTop);
       const railWidth=renderPerf.quality===0?Math.max(6,lw*.08):Math.max(8,lw*.105);
       const spriteRail=getHoldRailSprite(noteLaneColor(n),railWidth,activeHold);
-      x.drawImage(spriteRail,gx-spriteRail.width*.5,railTop-(spriteRail.height*.5),spriteRail.width,totalSpan+spriteRail.height);
+      // The rail is stretched to the exact start/end positions. The HOLD head remains centered at railStart.
+      x.drawImage(spriteRail,gx-spriteRail.width*.5,railTop,spriteRail.width,totalSpan);
       if(activeHold&&(n.progress||0)<1){
         const prog=clamp(n.progress||0,0,1);
         if(prog>0){
