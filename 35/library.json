@@ -20,7 +20,35 @@
       "id": "bang-bang-bang",
       "title": "bang bang bang",
       "filename": "BANG BANG BANG.mp3",
+      "bpm": 120,
+      "charts": {
+        "easy": "./charts/bang-bang-bang_easy.json",
+        "normal": "./charts/bang-bang-bang_normal.json",
+        "hard": "./charts/bang-bang-bang_hard.json",
+        "special": "./charts/bang-bang-bang_special.json"
+      },
+      "audioUrl": "./music/bang%20bang%20bang.mp3",
+      "duration": 220.21805
+    },
+    {
+      "id": "en---我走後",
+      "title": "en - 我走後",
+      "filename": "En - 我走後.mp3",
       "bpm": null
+    },
+    {
+      "id": "en---根本你不懂得愛我",
+      "title": "en - 根本你不懂得愛我",
+      "filename": "en - 根本你不懂得愛我.mp3",
+      "bpm": 120,
+      "charts": {
+        "easy": "./charts/en---根本你不懂得愛我_easy.json",
+        "normal": "./charts/en---根本你不懂得愛我_normal.json",
+        "hard": "./charts/en---根本你不懂得愛我_hard.json",
+        "special": "./charts/en---根本你不懂得愛我_special.json"
+      },
+      "audioUrl": "./music/en%20-%20%E6%A0%B9%E6%9C%AC%E4%BD%A0%E4%B8%8D%E6%87%82%E5%BE%97%E6%84%9B%E6%88%91.mp3",
+      "duration": 233.012245
     },
     {
       "id": "en-囂張",

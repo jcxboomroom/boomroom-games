@@ -1,0 +1,6678 @@
+{
+  "version": 12,
+  "engine": "manual-performer-v2",
+  "title": "bang bang bang",
+  "difficulty": "hard",
+  "difficultyName": "困難",
+  "bpm": 120,
+  "duration": 220.218,
+  "beatInterval": 0.5,
+  "gridStart": 0,
+  "gridResolution": "1/16",
+  "chartEventCount": 978,
+  "tapCount": 960,
+  "holdCount": 18,
+  "chordGroups": 75,
+  "chordHistogram": {
+    "2": 57,
+    "4": 18
+  },
+  "performanceGrammar": {
+    "legato": 0,
+    "syncopation": 0,
+    "terminalReleases": 0,
+    "handCrossings": 0
+  },
+  "averageGridError": 0,
+  "noFiller": false,
+  "notes": [
+    {
+      "id": "g0_mahr",
+      "t": 1.40649,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g1_5jt7",
+      "t": 1.40649,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g2_gax1",
+      "t": 1.76311,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g3_9138",
+      "t": 2.19471,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g4_77z1",
+      "t": 2.63731,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g5_cp3t",
+      "t": 2.87262,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g6_42dx",
+      "t": 3.07071,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g7_8ig9",
+      "t": 3.52067,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g8_p3h2",
+      "t": 3.95343,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g9_b0sw",
+      "t": 4.35573,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g10_ljdg",
+      "t": 4.54957,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g11_h2hg",
+      "t": 4.75691,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g12_nf76",
+      "t": 4.75691,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g13_ii6i",
+      "t": 4.97048,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g14_dzv4",
+      "t": 5.31875,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g15_l87j",
+      "t": 5.31875,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g16_uhoi",
+      "t": 5.79571,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g17_x2j6",
+      "t": 6.19489,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g18_w3xx",
+      "t": 6.39568,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g19_ft2m",
+      "t": 6.39568,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g20_ncn3",
+      "t": 6.62758,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g21_1w3x",
+      "t": 7.08027,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g22_msts",
+      "t": 7.56612,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g23_og9w",
+      "t": 7.56612,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g24_s2yp",
+      "t": 7.88009,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g25_av9a",
+      "t": 8.18154,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g26_x3xk",
+      "t": 8.40398,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g27_ivwa",
+      "t": 8.88542,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g28_35ds",
+      "t": 9.31569,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g29_j97l",
+      "t": 9.31569,
+      "lane": 3,
+      "type": "hold",
+      "len": 0.63725,
+      "endT": 9.95294
+    },
+    {
+      "id": "g30_jmak",
+      "t": 9.84647,
+      "lane": 0,
+      "type": "hold",
+      "len": 0.30775,
+      "endT": 10.15422
+    },
+    {
+      "id": "g31_kyrj",
+      "t": 9.84647,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g32_ixx2",
+      "t": 10.20286,
+      "lane": 2,
+      "type": "hold",
+      "len": 0.39513,
+      "endT": 10.59799
+    },
+    {
+      "id": "g33_07h8",
+      "t": 10.60878,
+      "lane": 1,
+      "type": "hold",
+      "len": 0.49022,
+      "endT": 11.099
+    },
+    {
+      "id": "g34_jhit",
+      "t": 11.1014,
+      "lane": 3,
+      "type": "hold",
+      "len": 1.69415,
+      "endT": 12.79555
+    },
+    {
+      "id": "g35_schm",
+      "t": 11.53647,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g36_0hny",
+      "t": 11.87049,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g37_9ciq",
+      "t": 12.03435,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g38_apkj",
+      "t": 12.44534,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g39_fhci",
+      "t": 12.86741,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g40_l74i",
+      "t": 13.1424,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g41_rq0x",
+      "t": 13.1424,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g42_a717",
+      "t": 13.29932,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g43_qc3h",
+      "t": 13.29932,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g44_4994",
+      "t": 13.4799,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g45_t7w9",
+      "t": 13.6746,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g46_k0na",
+      "t": 13.6746,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g47_u96l",
+      "t": 13.88482,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g48_rdzj",
+      "t": 14.05611,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g49_7ixl",
+      "t": 14.21676,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g50_9y8n",
+      "t": 14.62853,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g51_cm95",
+      "t": 15.04336,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9u7",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g52_sk8i",
+      "t": 15.04759,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9u7",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g53_80d3",
+      "t": 15.27491,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_poi",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g54_cl6v",
+      "t": 15.29517,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_poi",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g55_1nmh",
+      "t": 15.51339,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_vna",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g56_0l0n",
+      "t": 15.51689,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_vna",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g57_1nk1",
+      "t": 15.74432,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0po",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g58_yktd",
+      "t": 15.74433,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0po",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g59_dtry",
+      "t": 15.96496,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_va5",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g60_1fjg",
+      "t": 15.96496,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_va5",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g61_locg",
+      "t": 16.16979,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_q0g",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g62_vjwz",
+      "t": 16.17452,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_q0g",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g63_a5ir",
+      "t": 16.37009,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g64_flty",
+      "t": 16.77333,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g65_zriq",
+      "t": 16.77333,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g66_3zrs",
+      "t": 17.14694,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g67_l7o6",
+      "t": 17.34351,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g68_130q",
+      "t": 17.53103,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g69_js1x",
+      "t": 17.76326,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g70_hame",
+      "t": 17.95088,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g71_4nxk",
+      "t": 18.20658,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g72_6ke3",
+      "t": 18.63475,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g73_76ly",
+      "t": 18.63475,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g74_y5tf",
+      "t": 18.84344,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_g1f",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g75_b2s6",
+      "t": 18.84344,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_g1f",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g76_1syw",
+      "t": 19.11959,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g77_nxrl",
+      "t": 19.11959,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g78_y9j8",
+      "t": 19.29211,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g79_mq0b",
+      "t": 19.50014,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g80_vkjj",
+      "t": 19.72823,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g81_i8ec",
+      "t": 19.93647,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g82_045w",
+      "t": 19.93647,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g83_olug",
+      "t": 20.3971,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g84_xhuk",
+      "t": 20.85906,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g85_fsr5",
+      "t": 21.17733,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g86_fdad",
+      "t": 21.37725,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g87_iky4",
+      "t": 21.37725,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g88_jh3f",
+      "t": 21.58522,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g89_fp3c",
+      "t": 21.81527,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g90_omjt",
+      "t": 22.20808,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g91_4dc5",
+      "t": 22.20808,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g92_x8x5",
+      "t": 22.63242,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g93_r2mg",
+      "t": 23.10236,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g94_2nkf",
+      "t": 23.35974,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g95_2r7i",
+      "t": 23.35974,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g96_nvkn",
+      "t": 23.5341,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g97_wcqp",
+      "t": 23.75177,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g98_aqvl",
+      "t": 23.75177,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g99_dl9d",
+      "t": 23.94222,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g100_roaz",
+      "t": 23.94222,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g101_33qc",
+      "t": 24.4876,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g102_1t9a",
+      "t": 24.82034,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g103_011y",
+      "t": 25.26819,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g104_idgh",
+      "t": 25.71668,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g105_w9ue",
+      "t": 25.89218,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g106_zr7c",
+      "t": 26.12071,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g107_p0e6",
+      "t": 26.29762,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g108_qkh0",
+      "t": 26.50834,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g109_lvmf",
+      "t": 26.67357,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g110_svh1",
+      "t": 26.67357,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g111_nwcw",
+      "t": 26.86864,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g112_mx1y",
+      "t": 27.1092,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g113_6iim",
+      "t": 27.1092,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g114_iwf7",
+      "t": 27.4706,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g115_h8k4",
+      "t": 27.93062,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g116_bndm",
+      "t": 28.13149,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g117_64jj",
+      "t": 28.36453,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g118_79st",
+      "t": 28.52735,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g119_u5gd",
+      "t": 28.81343,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g120_0np6",
+      "t": 28.97422,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g121_naeb",
+      "t": 29.17188,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g122_owfk",
+      "t": 29.17188,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g123_vq3p",
+      "t": 29.3001,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g124_9eap",
+      "t": 29.47313,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g125_2f02",
+      "t": 29.57195,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g126_tw15",
+      "t": 29.71289,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g127_tmi5",
+      "t": 29.71289,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g128_sm4z",
+      "t": 29.89083,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g129_7kdz",
+      "t": 30.02704,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g130_cflo",
+      "t": 30.02704,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g131_2apl",
+      "t": 30.18405,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g132_mzva",
+      "t": 30.5111,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g133_z9ij",
+      "t": 30.6935,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g134_8m14",
+      "t": 30.90146,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g135_uumr",
+      "t": 31.06941,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g136_3ww1",
+      "t": 31.20028,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g137_3ze3",
+      "t": 31.40245,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g138_xz1d",
+      "t": 31.40245,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g139_xv5v",
+      "t": 31.55213,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g140_1g2t",
+      "t": 31.87582,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g141_dk83",
+      "t": 31.87582,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g142_mhzh",
+      "t": 32.245,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g143_af1s",
+      "t": 32.41723,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g144_hpuv",
+      "t": 32.6319,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g145_zg9n",
+      "t": 32.79333,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g146_zel7",
+      "t": 32.90654,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g147_nknf",
+      "t": 33.1361,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g148_9b7z",
+      "t": 33.1361,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g149_5brr",
+      "t": 33.39165,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g150_ma9r",
+      "t": 33.55315,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g151_wuzu",
+      "t": 33.74806,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g152_t5xb",
+      "t": 33.984,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g153_7jk8",
+      "t": 33.984,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g154_l7yq",
+      "t": 34.20286,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g155_wxm5",
+      "t": 34.20286,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g156_mjud",
+      "t": 34.33909,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g157_2ueu",
+      "t": 34.33909,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g158_9rcv",
+      "t": 34.49141,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g159_k5sa",
+      "t": 34.64015,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g160_1bdc",
+      "t": 34.8545,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g161_gh1m",
+      "t": 35.06549,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g162_humm",
+      "t": 35.30552,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g163_kgk3",
+      "t": 35.30552,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g164_75mn",
+      "t": 35.56172,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g165_r9sw",
+      "t": 35.94676,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g166_w250",
+      "t": 36.32751,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g167_en0o",
+      "t": 36.32751,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g168_vb9b",
+      "t": 36.46592,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g169_ix5w",
+      "t": 36.46592,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g170_9d93",
+      "t": 36.6997,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g171_n7ot",
+      "t": 36.6997,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g172_91gw",
+      "t": 36.88329,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g173_3iz4",
+      "t": 36.88329,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g174_nois",
+      "t": 37.0848,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g175_ezia",
+      "t": 37.30772,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g176_jt5y",
+      "t": 37.72904,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g177_wa2h",
+      "t": 38.12798,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g178_tzmy",
+      "t": 38.12798,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g179_z19t",
+      "t": 38.47407,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g180_lvxw",
+      "t": 38.6615,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g181_z2wr",
+      "t": 38.6615,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g182_neql",
+      "t": 38.85992,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g183_0fun",
+      "t": 38.85992,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g184_zyi8",
+      "t": 39.10265,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g185_e5s6",
+      "t": 39.57462,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g186_qvd5",
+      "t": 39.57462,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g187_uzey",
+      "t": 39.89999,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g188_1c5s",
+      "t": 40.33928,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g189_lfvr",
+      "t": 40.62065,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g190_jxwz",
+      "t": 40.80621,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g191_60ip",
+      "t": 40.80621,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g192_325l",
+      "t": 41.33376,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g193_ajlq",
+      "t": 41.75288,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g194_18jy",
+      "t": 42.14633,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g195_x1wz",
+      "t": 42.14633,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g196_la6f",
+      "t": 42.34892,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g197_b9jp",
+      "t": 42.55063,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g198_67r6",
+      "t": 42.84004,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g199_013o",
+      "t": 43.11756,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g200_fuc3",
+      "t": 43.47726,
+      "lane": 1,
+      "type": "hold",
+      "len": 0.37221,
+      "endT": 43.84947
+    },
+    {
+      "id": "g201_3995",
+      "t": 43.91679,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g202_y12y",
+      "t": 44.15983,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g203_d7zd",
+      "t": 44.60143,
+      "lane": 2,
+      "type": "hold",
+      "len": 0.52464,
+      "endT": 45.12607
+    },
+    {
+      "id": "g204_4iwp",
+      "t": 45.1183,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g205_c5jc",
+      "t": 45.60478,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g206_sikd",
+      "t": 45.60478,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g207_gnkb",
+      "t": 45.75664,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g208_8dfk",
+      "t": 45.75664,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g209_w4w8",
+      "t": 46.00147,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g210_8cn3",
+      "t": 46.31057,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g211_9kry",
+      "t": 46.54537,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g212_6fwp",
+      "t": 46.97055,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g213_na92",
+      "t": 47.46504,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g214_u4i9",
+      "t": 47.69067,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g215_1jys",
+      "t": 47.69067,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g216_boti",
+      "t": 48.12356,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g217_cqg9",
+      "t": 48.52638,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g218_754h",
+      "t": 48.71791,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g219_78kq",
+      "t": 48.92146,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g220_rous",
+      "t": 49.12544,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g221_2mwl",
+      "t": 49.36236,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g222_f0ln",
+      "t": 49.36236,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g223_yv6f",
+      "t": 49.65395,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g224_0iar",
+      "t": 50.06311,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g225_zpdb",
+      "t": 50.56502,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g226_2kox",
+      "t": 51.03455,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_adr",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g227_pqn4",
+      "t": 51.05939,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_adr",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g228_o4bq",
+      "t": 51.44671,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_gc5",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g229_2v7r",
+      "t": 51.45122,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_gc5",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g230_egi8",
+      "t": 51.60832,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_d0w",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g231_bjnp",
+      "t": 51.61119,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_d0w",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g232_2qvc",
+      "t": 51.93548,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_e25",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g233_5992",
+      "t": 51.93717,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_e25",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g234_hpfc",
+      "t": 52.41449,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g235_xggk",
+      "t": 52.41449,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g236_hhch",
+      "t": 52.49315,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g237_dyls",
+      "t": 52.49315,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g238_1lbx",
+      "t": 52.84915,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_qu0",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g239_l5vn",
+      "t": 52.8611,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_qu0",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g240_krep",
+      "t": 53.19408,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g241_fitt",
+      "t": 53.33062,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g242_gw0u",
+      "t": 53.55521,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g243_0q9s",
+      "t": 53.80262,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g244_yxhq",
+      "t": 54.13069,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g245_bndw",
+      "t": 54.4946,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g246_z5mi",
+      "t": 54.4946,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g247_8a56",
+      "t": 54.97835,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g248_vmvi",
+      "t": 55.40009,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g249_xycf",
+      "t": 55.62817,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g250_btbt",
+      "t": 55.62817,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g251_wjb8",
+      "t": 55.80059,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g252_eeqs",
+      "t": 55.80059,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g253_0cn0",
+      "t": 55.98529,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g254_dj72",
+      "t": 56.17384,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g255_92px",
+      "t": 56.17384,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g256_ybg8",
+      "t": 56.86944,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8u2",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g257_9z58",
+      "t": 56.86944,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8u2",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g258_6w3o",
+      "t": 56.86944,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8u2",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g259_a0gq",
+      "t": 56.86944,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8u2",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g260_4q2t",
+      "t": 57.06636,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nr9",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g261_dkgp",
+      "t": 57.06806,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nr9",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g262_6l3c",
+      "t": 57.09159,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nr9",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g263_g9cb",
+      "t": 57.10578,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nr9",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g264_59xx",
+      "t": 57.34412,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_99l",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g265_plhj",
+      "t": 57.3527,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_99l",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g266_ujz2",
+      "t": 57.35873,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_99l",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g267_cefl",
+      "t": 57.36142,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_99l",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g268_g1i6",
+      "t": 57.78067,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g269_hlld",
+      "t": 58.08763,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g270_lq5p",
+      "t": 58.57408,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g271_hu02",
+      "t": 59.0283,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g272_h1ob",
+      "t": 59.31044,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g273_mcm6",
+      "t": 59.44824,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g274_ybhn",
+      "t": 59.44824,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g275_gqsb",
+      "t": 59.74511,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g276_qyy4",
+      "t": 59.88544,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g277_yltb",
+      "t": 59.88544,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g278_dn8c",
+      "t": 60.33691,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4qg",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g279_3bwt",
+      "t": 60.33879,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4qg",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g280_sgl5",
+      "t": 60.34399,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4qg",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g281_eqvv",
+      "t": 60.35131,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4qg",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g282_kbrj",
+      "t": 60.57817,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9uv",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g283_xpca",
+      "t": 60.58143,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9uv",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g284_klqu",
+      "t": 60.59694,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9uv",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g285_7pe8",
+      "t": 60.60424,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9uv",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g286_dkl5",
+      "t": 60.88123,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zl6",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g287_i6ru",
+      "t": 60.88312,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zl6",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g288_1v38",
+      "t": 60.88565,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zl6",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g289_e7ba",
+      "t": 60.88565,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zl6",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g290_9ti4",
+      "t": 61.29902,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g291_ic4k",
+      "t": 61.54606,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g292_bysa",
+      "t": 61.75881,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g293_i00c",
+      "t": 62.13036,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g294_dp33",
+      "t": 62.13036,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g295_qvtw",
+      "t": 62.67994,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_he8",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g296_g537",
+      "t": 62.68375,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_he8",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g297_x7qs",
+      "t": 63.08096,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8tc",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g298_ool6",
+      "t": 63.09476,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_8tc",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g299_2ob7",
+      "t": 63.53726,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zbq",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g300_6ots",
+      "t": 63.53987,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zbq",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g301_95q7",
+      "t": 63.92868,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g302_tun3",
+      "t": 64.06648,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g303_8xmm",
+      "t": 64.26254,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g304_xnsu",
+      "t": 64.52467,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_urs",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g305_oq60",
+      "t": 64.53022,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_urs",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g306_dscr",
+      "t": 64.91954,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g307_f3yd",
+      "t": 65.177,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g308_kxao",
+      "t": 65.35065,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g309_2vx6",
+      "t": 65.61486,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g310_wci3",
+      "t": 65.61486,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g311_ml05",
+      "t": 66.15768,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g312_k1ub",
+      "t": 66.57573,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g313_8hcb",
+      "t": 66.7475,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g314_jz9l",
+      "t": 67.02251,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g315_6per",
+      "t": 67.22506,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g316_7b8e",
+      "t": 67.56079,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ywv",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g317_pncg",
+      "t": 67.5703,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ywv",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g318_9ud0",
+      "t": 67.69815,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_r2p",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g319_tctd",
+      "t": 67.71388,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_r2p",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g320_4206",
+      "t": 67.96725,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b2x",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g321_8w7r",
+      "t": 67.97247,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b2x",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g322_7elc",
+      "t": 68.43263,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g323_7j7u",
+      "t": 68.68732,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g324_1bk2",
+      "t": 68.68732,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g325_hxvo",
+      "t": 68.90144,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g326_o6hm",
+      "t": 68.90144,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g327_utyh",
+      "t": 69.2446,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_y5b",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g328_8cq8",
+      "t": 69.25376,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_y5b",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g329_k5ca",
+      "t": 69.76394,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_3hf",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g330_aozi",
+      "t": 69.77091,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_3hf",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g331_cx8x",
+      "t": 69.77358,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_3hf",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g332_xasa",
+      "t": 69.77804,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_3hf",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g333_r3a4",
+      "t": 70.20442,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b55",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g334_nnzq",
+      "t": 70.20657,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b55",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g335_f1bp",
+      "t": 70.21867,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b55",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g336_m47q",
+      "t": 70.22066,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_b55",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g337_pjqi",
+      "t": 70.67344,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0rn",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g338_90mz",
+      "t": 70.68032,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0rn",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g339_89he",
+      "t": 70.69147,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0rn",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g340_ap8f",
+      "t": 70.69357,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_0rn",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g341_nmrm",
+      "t": 71.11906,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g342_x5gl",
+      "t": 71.54456,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g343_ljeg",
+      "t": 71.93549,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g344_7zf0",
+      "t": 72.11622,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g345_a7pz",
+      "t": 72.11622,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g346_hv7o",
+      "t": 72.35671,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g347_jz7t",
+      "t": 72.56256,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g348_36qf",
+      "t": 73.23826,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g349_94zl",
+      "t": 73.66212,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g350_77ki",
+      "t": 73.66212,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g351_0ebk",
+      "t": 73.87772,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g352_ej65",
+      "t": 74.21289,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g353_bf7u",
+      "t": 74.21289,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g354_7xts",
+      "t": 74.3717,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g355_5804",
+      "t": 74.80158,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g356_xx4s",
+      "t": 74.80158,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g357_fskh",
+      "t": 75.49814,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g358_9gku",
+      "t": 75.67004,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g359_2kp0",
+      "t": 75.67004,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g360_zdum",
+      "t": 75.91159,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g361_octg",
+      "t": 76.16323,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g362_f1p6",
+      "t": 76.82865,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g363_s9bk",
+      "t": 77.30176,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g364_9jvs",
+      "t": 77.30176,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g365_vm7u",
+      "t": 77.43824,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g366_rmdu",
+      "t": 77.7075,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g367_145b",
+      "t": 77.95889,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g368_a93i",
+      "t": 78.3998,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g369_f55f",
+      "t": 78.60275,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g370_8jma",
+      "t": 79.06742,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g371_b7p2",
+      "t": 79.2655,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g372_duno",
+      "t": 79.2655,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g373_0bce",
+      "t": 79.5067,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g374_2kfn",
+      "t": 79.72995,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g375_izmk",
+      "t": 80.33436,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g376_9oe8",
+      "t": 80.86795,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g377_x48t",
+      "t": 80.86795,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g378_n6d3",
+      "t": 81.02591,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g379_yjnx",
+      "t": 81.27311,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g380_guk2",
+      "t": 81.45285,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g381_zxfb",
+      "t": 81.45285,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g382_cjrz",
+      "t": 81.8119,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g383_9du6",
+      "t": 82.17095,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g384_bn14",
+      "t": 82.5919,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g385_96j6",
+      "t": 82.77644,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g386_wz64",
+      "t": 83.02351,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g387_6arg",
+      "t": 83.22827,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g388_f9v4",
+      "t": 83.97787,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_scx",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g389_srof",
+      "t": 83.97943,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_scx",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g390_t2p2",
+      "t": 83.98458,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_scx",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g391_w7bu",
+      "t": 84.00664,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_scx",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g392_jsz3",
+      "t": 84.4141,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_sdw",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g393_ezdu",
+      "t": 84.41924,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_sdw",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g394_gxls",
+      "t": 84.42433,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_sdw",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g395_c6my",
+      "t": 84.42661,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_sdw",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g396_ldio",
+      "t": 84.87592,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nh5",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g397_b5dr",
+      "t": 84.87785,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nh5",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g398_7wkq",
+      "t": 84.88003,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nh5",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g399_jc69",
+      "t": 84.88825,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_nh5",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g400_cy3a",
+      "t": 85.7134,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g401_0mfe",
+      "t": 86.23323,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g402_aa34",
+      "t": 86.59171,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g403_190e",
+      "t": 86.59171,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g404_z3jg",
+      "t": 86.99782,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g405_85yx",
+      "t": 87.28231,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g406_7qvj",
+      "t": 87.51714,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g407_c67h",
+      "t": 87.90003,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g408_hv9i",
+      "t": 87.90003,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g409_rb8v",
+      "t": 88.10445,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g410_e6o1",
+      "t": 88.10445,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g411_gwn4",
+      "t": 88.31052,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g412_f3ey",
+      "t": 88.50215,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g413_zdco",
+      "t": 88.6887,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g414_xikj",
+      "t": 88.98687,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g415_1bnv",
+      "t": 88.98687,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g416_m407",
+      "t": 89.28931,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g417_hjko",
+      "t": 89.28931,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g418_efyf",
+      "t": 89.75741,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g419_r8na",
+      "t": 90.17337,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g420_0h8j",
+      "t": 90.17337,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g421_jtjq",
+      "t": 90.52748,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g422_yzsc",
+      "t": 90.52748,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g423_2s9x",
+      "t": 90.75473,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g424_8mzt",
+      "t": 91.04276,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g425_335p",
+      "t": 91.04276,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g426_zkxt",
+      "t": 91.46769,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g427_vz4k",
+      "t": 91.46769,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g428_llyv",
+      "t": 91.71676,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g429_7x1r",
+      "t": 91.71676,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g430_ufw1",
+      "t": 91.98603,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g431_157r",
+      "t": 92.18092,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g432_du02",
+      "t": 92.43662,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g433_839x",
+      "t": 92.43662,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g434_rbvd",
+      "t": 92.67435,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g435_oq8b",
+      "t": 93.18135,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g436_f6l3",
+      "t": 93.66892,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g437_ejpi",
+      "t": 94.15055,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g438_pgok",
+      "t": 94.15055,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g439_mixp",
+      "t": 94.41419,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g440_dohg",
+      "t": 94.64713,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g441_chwv",
+      "t": 94.64713,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g442_qx01",
+      "t": 95.01319,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g443_6h8b",
+      "t": 95.01319,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g444_3fwg",
+      "t": 95.21635,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g445_t83c",
+      "t": 95.4351,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g446_g1hv",
+      "t": 95.4351,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g447_aaxm",
+      "t": 95.61969,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g448_viqc",
+      "t": 95.79682,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g449_whlx",
+      "t": 96.02783,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g450_g42o",
+      "t": 96.13965,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g451_axv2",
+      "t": 96.3667,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g452_h4oe",
+      "t": 96.3667,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g453_qhm0",
+      "t": 96.67652,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g454_p1y8",
+      "t": 96.88377,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g455_j10r",
+      "t": 97.35303,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g456_ka00",
+      "t": 97.76706,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g457_gkqq",
+      "t": 97.76706,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g458_xpvr",
+      "t": 98.2305,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g459_gyei",
+      "t": 98.59426,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g460_3a22",
+      "t": 98.59426,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g461_mawz",
+      "t": 98.76761,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g462_0kjz",
+      "t": 98.97547,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g463_vzat",
+      "t": 98.97547,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g464_9c62",
+      "t": 99.20718,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g465_snyl",
+      "t": 99.20718,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g466_wzbe",
+      "t": 99.3692,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g467_1mxz",
+      "t": 99.56809,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g468_2572",
+      "t": 99.85192,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g469_naxn",
+      "t": 100.31566,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g470_0vvu",
+      "t": 100.81951,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g471_rc1y",
+      "t": 101.22691,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g472_6yrv",
+      "t": 101.59807,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g473_y2kd",
+      "t": 101.75036,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g474_bol8",
+      "t": 102.15546,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g475_dqqx",
+      "t": 102.58415,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g476_n413",
+      "t": 103.00601,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g477_d1j3",
+      "t": 103.19331,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g478_kwco",
+      "t": 103.40177,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g479_7nas",
+      "t": 103.6456,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g480_97r2",
+      "t": 103.91147,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g481_8d7l",
+      "t": 104.07484,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g482_st9x",
+      "t": 104.07484,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g483_cbry",
+      "t": 104.2974,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g484_zdf7",
+      "t": 104.2974,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g485_ujow",
+      "t": 104.52325,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g486_abs6",
+      "t": 104.52325,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g487_uyau",
+      "t": 104.93324,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g488_ok1y",
+      "t": 105.17928,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g489_do9m",
+      "t": 105.40665,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g490_3my0",
+      "t": 105.40665,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g491_7s7m",
+      "t": 105.62854,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g492_kw71",
+      "t": 105.82978,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g493_gzmk",
+      "t": 106.12674,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g494_phmk",
+      "t": 106.12674,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g495_7q98",
+      "t": 106.31305,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g496_lgd0",
+      "t": 106.67309,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g497_pctl",
+      "t": 106.95609,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g498_la7a",
+      "t": 107.18475,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g499_edz4",
+      "t": 107.35967,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g500_16o2",
+      "t": 107.60151,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g501_1arz",
+      "t": 107.60151,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g502_hn2g",
+      "t": 107.79641,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g503_dm4o",
+      "t": 107.79641,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g504_ktb5",
+      "t": 107.95324,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g505_dk22",
+      "t": 108.3308,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g506_wcqm",
+      "t": 108.77411,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g507_ak4y",
+      "t": 109.17454,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g508_io2f",
+      "t": 109.37831,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g509_aznc",
+      "t": 109.77807,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g510_lcf1",
+      "t": 110.28432,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g511_v7t4",
+      "t": 110.50334,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g512_in0w",
+      "t": 110.50334,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g513_q494",
+      "t": 110.6797,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g514_c1i4",
+      "t": 110.6797,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g515_p907",
+      "t": 110.90043,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g516_3e0q",
+      "t": 111.115,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g517_stag",
+      "t": 111.115,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g518_jmf1",
+      "t": 111.36176,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g519_e4d3",
+      "t": 111.36176,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g520_mwm5",
+      "t": 111.58893,
+      "lane": 0,
+      "type": "hold",
+      "len": 0.36156,
+      "endT": 111.95049
+    },
+    {
+      "id": "g521_51zd",
+      "t": 112.08599,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g522_pbki",
+      "t": 112.2927,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g523_r60d",
+      "t": 112.44457,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g524_dhyt",
+      "t": 112.86499,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g525_uzet",
+      "t": 113.10761,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g526_li7j",
+      "t": 113.3512,
+      "lane": 0,
+      "type": "hold",
+      "len": 0.42501,
+      "endT": 113.77622
+    },
+    {
+      "id": "g527_so1h",
+      "t": 113.83111,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g528_6t0a",
+      "t": 113.83111,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g529_6hno",
+      "t": 114.02385,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g530_3hox",
+      "t": 114.13779,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g531_l3hx",
+      "t": 114.23397,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g532_hjoi",
+      "t": 114.35736,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g533_03pt",
+      "t": 114.41256,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_rah",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g534_oqhk",
+      "t": 114.45051,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_rah",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g535_0qv1",
+      "t": 114.63769,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g536_dllb",
+      "t": 114.91602,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g537_y6yt",
+      "t": 114.91602,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g538_0fxs",
+      "t": 115.15467,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g539_d3gf",
+      "t": 115.37664,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g540_ct8c",
+      "t": 115.65531,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g541_dr7f",
+      "t": 115.65531,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g542_a4wg",
+      "t": 116.03638,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g543_862y",
+      "t": 116.45734,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g544_gxxz",
+      "t": 116.82297,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g545_0art",
+      "t": 116.82297,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g546_bqjg",
+      "t": 116.97678,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g547_4w9q",
+      "t": 117.4487,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g548_qeo6",
+      "t": 117.4487,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g549_pkhp",
+      "t": 117.99622,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g550_0s2n",
+      "t": 117.99622,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g551_14q2",
+      "t": 118.56934,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g552_7yuy",
+      "t": 118.82732,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g553_zyyj",
+      "t": 118.82732,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g554_wmbe",
+      "t": 119.2687,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g555_r1lm",
+      "t": 119.76732,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g556_fbzw",
+      "t": 120.29112,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g557_z51b",
+      "t": 120.29112,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g558_h98g",
+      "t": 120.52709,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g559_nr8k",
+      "t": 121.03497,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g560_1hsx",
+      "t": 121.03497,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g561_m55q",
+      "t": 121.53871,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g562_t3wt",
+      "t": 121.68464,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g563_dtrn",
+      "t": 121.68464,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g564_37wu",
+      "t": 121.90708,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g565_dga0",
+      "t": 121.90708,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g566_5467",
+      "t": 122.17999,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g567_es58",
+      "t": 122.17999,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g568_fld6",
+      "t": 122.40696,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g569_wznf",
+      "t": 122.40696,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g570_iiqt",
+      "t": 123.02011,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g571_h47g",
+      "t": 123.02011,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g572_f7e9",
+      "t": 123.50351,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g573_4xwc",
+      "t": 123.50351,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g574_6yh7",
+      "t": 123.92537,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g575_3fa0",
+      "t": 124.33172,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_jr4",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g576_cc1y",
+      "t": 124.33333,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_jr4",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g577_w6zo",
+      "t": 124.62369,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_kvg",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g578_wrmq",
+      "t": 124.62535,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_kvg",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g579_z8s0",
+      "t": 124.89308,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ut2",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g580_aw3z",
+      "t": 124.89716,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ut2",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g581_skif",
+      "t": 125.36333,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g582_ntdp",
+      "t": 125.36333,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g583_jaoi",
+      "t": 125.75244,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g584_dxky",
+      "t": 125.75244,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g585_7ml8",
+      "t": 126.17017,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g586_qoe1",
+      "t": 126.17017,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g587_404s",
+      "t": 126.36688,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g588_95u7",
+      "t": 126.63643,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g589_sdq7",
+      "t": 127.04954,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g590_t1sw",
+      "t": 127.5182,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g591_p7fz",
+      "t": 127.88632,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g592_sfms",
+      "t": 128.32804,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g593_66x1",
+      "t": 128.46273,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g594_fryg",
+      "t": 128.46273,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g595_6o09",
+      "t": 128.70714,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g596_067n",
+      "t": 128.70714,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g597_io4x",
+      "t": 128.89953,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g598_0ze8",
+      "t": 129.10397,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g599_4n2d",
+      "t": 129.10397,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g600_mbfe",
+      "t": 129.38389,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g601_wzbn",
+      "t": 129.46732,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g602_2y0w",
+      "t": 129.79189,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_veh",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g603_kk0c",
+      "t": 129.79681,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_veh",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g604_t2mg",
+      "t": 130.01033,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_33j",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g605_ir70",
+      "t": 130.01258,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_33j",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g606_ildc",
+      "t": 130.26178,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_as6",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g607_s309",
+      "t": 130.26339,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_as6",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g608_fjbd",
+      "t": 130.6439,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g609_f9n4",
+      "t": 130.90188,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g610_q416",
+      "t": 131.19141,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g611_8qzv",
+      "t": 131.48759,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g612_0n6o",
+      "t": 131.48759,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g613_bu92",
+      "t": 131.97834,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g614_0ibo",
+      "t": 132.36734,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g615_1qsb",
+      "t": 132.36734,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g616_5t3a",
+      "t": 132.78947,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g617_zuc8",
+      "t": 132.78947,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g618_4fmo",
+      "t": 133.21683,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_73b",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g619_n8a6",
+      "t": 133.22627,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_73b",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g620_ok2c",
+      "t": 133.44919,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_k6h",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g621_wxx1",
+      "t": 133.45833,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_k6h",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g622_22fj",
+      "t": 133.73549,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_s5p",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g623_gr8r",
+      "t": 133.74424,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_s5p",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g624_7gvv",
+      "t": 134.24574,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g625_cfqq",
+      "t": 134.24574,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g626_a9ms",
+      "t": 134.59824,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g627_gnnb",
+      "t": 134.97373,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g628_65nx",
+      "t": 135.49136,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_5vw",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g629_pd1d",
+      "t": 135.4957,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_5vw",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g630_h0ll",
+      "t": 135.49735,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_5vw",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g631_bnfk",
+      "t": 135.503,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_5vw",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g632_jok0",
+      "t": 135.95138,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zhe",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g633_s0dp",
+      "t": 135.95817,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zhe",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g634_np86",
+      "t": 135.96005,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zhe",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g635_lhs9",
+      "t": 135.96197,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zhe",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g636_7rfw",
+      "t": 136.39202,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_6qc",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g637_okwl",
+      "t": 136.39453,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_6qc",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g638_unti",
+      "t": 136.40039,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_6qc",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g639_icy5",
+      "t": 136.4032,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_6qc",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g640_bk9l",
+      "t": 136.79546,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g641_576x",
+      "t": 136.79546,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g642_m6kz",
+      "t": 137.09927,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ctm",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g643_yssb",
+      "t": 137.10431,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ctm",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g644_0275",
+      "t": 137.36668,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ffk",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g645_9esn",
+      "t": 137.36907,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ffk",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g646_k992",
+      "t": 137.84849,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g647_m2pr",
+      "t": 138.1616,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g648_ys64",
+      "t": 138.47939,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g649_892n",
+      "t": 138.64905,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g650_i5mh",
+      "t": 139.05992,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g651_kc1z",
+      "t": 139.05992,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g652_l1nb",
+      "t": 139.45991,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g653_npfh",
+      "t": 139.45991,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g654_gpg3",
+      "t": 139.85291,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g655_koxc",
+      "t": 140.32769,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9gh",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g656_q2yi",
+      "t": 140.33551,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_9gh",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g657_v3vv",
+      "t": 140.57755,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pji",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g658_x5n3",
+      "t": 140.58648,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pji",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g659_uwrf",
+      "t": 140.86377,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_xp1",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g660_hxnu",
+      "t": 140.87275,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_xp1",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g661_jq7k",
+      "t": 141.32534,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g662_orew",
+      "t": 141.74893,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g663_bvz5",
+      "t": 142.08656,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g664_726w",
+      "t": 142.08656,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g665_p6lo",
+      "t": 142.6604,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_q5k",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g666_dl28",
+      "t": 142.66737,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_q5k",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g667_zpe9",
+      "t": 142.71592,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_gb4",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g668_vnfz",
+      "t": 142.72209,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_gb4",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g669_s13q",
+      "t": 143.06536,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ety",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g670_s4j9",
+      "t": 143.07522,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ety",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g671_1j2w",
+      "t": 143.09079,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ety",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g672_h5a2",
+      "t": 143.09444,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ety",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g673_ngqh",
+      "t": 143.512,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uxz",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g674_5xp8",
+      "t": 143.51995,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uxz",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g675_ltv6",
+      "t": 143.53989,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uxz",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g676_6tqy",
+      "t": 143.54533,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uxz",
+      "groupSize": 4,
+      "chordIndex": 3
+    },
+    {
+      "id": "g677_0nrf",
+      "t": 143.97138,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g678_eqtc",
+      "t": 144.39743,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g679_huad",
+      "t": 144.39743,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g680_mop1",
+      "t": 144.77111,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g681_6v2k",
+      "t": 145.02044,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g682_vcjd",
+      "t": 145.20776,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g683_3m6c",
+      "t": 145.20776,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g684_kesh",
+      "t": 145.46523,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g685_8hpo",
+      "t": 146.24698,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g686_xlct",
+      "t": 146.57419,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g687_pyma",
+      "t": 146.57419,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g688_gie3",
+      "t": 146.7877,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g689_cwjy",
+      "t": 146.98475,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g690_av92",
+      "t": 146.98475,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g691_x6zj",
+      "t": 147.15951,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g692_cq8v",
+      "t": 147.86566,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g693_4543",
+      "t": 147.86566,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g694_v853",
+      "t": 148.36021,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g695_aqiv",
+      "t": 148.5363,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g696_n8uf",
+      "t": 148.73663,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g697_18bn",
+      "t": 148.93084,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g698_dzjh",
+      "t": 149.09053,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g699_rund",
+      "t": 149.09053,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g700_wme2",
+      "t": 149.71718,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g701_tfo2",
+      "t": 150.19628,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g702_2gq7",
+      "t": 150.37675,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g703_gxvj",
+      "t": 150.59518,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g704_m0cy",
+      "t": 151.01267,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g705_26qb",
+      "t": 151.01267,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g706_uggt",
+      "t": 151.32418,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g707_wjr0",
+      "t": 151.48371,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g708_uhk3",
+      "t": 151.95793,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g709_ic2w",
+      "t": 152.15912,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g710_tiir",
+      "t": 152.41255,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g711_o3vn",
+      "t": 152.5787,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g712_9dru",
+      "t": 152.5787,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g713_km52",
+      "t": 152.93271,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g714_yz0a",
+      "t": 153.28672,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g715_upxj",
+      "t": 153.64956,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g716_7m2i",
+      "t": 153.94828,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g717_3f7y",
+      "t": 154.15888,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g718_j79u",
+      "t": 154.37346,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g719_h40r",
+      "t": 154.37346,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g720_hs4g",
+      "t": 155.00319,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g721_80dq",
+      "t": 155.45695,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g722_yrg9",
+      "t": 155.71094,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g723_pibr",
+      "t": 155.95418,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g724_w7wj",
+      "t": 156.19943,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pfs",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g725_ve14",
+      "t": 156.23496,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pfs",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g726_sj2k",
+      "t": 156.88771,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_hwa",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g727_02ue",
+      "t": 156.88771,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_hwa",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g728_oswx",
+      "t": 157.32973,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_glx",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g729_okca",
+      "t": 157.33151,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_glx",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g730_if1x",
+      "t": 157.75996,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dw1",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g731_3dw9",
+      "t": 157.76452,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dw1",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g732_n7rb",
+      "t": 159.39303,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g733_dvfi",
+      "t": 159.68683,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g734_xor2",
+      "t": 160.05804,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g735_1px4",
+      "t": 160.05804,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g736_ycrr",
+      "t": 160.5186,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g737_tb4g",
+      "t": 160.82317,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g738_coeg",
+      "t": 161.1358,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g739_sg63",
+      "t": 161.1358,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g740_m4zx",
+      "t": 161.36643,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g741_ueyo",
+      "t": 161.36643,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g742_o52g",
+      "t": 161.59529,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g743_5eaw",
+      "t": 161.71271,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g744_g6xk",
+      "t": 161.87085,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g745_vvr0",
+      "t": 162.13784,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g746_crs4",
+      "t": 162.13784,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g747_aib6",
+      "t": 162.29461,
+      "lane": 2,
+      "type": "hold",
+      "len": 0.35172,
+      "endT": 162.64634
+    },
+    {
+      "id": "g748_uokp",
+      "t": 162.29461,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g749_nyod",
+      "t": 162.62487,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g750_b7ll",
+      "t": 162.73817,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g751_46ss",
+      "t": 162.73817,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g752_688z",
+      "t": 162.95353,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g753_8yr6",
+      "t": 163.14722,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g754_p6vc",
+      "t": 163.31918,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g755_1rg4",
+      "t": 163.50707,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g756_ex7r",
+      "t": 163.59368,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g757_vn9r",
+      "t": 163.93173,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g758_qwyj",
+      "t": 164.35941,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g759_3zdt",
+      "t": 164.58093,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g760_15kh",
+      "t": 164.58093,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g761_fgjc",
+      "t": 164.83619,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g762_wmci",
+      "t": 165.24313,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g763_3j3m",
+      "t": 165.46028,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g764_o1bm",
+      "t": 165.65248,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g765_gfsp",
+      "t": 165.8496,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g766_3eqo",
+      "t": 166.15352,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g767_vtho",
+      "t": 166.35453,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g768_sdsu",
+      "t": 166.49406,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g769_rwm6",
+      "t": 166.49406,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g770_tlm6",
+      "t": 166.71859,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g771_n3g9",
+      "t": 166.88852,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g772_2a9r",
+      "t": 167.10435,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g773_e5a7",
+      "t": 167.29814,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g774_668x",
+      "t": 167.62352,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g775_oe87",
+      "t": 167.92405,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g776_oaab",
+      "t": 168.40774,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g777_efdi",
+      "t": 168.86722,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g778_d3q1",
+      "t": 169.28625,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g779_8md7",
+      "t": 169.70612,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g780_khcv",
+      "t": 170.21506,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g781_o8sj",
+      "t": 170.58291,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g782_aiwp",
+      "t": 170.58291,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g783_giso",
+      "t": 171.08364,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g784_lird",
+      "t": 171.50663,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g785_mxfr",
+      "t": 171.97686,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g786_8nox",
+      "t": 172.41998,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g787_rba3",
+      "t": 172.82653,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g788_we7f",
+      "t": 172.82653,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g789_aedp",
+      "t": 172.98974,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g790_bk60",
+      "t": 173.29837,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g791_teth",
+      "t": 173.29837,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g792_aqsi",
+      "t": 173.43321,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g793_e8v2",
+      "t": 173.72085,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g794_g4zi",
+      "t": 173.72085,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g795_lb1s",
+      "t": 174.09848,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g796_uelz",
+      "t": 174.59358,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g797_ad0t",
+      "t": 174.59358,
+      "lane": 1,
+      "type": "hold",
+      "len": 0.70834,
+      "endT": 175.30192
+    },
+    {
+      "id": "g798_gcos",
+      "t": 174.95546,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g799_7b4q",
+      "t": 175.33344,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g800_49rn",
+      "t": 175.57413,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g801_7qjq",
+      "t": 175.79076,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g802_fot4",
+      "t": 175.97315,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g803_wggy",
+      "t": 175.97315,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g804_w0k7",
+      "t": 176.12765,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g805_2yb3",
+      "t": 176.12765,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g806_85te",
+      "t": 176.41281,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g807_nnu8",
+      "t": 176.86833,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g808_42cy",
+      "t": 177.27123,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g809_5rec",
+      "t": 177.41461,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g810_jwa5",
+      "t": 177.64454,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g811_28e8",
+      "t": 177.78439,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g812_uzia",
+      "t": 178.03778,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g813_vdkt",
+      "t": 178.25157,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g814_o8v5",
+      "t": 178.25157,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g815_la6k",
+      "t": 178.54048,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g816_dvg2",
+      "t": 178.7703,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g817_7vpz",
+      "t": 178.7703,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g818_57h5",
+      "t": 179.02273,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g819_l40f",
+      "t": 179.22191,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g820_ptmr",
+      "t": 179.3819,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g821_wh39",
+      "t": 179.59218,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g822_tj69",
+      "t": 179.88668,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g823_o0tj",
+      "t": 179.88668,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g824_o3ko",
+      "t": 180.3706,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g825_l9kp",
+      "t": 180.5336,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g826_0o7j",
+      "t": 180.81514,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g827_kdee",
+      "t": 181.26525,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g828_tvri",
+      "t": 181.7369,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g829_tgwv",
+      "t": 181.7369,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g830_y2z3",
+      "t": 182.39245,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g831_ik88",
+      "t": 182.60298,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g832_3d38",
+      "t": 182.8475,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g833_pckg",
+      "t": 183.04708,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g834_fssq",
+      "t": 183.25776,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g835_47mb",
+      "t": 183.25776,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g836_c9ne",
+      "t": 183.52058,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g837_ib7i",
+      "t": 184.17809,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g838_00i2",
+      "t": 184.40268,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g839_3eti",
+      "t": 184.64614,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g840_d2nk",
+      "t": 184.64614,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g841_nf4i",
+      "t": 184.86854,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g842_dp4s",
+      "t": 185.03825,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g843_ha38",
+      "t": 185.03825,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g844_7dnc",
+      "t": 185.31202,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g845_t2xu",
+      "t": 185.77812,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g846_qnpa",
+      "t": 186.1394,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g847_cznv",
+      "t": 186.29277,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g848_jhl6",
+      "t": 186.50607,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g849_npud",
+      "t": 186.71597,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g850_5baf",
+      "t": 186.71597,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g851_6zq0",
+      "t": 186.87291,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g852_mov0",
+      "t": 187.07659,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g853_oxpk",
+      "t": 187.07659,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g854_kvip",
+      "t": 187.49774,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g855_i2kv",
+      "t": 187.9075,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g856_tbrj",
+      "t": 188.34904,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g857_a5mf",
+      "t": 188.74562,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g858_y3w6",
+      "t": 189.19037,
+      "lane": 2,
+      "type": "hold",
+      "len": 0.57962,
+      "endT": 189.76999
+    },
+    {
+      "id": "g859_30fm",
+      "t": 189.66211,
+      "lane": 3,
+      "type": "hold",
+      "len": 0.46048,
+      "endT": 190.12259
+    },
+    {
+      "id": "g860_jprd",
+      "t": 189.73682,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g861_5t0u",
+      "t": 190.12107,
+      "lane": 2,
+      "type": "hold",
+      "len": 0.43565,
+      "endT": 190.55673
+    },
+    {
+      "id": "g862_dmqe",
+      "t": 190.12107,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g863_e2rr",
+      "t": 190.50499,
+      "lane": 1,
+      "type": "hold",
+      "len": 0.49874,
+      "endT": 191.00373
+    },
+    {
+      "id": "g864_siph",
+      "t": 190.99898,
+      "lane": 3,
+      "type": "hold",
+      "len": 0.3887,
+      "endT": 191.38768
+    },
+    {
+      "id": "g865_69ln",
+      "t": 191.38245,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g866_5xnm",
+      "t": 191.56221,
+      "lane": 3,
+      "type": "hold",
+      "len": 0.38789,
+      "endT": 191.9501
+    },
+    {
+      "id": "g867_lh1p",
+      "t": 191.95179,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g868_dg1a",
+      "t": 192.37011,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g869_d6y2",
+      "t": 192.5512,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g870_8nfd",
+      "t": 192.5512,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g871_ma2v",
+      "t": 192.78659,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g872_jn0o",
+      "t": 193.0253,
+      "lane": 3,
+      "type": "hold",
+      "len": 0.49714,
+      "endT": 193.52244
+    },
+    {
+      "id": "g873_wv1y",
+      "t": 193.58719,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g874_6uwg",
+      "t": 193.75762,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g875_m7jo",
+      "t": 193.97319,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g876_1iot",
+      "t": 194.18639,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g877_diqi",
+      "t": 194.60793,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g878_b20n",
+      "t": 194.60793,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g879_44rt",
+      "t": 195.03325,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g880_mmxl",
+      "t": 195.03325,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g881_kn7x",
+      "t": 195.49157,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g882_zw8x",
+      "t": 195.49157,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g883_nsjo",
+      "t": 195.97152,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g884_9gf4",
+      "t": 196.33629,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g885_df21",
+      "t": 196.81731,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g886_ydgn",
+      "t": 197.26788,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g887_pkgz",
+      "t": 197.73115,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g888_fgti",
+      "t": 197.73115,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g889_bwwr",
+      "t": 198.01899,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g890_hc2d",
+      "t": 198.01899,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g891_7xy1",
+      "t": 198.17647,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g892_y8pr",
+      "t": 198.40265,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g893_9aun",
+      "t": 198.67131,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g894_554w",
+      "t": 198.67131,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g895_5m39",
+      "t": 199.0646,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g896_uaba",
+      "t": 199.55407,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g897_71k6",
+      "t": 199.87003,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g898_w6gd",
+      "t": 200.13154,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g899_8wwj",
+      "t": 200.33172,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g900_5901",
+      "t": 200.49514,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g901_bdgv",
+      "t": 200.49514,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g902_6tvz",
+      "t": 200.85939,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g903_rkop",
+      "t": 201.29029,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g904_1zka",
+      "t": 201.65656,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g905_d1jl",
+      "t": 201.80604,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g906_z9am",
+      "t": 202.04856,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g907_5bio",
+      "t": 202.27205,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g908_qzef",
+      "t": 202.27205,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g909_vzan",
+      "t": 202.59877,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g910_9afc",
+      "t": 202.96964,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_jl5",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g911_kwl9",
+      "t": 202.97313,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_jl5",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g912_0nsm",
+      "t": 203.04916,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g913_sf45",
+      "t": 203.12714,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_efc",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g914_8oqw",
+      "t": 203.13831,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_efc",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g915_ylnv",
+      "t": 203.35883,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_39w",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g916_5o16",
+      "t": 203.36041,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_39w",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g917_s9qm",
+      "t": 204.0466,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zwz",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g918_yqij",
+      "t": 204.06628,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zwz",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g919_bi4t",
+      "t": 204.4515,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uoh",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g920_dpgr",
+      "t": 204.48368,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_uoh",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g921_7ndb",
+      "t": 205.23611,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g922_95d3",
+      "t": 205.79965,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g923_o2q1",
+      "t": 206.13187,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_464",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g924_6zv6",
+      "t": 206.13348,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_464",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g925_q78h",
+      "t": 206.32699,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ccc",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g926_mjas",
+      "t": 206.32984,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_ccc",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g927_puoh",
+      "t": 206.66635,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_xxy",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g928_vdmq",
+      "t": 206.66932,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_xxy",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g929_0299",
+      "t": 207.12236,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g930_lnjo",
+      "t": 207.54758,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g931_8nld",
+      "t": 207.98382,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g932_eqwd",
+      "t": 208.44791,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g933_2rou",
+      "t": 208.44791,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g934_hr8v",
+      "t": 208.83971,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g935_0i7a",
+      "t": 208.83971,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g936_goaj",
+      "t": 209.04951,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g937_p04s",
+      "t": 209.30589,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g938_8jue",
+      "t": 209.68257,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g939_mwn7",
+      "t": 209.78001,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zv1",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g940_52ak",
+      "t": 209.78223,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_zv1",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g941_zedf",
+      "t": 209.99476,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_e0k",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g942_cpla",
+      "t": 210.00669,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_e0k",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g943_m3qe",
+      "t": 210.22075,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_kz1",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g944_2a3o",
+      "t": 210.22238,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_kz1",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g945_os5d",
+      "t": 210.2827,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_vrs",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g946_zkcv",
+      "t": 210.29188,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_vrs",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g947_5gn3",
+      "t": 210.71458,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g948_ak0q",
+      "t": 211.15753,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g949_85jt",
+      "t": 211.60606,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g950_wh3j",
+      "t": 212.03181,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g951_4dgl",
+      "t": 212.03181,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g952_nzat",
+      "t": 212.51581,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g953_5bzv",
+      "t": 212.88975,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g954_i2ay",
+      "t": 213.26512,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g955_ah6r",
+      "t": 213.58727,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_iul",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g956_90dl",
+      "t": 213.59805,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_iul",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g957_ke09",
+      "t": 213.69902,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g958_bpyx",
+      "t": 213.77474,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_w27",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g959_iict",
+      "t": 213.77674,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_w27",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g960_clbz",
+      "t": 213.99688,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4ak",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g961_mfuo",
+      "t": 214.01202,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_4ak",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g962_z34h",
+      "t": 214.17875,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g963_bsoa",
+      "t": 214.17875,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g964_4z5e",
+      "t": 214.60171,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g965_c1cs",
+      "t": 215.01367,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g966_clh8",
+      "t": 215.47373,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g967_82e1",
+      "t": 215.89283,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g968_46ik",
+      "t": 215.89283,
+      "lane": 1,
+      "type": "tap"
+    },
+    {
+      "id": "g969_j89i",
+      "t": 216.05357,
+      "lane": 2,
+      "type": "tap"
+    },
+    {
+      "id": "g970_4pis",
+      "t": 216.38613,
+      "lane": 3,
+      "type": "tap"
+    },
+    {
+      "id": "g971_l22m",
+      "t": 216.47909,
+      "lane": 0,
+      "type": "tap"
+    },
+    {
+      "id": "g972_lafl",
+      "t": 216.81453,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pjm",
+      "groupSize": 2,
+      "chordIndex": 0
+    },
+    {
+      "id": "g973_zqdt",
+      "t": 216.81674,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_pjm",
+      "groupSize": 2,
+      "chordIndex": 1
+    },
+    {
+      "id": "g974_vgji",
+      "t": 217.29751,
+      "lane": 1,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dyl",
+      "groupSize": 4,
+      "chordIndex": 0
+    },
+    {
+      "id": "g975_ijh2",
+      "t": 217.30258,
+      "lane": 2,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dyl",
+      "groupSize": 4,
+      "chordIndex": 1
+    },
+    {
+      "id": "g976_lsm3",
+      "t": 217.30398,
+      "lane": 0,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dyl",
+      "groupSize": 4,
+      "chordIndex": 2
+    },
+    {
+      "id": "g977_v0gk",
+      "t": 217.30534,
+      "lane": 3,
+      "type": "tap",
+      "group": "chord",
+      "groupId": "c_mupkd9so_dyl",
+      "groupSize": 4,
+      "chordIndex": 3
+    }
+  ]
+}

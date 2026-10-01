@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#06070f">
-<title>BoomRoom Rhythm V32.13</title>
+<title>BoomRoom Rhythm V32.17</title>
 <style>
 :root{
   --bg:#05060d; --panel:#0d1020; --panel2:#11152b; --line:#262d4a; --text:#f8fbff; --muted:#8d96b4;
@@ -25,7 +25,10 @@ button{font:inherit;color:inherit;border:0}
 .pill.hot{border-color:#ff55bd88;box-shadow:0 0 20px #ff55bd14}.pill.accuracy{padding-bottom:8px}
 .accBar{position:absolute;left:7px;right:7px;bottom:4px;height:3px;border-radius:99px;background:#22273d;overflow:hidden}.accBar i{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--red),var(--gold),var(--green),var(--cyan));transform-origin:left center}
 #stage{position:relative;min-height:0;flex:1;border-radius:19px;overflow:hidden;border:1px solid #303754;background:#060710;box-shadow:inset 0 0 100px #000,0 15px 60px #0009;touch-action:none}
-#canvas{position:absolute;inset:0;width:100%;height:100%}
+#bgCanvas,#canvas,#fxCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#bgCanvas{z-index:0;pointer-events:none}
+#canvas{z-index:1;pointer-events:none}
+#fxCanvas{z-index:2;pointer-events:none}
 .stageFX{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .vignette{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,transparent 30%,#02030a44 72%,#000a 100%)}
 .centerPulse{position:absolute;left:50%;top:48%;width:14vw;height:14vw;max-width:150px;max-height:150px;min-width:62px;min-height:62px;border-radius:50%;border:1px solid #54eaff22;transform:translate(-50%,-50%) scale(.9);box-shadow:0 0 30px #54eaff14;opacity:.8}
@@ -189,6 +192,10 @@ button{font:inherit;color:inherit;border:0}
 .resultRankTable{overflow:auto;border:1px solid #25304a;border-radius:15px}.fullResultTable{width:100%;border-collapse:separate;border-spacing:0;min-width:800px;font-size:9px}.fullResultTable th{padding:10px 8px;background:#0e1424;color:#7f8cab;font-size:7px;letter-spacing:.6px;text-transform:uppercase;position:sticky;top:0;z-index:1}.fullResultTable td{padding:10px 8px;border-top:1px solid #1b2439;text-align:center;white-space:nowrap;background:#0a0f1b}.fullResultTable tbody tr.meRow td{background:linear-gradient(90deg,#0e2232,#0b1421)}.fullResultTable tbody tr.rank1 td{background:linear-gradient(90deg,#241d12,#0d111b)}.fullResultTable tbody tr.meRow td:first-child{box-shadow:inset 3px 0 #54eaff}.fullResultTable tbody tr.rank1 td:first-child{box-shadow:inset 3px 0 #ffd65b}.fullResultTable .rankCell{font-size:14px;font-weight:1000}.fullResultTable .nameCell{text-align:left;font-weight:1000;min-width:120px}.resultYouTag{display:inline-block;margin-left:5px;padding:2px 5px;border-radius:999px;border:1px solid #54eaff55;color:#9defff;background:#54eaff0d;font-size:6px}
 .resultActions{display:flex;gap:8px}.resultBtn{flex:1;height:46px;border-radius:13px;border:1px solid #2a3551;background:#101729;color:#dce6fb;font-size:10px;font-weight:1000}.resultBtn.primary{border-color:#54eaff66;background:linear-gradient(90deg,#54eaff16,#956bff16,#ff55bd16);box-shadow:0 12px 28px #54eaff0a}.resultBtn:active{transform:translateY(1px)}.resultCountdown{text-align:center;color:#687694;font-size:8px}.resultNote{padding:9px 10px;border-radius:10px;background:#0b1020;border:1px dashed #26314d;color:#6f7b97;font-size:8px;line-height:1.6}
 @media(max-width:720px){.resultWrap{padding:6px 0 16px}.resultHero{padding:18px 12px 14px;border-radius:20px}.resultCards{grid-template-columns:repeat(2,1fr)}.resultPerformanceGrid{grid-template-columns:1fr}.resultMetaGrid{grid-template-columns:repeat(2,1fr)}.resultPodium{gap:5px}.podiumCard{min-height:100px}.podiumCard.first{min-height:118px}.resultSection{padding:12px;border-radius:17px}.resultActions{flex-direction:column}.resultBtn{width:100%}}
+
+@media (pointer:coarse), (max-width:820px){
+  .chip,.comboReadout,#performanceCue{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
 </style>
 
 <style id="v281Style">
@@ -580,7 +587,7 @@ let me={id:'local_'+Math.random().toString(36).slice(2,8),username:'你'};
 let players=new Map(),notes=[],seed=0,startAt=0,endAt=0,last=0,raf=0,countdownStartAt=0,countdownGoAt=0;
 let score=0,combo=0,maxCombo=0,perfect=0,good=0,miss=0,streak=0,pulse=0,pulseReady=false,muted=false;
 let audio=null,master=null,sfxBus=null,musicBus=null,musicTimer=null,musicNext=0,musicStep=0,musicStartAudio=0,musicWatchdog=null,engineWatchdog=null,lastAudioKeepalive=0;
-let musicBuffer=null,musicSource=null,musicGain=null,librarySongs=[],activeChart=null,assetsLoading=false,libraryLoaded=false;
+let musicBuffer=null,musicSource=null,musicGain=null,librarySongs=[],activeChart=null,assetsLoading=false,libraryLoaded=false;const songMetaCache=new Map();
 // V32.13: charts-only library runtime; piano_rolls is intentionally unused.
 // V27.0: explicit HTMLAudioElement runtime state. These must exist before the Start button can call primeMusic().
 let hudLastUpdate=0;
@@ -594,14 +601,14 @@ let chosenDifficulty='normal',chosenSong='',difficulty=DIFFS.normal,song={id:'',
 let rhHeld=new Set(),rhPressSources=new Map(),rhHolds=new Map(),rhSlide=null,rhParticles=[],rhDouble=new Map(),rhPointers=new Map(),stagePointer=null;
 
 // V32 performance renderer: keep input/judgement timing independent from visual quality.
-const renderPerf={quality:2,dpr:1.5,lastNow:0,avgMs:16.7,sampleMs:0,sampleCount:0,lastAdjust:0,cache:null,cacheKey:'',lastPerfCueId:null,noteSprites:new Map(),particleSprites:new Map(),bgSizeKey:'',frameCostBudget:16.7};
+const renderPerf={quality:2,dpr:1.5,lastNow:0,avgMs:16.7,sampleMs:0,sampleCount:0,lastAdjust:0,cache:null,cacheKey:'',stageBgKey:'',lastPerfCueId:null,noteSprites:new Map(),particleSprites:new Map(),judgeSprites:new Map(),holdSprites:new Map(),bgSizeKey:'',frameCostBudget:16.7};
 let noteById=new Map();
 let notesByLane=[[],[],[],[]],missCursor=0,doubleGroupsSorted=[],doubleMissCursor=0;
 let lyricsLastUiAt=0,lyricsLastIndex=-1,lyricsShown=false,musicLastUiAt=0;
-let renderCtx=null;
+let renderCtx=null,bgCtx=null,fxCtx=null;
 const perfectFxUntil=[0,0,0,0];
 let performanceCueState={id:null,until:0};
-function invalidateRenderCache(){renderPerf.cache=null;renderPerf.cacheKey='';renderPerf.noteSprites.clear();renderPerf.particleSprites.clear();renderPerf.bgSizeKey='';}
+function invalidateRenderCache(){renderPerf.cache=null;renderPerf.cacheKey='';renderPerf.stageBgKey='';renderPerf.noteSprites.clear();renderPerf.particleSprites.clear();renderPerf.judgeSprites.clear();renderPerf.holdSprites.clear();renderPerf.bgSizeKey='';}
 function updateRenderQuality(now){
   if(!renderPerf.lastNow){renderPerf.lastNow=now;return}
   const ms=clamp(now-renderPerf.lastNow,8,50);renderPerf.lastNow=now;
@@ -612,7 +619,9 @@ function updateRenderQuality(now){
   else if(renderPerf.avgMs<17.4&&renderPerf.quality<2)renderPerf.quality++;
   renderPerf.sampleCount=0;renderPerf.sampleMs=0;
   const deviceDpr=Number(window.devicePixelRatio||1);
-  const target=renderPerf.quality===0?1.12:renderPerf.quality===1?1.38:Math.min(1.75,deviceDpr);
+  const mobileLike=window.matchMedia?.('(pointer:coarse)').matches || Math.min(window.innerWidth,window.innerHeight)<=820;
+  const maxDpr=mobileLike?1.28:1.55;
+  const target=renderPerf.quality===0?1.05:renderPerf.quality===1?(mobileLike?1.16:1.34):Math.min(maxDpr,deviceDpr);
   if(Math.abs(target-renderPerf.dpr)>.04){renderPerf.dpr=target;invalidateRenderCache()}
   if(prev!==renderPerf.quality)invalidateRenderCache();
 }
@@ -736,8 +745,10 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){resumeAud
 window.addEventListener('pageshow',()=>{resumeAudio();if(state===STATE.COUNT||state===STATE.PLAY) scheduleMusic()});
 
 function songEntries(){
-  return librarySongs.map((x,i)=>[x.id||String(i),{id:x.id||String(i),name:x.title||x.filename||x.id||`歌曲 ${i+1}`,icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`,charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}]);
+  return librarySongs.map((x,i)=>{const id=x.id||String(i);const cached=songMetaCache.get(String(id))||{};return [id,{id,name:x.title||x.filename||x.id||`歌曲 ${i+1}`,icon:x.icon||'🎵',root:Number(x.root)||220,color:x.color||['#54eaff','#956bff','#ff55bd','#ffd65b'][i%4],scale:Array.isArray(x.scale)?x.scale:[0,2,4,7,9],desc:x.desc||'',bpm:Number(x.bpm)||0,duration:Number(x.duration)||Number(cached.duration)||0,stats:x.stats||{},audioUrl:x.audioUrl||`./music/${encodeURIComponent(x.filename||'')}`,charts:x.charts||{},lyricsUrl:x.lyricsUrl||''}];});
 }
+function hydrateSongDuration(songId,src){const id=String(songId);const existing=songMetaCache.get(id)||{};if(existing.duration||existing.loading||!src)return;existing.loading=true;songMetaCache.set(id,existing);const a=new Audio();a.preload='metadata';a.src=src;const done=(dur)=>{existing.loading=false;if(Number.isFinite(dur)&&dur>0){existing.duration=dur;const item=librarySongs.find(x=>String(x.id)===id);if(item)item.duration=dur;}songMetaCache.set(id,existing);if(state===STATE.MENU)renderMenu($('main'));};a.addEventListener('loadedmetadata',()=>done(a.duration),{once:true});a.addEventListener('error',()=>done(0),{once:true});try{a.load()}catch(_){done(0)}}
+
 function normalizeSongEntry(k,obj){return {id:obj.id||k,name:obj.name||obj.title||k,icon:obj.icon||'🎵',root:obj.root||220,color:obj.color||'#54eaff',scale:obj.scale||[0,2,4,7,9],desc:obj.desc||'',bpm:Number(obj.bpm)||0,duration:Number(obj.duration)||0,stats:obj.stats||{},audioUrl:obj.audioUrl||'',charts:obj.charts||{},lyricsUrl:obj.lyricsUrl||''}}
 
 function lyricCandidates(songObj){
@@ -912,13 +923,15 @@ window.onBoomRoomSDKReady=()=>{try{setup({user:window.BoomRoomSDK?.getUser?.()||
 window.addEventListener('message',e=>{let d;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(_){return}if(!d)return;if(d.action==='initSDK'||d.user||d.roomPlayers){setup(d);return}if(d.action==='gameEventReceived'||d.eventName)handleEvent(d.eventName||d.name,d.payload||{},d.userId||d.senderId)});
 function handleEvent(name,p={}){if(name==='RHYTHM_SCORE'&&p.userId){const q=addPlayer(p.userId,p.username||'玩家',Number(p.score)||0,Number(p.combo)||0,p.alive!==false);q.lastTs=performance.now();q.comboPeak=Math.max(q.comboPeak||0,Number(p.maxCombo||p.combo)||0);q.finalAccuracy=Number.isFinite(Number(p.accuracy))?Number(p.accuracy):q.finalAccuracy;renderRoster()}if(name==='RHYTHM_RESULT'&&p.userId){const q=addPlayer(p.userId,p.username||'玩家',Number(p.score)||0,Number(p.maxCombo)||0,p.alive!==false);q.score=Number(p.score)||0;q.combo=Number(p.combo)||0;q.comboPeak=Math.max(q.comboPeak||0,Number(p.maxCombo)||Number(p.combo)||0);q.finalSubmitted=true;q.finalAccuracy=Number.isFinite(Number(p.accuracy))?Number(p.accuracy):q.finalAccuracy;q.finalPerfect=Number(p.perfect)||0;q.finalGood=Number(p.good)||0;q.finalMiss=Number(p.miss)||0;q.finalPulse=Number(p.attackCount)||0;q.attack=q.finalPulse;q.incomingJam=Number(p.incomingJamCount)||0;if(state===STATE.RESULT){renderResult($('main'))}else renderRoster()}if(name==='RHYTHM_PULSE'&&p.userId&&p.userId!==me.id)receiveJam(p.username||'玩家','脈衝');if(name==='RHYTHM_JAM'&&p.userId&&p.userId!==me.id)receiveJam(p.username||'玩家','干擾');if(name==='RHYTHM_OUT'&&p.userId){const q=players.get(String(p.userId));if(q){q.alive=false;renderRoster()}}}
 function receiveJam(from,kind){incomingJamCount++;attackUntil=Math.max(attackUntil,performance.now()+1300);const o=$('attackOverlay');if(o){o.classList.remove('on');void o.offsetWidth;o.classList.add('on')}document.querySelectorAll('.lane').forEach(b=>{b.classList.remove('jammed');void b.offsetWidth;b.classList.add('jammed')});toast('⚡ '+escapeHtml(from)+' 發動 '+kind+'！','#ff9edf');backgroundPulse=Math.max(backgroundPulse,1.2);vibrate([30,20,40])}
-function difficultyLabel(){return difficulty.name+' / '+Number(song?.bpm||CFG.BPM).toFixed(0)+' BPM'}
+function difficultyLabel(){return difficulty.name}
 function showMenu(){state=STATE.MENU;renderPerf.lastPerfCueId=null;renderCtx=null;invalidateRenderCache();render();}
 function renderMenu(main){
   const entries=songEntries();
-  const currentName=song.name||SONGS[chosenSong]?.name||chosenSong;
-  const selectedStats=song.stats?.[chosenDifficulty]||{};
-  const songDuration=Number(song.duration||selectedStats.duration||0);
+  const selectedEntry=entries.find(([k])=>String(k)===String(chosenSong));
+  const selectedSongObj=selectedEntry?selectedEntry[1]:song;
+  const currentName=selectedSongObj?.name||song.name||SONGS[chosenSong]?.name||chosenSong;
+  const selectedStats=selectedSongObj?.stats?.[chosenDifficulty]||{};
+  const songDuration=Number(selectedSongObj?.duration||selectedStats.duration||0);
   const selectedNoteCount=Number(selectedStats.notes||0);
   main.innerHTML=`<section class="menuWrap"><div class="menuCard">
     <div class="menuHeader">
@@ -939,6 +952,7 @@ function renderMenu(main){
       <div class="menuFoot"><span>${entries.length?'按下開始後會鎖定歌曲與難度，再倒數 3 秒正式起播':'先建立 library.json 與至少一首歌曲，遊戲才會出現可玩的歌曲。'}</span></div>
     </div>
   </div></section>`;
+  const seenHydrate=new Set();const hydrateList=[...entries.slice(0,12)];const hydrateSelected=entries.find(([k])=>String(k)===String(chosenSong));if(hydrateSelected)hydrateList.unshift(hydrateSelected);for(const [k,s] of hydrateList){if(seenHydrate.has(String(k)))continue;seenHydrate.add(String(k));const dur=Number(s.duration||s.stats?.[chosenDifficulty]?.duration||0);if(!dur)hydrateSongDuration(k,s.audioUrl||`./music/${encodeURIComponent(s.filename||'')}`)}
   document.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{chosenDifficulty=b.dataset.diff;difficulty=DIFFS[chosenDifficulty];setRuntimeConfig();renderMenu(main)});
   document.querySelectorAll('[data-song]').forEach(b=>b.onclick=()=>{chosenSong=b.dataset.song;const found=entries.find(([k])=>String(k)===String(chosenSong));if(found)song=normalizeSongEntry(...found);setRuntimeConfig();renderMenu(main)});
   $('refreshLibrary').onclick=async()=>{const btn=$('refreshLibrary');btn.disabled=true;btn.textContent='載入中…';await loadLibrary();renderMenu(main)};
@@ -960,7 +974,7 @@ function proceduralChart(s){setSongAndDifficulty();const r=rngFactory(s^hash(cho
 }
 
 function makeChart(s){setSongAndDifficulty();if(activeChart&&Array.isArray(activeChart.notes)&&activeChart.notes.length){return activeChart.notes.map(n=>({...n,done:false,hit:false,started:false,step:n.step||0,progress:0}));}return proceduralChart(s)}
-function noteY(n,t,h,judgeY=h*JUDGE_Y_RATIO){const nt=n.currentT??n.t,remain=nt-t;return judgeY-(remain/CFG.TRAVEL)*(judgeY+58)}
+function noteY(n,t,h,judgeY=h*JUDGE_Y_RATIO,currentT){const nt=currentT??n.currentT??n.t,remain=nt-t;return judgeY-(remain/CFG.TRAVEL)*(judgeY+58)}
 function canvasMetrics(){const c=$('canvas');return {w:c?.clientWidth||1,h:c?.clientHeight||1}}
 function laneFromX(x){const {w}=canvasMetrics();const pad=10,lw=(w-pad*2)/4;return clamp(Math.floor((x-pad)/lw),0,3)}
 function localTime(now){return getMusicTime(now)-audioOutputCompSec+(timingOffsetMs/1000)}
@@ -1037,7 +1051,7 @@ function rhBurst(lane,color,count=14,power=1){const {w,h}=canvasMetrics(),pad=10
   if(rhParticles.length>(q===0?48:q===1?72:110))rhParticles.splice(0,rhParticles.length-(q===0?48:q===1?72:110));
 }
 function rhLineBurst(lanes,color){lanes.forEach((lane,i)=>setTimeout(()=>rhBurst(lane,color,10,1.1),i*18))}
-function rhUpdateParticles(dt){for(let i=rhParticles.length-1;i>=0;i--){const q=rhParticles[i];q.life-=dt;if(q.life<=0){rhParticles.splice(i,1);continue}q.x+=q.vx*dt*60;q.y+=q.vy*dt*60;q.vy+=.06*dt*60}}
+function rhUpdateParticles(dt){let w=0;for(let i=0;i<rhParticles.length;i++){const q=rhParticles[i];q.life-=dt;if(q.life<=0)continue;q.x+=q.vx*dt*60;q.y+=q.vy*dt*60;q.vy+=.06*dt*60;rhParticles[w++]=q}rhParticles.length=w}
 function particleSprite(color,size){
   const q=renderPerf.quality,key=`${q}|${color}|${Math.round(size*10)}`;
   const cached=renderPerf.particleSprites.get(key);if(cached)return cached;
@@ -1048,9 +1062,12 @@ function particleSprite(color,size){
 function rhDrawParticles(x){
   if(!rhParticles.length)return;
   for(const q of rhParticles){
-    x.globalAlpha=clamp(q.life/q.max,0,1);
+    const alpha=clamp(q.life/q.max,0,1);
     const spr=particleSprite(q.color,q.size);
-    const half=spr.width*.5;x.save();x.translate(q.x,q.y);if(q.rot)x.rotate(q.rot);x.drawImage(spr,-half,-half);x.restore();
+    const half=spr.width*.5;
+    x.globalAlpha=alpha;
+    if(q.rot){x.save();x.translate(q.x,q.y);x.rotate(q.rot);x.drawImage(spr,-half,-half);x.restore();}
+    else{x.drawImage(spr,q.x-half,q.y-half);}
   }
   x.globalAlpha=1;
 }
@@ -1082,72 +1099,191 @@ function drawNoteBadge(ctx,r,kind,lane,groupSize=0){
   ctx.restore();
 }
 
+
+function getJudgeSprite(lane,r,stateKey){
+  const q=renderPerf.quality;
+  const key=`judge|${q}|${lane}|${Math.round(r*20)}|${stateKey}`;
+  const cached=renderPerf.judgeSprites.get(key);if(cached)return cached;
+  const pad=Math.ceil(r*2.15)+18;
+  const c=document.createElement('canvas');c.width=c.height=pad*2;
+  const g=c.getContext('2d');g.translate(pad,pad);
+  const col=NOTE_LANE_COLORS[lane];
+  // Rasterize the expensive glow/diamond once. The live loop only drawImage()s this sprite.
+  const outer=stateKey==='idle'?1.32:1.45, inner=stateKey==='idle'?1:1.06;
+  if(stateKey!=='idle' && q>=1){g.shadowBlur=q===2?24:12;g.shadowColor=col;}
+  g.globalAlpha=stateKey==='idle'?.92:.98;
+  g.fillStyle=col+'22';drawDiamondPath(g,r*outer,.18);g.fill();
+  g.strokeStyle=col+'aa';g.lineWidth=2;drawDiamondPath(g,r*outer,.18);g.stroke();
+  g.fillStyle=col+'66';drawDiamondPath(g,r*inner,.18);g.fill();
+  g.strokeStyle='#ffffffd0';g.lineWidth=1.5;drawDiamondPath(g,r*inner,.18);g.stroke();
+  g.fillStyle='#ffffff';g.font='1000 '+Math.max(9,Math.floor(r*.75))+'px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText('ASDF'[lane],0,1);
+  if(stateKey==='pulse'){
+    g.globalAlpha=.9;g.shadowBlur=q===2?30:16;g.shadowColor=col;g.strokeStyle=col+'dd';g.lineWidth=2.2;drawDiamondPath(g,r*1.62,.18);g.stroke();
+  } else if(stateKey==='perfect'){
+    g.globalAlpha=.92;g.shadowBlur=q===2?24:12;g.shadowColor='#54eaff';g.strokeStyle='#54eaff';g.lineWidth=2.4;drawDiamondPath(g,r*1.58,.18);g.stroke();
+    g.strokeStyle='#ffffff';g.lineWidth=1.1;drawDiamondPath(g,r*1.23,.18);g.stroke();
+  }
+  renderPerf.judgeSprites.set(key,c);return c;
+}
+
+function getHoldRailSprite(color,width,active=false){
+  const q=renderPerf.quality;
+  const w=Math.max(4,Math.round(width));
+  const key=`holdrail|${q}|${color}|${w}|${active?1:0}`;
+  const cached=renderPerf.holdSprites.get(key);if(cached)return cached;
+  const h=q===2?192:128;
+  const c=document.createElement('canvas');c.width=w+20;c.height=h;
+  const g=c.getContext('2d');
+  const cx=c.width*.5;
+  g.lineCap='round';
+  if(q>=1){g.shadowBlur=q===2?12:6;g.shadowColor=active?color:color+'99';}
+  g.strokeStyle=color+(active?'aa':'55');g.lineWidth=w*.9;g.beginPath();g.moveTo(cx,10);g.lineTo(cx,h-10);g.stroke();
+  g.shadowBlur=0;g.strokeStyle=active?'#ffffffff':color+'cc';g.lineWidth=Math.max(2,w*.46);g.beginPath();g.moveTo(cx,10);g.lineTo(cx,h-10);g.stroke();
+  renderPerf.holdSprites.set(key,c);return c;
+}
+function getHoldProgressSprite(width){
+  const q=renderPerf.quality,w=Math.max(2,Math.round(width)),key=`holdprogress|${q}|${w}`;
+  const cached=renderPerf.holdSprites.get(key);if(cached)return cached;
+  const h=q===2?192:128,c=document.createElement('canvas');c.width=w+16;c.height=h;
+  const g=c.getContext('2d');const cx=c.width*.5;g.lineCap='round';g.strokeStyle='#ffffffc8';g.lineWidth=Math.max(2,w*.34);g.beginPath();g.moveTo(cx,8);g.lineTo(cx,h-8);g.stroke();
+  renderPerf.holdSprites.set(key,c);return c;
+}
+
 function drawNotes(x,w,h,t,judgeY){
-  const pad=10,lw=(w-pad*2)/4;x.textAlign='center';
-  let lo=0,hi=notes.length;const windowStart=t-8,windowEnd=t+CFG.TRAVEL+0.75;while(lo<hi){const m=(lo+hi)>>1;if((notes[m]?.t||0)<windowStart)lo=m+1;else hi=m}
+  const pad=10,lw=(w-pad*2)/4;
+  let lo=0,hi=notes.length;
+  const windowStart=t-8,windowEnd=t+CFG.TRAVEL+0.75;
+  while(lo<hi){const m=(lo+hi)>>1;if((notes[m]?.t||0)<windowStart)lo=m+1;else hi=m;}
   let perfCue=null;
-  const visible=[];
-  for(let idx=lo;idx<notes.length;idx++){const n=notes[idx];if((n?.t||0)>windowEnd)break;if(n.done)continue;
-    const activeHold=n.type==='hold'&&n.started;const nt=n.type==='hold'?(activeHold?t:n.t):rhNoteTime(n);const y=activeHold?judgeY:noteY({...n,currentT:nt},t,h);
-    if(y<-170||y>h+180)continue;visible.push({n,y,idx});if(!perfCue&&n.t>=t-0.02)perfCue=n;
+  const frameNow=performance.now(),pulseSin=Math.sin(frameNow*.012);
+  if(x.setLineDash)x.setLineDash([]);
+
+  // Pass 1: lightweight legato connectors. No temporary visible-note arrays are created.
+  if(renderPerf.quality>=1){
+    for(let idx=lo;idx<notes.length;idx++){
+      const n=notes[idx];if((n?.t||0)>windowEnd)break;if(n.done||!n.legatoTo)continue;
+      const nt=rhNoteTime(n),ny=noteY(n,t,h,judgeY,nt);
+      if(ny<-170||ny>h+180)continue;
+      const to=noteById.get(n.legatoTo);if(!to||to.done)continue;
+      const tty=rhNoteTime(to),ty=noteY(to,t,h,judgeY,tty);if(ty<-170||ty>h+180)continue;
+      const gx1=pad+n.lane*lw+lw/2,gx2=pad+to.lane*lw+lw/2;
+      x.save();x.globalAlpha=renderPerf.quality===2?.25:.17;x.strokeStyle='#54eaff';x.lineWidth=renderPerf.quality===2?2.1:1.3;x.setLineDash([4,6]);x.beginPath();x.moveTo(gx1,ny);x.bezierCurveTo(gx1+(gx2-gx1)*.4,ny,gx2-(gx2-gx1)*.3,ty,gx2,ty);x.stroke();x.restore();
+    }
+  }
+
+  for(let idx=lo;idx<notes.length;idx++){
+    const n=notes[idx];if((n?.t||0)>windowEnd)break;if(n.done)continue;
+    const activeHold=n.type==='hold'&&n.started;
+    const noteTime=n.type==='hold'?(activeHold?t:n.t):rhNoteTime(n);
+    const y=activeHold?judgeY:noteY(n,t,h,judgeY,noteTime);
+    if(y<-170||y>h+180)continue;
+    if(!perfCue&&n.t>=t-0.02)perfCue=n;
+    const gx=pad+n.lane*lw+lw/2;
+    const r=Math.min(lw*.27,22);
+    const near=!activeHold&&Math.abs(noteTime-t)<=Math.min(.14,CFG.GOOD*1.35);
+    const sprite=activeHold?getNoteSprite(n,r,true):getNoteSprite(n,r,false);
+    x.drawImage(sprite,gx-sprite.width*.5,y-sprite.height*.5);
+
+    if(n.duringHold){x.globalAlpha=.8;x.strokeStyle='#ffffffa0';x.lineWidth=1.3;drawDiamondPath(x,r*1.12,.18);x.stroke();x.globalAlpha=1;}
+
+    if(n.type==='hold'){
+      const topTime=n.t+(n.len||0);
+      const endYActive=noteY(n,t,h,judgeY,topTime);
+      const railBottom=activeHold?judgeY:y;
+      const railTop=Math.min(railBottom-18,endYActive);
+      const totalSpan=Math.max(18,railBottom-railTop);
+      const railWidth=renderPerf.quality===0?Math.max(6,lw*.08):Math.max(8,lw*.105);
+      const spriteRail=getHoldRailSprite(noteLaneColor(n),railWidth,activeHold);
+      x.drawImage(spriteRail,gx-spriteRail.width*.5,railTop-(spriteRail.height*.5),spriteRail.width,totalSpan+spriteRail.height);
+      if(activeHold&&(n.progress||0)<1){
+        const prog=clamp(n.progress||0,0,1);
+        if(prog>0){
+          const ps=getHoldProgressSprite(renderPerf.quality===0?2:3);
+          const ph=Math.max(8,totalSpan*prog);
+          x.globalAlpha=.95;x.drawImage(ps,gx-ps.width*.5,railBottom-ph,ps.width,ph);x.globalAlpha=1;
+        }
+      }
+      if(activeHold&&n.phraseRole==='terminal'){x.strokeStyle='#ffd65b';x.lineWidth=1.8;x.beginPath();x.arc(gx,judgeY,Math.min(30,lw*.32),Math.PI*.15,Math.PI*.85);x.stroke();}
+      if(activeHold&&(n.progress||0)<1){const hs=getHoldActiveSprite(n,r);x.drawImage(hs,gx-hs.width*.5,judgeY-hs.height*.5);}
+    }
+
+    if(n.type==='slide'){
+      const path=n.path||[n.lane];x.save();x.lineCap='round';x.lineJoin='round';x.strokeStyle=noteLaneColor(n)+'55';x.lineWidth=renderPerf.quality===0?5:7;x.beginPath();
+      for(let k=n.step||0;k<path.length;k++){const yy=noteY(n,t,h,judgeY,n.t+k*n.stepGap),xx=pad+path[k]*lw+lw/2;k===(n.step||0)?x.moveTo(xx,yy):x.lineTo(xx,yy)}
+      x.stroke();x.strokeStyle='#ffffff88';x.lineWidth=renderPerf.quality===0?1.2:1.8;x.stroke();x.restore();
+    }
+
+    if(near){
+      const pulseRing=r*1.40,ns=getNearSprite(clamp(Number(n.lane)||0,0,3),pulseRing);
+      x.globalAlpha=.66+.18*pulseSin;x.drawImage(ns,gx-ns.width*.5,y-ns.height*.5);x.globalAlpha=1;
+    }
   }
   updatePerformanceCue(perfCue);
-
-  // Lightweight performance grammar connectors. These are drawn once per visible legato note.
-  if(renderPerf.quality>=1){
-    for(const item of visible){const n=item.n;if(!n.legatoTo)continue;const to=noteById.get(n.legatoTo);if(!to||to.done)continue;const ty=noteY({...to,currentT:rhNoteTime(to)},t,h);if(ty<-170||ty>h+180)continue;
-      const gx1=pad+n.lane*lw+lw/2,gx2=pad+to.lane*lw+lw/2;
-      x.save();x.globalAlpha=renderPerf.quality===2?.28:.18;x.strokeStyle='#54eaff';x.lineWidth=renderPerf.quality===2?2.2:1.4;x.setLineDash([5,6]);x.beginPath();x.moveTo(gx1,item.y);x.bezierCurveTo(gx1+(gx2-gx1)*.4,item.y,gx2-(gx2-gx1)*.3,ty,gx2,ty);x.stroke();x.restore();
-    }
-  }
-
-  for(const item of visible){const n=item.n,y=item.y,activeHold=n.type==='hold'&&n.started;
-    const gx=pad+n.lane*lw+lw/2;const r=Math.min(lw*.27,22);const color=noteLaneColor(n);const near=!activeHold&&Math.abs(rhNoteTime(n)-t)<=Math.min(.14,CFG.GOOD*1.35);
-    const sprite=activeHold?getNoteSprite(n,r,true):getNoteSprite(n,r,false);x.drawImage(sprite,gx-sprite.width*.5,y-sprite.height*.5);
-    if(n.duringHold){x.save();x.strokeStyle='#ffffffa0';x.lineWidth=1.4;drawDiamondPath(x,r*1.12,.18);x.stroke();x.restore();}
-    if(n.type==='hold'){
-      const topTime=n.t+(n.len||0);const endYActive=noteY({...n,currentT:topTime},t,h);const railBottom=activeHold?judgeY:y;const railTop=Math.min(railBottom-18,endYActive);const totalSpan=Math.max(18,railBottom-railTop);const remaining=Math.max(0,1-(n.progress||0));
-      x.save();x.lineCap='round';x.lineWidth=renderPerf.quality===0?Math.max(6,lw*.08):Math.max(8,lw*.105);x.strokeStyle=color+'44';x.beginPath();x.moveTo(gx,railBottom);x.lineTo(gx,railTop);x.stroke();x.strokeStyle=(n.articulation==='legato-hold'?'#54eaffaa':color+'aa');x.lineWidth=renderPerf.quality===0?Math.max(3,lw*.045):Math.max(4,lw*.06);x.beginPath();x.moveTo(gx,railBottom);x.lineTo(gx,railTop);x.stroke();
-      if(activeHold&&remaining>0){const progY=railBottom-totalSpan*clamp(n.progress||0,0,1);x.strokeStyle='#ffffffc8';x.lineWidth=renderPerf.quality===0?2:3;x.beginPath();x.moveTo(gx,railBottom);x.lineTo(gx,progY);x.stroke();}
-      if(activeHold&&n.phraseRole==='terminal'){x.strokeStyle='#ffd65b';x.lineWidth=2;x.beginPath();x.arc(gx,judgeY,Math.min(30,lw*.32),Math.PI*.15,Math.PI*.85);x.stroke()}
-      if(activeHold&&remaining>0){const hs=getHoldActiveSprite(n,r);x.drawImage(hs,gx-hs.width*.5,judgeY-hs.height*.5);}
-      x.restore();
-    }
-    if(n.type==='slide'){const path=n.path||[n.lane];x.save();x.lineCap='round';x.lineJoin='round';x.strokeStyle=color+'55';x.lineWidth=renderPerf.quality===0?5:8;x.beginPath();for(let k=n.step||0;k<path.length;k++){const yy=noteY({...n,currentT:n.t+k*n.stepGap},t,h),xx=pad+path[k]*lw+lw/2;k===(n.step||0)?x.moveTo(xx,yy):x.lineTo(xx,yy)}x.stroke();x.strokeStyle='#ffffff88';x.lineWidth=renderPerf.quality===0?1.2:2;x.stroke();x.restore();}
-    if(near){x.save();x.translate(gx,y);const pulseRing=r*(1.35+0.10*Math.sin(performance.now()*.012));x.strokeStyle=color+'aa';x.lineWidth=2;drawDiamondPath(x,pulseRing,.18);x.stroke();x.restore();}
-  }
-  rhDrawParticles(x);
 }
 
+function ensureStageCanvasSize(c,w,h,dpr,alpha=true){
+  if(!c)return false;
+  const cw=Math.max(1,Math.round(w*dpr)),ch=Math.max(1,Math.round(h*dpr));
+  if(c.width!==cw||c.height!==ch){c.width=cw;c.height=ch;return true;}
+  return false;
+}
+function ensureStageContexts(){
+  const main=$('canvas'),bg=$('bgCanvas'),fx=$('fxCanvas');
+  if(!main||!bg||!fx)return null;
+  if(!renderCtx)renderCtx=main.getContext('2d',{alpha:true,desynchronized:true})||main.getContext('2d');
+  if(!bgCtx)bgCtx=bg.getContext('2d',{alpha:false,desynchronized:true})||bg.getContext('2d');
+  if(!fxCtx)fxCtx=fx.getContext('2d',{alpha:true,desynchronized:true})||fx.getContext('2d');
+  return {main,bg,fx};
+}
 function draw(now){
   updateRenderQuality(now);
-  const c=$('canvas');if(!c)return;
-  const dpr=Math.min(renderPerf.dpr||1.5,window.devicePixelRatio||1.5),w=c.clientWidth,h=c.clientHeight;
-  if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);invalidateRenderCache()}
-  if(!renderCtx)renderCtx=c.getContext('2d',{alpha:false,desynchronized:true})||c.getContext('2d');const x=renderCtx;if(!x)return;
-  x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
-  const t=state===STATE.PLAY?localTime(now):0;drawBackground(x,w,h,now,t);
-  const pad=10,lw=(w-pad*2)/4,top=12,bottom=h-12,judgeY=h*JUDGE_Y_RATIO;
-  const cache=ensureRenderCache(w,h);x.drawImage(cache.lanes,0,0,w,h);
-  if(state===STATE.PLAY)drawBeatLines(x,w,h,judgeY,t);
-  const phase=state===STATE.PLAY?Math.pow(1-(((t/CFG.BEAT)%1+1)%1),3):0;x.fillStyle=`rgba(84,234,255,${.05+.12*phase})`;x.fillRect(8,judgeY-12,w-16,24);
-  x.strokeStyle='#54eaffaa';x.lineWidth=2;x.beginPath();x.moveTo(8,judgeY);x.lineTo(w-8,judgeY);x.stroke();
-  const fxNow=performance.now();
-  for(let i=0;i<4;i++){
-    const gx=pad+i*lw+lw/2,active=rhHeld.has(i),fxUntil=laneEffectUntil[i]||0,fx=Math.max(0,Math.min(1,(fxUntil-fxNow)/180)),pf=Math.max(0,Math.min(1,(perfectFxUntil[i]-fxNow)/220));
-    const r=Math.min(lw*.25,20)*(active?1.10:1),col=NOTE_LANE_COLORS[i];x.save();x.translate(gx,judgeY);x.globalAlpha=(.9+.1*phase)*(active?1:.92);
-    if(renderPerf.quality>=1){x.shadowBlur=renderPerf.quality===2?16+10*phase+(active?28:fx*18):8+active*10;x.shadowColor=col}else{x.shadowBlur=0}
-    x.fillStyle=col+'22';drawDiamondPath(x,r*1.32,.18);x.fill();x.strokeStyle=col+'aa';x.lineWidth=2;drawDiamondPath(x,r*1.32,.18);x.stroke();x.fillStyle=col+'66';drawDiamondPath(x,r,.18);x.fill();x.strokeStyle='#ffffffd0';x.lineWidth=1.5;drawDiamondPath(x,r,.18);x.stroke();x.fillStyle='#ffffff';x.font='1000 '+Math.max(9,Math.floor(r*.75))+'px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('ASDF'[i],0,1);
-    if(active||fx>0){x.globalAlpha=.78*(active?1:fx);x.strokeStyle=col+'cc';x.lineWidth=2;drawDiamondPath(x,r*(1.45+0.22*fx),.18);x.stroke()}
-    if(pf>0){x.globalAlpha=.9*pf;x.strokeStyle='#54eaff';x.lineWidth=2.5;drawDiamondPath(x,r*(1.5+pf*.25),.18);x.stroke();x.strokeStyle='#ffffff';x.lineWidth=1;drawDiamondPath(x,r*(1.18+pf*.12),.18);x.stroke()}
-    x.restore();
+  const ctxs=ensureStageContexts();if(!ctxs)return;
+  const {main,bg,fx}=ctxs;
+  const dpr=Math.min(renderPerf.dpr||1.5,window.devicePixelRatio||1.5),w=main.clientWidth,h=main.clientHeight;
+  const resizedBg=ensureStageCanvasSize(bg,w,h,dpr,false);
+  const resizedMain=ensureStageCanvasSize(main,w,h,dpr,true);
+  const resizedFx=ensureStageCanvasSize(fx,w,h,dpr,true);
+  if(resizedMain||resizedFx){renderCtx=main.getContext('2d',{alpha:true,desynchronized:true})||renderCtx;fxCtx=fx.getContext('2d',{alpha:true,desynchronized:true})||fxCtx;}
+  const scale=dpr;
+  if(resizedBg||resizedMain||resizedFx)renderPerf.stageBgKey='';
+
+  const cache=ensureRenderCache(w,h);
+  const bgKey=`${renderPerf.cacheKey}|d${Math.round(dpr*100)}`;
+  if(renderPerf.stageBgKey!==bgKey){
+    bgCtx.setTransform(scale,0,0,scale,0,0);bgCtx.clearRect(0,0,w,h);bgCtx.drawImage(cache.bg,0,0,w,h);bgCtx.drawImage(cache.lanes,0,0,w,h);renderPerf.stageBgKey=bgKey;
   }
-  if(state===STATE.PLAY)drawNotes(x,w,h,t,judgeY);backgroundPulse*=.92;overTakeFlash*=.92;
+
+  renderCtx.setTransform(scale,0,0,scale,0,0);renderCtx.clearRect(0,0,w,h);
+  fxCtx.setTransform(scale,0,0,scale,0,0);fxCtx.clearRect(0,0,w,h);
+
+  const t=state===STATE.PLAY?localTime(now):0;
+  // Dynamic background glow goes to the FX layer, so the expensive full-stage base is never redrawn.
+  const beatPhase=((t/CFG.BEAT)%1+1)%1;
+  const p=Math.pow(1-beatPhase,3)*(.55+backgroundPulse*.45),hot=(CFG.ROUND-t)<12;
+  if(p>.01||hot){fxCtx.save();fxCtx.globalAlpha=hot?.45:Math.min(.55,.10+p*.42);fxCtx.drawImage(hot?cache.hotGlow:cache.dynamicGlow,0,0,w,h);fxCtx.restore();}
+
+  if(state===STATE.PLAY)drawBeatLines(renderCtx,w,h,h*JUDGE_Y_RATIO,t);
+  const judgeY=h*JUDGE_Y_RATIO,phase=state===STATE.PLAY?Math.pow(1-(((t/CFG.BEAT)%1+1)%1),3):0;
+  renderCtx.fillStyle=`rgba(84,234,255,${.05+.12*phase})`;renderCtx.fillRect(8,judgeY-12,w-16,24);
+  renderCtx.strokeStyle='#54eaffaa';renderCtx.lineWidth=2;renderCtx.beginPath();renderCtx.moveTo(8,judgeY);renderCtx.lineTo(w-8,judgeY);renderCtx.stroke();
+
+  const pad=10,lw=(w-pad*2)/4,fxNow=performance.now();
+  for(let i=0;i<4;i++){
+    const gx=pad+i*lw+lw/2,active=rhHeld.has(i),fxAmount=Math.max(0,Math.min(1,((laneEffectUntil[i]||0)-fxNow)/180)),pf=Math.max(0,Math.min(1,((perfectFxUntil[i]||0)-fxNow)/220));
+    const r=Math.min(lw*.25,20)*(active?1.10:1),stateKey=pf>0?'perfect':(active||fxAmount>0?'pulse':'idle'),js=getJudgeSprite(i,r,stateKey);
+    renderCtx.globalAlpha=(.9+.1*phase)*(active?1:.92);renderCtx.drawImage(js,gx-js.width*.5,judgeY-js.height*.5);
+    if((active||fxAmount>0)&&stateKey!=='pulse'){const ps=getJudgeSprite(i,r,'pulse');renderCtx.globalAlpha=.35*(active?1:fxAmount);renderCtx.drawImage(ps,gx-ps.width*.5,judgeY-ps.height*.5);}
+    renderCtx.globalAlpha=1;
+  }
+  if(state===STATE.PLAY)drawNotes(renderCtx,w,h,t,judgeY);
+  rhDrawParticles(fxCtx);
+  backgroundPulse*=.92;overTakeFlash*=.92;
 }
+
 function renderRoster(){const el=$('roster');if(!el)return;const arr=[...players.values()].sort((a,b)=>(b.score||0)-(a.score||0));const myRank=arr.findIndex(p=>p.id===me.id)+1;if(myRank&&myRank<highestLocalRank){highestLocalRank=myRank;overTakeFlash=.6}el.innerHTML=arr.map((p,i)=>{const lead=arr[0]?.score?clamp((p.score||0)/arr[0].score*100,0,100):0;return `<div class="player ${p.id===me.id?'me ':''}${p.attack?'attack':''}"><b>${escapeHtml(p.username)} ${p.id===me.id?'· 你':''}</b><span>#${i+1}　${Math.floor(p.score||0).toLocaleString()}　${p.combo?'🔥'+p.combo:'—'}</span><i class="playerLead" style="width:${lead}%"></i></div>`}).join('')}
 function render(){applyComboFxClasses();if(!FX_DEBUG_LEVEL){document.body.classList.remove('combo50Mode','combo100Mode','gameplayActive');}const main=$('main');if(state===STATE.RESULT){renderResult(main);return}if(state===STATE.LOADING){main.innerHTML='<section class="panel"><div style="text-align:center;font-weight:1000;font-size:22px">載入節奏場…</div></section>';return}if(state===STATE.MENU){renderMenu(main);return}
-  main.innerHTML=`<section class="game"><div id="comboInfernoFrame" class="comboInfernoFrame" aria-hidden="true"></div><div class="gameTopInfo"><div class="gameMeta"><b id="gameSongTitle">${escapeHtml(song.name||"音樂")}</b><span id="gameSongMeta">${Number(song.bpm||activeChart?.bpm||CFG.BPM).toFixed(0)} BPM · ${fmtTime(song.duration||activeChart?.duration||CFG.ROUND)}</span></div><div class="difficultyBadge" id="difficultyBadge">${difficulty.label} · ${difficulty.name}</div></div><div class="hud"><div class="pill" id="timerBox">⏱ <b id="timer">${CFG.COUNT}</b><br><span>剩餘秒數</span></div><div class="pill">🏆 <b id="score">0</b><br><span>分數</span></div><div class="pill comboMainPill"><span class="comboLabel">COMBO</span><b id="combo">0</b><small>最高 <i id="maxCombo">0</i></small></div><div class="pill accuracy">🎯 <b id="acc">100%</b><br><span>節拍準確度</span><div class="accBar"><i id="accBar"></i></div></div><div class="pill"><span>⚡ 干擾</span><br><b id="attackCount">0</b><small class="hudMini">發動 · 被幹擾 <i id="incomingJamCount">0</i></small></div><div class="pill pulsePill"><div class="pulseTopLine"><span>💥 PULSE</span><button id="pulseBtn" class="powerAction">SPACE</button></div><div class="miniPulseBar"><i id="pulseBar"></i></div></div></div><div class="topRosterWrap"><div class="roster" id="roster"></div></div>
-  <div id="stage"><canvas id="canvas"></canvas><div id="comboFlameLayer" class="comboFlameLayer" aria-hidden="true"></div><div class="stageFX"><div class="vignette"></div><div class="centerPulse" id="centerPulse"></div><div class="beatReadout" id="beatReadout">SYNC</div><div class="attackOverlay" id="attackOverlay"></div><div class="trackGlow" id="trackGlow"></div></div><div id="comboReadout" class="comboReadout"><span class="comboReadoutLabel">COMBO</span><b id="comboReadoutValue">0</b></div><div id="beatText" class="beatText"></div><div id="judgementMs" class="judgementMs"></div><div id="performanceCue" aria-hidden="true" style="position:absolute;right:14px;top:16%;z-index:6;pointer-events:none;opacity:0;transition:opacity .12s ease;font:900 10px/1.1 system-ui;letter-spacing:1.4px;text-shadow:0 0 12px currentColor;background:#070a14a8;border:1px solid #ffffff18;border-radius:999px;padding:5px 8px;backdrop-filter:blur(5px)"></div><div id="lyricsPanel" class="lyricsPanel"><div id="lyricsCurrent" class="lyricsCurrent"></div><div id="lyricsNext" class="lyricsNext"></div></div><div class="progressWrap"><div class="progressTop"><b id="musicTitle"></b><span id="musicProgressTime">0:00 / 0:00</span></div><div class="progressBar"><i id="musicProgressBar"></i></div><div class="progressStatus"><span id="musicStatus">準備音樂</span><span id="musicProgressBpm"></span></div></div>${state===STATE.COUNT?'<div id="countdown" class="countdown"></div>':''}<div class="statusStack"><div class="chip" id="modeChip">${difficulty.label} · ${difficulty.name}</div></div><button class="mobilePulseBtn" id="mobilePulseBtn" aria-label="立即干擾"><span>⚡</span><b>干擾</b><small>滿格可用</small></button></div>
+  main.innerHTML=`<section class="game"><div id="comboInfernoFrame" class="comboInfernoFrame" aria-hidden="true"></div><div class="gameTopInfo"><div class="gameMeta"><b id="gameSongTitle">${escapeHtml(song.name||"音樂")}</b><span id="gameSongMeta">${fmtTime(song.duration||activeChart?.duration||CFG.ROUND)} · ${Number(activeChart?.notes?.length||song?.stats?.[chosenDifficulty]?.notes||0).toLocaleString()} 音符</span></div><div class="difficultyBadge" id="difficultyBadge">${difficulty.label} · ${difficulty.name}</div></div><div class="hud"><div class="pill" id="timerBox">⏱ <b id="timer">${CFG.COUNT}</b><br><span>剩餘秒數</span></div><div class="pill">🏆 <b id="score">0</b><br><span>分數</span></div><div class="pill comboMainPill"><span class="comboLabel">COMBO</span><b id="combo">0</b><small>最高 <i id="maxCombo">0</i></small></div><div class="pill accuracy">🎯 <b id="acc">100%</b><br><span>節拍準確度</span><div class="accBar"><i id="accBar"></i></div></div><div class="pill"><span>⚡ 干擾</span><br><b id="attackCount">0</b><small class="hudMini">發動 · 被幹擾 <i id="incomingJamCount">0</i></small></div><div class="pill pulsePill"><div class="pulseTopLine"><span>💥 PULSE</span><button id="pulseBtn" class="powerAction">SPACE</button></div><div class="miniPulseBar"><i id="pulseBar"></i></div></div></div><div class="topRosterWrap"><div class="roster" id="roster"></div></div>
+  <div id="stage"><canvas id="bgCanvas" aria-hidden="true"></canvas><canvas id="canvas" aria-hidden="true"></canvas><canvas id="fxCanvas" aria-hidden="true"></canvas><div id="comboFlameLayer" class="comboFlameLayer" aria-hidden="true"></div><div class="stageFX"><div class="vignette"></div><div class="centerPulse" id="centerPulse"></div><div class="beatReadout" id="beatReadout">SYNC</div><div class="attackOverlay" id="attackOverlay"></div><div class="trackGlow" id="trackGlow"></div></div><div id="comboReadout" class="comboReadout"><span class="comboReadoutLabel">COMBO</span><b id="comboReadoutValue">0</b></div><div id="beatText" class="beatText"></div><div id="judgementMs" class="judgementMs"></div><div id="performanceCue" aria-hidden="true" style="position:absolute;right:14px;top:16%;z-index:6;pointer-events:none;opacity:0;transition:opacity .12s ease;font:900 10px/1.1 system-ui;letter-spacing:1.4px;text-shadow:0 0 12px currentColor;background:#070a14a8;border:1px solid #ffffff18;border-radius:999px;padding:5px 8px;backdrop-filter:blur(5px)"></div><div id="lyricsPanel" class="lyricsPanel"><div id="lyricsCurrent" class="lyricsCurrent"></div><div id="lyricsNext" class="lyricsNext"></div></div><div class="progressWrap"><div class="progressTop"><b id="musicTitle"></b><span id="musicProgressTime">0:00 / 0:00</span></div><div class="progressBar"><i id="musicProgressBar"></i></div><div class="progressStatus"><span id="musicStatus">準備音樂</span><span id="musicProgressBpm"></span></div></div>${state===STATE.COUNT?'<div id="countdown" class="countdown"></div>':''}<div class="statusStack"><div class="chip" id="modeChip">${difficulty.label} · ${difficulty.name}</div></div><button class="mobilePulseBtn" id="mobilePulseBtn" aria-label="立即干擾"><span>⚡</span><b>干擾</b><small>滿格可用</small></button></div>
   <div class="laneControls"><div id="comboFire50" class="comboFire50" aria-hidden="true"></div>${['A','S','D','F'].map((k,i)=>`<button class="lane" id="lane${i}" aria-label="${k} 軌（${['H','J','K','L'][i]} 鍵）" style="--gem-color:${['var(--gemA)','var(--gemS)','var(--gemK)','var(--gemL)'][i]}"><span class="laneAltLabel">${['H','J','K','L'][i]}</span><span class="laneGem"><span class="laneKey">${k}</span></span><span class="laneNum">${i+1} 軌</span></button>`).join('')}</div></section>`;
   bindControls();renderRoster();rhEnsureUI();if(state===STATE.COUNT)countdown()}
 function bindControls(){rhPressSources.clear();rhPointers.clear();stagePointer=null;for(let i=0;i<4;i++){const b=$('lane'+i);b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){}const source='p:'+e.pointerId;rhPointers.set(e.pointerId,{lane:i,source,type:e.pointerType});pressLane(i,source,performance.now(),'tap');const th=$('touchHint');if(th&&e.pointerType==='touch'){th.textContent='多指輸入：'+[...rhPointers.values()].filter(v=>v.type==='touch').length;th.classList.add('on')}});b.addEventListener('pointerup',e=>{e.preventDefault();const d=rhPointers.get(e.pointerId);rhPointers.delete(e.pointerId);if(d)releaseLaneSource(d.lane,d.source);const th=$('touchHint');if(th){th.textContent='多指輸入：'+[...rhPointers.values()].filter(v=>v.type==='touch').length;if(![...rhPointers.values()].some(v=>v.type==='touch'))th.classList.remove('on')}});b.addEventListener('pointercancel',e=>{const d=rhPointers.get(e.pointerId);rhPointers.delete(e.pointerId);if(d)releaseLaneSource(d.lane,d.source)})}
@@ -1191,6 +1327,12 @@ function getNoteSprite(n,r,activeHold=false){
   if(q>=1){g.font='800 7px system-ui';g.textBaseline='middle';g.textAlign='center';if(n.hand){g.fillStyle=n.hand==='L'?'#67e8f9aa':'#ff8fd7aa';g.fillText(n.hand,0,-r-5)}if(n.performanceRole&&String(n.performanceRole).includes('bass')){g.fillStyle='#67e8f9aa';g.fillRect(-r*.72,r*.72,r*1.44,1.5)}else if(n.performanceRole&&String(n.performanceRole).includes('harmony')){g.strokeStyle='#fb718588';g.lineWidth=1.5;g.beginPath();g.arc(0,-r*.72,r*.34,Math.PI,Math.PI*2);g.stroke()}if(n.handCrossing){g.strokeStyle='#ff8fd7c0';g.lineWidth=1.5;g.beginPath();g.moveTo(-r*.45,r*.45);g.lineTo(r*.45,-r*.45);g.moveTo(-r*.45,-r*.45);g.lineTo(r*.45,r*.45);g.stroke()}if(n.syncopated){g.strokeStyle='#a78bfaa8';g.lineWidth=1.3;g.beginPath();g.moveTo(-r*.92,r*.72);g.lineTo(-r*.58,r*.38);g.stroke()}if(n.phraseRole==='terminal'||Number(n.phraseTerminal||0)>.7||n.articulation==='release'){g.strokeStyle='#ffd65baa';g.lineWidth=1.5;g.beginPath();g.arc(0,r*.72,r*.34,0,Math.PI);g.stroke()}}
   renderPerf.noteSprites.set(key,c);return c;
 }
+
+function getNearSprite(lane,r){
+  const q=renderPerf.quality,key=`near|${q}|${lane}|${Math.round(r*10)}`;const cached=renderPerf.judgeSprites.get(key);if(cached)return cached;
+  const pad=Math.ceil(r*1.9)+10,c=document.createElement('canvas');c.width=c.height=pad*2;const g=c.getContext('2d');g.translate(pad,pad);g.globalAlpha=.72;g.strokeStyle=NOTE_LANE_COLORS[lane]+'aa';g.lineWidth=2;drawDiamondPath(g,r,.18);g.stroke();renderPerf.judgeSprites.set(key,c);return c;
+}
+
 function getHoldActiveSprite(n,r){
   const key=`holdactive|${noteLaneColor(n)}|${Math.round(r*10)}|${clamp(Number(n.lane)||0,0,3)}|${renderPerf.quality}`;const cached=renderPerf.noteSprites.get(key);if(cached)return cached;
   const pad=Math.ceil(r*2.7)+8,c=document.createElement('canvas');c.width=c.height=pad*2;const g=c.getContext('2d');g.translate(pad,pad);const color=noteLaneColor(n),q=renderPerf.quality;g.shadowBlur=q>=1?(q===2?22:10):0;g.shadowColor=color;g.fillStyle=color;drawDiamondPath(g,r*1.08,.18);g.fill();g.strokeStyle='#fff';g.lineWidth=2;drawDiamondPath(g,r*1.08,.18);g.stroke();g.fillStyle='#061019';g.font='1000 '+Math.max(8,Math.floor(r*.68))+'px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText('↕',0,-r*.12);g.font='1000 '+Math.max(7,Math.floor(r*.36))+'px system-ui';g.fillText('ASDF'[clamp(Number(n.lane)||0,0,3)],0,r*.37);renderPerf.noteSprites.set(key,c);return c;
@@ -1210,7 +1352,7 @@ async function startRound(){
   const chartDuration=Number(activeChart?.duration||song.duration||musicDuration||60);if(activeChart?.bpm){CFG.BPM=Number(activeChart.bpm);CFG.BEAT=Number(activeChart.beatInterval||60/CFG.BPM)}else setRuntimeConfig();CFG.ROUND=Math.max(15,Math.min(600,chartDuration));
   seed=seed||hash(Date.now().toString());state=STATE.COUNT;score=combo=maxCombo=perfect=good=miss=streak=attackCount=incomingJamCount=clashCount=slideProgress=0;pulse=0;pulseReady=false;highestLocalRank=99;lastLeaderScore=0;applyComboFxClasses();roundId='rhythm_'+Date.now().toString(36);notes=makeChart(seed);notes.sort((a,b)=>(a.t||0)-(b.t||0));
   rhHeld.clear();rhPressSources.clear();rhHolds.clear();rhSlide=null;rhParticles=[];rhDouble.clear();for(const n of notes){if(n.group==='double'||n.group==='chord'){let g=rhDouble.get(n.groupId);if(!g){g={t:n.t,lanes:[],members:[],hits:0,complete:false};rhDouble.set(n.groupId,g)}g.lanes.push(n.lane);g.members.push(n)}}
-  noteById=new Map(notes.map(n=>[n.id,n]));rebuildRuntimeIndexes();missCursor=0;doubleMissCursor=0;renderCtx=null;renderPerf.lastNow=0;renderPerf.avgMs=16.7;renderPerf.sampleCount=0;renderPerf.dpr=Math.min(1.75,window.devicePixelRatio||1);renderPerf.lastPerfCueId=null;invalidateRenderCache();countdownStartAt=performance.now();countdownGoAt=countdownStartAt+CFG.COUNT*1000;startAt=countdownGoAt;endAt=countdownGoAt+CFG.ROUND*1000;lastBeat=-1;attackUntil=0;autoResult=false;lastAudioKeepalive=performance.now();musicDuration=musicDuration||chartDuration;render();if(musicEl&&!musicEl.paused){musicEl.muted=true;musicEl.currentTime=0;musicGesturePrimed=true;}else if(song.audioUrl){primeMusic(song.audioUrl);}startEngineWatchdog();tone(440,.08,'triangle',.05);
+  noteById=new Map(notes.map(n=>[n.id,n]));rebuildRuntimeIndexes();missCursor=0;doubleMissCursor=0;renderCtx=null;bgCtx=null;fxCtx=null;renderPerf.lastNow=0;renderPerf.avgMs=16.7;renderPerf.sampleCount=0;{const mobileLike=window.matchMedia?.('(pointer:coarse)').matches || Math.min(window.innerWidth,window.innerHeight)<=820;renderPerf.dpr=Math.min(mobileLike?1.28:1.55,window.devicePixelRatio||1);renderPerf.quality=mobileLike?1:2;}renderPerf.lastPerfCueId=null;invalidateRenderCache();countdownStartAt=performance.now();countdownGoAt=countdownStartAt+CFG.COUNT*1000;startAt=countdownGoAt;endAt=countdownGoAt+CFG.ROUND*1000;lastBeat=-1;attackUntil=0;autoResult=false;lastAudioKeepalive=performance.now();musicDuration=musicDuration||chartDuration;render();if(musicEl&&!musicEl.paused){musicEl.muted=true;musicEl.currentTime=0;musicGesturePrimed=true;}else if(song.audioUrl){primeMusic(song.audioUrl);}startEngineWatchdog();tone(440,.08,'triangle',.05);
 }
 function startEngineWatchdog(){if(engineWatchdog)clearInterval(engineWatchdog);engineWatchdog=setInterval(()=>{if(state===STATE.PLAY){const now=performance.now();if(endAt&&now>=endAt+1200){finish()}}},250)}
 function stopEngineWatchdog(){if(engineWatchdog){clearInterval(engineWatchdog);engineWatchdog=null}}
@@ -1241,7 +1383,7 @@ function syncComboFx(){
 }
 
 
-function updateHud(now){if(now-hudLastUpdate<70&&state===STATE.PLAY)return;hudLastUpdate=now;const timer=state===STATE.COUNT?Math.max(0,Math.ceil((startAt-now)/1000)):state===STATE.PLAY?Math.max(0,Math.ceil((endAt-now)/1000)):0,total=perfect+good+miss,acc=total?Math.round((perfect+good)/total*100):100;$('timer')&&($('timer').textContent=timer);$('score')&&($('score').textContent=Math.floor(score).toLocaleString());$('combo')&&($('combo').textContent=combo);$('maxCombo')&&($('maxCombo').textContent=maxCombo);$('comboReadoutValue')&&($('comboReadoutValue').textContent=combo);syncComboFx();const stageEl=$('stage');if(stageEl){stageEl.classList.toggle('combo50',combo>=50);stageEl.classList.toggle('combo100',combo>=100)}$('difficultyBadge')&&($('difficultyBadge').textContent=difficulty.label+' · '+difficulty.name);$('gameSongTitle')&&($('gameSongTitle').textContent=song.name||'音樂');$('gameSongMeta')&&($('gameSongMeta').textContent=fmtTime(activeChart?.duration||song.duration||CFG.ROUND));$('acc')&&($('acc').textContent=acc+'%');$('accBar')&&($('accBar').style.transform='scaleX('+(acc/100)+')');$('attackCount')&&($('attackCount').textContent=attackCount);$('incomingJamCount')&&($('incomingJamCount').textContent=incomingJamCount);$('pulseBar')&&($('pulseBar').style.width=Math.round(pulse*100)+'%');const pb=$('pulseBtn');if(pb){pb.textContent=pulseReady?'SPACE · READY':'SPACE';pb.classList.toggle('ready',pulseReady)}const mpb=$('mobilePulseBtn');if(mpb){mpb.classList.toggle('ready',pulseReady);mpb.querySelector('small')&&(mpb.querySelector('small').textContent=pulseReady?'滿格':'冷卻')}if(state===STATE.PLAY&&timer<=12)$('timerBox')?.classList.add('hot');const chip=$('modeChip');if(chip)chip.textContent=(timer<=12?'🔥 RUSH · ':'')+difficulty.label+' · '+difficulty.name;const read=$('beatReadout');if(read&&state===STATE.PLAY){const ph=((localTime(now)/CFG.BEAT)%1+1)%1,quality=Math.abs(ph)<.055||Math.abs(ph-1)<.055?'ON BEAT':ph<.5?'NEXT BEAT':'SYNC';read.textContent=quality;read.style.opacity=quality==='ON BEAT'?'.85':'.24'}}
+function updateHud(now){if(now-hudLastUpdate<70&&state===STATE.PLAY)return;hudLastUpdate=now;const timer=state===STATE.COUNT?Math.max(0,Math.ceil((startAt-now)/1000)):state===STATE.PLAY?Math.max(0,Math.ceil((endAt-now)/1000)):0,total=perfect+good+miss,acc=total?Math.round((perfect+good)/total*100):100;$('timer')&&($('timer').textContent=timer);$('score')&&($('score').textContent=Math.floor(score).toLocaleString());$('combo')&&($('combo').textContent=combo);$('maxCombo')&&($('maxCombo').textContent=maxCombo);$('comboReadoutValue')&&($('comboReadoutValue').textContent=combo);syncComboFx();const stageEl=$('stage');if(stageEl){stageEl.classList.toggle('combo50',combo>=50);stageEl.classList.toggle('combo100',combo>=100)}$('difficultyBadge')&&($('difficultyBadge').textContent=difficulty.label+' · '+difficulty.name);$('gameSongTitle')&&($('gameSongTitle').textContent=song.name||'音樂');$('gameSongMeta')&&($('gameSongMeta').textContent=`${fmtTime(activeChart?.duration||song.duration||CFG.ROUND)} · ${Number(activeChart?.notes?.length||song?.stats?.[chosenDifficulty]?.notes||notes.length||0).toLocaleString()} 音符`);$('acc')&&($('acc').textContent=acc+'%');$('accBar')&&($('accBar').style.transform='scaleX('+(acc/100)+')');$('attackCount')&&($('attackCount').textContent=attackCount);$('incomingJamCount')&&($('incomingJamCount').textContent=incomingJamCount);$('pulseBar')&&($('pulseBar').style.width=Math.round(pulse*100)+'%');const pb=$('pulseBtn');if(pb){pb.textContent=pulseReady?'SPACE · READY':'SPACE';pb.classList.toggle('ready',pulseReady)}const mpb=$('mobilePulseBtn');if(mpb){mpb.classList.toggle('ready',pulseReady);mpb.querySelector('small')&&(mpb.querySelector('small').textContent=pulseReady?'滿格':'冷卻')}if(state===STATE.PLAY&&timer<=12)$('timerBox')?.classList.add('hot');const chip=$('modeChip');if(chip)chip.textContent=(timer<=12?'🔥 RUSH · ':'')+difficulty.label+' · '+difficulty.name;const read=$('beatReadout');if(read&&state===STATE.PLAY){const ph=((localTime(now)/CFG.BEAT)%1+1)%1,quality=Math.abs(ph)<.055||Math.abs(ph-1)<.055?'ON BEAT':ph<.5?'NEXT BEAT':'SYNC';read.textContent=quality;read.style.opacity=quality==='ON BEAT'?'.85':'.24'}}
 function finish(){
   if(state===STATE.RESULT)return;
   state=STATE.RESULT;
@@ -1308,7 +1450,7 @@ function renderResult(main){
     <section class="resultHero">
       <div class="resultEyebrow"><i></i> BOOMROOM RHYTHM · ROUND RESULT <i></i></div>
       <div class="resultTitle">本局完整結算</div>
-      <p class="resultSub">${escapeHtml(song.name||'音樂')} · ${bpm.toFixed(0)} BPM · ${fmtTime(duration)} · ${noteCount.toLocaleString()} 音符</p>
+      <p class="resultSub">${escapeHtml(song.name||'音樂')} · ${fmtTime(duration)} · ${noteCount.toLocaleString()} 音符</p>
       <div style="text-align:center"><span class="resultDifficultyBadge">${difficulty.label} · ${difficulty.name}</span></div>
       <div class="resultCards">
         <div class="resultCard"><b>${Math.floor(score).toLocaleString()}</b><span>總分</span></div>
@@ -1341,7 +1483,6 @@ function renderResult(main){
           <div class="resultMetaGrid" style="margin-top:7px">
             <div class="resultMetaItem"><small>發動干擾</small><b>${attackCount} 次</b></div>
             <div class="resultMetaItem"><small>受到干擾</small><b>${incomingJamCount} 次</b></div>
-            <div class="resultMetaItem"><small>BPM</small><b>${bpm.toFixed(0)}</b></div>
             <div class="resultMetaItem"><small>時長</small><b>${fmtTime(duration)}</b></div>
           </div>
         </div>
@@ -1367,7 +1508,6 @@ function renderResult(main){
       <div class="resultMetaGrid">
         <div class="resultMetaItem"><small>歌曲</small><b>${escapeHtml(song.name||'音樂')}</b></div>
         <div class="resultMetaItem"><small>難度</small><b>${difficulty.label} · ${difficulty.name}</b></div>
-        <div class="resultMetaItem"><small>BPM</small><b>${bpm.toFixed(0)} BPM</b></div>
         <div class="resultMetaItem"><small>時長</small><b>${fmtTime(duration)}</b></div>
         <div class="resultMetaItem"><small>譜面音符</small><b>${noteCount.toLocaleString()} notes</b></div>
         <div class="resultMetaItem"><small>本局排名</small><b>#${rank} / ${arr.length}</b></div>
