@@ -69,14 +69,32 @@
         "special": "./charts/李佳薇---甲乙丙丁_special.json"
       },
       "audioUrl": "./music/%E6%9D%8E%E4%BD%B3%E8%96%87%20-%20%E7%94%B2%E4%B9%99%E4%B8%99%E4%B8%81.mp3",
-      "duration": 209.072472
+      "duration": 209.072,
+      "stats": {
+        "easy": {
+          "notes": 421,
+          "duration": 209.072
+        },
+        "normal": {
+          "notes": 487,
+          "duration": 209.072
+        },
+        "hard": {
+          "notes": 594,
+          "duration": 209.072
+        },
+        "special": {
+          "notes": 702,
+          "duration": 209.072
+        }
+      }
     },
     {
       "id": "汪蘇瀧-單依純---如果愛忘了",
       "title": "汪蘇瀧_單依純 - 如果愛忘了",
       "filename": "汪蘇瀧_單依純 - 如果愛忘了.mp3",
       "bpm": 186,
-      "duration": 245.016961,
+      "duration": 245.017,
       "charts": {
         "easy": "./charts/汪蘇瀧-單依純---如果愛忘了_easy.json",
         "normal": "./charts/汪蘇瀧-單依純---如果愛忘了_normal.json",
@@ -86,19 +104,19 @@
       "stats": {
         "easy": {
           "notes": 396,
-          "duration": 245.016961
+          "duration": 245.017
         },
         "normal": {
           "notes": 464,
-          "duration": 245.016961
+          "duration": 245.017
         },
         "hard": {
           "notes": 594,
-          "duration": 245.016961
+          "duration": 245.017
         },
         "special": {
-          "notes": 696,
-          "duration": 245.016961
+          "notes": 693,
+          "duration": 245.017
         }
       },
       "audioUrl": "./music/%E6%B1%AA%E8%98%87%E7%80%A7_%E5%96%AE%E4%BE%9D%E7%B4%94%20-%20%E5%A6%82%E6%9E%9C%E6%84%9B%E5%BF%98%E4%BA%86.mp3"
@@ -181,7 +199,7 @@
       "title": "姚曉棠_張遠 - 看著我的眼睛說 (live)",
       "filename": "姚曉棠_張遠 - 看著我的眼睛說 (Live).mp3",
       "bpm": 89.5,
-      "duration": 278.012517,
+      "duration": 278.013,
       "charts": {
         "easy": "./charts/姚曉棠-張遠---看著我的眼睛說-live_easy.json",
         "normal": "./charts/姚曉棠-張遠---看著我的眼睛說-live_normal.json",
@@ -191,19 +209,19 @@
       "stats": {
         "easy": {
           "notes": 482,
-          "duration": 278.012517
+          "duration": 278.013
         },
         "normal": {
           "notes": 568,
-          "duration": 278.012517
+          "duration": 278.013
         },
         "hard": {
-          "notes": 705,
-          "duration": 278.012517
+          "notes": 706,
+          "duration": 278.013
         },
         "special": {
-          "notes": 850,
-          "duration": 278.012517
+          "notes": 853,
+          "duration": 278.013
         }
       },
       "audioUrl": "./music/%E5%A7%9A%E6%9B%89%E6%A3%A0_%E5%BC%B5%E9%81%A0%20-%20%E7%9C%8B%E8%91%97%E6%88%91%E7%9A%84%E7%9C%BC%E7%9D%9B%E8%AA%AA%20(live).mp3"
@@ -268,7 +286,25 @@
         "special": "./charts/bang-bang-bang_special.json"
       },
       "audioUrl": "./music/bang%20bang%20bang.mp3",
-      "duration": 220.21805
+      "duration": 220.218,
+      "stats": {
+        "easy": {
+          "notes": 603,
+          "duration": 220.218
+        },
+        "normal": {
+          "notes": 800,
+          "duration": 220.218
+        },
+        "hard": {
+          "notes": 979,
+          "duration": 220.218
+        },
+        "special": {
+          "notes": 1118,
+          "duration": 220.218
+        }
+      }
     },
     {
       "id": "en---思念從未停",
@@ -294,14 +330,32 @@
         "special": "./charts/en---根本你不懂得愛我_special.json"
       },
       "audioUrl": "./music/en%20-%20%E6%A0%B9%E6%9C%AC%E4%BD%A0%E4%B8%8D%E6%87%82%E5%BE%97%E6%84%9B%E6%88%91.mp3",
-      "duration": 233.012245
+      "duration": 233.012,
+      "stats": {
+        "easy": {
+          "notes": 504,
+          "duration": 233.012
+        },
+        "normal": {
+          "notes": 575,
+          "duration": 233.012
+        },
+        "hard": {
+          "notes": 725,
+          "duration": 233.012
+        },
+        "special": {
+          "notes": 849,
+          "duration": 233.012
+        }
+      }
     },
     {
       "id": "en---匿名的好友",
       "title": "en - 匿名的好友",
       "filename": "en - 匿名的好友.mp3",
       "bpm": 63.9,
-      "duration": 219.010612,
+      "duration": 219.011,
       "charts": {
         "easy": "./charts/en---匿名的好友_easy.json",
         "normal": "./charts/en---匿名的好友_normal.json",
@@ -310,20 +364,20 @@
       },
       "stats": {
         "easy": {
-          "notes": 397,
-          "duration": 219.010612
+          "notes": 395,
+          "duration": 219.011
         },
         "normal": {
           "notes": 445,
-          "duration": 219.010612
+          "duration": 219.011
         },
         "hard": {
           "notes": 581,
-          "duration": 219.010612
+          "duration": 219.011
         },
         "special": {
-          "notes": 680,
-          "duration": 219.010612
+          "notes": 675,
+          "duration": 219.011
         }
       },
       "audioUrl": "./music/en%20-%20%E5%8C%BF%E5%90%8D%E7%9A%84%E5%A5%BD%E5%8F%8B.mp3"
@@ -333,7 +387,7 @@
       "title": "en - 跳樓機",
       "filename": "en - 跳樓機.mp3",
       "bpm": 127.5,
-      "duration": 209.049252,
+      "duration": 209.049,
       "charts": {
         "easy": "./charts/en---跳樓機_easy.json",
         "normal": "./charts/en---跳樓機_normal.json",
@@ -343,19 +397,19 @@
       "stats": {
         "easy": {
           "notes": 536,
-          "duration": 209.049252
+          "duration": 209.049
         },
         "normal": {
           "notes": 615,
-          "duration": 209.049252
+          "duration": 209.049
         },
         "hard": {
-          "notes": 767,
-          "duration": 209.049252
+          "notes": 764,
+          "duration": 209.049
         },
         "special": {
-          "notes": 909,
-          "duration": 209.049252
+          "notes": 908,
+          "duration": 209.049
         }
       },
       "audioUrl": "./music/en%20-%20%E8%B7%B3%E6%A8%93%E6%A9%9F.mp3"
@@ -372,7 +426,25 @@
         "special": "./charts/en-囂張_special.json"
       },
       "audioUrl": "./music/en-%E5%9B%82%E5%BC%B5.mp3",
-      "duration": 254.281723
+      "duration": 254.282,
+      "stats": {
+        "easy": {
+          "notes": 447,
+          "duration": 254.282
+        },
+        "normal": {
+          "notes": 525,
+          "duration": 254.282
+        },
+        "hard": {
+          "notes": 670,
+          "duration": 254.282
+        },
+        "special": {
+          "notes": 823,
+          "duration": 254.282
+        }
+      }
     },
     {
       "id": "en-王翊恩---只能看著你離開",
@@ -427,7 +499,7 @@
       "title": "en(王翊恩) - 離開我的依賴",
       "filename": "en(王翊恩) - 離開我的依賴.mp3",
       "bpm": 130.6,
-      "duration": 181.023,
+      "duration": 181.022766,
       "charts": {
         "easy": "./charts/en-王翊恩---離開我的依賴_easy.json",
         "normal": "./charts/en-王翊恩---離開我的依賴_normal.json",
@@ -437,21 +509,22 @@
       "stats": {
         "easy": {
           "notes": 253,
-          "duration": 181.023
+          "duration": 181.022766
         },
         "normal": {
           "notes": 306,
-          "duration": 181.023
+          "duration": 181.022766
         },
         "hard": {
-          "notes": 416,
-          "duration": 181.023
+          "notes": 418,
+          "duration": 181.022766
         },
         "special": {
-          "notes": 442,
-          "duration": 181.023
+          "notes": 443,
+          "duration": 181.022766
         }
-      }
+      },
+      "audioUrl": "./music/en(%E7%8E%8B%E7%BF%8A%E6%81%A9)%20-%20%E9%9B%A2%E9%96%8B%E6%88%91%E7%9A%84%E4%BE%9D%E8%B3%B4.mp3"
     },
     {
       "id": "zkaaai-安洛賢---留",
