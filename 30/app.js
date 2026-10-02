@@ -1,6 +1,24 @@
 const BOARD_SIZE = 15;
 const COLS_LABELS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'];
 
+// 🌟 全局預先綁定 SDK 訊息監聽器，確保不漏接任何 postMessage
+window.addEventListener('message', e => {
+  try {
+    const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    if (!data) return;
+    if (data.action === 'initSDK' || data.user || data.roomPlayers || data.roomId) {
+      setupSDK(data);
+    } else if (data.action === 'gameEventReceived' || data.action === 'gameEvent') {
+      handleNetworkEvent(data.eventName || data.name, data.payload || data.data, data.userId || data.senderId);
+    }
+  } catch (_) {}
+});
+
+window.addEventListener('gameEventReceived', e => {
+  const detail = e.detail || {};
+  handleNetworkEvent(detail.eventName, detail.payload, detail.senderId);
+});
+
 let sdk = window.BoomRoomSDK || null;
 
 const ui = {
@@ -638,7 +656,8 @@ function finishRound(winnerColor) {
       gameOverCalled = true;
       if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
         try {
-          window.BoomRoomSDK.gameOver(isWinner ? 100 : 0);
+          const finalScore = (winnerColor === 1 ? scoreBlackWins : scoreWhiteWins) * 100 + Math.max(0, 50 - moveHistory.length);
+          window.BoomRoomSDK.gameOver(isWinner ? 100 : 0, finalScore);
         } catch (_) {}
       }
     }
