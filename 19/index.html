@@ -190,6 +190,12 @@ function handleGameEvent(eventName, payload, senderId) {
       initialLives = 3; useWildcardOne = true; modeTimerSeconds = 15;
     }
 
+    if (players.size <= 1) {
+      addPlayer("bot_1", "🤖 阿強", "");
+      addPlayer("bot_2", "🤖 莉莉", "");
+      addPlayer("bot_3", "🤖 爆哥", "");
+    }
+
     players.forEach(p => { p.lives = initialLives; p.dice = rollDice(); p.successfulBluffs = 0; p.successfulChallenges = 0; });
     myDice = rollDice();
     lastBid = null;
@@ -272,13 +278,19 @@ function lastClaimName(bid) {
 function triggerWinner(winnerUserId, winnerMsg) {
   state = "RESULT";
   feed.push(winnerMsg);
-  if (winnerUserId === ME.id) {
-    try {
-      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-        window.BoomRoomSDK.gameOver(100);
-      }
-    } catch(_) {}
-  }
+
+  const myP = players.get(ME.id);
+  const myScore = myP ? (myP.lives * 100 + myP.successfulChallenges * 50 + myP.successfulBluffs * 30) : 0;
+  const isWinner = winnerUserId === ME.id;
+  const winCoins = isWinner ? 100 : 20;
+
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(winCoins, myScore);
+    } else if (window.parent && window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "game_over", winAmount: winCoins, score: myScore }), "*");
+    }
+  } catch(_) {}
   render();
 
   setTimeout(() => {
@@ -319,6 +331,42 @@ function runLocalDevTest() {
   addPlayer("dev_4", "可可", "");
   sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode });
   handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode }, ME.id);
+}
+
+function triggerAiBotTurn(botP) {
+  if (state !== "PLAYING" || currentTurnUserId !== botP.id) return;
+
+  const alivePlayersCount = [...players.values()].filter(p => p.lives > 0).length;
+  const totalDiceInGame = alivePlayersCount * 5;
+
+  if (lastBid) {
+    const expectedQty = Math.floor(totalDiceInGame / 3);
+    const isHighBid = lastBid.quantity > expectedQty + 1;
+    if (isHighBid || Math.random() < 0.25) {
+      const payload = { challengerUserId: botP.id };
+      sendEvent("CALL_CHALLENGE_TRIGGER", payload);
+      handleGameEvent("CALL_CHALLENGE_TRIGGER", payload, botP.id);
+      return;
+    }
+  }
+
+  let nextQty = lastBid ? lastBid.quantity : Math.max(2, alivePlayersCount);
+  let nextFace = lastBid ? lastBid.face : Math.floor(Math.random() * 5) + 2;
+
+  if (lastBid) {
+    if (nextFace < 6 && Math.random() < 0.6) {
+      nextFace += 1;
+    } else {
+      nextQty += 1;
+      nextFace = Math.floor(Math.random() * 5) + 2;
+    }
+  }
+
+  const nextId = getNextTurnUserId(botP.id);
+  const payload = { userId: botP.id, username: botP.username, quantity: nextQty, face: nextFace, nextUserId: nextId };
+
+  sendEvent("MAKE_BID", payload);
+  handleGameEvent("MAKE_BID", payload, botP.id);
 }
 
 // Bidding Form state
@@ -369,11 +417,17 @@ function render() {
     const myMe = players.get(ME.id);
     const isAlive = myMe && myMe.lives > 0;
 
+    // AI Bot 自動思考出牌/指認
+    const currentP = players.get(currentTurnUserId);
+    if (currentP && currentP.id.startsWith("bot_") && currentP.lives > 0) {
+      setTimeout(() => triggerAiBotTurn(currentP), 1200);
+    }
+
     main.innerHTML = `
       <section class="tableCenter">
         ${lastBid ? `<div class="claimBox">當前叫牌：${esc(lastBid.username)} 喊 [ ${lastBid.quantity} 個 ${lastBid.face} ]</div>` : '<div class="claimBox">等待首位玩家叫牌...</div>'}
         <div class="tiny muted">全場總骰子數：約 ${[...players.values()].filter(p=>p.lives>0).length * 5} 顆</div>
-        ${lastBid && isAlive && !isMyTurn ? `<button id="callOpenBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 28px;">🚨 開！ (指認吹牛)</button>` : ''}
+        ${lastBid && isAlive && lastBid.userId !== ME.id ? `<button id="callOpenBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 28px;">🚨 開！ (指認 ${esc(lastBid.username)} 吹牛)</button>` : ''}
       </section>
 
       <section class="panel">
