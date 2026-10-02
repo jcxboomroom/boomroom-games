@@ -218,9 +218,9 @@ function updateGame() {
   if (scoreEl) scoreEl.textContent = score + " 層";
 
   // Smooth horizontal movement
-  if (keys.left) player.vx = -3.5;
-  else if (keys.right) player.vx = 3.5;
-  else player.vx *= 0.75;
+  if (keys.left) player.vx = -2.2;
+  else if (keys.right) player.vx = 2.2;
+  else player.vx *= 0.70;
 
   player.x += player.vx;
   player.vy += 0.25;
@@ -370,9 +370,14 @@ function gameOver() {
   state = "RESULT";
   cancelAnimationFrame(gameLoopId);
   feed.push(`🏁 遊戲結束！最終下落層數：${score} 層`);
+
+  const winCoins = score >= 10 ? Math.min(500, Math.floor(score * 5)) : 20;
+
   try {
     if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-      window.BoomRoomSDK.gameOver(score);
+      window.BoomRoomSDK.gameOver(winCoins, score);
+    } else if (window.parent && window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: winCoins, score: score }), '*');
     }
   } catch(_) {}
   render();

@@ -494,17 +494,6 @@ function finishGame(reason){
 
   sendEvent('PLAYER_END',{roundId,username:user.username,status:'FINISHED',score:finalScore,reward:finalReward,reason});
 
-  if(!gameOverCalled){
-    gameOverCalled=true;
-    try{
-      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-        window.BoomRoomSDK.gameOver(finalReward);
-      } else if (window.parent && window.parent !== window) {
-        window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward }), '*');
-      }
-    }catch(e){}
-  }
-
   $('resultScore').textContent=finalScore.toLocaleString();
   $('resultHits').textContent=hits;
   $('resultBest').textContent=bestCombo;
@@ -530,15 +519,18 @@ function finishGame(reason){
   $('resultOverlay').classList.remove('hidden');
   soundMilestone(); buzz([30,30,60]);
 
-  setTimeout(() => {
-    try {
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage(JSON.stringify({ action: 'leaveGame' }), '*');
-      } else {
-        window.close();
-      }
-    } catch(e){}
-  }, 3000);
+  if(!gameOverCalled){
+    gameOverCalled=true;
+    setTimeout(() => {
+      try{
+        if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
+          window.BoomRoomSDK.gameOver(finalReward, finalScore);
+        } else if (window.parent && window.parent !== window) {
+          window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward, score: finalScore }), '*');
+        }
+      }catch(e){}
+    }, 3000);
+  }
 }
 
 $('startBtn').addEventListener('pointerdown',(e)=>{e.preventDefault();startGame();});

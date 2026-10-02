@@ -195,14 +195,21 @@ function assignRoles() {
   const pList = [...roomPlayersMap.values()].sort((a, b) => {
     return String(a.id).localeCompare(String(b.id));
   });
-  playerBlack = pList[0] || me;
+
+  const roundIndex = scoreBlackWins + scoreWhiteWins;
 
   if (pList.length > 1) {
-    playerWhite = pList[1];
+    // 🌟 每局黑白動態互換：偶數局 pList[0]為黑子，奇數局 pList[1]為黑子
+    const isEvenRound = roundIndex % 2 === 0;
+    playerBlack = isEvenRound ? pList[0] : pList[1];
+    playerWhite = isEvenRound ? pList[1] : pList[0];
     ui.aiDifficultyBar?.classList.add('hidden');
+    if (ui.btnHint) ui.btnHint.style.display = 'none'; // 🌟 對真人對打隱藏提示按鈕！
   } else {
+    playerBlack = me;
     playerWhite = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
     ui.aiDifficultyBar?.classList.remove('hidden');
+    if (ui.btnHint) ui.btnHint.style.display = 'inline-flex'; // 🌟 對 AI 顯示提示按鈕！
   }
 }
 
@@ -585,8 +592,48 @@ function evaluatePos(row, col, color) {
    TOOLKITS (提示, 悔棋, 認輸, 重來)
 ========================================================= */
 
+function showConfirmModal(title, msg, onAccept, onRefuse) {
+  const modal = document.getElementById('confirmOverlay');
+  if (!modal) return;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  modal.classList.remove('hidden');
+
+  const btnAccept = document.getElementById('btnConfirmAccept');
+  const btnRefuse = document.getElementById('btnConfirmRefuse');
+
+  const cleanup = () => {
+    modal.classList.add('hidden');
+    if (btnAccept) btnAccept.onclick = null;
+    if (btnRefuse) btnRefuse.onclick = null;
+  };
+
+  if (btnAccept) {
+    btnAccept.onclick = () => {
+      cleanup();
+      if (onAccept) onAccept();
+    };
+  }
+  if (btnRefuse) {
+    btnRefuse.onclick = () => {
+      cleanup();
+      if (onRefuse) onRefuse();
+    };
+  }
+}
+
+function showToast(msg) {
+  if (ui.autoStartNotice) {
+    ui.autoStartNotice.textContent = msg;
+  }
+}
+
 function handleHint() {
   if (!isPlaying) return;
+  if (playerWhite && !playerWhite.isBot) {
+    showToast('⚠️ 對抗真人玩家時禁止使用 AI 提示！');
+    return;
+  }
   ensureAudio();
   const move = getBestAiMove();
   if (move) {
@@ -595,19 +642,11 @@ function handleHint() {
   }
 }
 
-function handleUndo() {
-  if (!isPlaying || moveHistory.length === 0) return;
-  ensureAudio();
-
-  const steps = (playerWhite?.isBot && moveHistory.length >= 2) ? 2 : 1;
-
-  for (let i = 0; i < steps; i++) {
-    if (moveHistory.length > 0) {
-      const [r, c] = moveHistory.pop();
-      board[r][c] = 0;
-    }
+function doUndoStep() {
+  if (moveHistory.length > 0) {
+    const [r, c] = moveHistory.pop();
+    board[r][c] = 0;
   }
-
   currentTurn = (moveHistory.length % 2 === 0) ? 1 : 2;
   winningStones = [];
   hintPos = null;
@@ -615,18 +654,45 @@ function handleUndo() {
   drawBoard();
 }
 
+function handleUndo() {
+  if (!isPlaying || moveHistory.length === 0) return;
+  ensureAudio();
+
+  if (playerWhite?.isBot) {
+    doUndoStep();
+    doUndoStep();
+  } else {
+    sendGameEvent('GOMOKU_UNDO_REQ', { senderId: me.id, senderName: me.username });
+    showToast('📩 已向對手發送悔棋申請，等待對手同意...');
+  }
+}
+
 function handleResign() {
   if (!isPlaying) return;
   ensureAudio();
-  const winnerColor = currentTurn === 1 ? 2 : 1;
-  finishRound(winnerColor);
+
+  if (playerWhite?.isBot) {
+    const winnerColor = currentTurn === 1 ? 2 : 1;
+    finishRound(winnerColor);
+  } else {
+    sendGameEvent('GOMOKU_RESIGN', { senderId: me.id });
+    const myColor = me.id === playerBlack?.id ? 1 : 2;
+    const winnerColor = myColor === 1 ? 2 : 1;
+    finishRound(winnerColor);
+  }
 }
 
 function handleRestart() {
   ensureAudio();
-  scoreBlackWins = 0;
-  scoreWhiteWins = 0;
-  startGomokuRound();
+
+  if (playerWhite?.isBot) {
+    scoreBlackWins = 0;
+    scoreWhiteWins = 0;
+    startGomokuRound();
+  } else {
+    sendGameEvent('GOMOKU_RESTART_REQ', { senderId: me.id, senderName: me.username });
+    showToast('📩 已向對手發送重新開局申請，等待對手同意...');
+  }
 }
 
 /* =========================================================
@@ -722,10 +788,68 @@ function bindGameEvents() {
 }
 
 function handleNetworkEvent(eventName, payload, senderId) {
+  if (!payload && !eventName) return;
+
   if (eventName === 'GOMOKU_MOVE' && payload) {
     const { row, col, stoneColor, userId } = payload;
     if (userId !== me.id && board[row][col] === 0) {
       placeMove(row, col, stoneColor, false);
+    }
+  } else if (eventName === 'GOMOKU_UNDO_REQ') {
+    if (payload.senderId !== me.id) {
+      showConfirmModal(
+        '💬 悔棋申請',
+        `對手【${payload.senderName || '玩家'}】申請悔棋一步，是否同意？`,
+        () => {
+          doUndoStep();
+          sendGameEvent('GOMOKU_UNDO_RESP', { senderId: me.id, accept: true });
+        },
+        () => {
+          sendGameEvent('GOMOKU_UNDO_RESP', { senderId: me.id, accept: false });
+        }
+      );
+    }
+  } else if (eventName === 'GOMOKU_UNDO_RESP') {
+    if (payload.senderId !== me.id) {
+      if (payload.accept) {
+        doUndoStep();
+        showToast('🎉 對手同意了您的悔棋申請！');
+      } else {
+        showToast('❌ 對手拒絕了您的悔棋申請。');
+      }
+    }
+  } else if (eventName === 'GOMOKU_RESIGN') {
+    if (payload.senderId !== me.id) {
+      const myColor = me.id === playerBlack?.id ? 1 : 2;
+      showToast('🏳️ 對手認輸！恭喜您獲得本局勝利！');
+      finishRound(myColor);
+    }
+  } else if (eventName === 'GOMOKU_RESTART_REQ') {
+    if (payload.senderId !== me.id) {
+      showConfirmModal(
+        '🔄 重開對局申請',
+        `對手【${payload.senderName || '玩家'}】請求重新開始比賽，是否同意？`,
+        () => {
+          scoreBlackWins = 0;
+          scoreWhiteWins = 0;
+          startGomokuRound();
+          sendGameEvent('GOMOKU_RESTART_RESP', { senderId: me.id, accept: true });
+        },
+        () => {
+          sendGameEvent('GOMOKU_RESTART_RESP', { senderId: me.id, accept: false });
+        }
+      );
+    }
+  } else if (eventName === 'GOMOKU_RESTART_RESP') {
+    if (payload.senderId !== me.id) {
+      if (payload.accept) {
+        scoreBlackWins = 0;
+        scoreWhiteWins = 0;
+        startGomokuRound();
+        showToast('🎉 對手同意重新開局，比分已重置！');
+      } else {
+        showToast('❌ 對手拒絕了重新開局申請。');
+      }
     }
   }
 }

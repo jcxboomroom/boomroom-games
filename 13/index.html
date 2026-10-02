@@ -2818,7 +2818,7 @@ function setupSDK(data){
 
   setTimeout(() => {
     if (!currentPaid && state === "LOBBY") {
-      requestEntry();
+      if (typeof requestEntry === "function") requestEntry();
     }
   }, 300);
 }
@@ -7759,10 +7759,11 @@ function applyCashout(
     try{
         const sdkObj = window.BoomRoomSDK;
         const finalReward = Math.max(0, Math.floor(reward));
+        const finalScore = me ? getPlayerScore(me) : 0;
         if(sdkObj && typeof sdkObj.gameOver === "function"){
-            sdkObj.gameOver(finalReward);
+            sdkObj.gameOver(finalReward, finalScore);
         } else if (window.parent && window.parent !== window) {
-            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward }), '*');
+            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward, score: finalScore }), '*');
         }
     }catch(e){}
 
@@ -7844,10 +7845,11 @@ function settleLoss(
 
     try{
         const sdkObj = window.BoomRoomSDK;
+        const finalScore = me ? getPlayerScore(me) : 0;
         if(sdkObj && typeof sdkObj.gameOver === "function"){
-            sdkObj.gameOver(0);
+            sdkObj.gameOver(0, finalScore);
         } else if (window.parent && window.parent !== window) {
-            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: 0 }), '*');
+            window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: 0, score: finalScore }), '*');
         }
     }catch(e){}
 

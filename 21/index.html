@@ -197,10 +197,15 @@ function startCanvasLoop() {
 }
 
 function updateGame() {
-  // Movement
-  if (keys.left) player.vx = -4.5;
-  else if (keys.right) player.vx = 4.5;
-  else player.vx *= 0.8;
+  const heartsEl = document.getElementById("hudHearts");
+  if (heartsEl) heartsEl.textContent = "❤️".repeat(Math.max(0, lives));
+  const scoreEl = document.getElementById("hudScore");
+  if (scoreEl) scoreEl.textContent = score + " 層";
+
+  // Smooth Movement
+  if (keys.left) player.vx = -2.5;
+  else if (keys.right) player.vx = 2.5;
+  else player.vx *= 0.75;
 
   player.x += player.vx;
   player.vy += 0.4; // Gravity

@@ -55,6 +55,18 @@
         <div class="auto-close-hint">3 秒後自動返回房間...</div>
       </div>
     </div>
+
+    <!-- 請求對話框 (悔棋 / 重開請求) -->
+    <div class="overlay hidden" id="confirmOverlay">
+      <div class="result-card">
+        <div class="result-title" id="confirmTitle">💬 收到對手請求</div>
+        <div class="result-subtitle" id="confirmMsg">對手申請悔棋，是否同意？</div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <button class="tool-btn danger" id="btnConfirmRefuse" style="flex:1;padding:12px;font-size:14px;" type="button">✖ 拒絕</button>
+          <button class="tool-btn" id="btnConfirmAccept" style="flex:1;padding:12px;font-size:14px;background:#4ee08a;color:#000;" type="button">✔ 同意</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script type="module" src="./app.js"></script>

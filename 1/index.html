@@ -5271,38 +5271,24 @@
           ME.id
       );
 
+    const myScore = me ? (me.score || 0) : 0;
     const baseEntry = Number(selectedEntry) > 0 ? Number(selectedEntry) : 100;
     const reward =
       idx === 0
         ? baseEntry * 2
         : idx === 1
-          ? Math.floor(baseEntry * 0.5)
+          ? Math.floor(baseEntry * 1.0)
           : 50;
 
-    const safe =
-      Math.floor(
-        clamp(
-          reward,
-          0,
-          CFG.REWARD_CAP
-        )
-      );
+    const safe = Math.floor(clamp(reward, 50, CFG.REWARD_CAP));
 
-    if(
-      !gameOverCalled
-    ){
-
-      gameOverCalled =
-        true;
+    if (!gameOverCalled) {
+      gameOverCalled = true;
 
       const reqData = {
-
-        action:
-          'game_over',
-
-        winAmount:
-          safe
-
+        action: 'game_over',
+        winAmount: safe,
+        score: myScore
       };
 
       /*
@@ -5310,43 +5296,22 @@
        * 不要在 finishResult() 當下就通知 Flutter 關閉 WebView，
        * 否則玩家只會看到一閃而過的結算。
        */
-      resultStartedAt =
-        Date.now();
+      resultStartedAt = Date.now();
 
-      resultGameOverTimer =
-        setTimeout(
-          () => {
+      resultGameOverTimer = setTimeout(() => {
+        resultGameOverTimer = null;
 
-            resultGameOverTimer =
-              null;
-
-            if(
-              window.BoomRoomSDK &&
-              typeof
-                window.BoomRoomSDK
-                  .gameOver ===
-                'function'
-            ){
-
-              window.BoomRoomSDK
-                .gameOver(
-                  safe
-                );
-
-            }else
-            if(
-              window.parent !==
-              window
-            ){
-
-              window.parent.postMessage(
-                JSON.stringify(
-                  reqData
-                ),
-                '*'
-              );
-
-            }
+        if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
+          try {
+            window.BoomRoomSDK.gameOver(safe, myScore);
+          } catch (_) {}
+        } else if (window.parent !== window) {
+          try {
+            window.parent.postMessage(JSON.stringify(reqData), '*');
+          } catch (_) {}
+        }
+      }, 3000);
+    }
 
           },
           CFG.RESULT_DISPLAY_MS

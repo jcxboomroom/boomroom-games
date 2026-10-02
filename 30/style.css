@@ -169,6 +169,11 @@ body, html {
   border-radius: 18px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(0, 0, 0, 0.25);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  outline: none !important;
 }
 
 /* Action Control Toolbar (悔棋, 提示, 認輸, 重開) */
