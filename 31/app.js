@@ -10,7 +10,7 @@
 const GAME = Object.freeze({
   GRID: 24,
   ROUND_SECONDS: 50,
-  TICK_MS: 125,
+  TICK_MS: 160,
   SNAPSHOT_MS: 150,
   HEARTBEAT_MS: 900,
   PLAYER_TIMEOUT_MS: 3200,
@@ -379,10 +379,12 @@ function applyRoundStart(packet,localAuthority){
     players.set(p.id,p); touchPlayer(p.id);
     snakes.set(p.id,makeSnake(p,idx,false));
   });
-  // Solo only: two local AI opponents. They never appear as real room users.
-  if(ids.length===1 && ids[0]===me.id){
-    snakes.set('bot-a',makeBot('bot-a','AI 小閃',1));
-    snakes.set('bot-b',makeBot('bot-b','AI 阿爆',2));
+  // Solo or single real player: add 3 AI opponents
+  const realUsers = ids.filter(id => !id.startsWith('bot-'));
+  if(realUsers.length <= 1){
+    snakes.set('bot-a',makeBot('bot-a','🤖 AI 小閃',1));
+    snakes.set('bot-b',makeBot('bot-b','🤖 AI 阿爆',2));
+    snakes.set('bot-c',makeBot('bot-c','🤖 AI 狂蛇',3));
   }
   spawnInitialFood();
   toast('3 秒後開始，吃金蘋果、躲炸彈！',2600);
@@ -587,15 +589,15 @@ function applySnapshot(p,localAuthority){
   if(!localAuthority && p.authorityId!==authorityId) return;
   lastRenderSnapshot=p;
   if(!localAuthority){
-    const next=new Map();
     (p.snakes||[]).forEach(raw=>{
-      const old=snakes.get(raw.id);
-      const s=old||{id:raw.id,username:players.get(raw.id)?.username||raw.id};
+      let s = snakes.get(raw.id);
+      if(!s){
+        s = {id: raw.id, username: players.get(raw.id)?.username || raw.id};
+        snakes.set(s.id, s);
+      }
       s.body=(raw.body||[]).map(v=>({x:v[0],y:v[1]}));
       s.dir=raw.dir;s.score=raw.score;s.hp=raw.hp;s.boost=raw.boost;s.alive=raw.alive;s.respawnAt=raw.respawnAt;s.isBot=!!raw.isBot;
-      next.set(s.id,s);
     });
-    snakes=next;
     foods=(p.foods||[]).map(v=>({x:v[0],y:v[1],type:v[2],pulse:0}));
     (p.fx||[]).forEach(f=>spawnParticleFromFx(f));
     roundEndAt=Number(p.endAt||roundEndAt);
@@ -633,7 +635,11 @@ function applyResult(result){
     gameOverCalled=true;
     const reward=won?100:(rank<=3?30:0);
     try{
-      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function') window.BoomRoomSDK.gameOver(reward);
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function') {
+        window.BoomRoomSDK.gameOver(reward, score);
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({action:'game_over', winAmount:reward, score:score}), '*');
+      }
     }catch(_){}
   }
   clearTimeout(resultTimer);

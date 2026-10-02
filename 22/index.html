@@ -662,7 +662,7 @@ function applyStart(payload={}){
   aiThinking=false;
   throwAnimCat=0; throwAnimDog=0;
   cannonAngles.CAT=43; cannonAngles.DOG=43;
-  if(localMock && playerOrder.length===1) ensureSinglePlayerAI();
+  if(playerOrder.length===1 || [...players.values()].filter(p=>!isAIPlayer(p)).length===1) ensureSinglePlayerAI();
   eventFeed=[]; particles=[]; debris=[]; shockwaves=[]; floatingTexts=[];
   items=[]; itemRespawns=[]; activeEffects={CAT:null,DOG:null};
   characterReactions={CAT:{hit:0,miss:0,block:0,celebrate:0},DOG:{hit:0,miss:0,block:0,celebrate:0}};
@@ -1056,7 +1056,7 @@ function maybeScheduleAI(){
   if(GAME_STATE!=="PLAYING" || shotLocked) return;
 
   const cp=currentPlayer();
-  if(!cp || !isAIPlayer(cp) || !localMock) return;
+  if(!cp || !isAIPlayer(cp)) return;
 
   aiThinking=true;
   setAutoCard(true);
@@ -1134,9 +1134,16 @@ function finishGame(winner){
   renderResult(title,winner);
   if(!gameOverCalled){
     gameOverCalled=true;
+    const isWinner = winner === localSide();
+    const winCoins = isWinner ? 100 : 20;
+    const myHp = localSide() === "CAT" ? hpCat : hpDog;
+    const finalScore = isWinner ? Math.max(100, Math.floor(myHp * 10) + 100) : 20;
+
     try{
       if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==="function"){
-        window.BoomRoomSDK.gameOver(100);
+        window.BoomRoomSDK.gameOver(winCoins, finalScore);
+      } else if (window.parent && window.parent !== window) {
+        window.parent.postMessage(JSON.stringify({ action: "game_over", winAmount: winCoins, score: finalScore }), "*");
       }
     }catch(_){}
   }

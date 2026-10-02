@@ -176,6 +176,13 @@ function handleGameEvent(eventName, payload, senderId) {
     state = "PLAYING";
     lastPlay = null;
     passCount = 0;
+
+    if (players.size <= 1) {
+      addPlayer("bot_1", "🤖 阿強", "");
+      addPlayer("bot_2", "🤖 莉莉", "");
+      addPlayer("bot_3", "🤖 爆哥", "");
+    }
+
     feed = ["♠ 大老二對決開始！每人發 13 張牌。"];
     generateHand();
     currentTurnUserId = payload.startUserId || ME.id;
@@ -189,13 +196,19 @@ function handleGameEvent(eventName, payload, senderId) {
 
     if (p && p.cardCount === 0) {
       feed.push(`🏆 恭喜 ${esc(payload.username)} 清空手牌，奪得大老二冠軍！`);
-      if (payload.userId === ME.id) {
-        try {
-          if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-            window.BoomRoomSDK.gameOver(100);
-          }
-        } catch(_) {}
-      }
+      const myP = players.get(ME.id);
+      const myCardsLeft = myP ? (myP.cardCount || 0) : 13;
+      const finalScore = (13 - myCardsLeft) * 100 + (payload.userId === ME.id ? 500 : 0);
+      const isWinner = payload.userId === ME.id;
+      const winCoins = isWinner ? 100 : 20;
+
+      try {
+        if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+          window.BoomRoomSDK.gameOver(winCoins, finalScore);
+        } else if (window.parent && window.parent !== window) {
+          window.parent.postMessage(JSON.stringify({ action: "game_over", winAmount: winCoins, score: finalScore }), "*");
+        }
+      } catch(_) {}
       state = "RESULT";
       setTimeout(() => {
         if (window.parent && window.parent !== window) {
@@ -249,6 +262,42 @@ function runLocalDevTest() {
   handleGameEvent("BIGTWO_START", { startUserId: ME.id }, ME.id);
 }
 
+function triggerAiBotTurn(botP) {
+  if (state !== "PLAYING" || currentTurnUserId !== botP.id) return;
+
+  if (!botP.hand || botP.hand.length === 0) {
+    const deck = generateFullDeck();
+    botP.hand = sortHand(deck.slice(0, botP.cardCount || 13));
+  }
+
+  let playedCards = [];
+  if (!lastPlay) {
+    playedCards = [botP.hand[0]];
+  } else {
+    const targetVal = getCardValue(lastPlay.cardList[lastPlay.cardList.length - 1]);
+    const higherCard = botP.hand.find(c => getCardValue(c) > targetVal);
+    if (higherCard) {
+      playedCards = [higherCard];
+    }
+  }
+
+  const nextUserIds = [...players.keys()];
+  const currentIdx = nextUserIds.indexOf(botP.id);
+  const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
+
+  if (playedCards.length > 0) {
+    botP.hand = botP.hand.filter(c => c !== playedCards[0]);
+    const payload = { userId: botP.id, username: botP.username, cardList: playedCards, comboType: "SINGLE", nextUserId };
+    sendEvent("PLAY_COMBO", payload);
+    handleGameEvent("PLAY_COMBO", payload, botP.id);
+  } else {
+    const nextUsername = players.get(nextUserId)?.username || "玩家";
+    const payload = { userId: botP.id, username: botP.username, nextUserId, nextUsername };
+    sendEvent("PASS_TURN", payload);
+    handleGameEvent("PASS_TURN", payload, botP.id);
+  }
+}
+
 function render() {
   const main = document.getElementById("main");
   if (!main) return;
@@ -272,6 +321,11 @@ function render() {
 
   if (state === "PLAYING") {
     const isMyTurn = currentTurnUserId === ME.id;
+
+    const currentP = players.get(currentTurnUserId);
+    if (currentP && currentP.id.startsWith("bot_") && (currentP.cardCount || 13) > 0) {
+      setTimeout(() => triggerAiBotTurn(currentP), 1000);
+    }
     main.innerHTML = `
       <section class="tableCenter">
         ${lastPlay ? `<div class="tiny muted">上一手出牌 (${esc(lastPlay.username)})：</div><div class="lastPlayBox">${lastPlay.cardList.map(c => {
