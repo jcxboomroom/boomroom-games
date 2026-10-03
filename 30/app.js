@@ -65,11 +65,13 @@ let audioCtx = null;
 
 let playerBlack = null;
 let playerWhite = null;
-let scoreBlackWins = 0;
-let scoreWhiteWins = 0;
+const playerScores = new Map();
 let roundCount = 0;
 let singlePlayerHumanColor = 1;
 let aiDifficulty = 'normal';
+const handledUndoRequests = new Set();
+const appliedUndoRequests = new Set();
+let pendingUndoRequestId = null;
 
 /* =========================================================
    AUDIO & SFX
@@ -161,7 +163,8 @@ function setupSDK(data) {
     }
   }, 600);
 
-  bindGameEvents();
+  // The global message listeners above are installed once before SDK init.
+  // Rebinding here on every init caused duplicate undo events and repeated rollbacks.
 }
 
 // 定期同步房間最新玩家清單
@@ -280,7 +283,7 @@ function startGomokuRound() {
 
 function updateTurnUI() {
   ui.moveCount.textContent = `第 ${moveHistory.length} 步`;
-  ui.matchScore.textContent = `黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝)`;
+  ui.matchScore.textContent = `${playerBlack?.username || '黑子'} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite?.username || '白子'} (三勝)`;
 
   const myColorStr = me.id === playerBlack?.id ? '⚫ 你是黑子' : (playerWhite && !playerWhite.isBot && me.id === playerWhite.id) ? '⚪ 你是白子' : '👁 觀戰中';
 
@@ -299,6 +302,14 @@ function updateTurnUI() {
 
 function isSinglePlayer() {
   return !!(playerBlack?.isBot || playerWhite?.isBot);
+}
+
+function getPlayerScore(player) {
+  return player ? (playerScores.get(String(player.id)) || 0) : 0;
+}
+
+function resetMatchScores() {
+  playerScores.clear();
 }
 
 /* =========================================================
@@ -670,6 +681,16 @@ function doUndoStep() {
   drawBoard();
 }
 
+function applyUndoRequestOnce(requestId) {
+  if (!requestId || appliedUndoRequests.has(requestId)) return false;
+  appliedUndoRequests.add(requestId);
+  if (appliedUndoRequests.size > 100) {
+    appliedUndoRequests.delete(appliedUndoRequests.values().next().value);
+  }
+  doUndoStep();
+  return true;
+}
+
 function handleUndo() {
   if (!isPlaying || moveHistory.length === 0) return;
   ensureAudio();
@@ -678,7 +699,14 @@ function handleUndo() {
     doUndoStep();
     doUndoStep();
   } else {
-    sendGameEvent('GOMOKU_UNDO_REQ', { senderId: me.id, senderName: me.username });
+    const opponent = me.id === playerBlack?.id ? playerWhite : playerBlack;
+    pendingUndoRequestId = `${me.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    sendGameEvent('GOMOKU_UNDO_REQ', {
+      senderId: me.id,
+      senderName: me.username,
+      recipientId: opponent?.id,
+      requestId: pendingUndoRequestId,
+    });
     showToast('📩 已向對手發送悔棋申請，等待對手同意...');
   }
 }
@@ -702,8 +730,7 @@ function handleRestart() {
   ensureAudio();
 
   if (isSinglePlayer()) {
-    scoreBlackWins = 0;
-    scoreWhiteWins = 0;
+    resetMatchScores();
     roundCount = 0;
     singlePlayerHumanColor = 1;
     startGomokuRound();
@@ -723,22 +750,22 @@ function finishRound(winnerColor) {
   playWinSound();
   drawBoard();
 
-  if (winnerColor === 1) scoreBlackWins++;
-  else if (winnerColor === 2) scoreWhiteWins++;
+  const winner = winnerColor === 1 ? playerBlack : winnerColor === 2 ? playerWhite : null;
+  if (winner) playerScores.set(String(winner.id), getPlayerScore(winner) + 1);
   roundCount++;
   if (isSinglePlayer()) {
     singlePlayerHumanColor = singlePlayerHumanColor === 1 ? 2 : 1;
   }
 
-  const isMatchOver = scoreBlackWins >= 3 || scoreWhiteWins >= 3;
+  const isMatchOver = getPlayerScore(playerBlack) >= 3 || getPlayerScore(playerWhite) >= 3;
   const roundWinnerName = winnerColor === 1 ? (playerBlack?.username || '黑子') : (playerWhite?.username || '白子');
 
   ui.resultTitle.textContent = winnerColor === 0
     ? '🤝 平手！'
     : isMatchOver
-      ? (winnerColor === 1 ? '🏆 黑棋奪得三勝總冠軍！' : '🏆 白棋奪得三勝總冠軍！')
+      ? `🏆 ${roundWinnerName} 奪得三勝總冠軍！`
       : `🎉 本局由 ${roundWinnerName} 獲勝！`;
-  ui.resultSubtitle.textContent = `當前比分：黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝制)`;
+  ui.resultSubtitle.textContent = `當前比分：${playerBlack?.username || '黑子'} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite?.username || '白子'} (三勝制)`;
   ui.resultReward.textContent = isMatchOver ? '+100 銀幣' : '準備進入下一局…';
 
   ui.resultOverlay.classList.remove('hidden');
@@ -749,7 +776,7 @@ function finishRound(winnerColor) {
       gameOverCalled = true;
       if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
         try {
-          const winnerWins = winnerColor === 1 ? scoreBlackWins : scoreWhiteWins;
+          const winnerWins = getPlayerScore(winner);
           const finalScore = isWinner ? 1000 + winnerWins * 100 + Math.max(0, 50 - moveHistory.length) : 0;
           window.BoomRoomSDK.gameOver(isWinner ? 100 : 0, finalScore);
         } catch (_) {}
@@ -798,23 +825,6 @@ window.handleGameEvent = function(eventName, payload, userId) {
   handleNetworkEvent(eventName, payload, userId);
 };
 
-function bindGameEvents() {
-  window.addEventListener('message', e => {
-    const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-    if (!data) return;
-    if (data.action === 'initSDK' || data.user || data.roomPlayers || data.roomId) {
-      setupSDK(data);
-    } else if (data.action === 'gameEventReceived' || data.action === 'gameEvent') {
-      handleNetworkEvent(data.eventName || data.name, data.payload || data.data, data.userId || data.senderId);
-    }
-  });
-
-  window.addEventListener('gameEventReceived', e => {
-    const detail = e.detail || {};
-    handleNetworkEvent(detail.eventName, detail.payload, detail.senderId);
-  });
-}
-
 function handleNetworkEvent(eventName, payload, senderId) {
   if (!payload && !eventName) return;
 
@@ -827,27 +837,49 @@ function handleNetworkEvent(eventName, payload, senderId) {
       placeMove(row, col, stoneColor, false);
     }
   } else if (eventName === 'GOMOKU_UNDO_REQ') {
-    if (payload.senderId !== me.id) {
+    const requestId = String(payload.requestId || `${payload.senderId}-legacy-undo`);
+    if (payload.senderId !== me.id &&
+        (!payload.recipientId || payload.recipientId === me.id) &&
+        !handledUndoRequests.has(requestId)) {
+      handledUndoRequests.add(requestId);
       showConfirmModal(
         '💬 悔棋申請',
         `對手【${payload.senderName || '玩家'}】申請悔棋一步，是否同意？`,
         () => {
-          doUndoStep();
-          sendGameEvent('GOMOKU_UNDO_RESP', { senderId: me.id, accept: true });
+          sendGameEvent('GOMOKU_UNDO_RESP', {
+            senderId: me.id,
+            requesterId: payload.senderId,
+            requestId,
+            accept: true,
+          });
         },
         () => {
-          sendGameEvent('GOMOKU_UNDO_RESP', { senderId: me.id, accept: false });
+          sendGameEvent('GOMOKU_UNDO_RESP', {
+            senderId: me.id,
+            requesterId: payload.senderId,
+            requestId,
+            accept: false,
+          });
         }
       );
     }
   } else if (eventName === 'GOMOKU_UNDO_RESP') {
-    if (payload.senderId !== me.id) {
+    if (payload.requesterId === me.id && payload.requestId === pendingUndoRequestId) {
+      const requestId = String(payload.requestId);
+      pendingUndoRequestId = null;
       if (payload.accept) {
-        doUndoStep();
+        // Apply locally once, then broadcast the same request ID so every peer
+        // reaches the identical board state even if an event is delivered twice.
+        applyUndoRequestOnce(requestId);
+        sendGameEvent('GOMOKU_UNDO_APPLY', { requestId });
         showToast('🎉 對手同意了您的悔棋申請！');
       } else {
         showToast('❌ 對手拒絕了您的悔棋申請。');
       }
+    }
+  } else if (eventName === 'GOMOKU_UNDO_APPLY') {
+    if (payload.requestId) {
+      applyUndoRequestOnce(String(payload.requestId));
     }
   } else if (eventName === 'GOMOKU_RESIGN') {
     if (payload.senderId !== me.id) {
@@ -861,8 +893,7 @@ function handleNetworkEvent(eventName, payload, senderId) {
         '🔄 重開對局申請',
         `對手【${payload.senderName || '玩家'}】請求重新開始比賽，是否同意？`,
         () => {
-          scoreBlackWins = 0;
-          scoreWhiteWins = 0;
+          resetMatchScores();
           roundCount = 0;
           singlePlayerHumanColor = 1;
           startGomokuRound();
@@ -876,8 +907,7 @@ function handleNetworkEvent(eventName, payload, senderId) {
   } else if (eventName === 'GOMOKU_RESTART_RESP') {
     if (payload.senderId !== me.id) {
       if (payload.accept) {
-        scoreBlackWins = 0;
-        scoreWhiteWins = 0;
+        resetMatchScores();
         roundCount = 0;
         singlePlayerHumanColor = 1;
         startGomokuRound();
