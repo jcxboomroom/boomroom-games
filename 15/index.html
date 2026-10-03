@@ -1276,6 +1276,7 @@
 
   const participants=new Set();
   const players=new Map();
+  const roomSeatPlayerIds=new Set();
   const seenEvents=new Set();
   const categoryVotes=new Map();
   const roundsVotes=new Map();
@@ -1630,9 +1631,11 @@
     currentHostId=sdkIsHost ? ME.id : safeString(data.hostId,"",64);
 
     if(Array.isArray(data.roomPlayers)){
+      roomSeatPlayerIds.clear();
       const baseJoinTime=nowMs()-Math.max(0,data.roomPlayers.length-1)*20;
       data.roomPlayers.forEach((rp,index)=>{
         const pid=String(rp.id);
+        roomSeatPlayerIds.add(pid);
         const p=addPlayer(pid, rp.username, rp.avatar, "READY");
         if(p){
           p.joinedAt=rp.joinedAt!=null ? finite(rp.joinedAt,p.joinedAt) : baseJoinTime+index*20;
@@ -1687,6 +1690,35 @@
       const data = typeof e.data==="string" ? JSON.parse(e.data) : e.data;
       if(data.action==="initSDK"){
         setupSDK(data);
+        return;
+      }
+
+      if(data.action==="roomPlayersUpdated" && Array.isArray(data.roomPlayers)){
+        const incomingIds=new Set();
+        const baseJoinTime=nowMs()-Math.max(0,data.roomPlayers.length-1)*20;
+        data.roomPlayers.forEach((rp,index)=>{
+          if(!rp || rp.id==null) return;
+          const pid=String(rp.id);
+          incomingIds.add(pid);
+          roomSeatPlayerIds.add(pid);
+          const p=addPlayer(pid,rp.username,rp.avatar,"READY");
+          if(p){
+            p.joinedAt=rp.joinedAt!=null?finite(rp.joinedAt,p.joinedAt):baseJoinTime+index*20;
+            p.lastSeen=nowMs();
+          }
+        });
+        for(const pid of [...roomSeatPlayerIds]){
+          if(!incomingIds.has(pid)){
+            const p=players.get(pid);
+            if(p) p.status="LEFT";
+            roomSeatPlayerIds.delete(pid);
+          }
+        }
+        addPlayer(ME.id,ME.username,ME.avatar,"READY");
+        if(window.BoomRoomSDK) window.BoomRoomSDK.roomPlayers=data.roomPlayers;
+        refreshPlayersOnly();
+        if(!matchStarted && isLobbyAuthority()) setTimeout(()=>broadcastLobbyState("room_players_update",true),40);
+        if(matchStarted && isLocalAuthority()) setTimeout(()=>broadcastStateSnapshot("room_players_update"),80);
         return;
       }
 
@@ -1790,7 +1822,7 @@
       }
       if(window.parent!==window){
         // 同時兼容 JSON bridge 與原生 object postMessage。
-        window.parent.postMessage({ action:"sendGameEvent", eventName, payload:copy }, "*");
+        window.parent.postMessage(JSON.stringify({ action:"sendGameEvent", eventName, payload:copy }), "*");
         return true;
       }
     }catch(err){
@@ -3640,7 +3672,16 @@
     speechListening=false;
     speechMode="flutter";
     const btn=document.getElementById("voiceBtn");
-    if(btn) btn.classList.remove("voice-active");
+    if(state===STATES.PLAYING && !isDrawer() && !matchEnded && voiceEnabledForTurn && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
+      if(btn) btn.classList.add("voice-active");
+      clearTimeout(speechRestartTimer);
+      speechRestartTimer=setTimeout(()=>{
+        speechRestartTimer=null;
+        if(state===STATES.PLAYING && voiceEnabledForTurn) startVoiceGuess();
+      },450);
+    }else if(btn){
+      btn.classList.remove("voice-active");
+    }
   };
 
   function startVoiceGuess(){

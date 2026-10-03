@@ -51,6 +51,7 @@ let readyPlayersSet = new Set();
 let totalRoomPlayersCount = 1;
 let autoStarted = false;
 let autoStartTimer = null;
+let sdkInitialized = false;
 
 // Game State & Match Score (三勝制)
 let board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
@@ -66,6 +67,8 @@ let playerBlack = null;
 let playerWhite = null;
 let scoreBlackWins = 0;
 let scoreWhiteWins = 0;
+let roundCount = 0;
+let singlePlayerHumanColor = 1;
 let aiDifficulty = 'normal';
 
 /* =========================================================
@@ -119,6 +122,8 @@ function playWinSound() {
 ========================================================= */
 
 function setupSDK(data) {
+  sdkInitialized = true;
+  clearTimeout(autoStartTimer);
   if (data && data.user) {
     me.id = String(data.user.id || me.id);
     me.username = String(data.user.username || '你').slice(0, 16);
@@ -196,7 +201,7 @@ function assignRoles() {
     return String(a.id).localeCompare(String(b.id));
   });
 
-  const roundIndex = scoreBlackWins + scoreWhiteWins;
+  const roundIndex = roundCount;
 
   if (pList.length > 1) {
     // 🌟 每局黑白動態互換：偶數局 pList[0]為黑子，奇數局 pList[1]為黑子
@@ -206,8 +211,9 @@ function assignRoles() {
     ui.aiDifficultyBar?.classList.add('hidden');
     if (ui.btnHint) ui.btnHint.style.display = 'none'; // 🌟 對真人對打隱藏提示按鈕！
   } else {
-    playerBlack = me;
-    playerWhite = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
+    const bot = { id: 'ai-bot', username: '🤖 智勝 AI', isBot: true };
+    playerBlack = singlePlayerHumanColor === 1 ? me : bot;
+    playerWhite = singlePlayerHumanColor === 2 ? me : bot;
     ui.aiDifficultyBar?.classList.remove('hidden');
     if (ui.btnHint) ui.btnHint.style.display = 'inline-flex'; // 🌟 對 AI 顯示提示按鈕！
   }
@@ -257,6 +263,7 @@ function scheduleAutoStartFallback() {
 }
 
 function startGomokuRound() {
+  assignRoles();
   board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
   moveHistory = [];
   currentTurn = 1;
@@ -265,7 +272,8 @@ function startGomokuRound() {
   winningStones = [];
   hintPos = null;
 
-  ui.autoStartNotice.textContent = playerWhite?.isBot ? '🎮 單人 AI 對決中 · 三勝制' : '🎮 多人對局中 · 三勝制';
+  ui.autoStartNotice.textContent = isSinglePlayer() ? '🎮 單人 AI 對決中 · 三勝制' : '🎮 雙人對局中 · 三勝制';
+  updateRosterUI();
   updateTurnUI();
   drawBoard();
 }
@@ -284,9 +292,13 @@ function updateTurnUI() {
     ui.turnText.textContent = `${myColorStr} · 白子（${playerWhite?.username || '白棋'}）落子`;
   }
 
-  if (isPlaying && currentTurn === 2 && playerWhite?.isBot) {
+  if (isPlaying && ((currentTurn === 1 && playerBlack?.isBot) || (currentTurn === 2 && playerWhite?.isBot))) {
     setTimeout(triggerAiMove, 400);
   }
+}
+
+function isSinglePlayer() {
+  return !!(playerBlack?.isBot || playerWhite?.isBot);
 }
 
 /* =========================================================
@@ -462,6 +474,8 @@ function placeMove(row, col, stoneColor, isLocalAction) {
 
   if (checkWin(row, col, stoneColor)) {
     finishRound(stoneColor);
+  } else if (moveHistory.length === BOARD_SIZE * BOARD_SIZE) {
+    finishRound(0);
   } else {
     currentTurn = currentTurn === 1 ? 2 : 1;
     updateTurnUI();
@@ -500,14 +514,16 @@ function checkWin(row, col, color) {
 ========================================================= */
 
 function triggerAiMove() {
-  if (!isPlaying || currentTurn !== 2) return;
-  const bestMove = getBestAiMove();
+  const aiColor = playerBlack?.isBot ? 1 : 2;
+  if (!isPlaying || currentTurn !== aiColor) return;
+  const bestMove = getBestAiMove(aiColor);
   if (bestMove) {
-    placeMove(bestMove[0], bestMove[1], 2, false);
+    placeMove(bestMove[0], bestMove[1], aiColor, false);
   }
 }
 
-function getBestAiMove() {
+function getBestAiMove(aiColor = playerBlack?.isBot ? 1 : 2) {
+  const humanColor = aiColor === 1 ? 2 : 1;
   const scoredCandidates = [];
 
   for (let r = 0; r < BOARD_SIZE; r++) {
@@ -516,8 +532,8 @@ function getBestAiMove() {
         const centerDist = Math.abs(r - 7) + Math.abs(c - 7);
         const centerBonus = (14 - centerDist) * 3;
 
-        const attack = evaluatePos(r, c, 2);
-        const defense = evaluatePos(r, c, 1);
+        const attack = evaluatePos(r, c, aiColor);
+        const defense = evaluatePos(r, c, humanColor);
 
         let totalScore = attack * 1.15 + defense + centerBonus;
 
@@ -630,12 +646,12 @@ function showToast(msg) {
 
 function handleHint() {
   if (!isPlaying) return;
-  if (playerWhite && !playerWhite.isBot) {
+  if (!isSinglePlayer()) {
     showToast('⚠️ 對抗真人玩家時禁止使用 AI 提示！');
     return;
   }
   ensureAudio();
-  const move = getBestAiMove();
+  const move = getBestAiMove(playerBlack?.isBot ? 1 : 2);
   if (move) {
     hintPos = move;
     drawBoard();
@@ -658,7 +674,7 @@ function handleUndo() {
   if (!isPlaying || moveHistory.length === 0) return;
   ensureAudio();
 
-  if (playerWhite?.isBot) {
+  if (isSinglePlayer()) {
     doUndoStep();
     doUndoStep();
   } else {
@@ -671,9 +687,9 @@ function handleResign() {
   if (!isPlaying) return;
   ensureAudio();
 
-  if (playerWhite?.isBot) {
-    const winnerColor = currentTurn === 1 ? 2 : 1;
-    finishRound(winnerColor);
+  if (isSinglePlayer()) {
+    const aiColor = playerBlack?.isBot ? 1 : 2;
+    finishRound(aiColor);
   } else {
     sendGameEvent('GOMOKU_RESIGN', { senderId: me.id });
     const myColor = me.id === playerBlack?.id ? 1 : 2;
@@ -685,9 +701,11 @@ function handleResign() {
 function handleRestart() {
   ensureAudio();
 
-  if (playerWhite?.isBot) {
+  if (isSinglePlayer()) {
     scoreBlackWins = 0;
     scoreWhiteWins = 0;
+    roundCount = 0;
+    singlePlayerHumanColor = 1;
     startGomokuRound();
   } else {
     sendGameEvent('GOMOKU_RESTART_REQ', { senderId: me.id, senderName: me.username });
@@ -700,17 +718,26 @@ function handleRestart() {
 ========================================================= */
 
 function finishRound(winnerColor) {
+  if (!isPlaying) return;
   isPlaying = false;
   playWinSound();
   drawBoard();
 
   if (winnerColor === 1) scoreBlackWins++;
-  else scoreWhiteWins++;
+  else if (winnerColor === 2) scoreWhiteWins++;
+  roundCount++;
+  if (isSinglePlayer()) {
+    singlePlayerHumanColor = singlePlayerHumanColor === 1 ? 2 : 1;
+  }
 
   const isMatchOver = scoreBlackWins >= 3 || scoreWhiteWins >= 3;
   const roundWinnerName = winnerColor === 1 ? (playerBlack?.username || '黑子') : (playerWhite?.username || '白子');
 
-  ui.resultTitle.textContent = isMatchOver ? (winnerColor === 1 ? '🏆 黑棋奪得三勝總冠軍！' : '🏆 白棋奪得三勝總冠軍！') : `🎉 本局由 ${roundWinnerName} 獲勝！`;
+  ui.resultTitle.textContent = winnerColor === 0
+    ? '🤝 平手！'
+    : isMatchOver
+      ? (winnerColor === 1 ? '🏆 黑棋奪得三勝總冠軍！' : '🏆 白棋奪得三勝總冠軍！')
+      : `🎉 本局由 ${roundWinnerName} 獲勝！`;
   ui.resultSubtitle.textContent = `當前比分：黑 ${scoreBlackWins} : ${scoreWhiteWins} 白 (三勝制)`;
   ui.resultReward.textContent = isMatchOver ? '+100 銀幣' : '準備進入下一局…';
 
@@ -722,7 +749,8 @@ function finishRound(winnerColor) {
       gameOverCalled = true;
       if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
         try {
-          const finalScore = (winnerColor === 1 ? scoreBlackWins : scoreWhiteWins) * 100 + Math.max(0, 50 - moveHistory.length);
+          const winnerWins = winnerColor === 1 ? scoreBlackWins : scoreWhiteWins;
+          const finalScore = isWinner ? 1000 + winnerWins * 100 + Math.max(0, 50 - moveHistory.length) : 0;
           window.BoomRoomSDK.gameOver(isWinner ? 100 : 0, finalScore);
         } catch (_) {}
       }
@@ -792,7 +820,10 @@ function handleNetworkEvent(eventName, payload, senderId) {
 
   if (eventName === 'GOMOKU_MOVE' && payload) {
     const { row, col, stoneColor, userId } = payload;
-    if (userId !== me.id && board[row][col] === 0) {
+    const expectedPlayer = stoneColor === 1 ? playerBlack : playerWhite;
+    if (userId !== me.id && expectedPlayer?.id === userId && stoneColor === currentTurn &&
+        Number.isInteger(row) && Number.isInteger(col) && row >= 0 && row < BOARD_SIZE &&
+        col >= 0 && col < BOARD_SIZE && board[row][col] === 0 && isPlaying) {
       placeMove(row, col, stoneColor, false);
     }
   } else if (eventName === 'GOMOKU_UNDO_REQ') {
@@ -832,6 +863,8 @@ function handleNetworkEvent(eventName, payload, senderId) {
         () => {
           scoreBlackWins = 0;
           scoreWhiteWins = 0;
+          roundCount = 0;
+          singlePlayerHumanColor = 1;
           startGomokuRound();
           sendGameEvent('GOMOKU_RESTART_RESP', { senderId: me.id, accept: true });
         },
@@ -845,6 +878,8 @@ function handleNetworkEvent(eventName, payload, senderId) {
       if (payload.accept) {
         scoreBlackWins = 0;
         scoreWhiteWins = 0;
+        roundCount = 0;
+        singlePlayerHumanColor = 1;
         startGomokuRound();
         showToast('🎉 對手同意重新開局，比分已重置！');
       } else {
@@ -886,6 +921,13 @@ window.onBoomRoomSDKReady = function() {
 
 if (window.BoomRoomSDK) {
   window.onBoomRoomSDKReady();
+} else {
+  // Standalone browser testing still starts a local human-vs-AI match.
+  setTimeout(() => {
+    if (!sdkInitialized) {
+      setupSDK({ user: me, isHost: true, roomId: '', roomPlayers: [me] });
+    }
+  }, 1500);
 }
 
 window.addEventListener('resize', resizeCanvas);
