@@ -1228,7 +1228,9 @@
   let speechFinalText="";
   let speechMode="";
   let speechRestartTimer=null;
+  let speechSubmitTimer=null;
   let speechSessionId=0;
+  let speechStopSubmitPending=false;
   let voiceEnabledForTurn=false;
 
   let currentWord=null;
@@ -1599,19 +1601,6 @@
     return false;
   }
 
-  function requestFlutterVoiceConfig(){
-    postHostMessage({
-      action:"configureSpeechRecognition",
-      locale:CONFIG.VOICE_LOCALE,
-      language:CONFIG.VOICE_LANGUAGE,
-      languageCode:CONFIG.VOICE_LANGUAGE,
-      locales:["zh-TW","zh-Hant-TW","zh_TW","cmn-Hant-TW"],
-      preferredLanguage:"Traditional Chinese",
-      continuous:true,
-      interimResults:true
-    });
-  }
-
   /* =========================================================
      SDK
   ========================================================= */
@@ -1659,7 +1648,6 @@
     if(!secondsVotes.has(String(ME.id))){ secondsVotes.set(String(ME.id), selectedTurnSeconds); }
 
     render();
-    requestFlutterVoiceConfig();
 
     if(sdkIsHost || DEV){
       currentHostId=ME.id;
@@ -1761,7 +1749,8 @@
 
   window.setVoiceLanguage = function(locale){
     const v=safeString(locale,CONFIG.VOICE_LOCALE,20);
-    requestFlutterVoiceConfig();
+    CONFIG.VOICE_LOCALE=v;
+    CONFIG.VOICE_LANGUAGE=v;
     return v;
   };
 
@@ -2322,12 +2311,15 @@
     if(currentWord) currentWordLength=getAnswerLength(currentWord);
     resetRevealState();
     knownStrokes=[]; localStrokeIds=[]; remoteStrokeBuffers.clear(); currentStroke=null;
-    state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！先答對先得分。';
+    state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！按住麥克風說答案，或直接打字。';
     appendChatMessage({chatKey:'TURN_START|'+roundId+'|'+currentTurnIndex,roundId,turnIndex:currentTurnIndex,username:'系統',
       text:isDrawer()?'🎨 第 '+(currentTurnIndex+1)+' 回合開始！答案共 '+currentWordLength+' 字，開始作畫！':'🎨 第 '+(currentTurnIndex+1)+' 回合開始！提示：答案共 '+currentWordLength+' 字，搶先猜！本回合需 '+currentRequiredCorrectCount+' 名玩家猜中。',isCorrect:false,isSystem:true});
     const me=players.get(ME.id); if(me) me.status='PLAYING';
     render(); playTone(740,.08); setTimeout(ensureCanvas,50);
-    if(!isDrawer()) setTimeout(startVoiceGuess,300); else stopVoiceGuess();
+    // Speech recognition must only begin inside the player's microphone
+    // pointer gesture. Auto-starting here loses browser activation and leaves
+    // speechHoldActive latched, so the actual microphone press gets ignored.
+    stopVoiceGuess();
   }
 
   /* =========================================================
@@ -3641,40 +3633,117 @@
      VOICE GUESS (WEB 使用瀏覽器辨識；APK／WINDOWS 使用 Flutter 原生辨識)
   ========================================================= */
 
+  function tellHostSpeechStopped(){
+    postHostMessage({
+      action:speechMode==="webNative" ? "endWebSpeechRecognition" : "stopVoiceRecognition",
+      locale:CONFIG.VOICE_LOCALE,
+      language:CONFIG.VOICE_LANGUAGE,
+      languageCode:CONFIG.VOICE_LANGUAGE
+    });
+  }
+
+  function restoreGuessInputFocus(){
+    requestAnimationFrame(()=>{
+      const currentInput=document.getElementById("guessInput");
+      if(currentInput?.isConnected) currentInput.focus({preventScroll:true});
+    });
+  }
+
+  function showVoiceButtonIdle(){
+    const btn=document.getElementById("voiceBtn");
+    if(!btn) return;
+    btn.classList.remove("voice-active");
+    btn.setAttribute("aria-label","按住說話");
+    btn.title="按住麥克風說出答案，放開後送出辨識結果";
+  }
+
+  function finishPendingSpeechGuess(session){
+    if(!speechStopSubmitPending || session!==speechSessionId) return;
+    speechStopSubmitPending=false;
+    clearTimeout(speechSubmitTimer);
+    speechSubmitTimer=null;
+    speechSessionId++;
+    speechListening=false;
+    speechHoldActive=false;
+    voiceEnabledForTurn=false;
+    tellHostSpeechStopped();
+    const input=document.getElementById("guessInput");
+    const recognizedText=safeString(input?.value||speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
+    const recognition=speechRecognition;
+    speechRecognition=null;
+    if(recognition){
+      recognition.onresult=null;
+      recognition.onerror=null;
+      recognition.onend=null;
+      try{ recognition.abort(); }catch(_){}
+    }
+    showVoiceButtonIdle();
+    if(recognizedText){
+      if(input) input.value=recognizedText;
+      submitGuess();
+      showToast("🎙️ 已送出辨識內容，正在判斷答案");
+    }else{
+      if(input) input.value="";
+      showToast("沒有辨識到內容，請按住麥克風再說一次");
+    }
+    restoreGuessInputFocus();
+  }
+
   function stopVoiceGuess({submitOnRelease=false}={}){
     clearTimeout(speechRestartTimer);
     speechRestartTimer=null;
-    speechSessionId++;
     const wasListening=speechListening;
     const wasHeld=speechHoldActive;
     const shouldSubmit=submitOnRelease && wasHeld;
+    const session=speechSessionId;
+
+    // stop() asks Web Speech for its final result. Keep the result callback
+    // alive until onend so the last Chinese words are not discarded before
+    // submitGuess reads the input field.
+    if(shouldSubmit && speechRecognition &&
+       (speechMode==="webNative" || speechMode==="native")){
+      speechHoldActive=false;
+      speechStopSubmitPending=true;
+      speechListening=true;
+      voiceEnabledForTurn=false;
+      const btn=document.getElementById("voiceBtn");
+      if(btn){
+        btn.classList.remove("voice-active");
+        btn.setAttribute("aria-label","正在整理辨識結果");
+        btn.title="正在完成最後一段語音辨識";
+      }
+      speechSubmitTimer=setTimeout(()=>finishPendingSpeechGuess(session),1400);
+      try{
+        speechRecognition.stop();
+      }catch(_){
+        finishPendingSpeechGuess(session);
+      }
+      return;
+    }
+
+    clearTimeout(speechSubmitTimer);
+    speechSubmitTimer=null;
+    speechStopSubmitPending=false;
+    speechSessionId++;
     const input=document.getElementById("guessInput");
     const recognizedText=safeString(input?.value||speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
     speechListening=false;
     speechHoldActive=false;
     voiceEnabledForTurn=false;
 
-    if(wasListening || wasHeld){
-      postHostMessage({
-        action:speechMode==="webNative" ? "endWebSpeechRecognition" : "stopVoiceRecognition",
-        locale:CONFIG.VOICE_LOCALE,
-        language:CONFIG.VOICE_LANGUAGE,
-        languageCode:CONFIG.VOICE_LANGUAGE
-      });
-    }
+    if(wasListening || wasHeld) tellHostSpeechStopped();
 
     if(speechRecognition){
-      try{ speechRecognition.onend=null; speechRecognition.stop(); }catch(_){}
+      try{
+        speechRecognition.onresult=null;
+        speechRecognition.onerror=null;
+        speechRecognition.onend=null;
+        speechRecognition.stop();
+      }catch(_){}
       speechRecognition=null;
     }
 
-    const btn=document.getElementById("voiceBtn");
-    if(btn){
-      btn.classList.remove("voice-active");
-      btn.setAttribute("aria-label","按住說話");
-      btn.title="按住麥克風說出答案，放開後送出辨識結果";
-    }
-
+    showVoiceButtonIdle();
     if(shouldSubmit){
       if(input && recognizedText) input.value=recognizedText;
       if(recognizedText){
@@ -3686,12 +3755,8 @@
       }
     }
 
-    // 不論玩家放開、瀏覽器失焦或辨識服務中止，都把焦點還給輸入框；
-    // 否則語音按鈕會留住鍵盤焦點，讓玩家誤以為文字輸入失效。
-    if(wasHeld) requestAnimationFrame(()=>{
-      const currentInput=document.getElementById("guessInput");
-      if(currentInput?.isConnected) currentInput.focus({preventScroll:true});
-    });
+    // 放開、失焦或辨識中止後，把鍵盤焦點交還給猜題欄位。
+    if(wasHeld) restoreGuessInputFocus();
   }
 
   window.receiveVoiceText=function(text,isFinal){
@@ -3728,7 +3793,7 @@
       return;
     }
 
-    if(speechHoldActive && !restart) return;
+    if(speechStopSubmitPending || (speechHoldActive && !restart)) return;
     speechHoldActive=true;
     voiceEnabledForTurn=true;
     speechListening=true;
@@ -3749,7 +3814,7 @@
     ensureAudio();
     // APK／Windows 由 Flutter 原生辨識；WEB iframe 直接使用瀏覽器辨識，
     // 避免 Flutter Web speech_to_text 在 iframe 工作階段中回報 listen=false。
-    if(window.BoomRoomJS){
+    if(window.BoomRoomJS && window.parent===window){
       speechMode="flutter";
       postHostMessage({
         action:"startVoiceRecognition",
@@ -3775,6 +3840,7 @@
       voiceEnabledForTurn=false;
       if(btn) btn.classList.remove("voice-active");
       showToast("此瀏覽器不支援語音辨識，請用打字猜題");
+      restoreGuessInputFocus();
       return;
     }
 
@@ -3792,16 +3858,26 @@
         if(session!==speechSessionId || !speechListening) return;
         let textValue="";
         let hasFinal=false;
-        for(let i=event.resultIndex;i<event.results.length;i++){
+        // Keep earlier finalized words too; resultIndex only marks where this
+        // event changed and must not trim the beginning of a Chinese phrase.
+        for(let i=0;i<event.results.length;i++){
           const transcript=event.results[i][0]?.transcript||"";
           if(transcript) textValue+=(textValue?" ":"")+transcript;
           if(event.results[i].isFinal) hasFinal=true;
         }
-        if(textValue) window.receiveVoiceText(textValue,hasFinal);
+        if(textValue){
+          console.info("[BoomRoom voice] Chinese result received", {final:hasFinal, length:textValue.length});
+          window.receiveVoiceText(textValue,hasFinal);
+        }
       };
 
       speechRecognition.onerror=(event)=>{
         if(session!==speechSessionId) return;
+        console.error("[BoomRoom voice] SpeechRecognition error", event?.error, event?.message||"");
+        if(speechStopSubmitPending){
+          finishPendingSpeechGuess(session);
+          return;
+        }
         if(event?.error==="no-speech" || event?.error==="aborted") return;
         if(event?.error==="not-allowed" || event?.error==="service-not-allowed"){
           showToast("🎤 瀏覽器未授權此遊戲使用麥克風，請允許網站麥克風權限後重試");
@@ -3817,6 +3893,10 @@
         if(session!==speechSessionId) return;
         speechRecognition=null;
         speechListening=false;
+        if(speechStopSubmitPending){
+          finishPendingSpeechGuess(session);
+          return;
+        }
         if(speechHoldActive){
           clearTimeout(speechRestartTimer);
           speechRestartTimer=setTimeout(()=>{
@@ -3829,20 +3909,32 @@
         }
       };
 
+      speechRecognition.onstart=()=>{
+        if(session===speechSessionId){
+          console.info("[BoomRoom voice] Chinese recognition listening", CONFIG.VOICE_LOCALE);
+        }
+      };
+
+      console.info("[BoomRoom voice] starting Chinese recognition", CONFIG.VOICE_LOCALE);
       speechRecognition.start();
     }catch(err){
-      console.warn("native speech start error",err);
-      if(speechHoldActive){
-        clearTimeout(speechRestartTimer);
-        speechRestartTimer=setTimeout(()=>{
-          speechRestartTimer=null;
-          if(speechHoldActive && session===speechSessionId) startVoiceGuess({restart:true});
-        },1500);
-      }else{
-        speechListening=false;
-        voiceEnabledForTurn=false;
-        if(btn) btn.classList.remove("voice-active");
+      console.error("[BoomRoom voice] SpeechRecognition start failed",err);
+      if(speechRecognition){
+        speechRecognition.onresult=null;
+        speechRecognition.onerror=null;
+        speechRecognition.onend=null;
+        try{ speechRecognition.abort(); }catch(_){}
+        speechRecognition=null;
       }
+      const errorName=String(err?.name||"").toLowerCase();
+      if(errorName==="notallowederror" || errorName==="securityerror"){
+        showToast("🎤 瀏覽器未授權此遊戲使用麥克風，請允許網站麥克風權限後重試");
+      }else if(errorName==="notfounderror"){
+        showToast("🎤 找不到可用麥克風，請檢查裝置與其他程式是否占用");
+      }else{
+        showToast("🎤 中文語音無法啟動，請確認瀏覽器支援語音辨識及麥克風權限");
+      }
+      stopVoiceGuess();
     }
   }
 
@@ -3970,17 +4062,31 @@
   });
 
   window.addEventListener("pagehide", ()=>{
+    const hadSpeechSession=speechHoldActive || speechStopSubmitPending;
     try{
       sendEvent("PLAYER_LEAVE", { roundId:roundId||"LOBBY", userId:ME.id, username:ME.username, at:nowMs() }, { bypassAuthority:true });
     }catch(_){}
     clearTimeout(turnStateTimer);
     clearTimeout(speechRestartTimer);
+    clearTimeout(speechSubmitTimer);
+    speechStopSubmitPending=false;
     clearInterval(lobbyTimer);
     clearInterval(heartbeatTimer);
     clearInterval(hostTimer);
     cancelAnimationFrame(loopHandle);
     rafRunning=false;
-    try{ if(speechRecognition) speechRecognition.stop(); }catch(_){}
+    try{
+      if(speechRecognition){
+        speechRecognition.onresult=null;
+        speechRecognition.onerror=null;
+        speechRecognition.onend=null;
+        speechRecognition.abort();
+      }
+    }catch(_){}
+    if(hadSpeechSession) tellHostSpeechStopped();
+    speechRecognition=null;
+    speechListening=false;
+    speechHoldActive=false;
   });
 
   /* =========================================================
@@ -4594,7 +4700,6 @@
     secondsVotes.set(String(ME.id), selectedTurnSeconds);
 
     render();
-    requestFlutterVoiceConfig();
     startHostMonitor();
     lastFrame=performance.now();
     rafRunning=true;
