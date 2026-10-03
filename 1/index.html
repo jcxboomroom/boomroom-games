@@ -707,7 +707,7 @@
     </div>
 
     <div class="hint">
-      正式環境會先完成 Entry；沒有 BoomRoom SDK 時只會進入開發測試。
+      每位玩家支付所選入場費，第一名獲得本局所有玩家入場費總額。
     </div>
 
   </div>
@@ -977,6 +977,10 @@
   let sdkIsHost = false;
 
   let gameRoomId = '';
+  let gameSessionId = '';
+  let pendingEntryRound = 0;
+  const pendingEntryFees = new Map();
+  let roundEntryFees = [];
 
   let rawUser = {
 
@@ -1050,6 +1054,7 @@
       data && data.roomId
         ? String(data.roomId)
         : '';
+    gameSessionId = String(data?.gameSessionId || '');
 
     if(sdkIsHost){
 
@@ -1078,8 +1083,6 @@
 
     readyPlayersSet.add(String(ME.id));
     updateAutoStartNotice();
-    scheduleAutoStartFallback();
-
     el.devBadge.style.display =
       'none';
 
@@ -1166,6 +1169,7 @@
         user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
         isHost: window.BoomRoomSDK.isHost,
         roomId: window.BoomRoomSDK.roomId,
+        gameSessionId: window.BoomRoomSDK.gameSessionId || '',
         roomPlayers: window.BoomRoomSDK.roomPlayers || []
       });
     }
@@ -1258,6 +1262,9 @@
     STATES.MENU;
 
   let selectedEntry =
+    100;
+
+  let myEntryChoice =
     100;
 
   let roundId =
@@ -4278,6 +4285,9 @@
         entryCost:
           selectedEntry,
 
+        entryFees:
+          roundEntryFees,
+
         seed:
           roundSeed,
 
@@ -4464,6 +4474,29 @@
 
     }
 
+    if(name === 'BBG_ENTRY_PAID'){
+      const payerId = String(payload?.userId ?? sender ?? '');
+      const entryRound = Number(payload?.roundId);
+      const entryFee = Number(payload?.entryFee);
+      if(!payerId || (sender != null && String(sender) !== payerId) ||
+         entryRound !== roundId + 1 || !CFG.ENTRY.includes(entryFee) || !players.has(payerId)) return;
+      pendingEntryFees.set(payerId, entryFee);
+      if(!isHost()) return;
+
+      const expectedPlayers = onlinePlayers().map(p => String(p.id));
+      const paidCount = expectedPlayers.filter(id => pendingEntryFees.has(id)).length;
+      if(expectedPlayers.length && paidCount === expectedPlayers.length){
+        roundEntryFees = expectedPlayers.map(userId => ({userId, entryFee:pendingEntryFees.get(userId)}));
+        selectedEntry = pendingEntryFees.get(String(ME.id)) || selectedEntry;
+        pendingEntryFees.clear();
+        startRoundAfterEntry();
+      }else{
+        el.start.textContent = `等待入場 ${paidCount}/${expectedPlayers.length}`;
+        showToast(`已繳入場費，等待其他玩家 ${paidCount}/${expectedPlayers.length}`, '#ffd45c');
+      }
+      return;
+    }
+
     if(
       name ===
       'BBG_HOST'
@@ -4554,6 +4587,8 @@
             payload.entryCost
           )
         : selectedEntry;
+
+      if(Array.isArray(payload.entryFees)) roundEntryFees = payload.entryFees;
 
       roundSeed =
         finite(
@@ -4653,6 +4688,9 @@
             payload.entryCost
           )
         : 100;
+
+      if(Array.isArray(payload.entryFees)) roundEntryFees = payload.entryFees;
+      currentPaid = roundEntryFees.some(row => String(row.userId) === String(ME.id));
 
       roundSeed =
         finite(
@@ -5029,8 +5067,34 @@
   ========================================================= */
 
   function requestEntry(){
-    currentPaid = true;
-    startRoundAfterEntry();
+    if(purchasing || (phase === STATES.WAIT_HOST && currentPaid)) return;
+    selectedEntry = myEntryChoice;
+    if(DEV){
+      currentPaid = true;
+      startRoundAfterEntry();
+      return;
+    }
+    if(!gameSessionId || !gameRoomId){
+      showToast('房間對局資料尚未同步，請稍後再試', '#ff7b92');
+      return;
+    }
+
+    pendingEntryRound = Math.max(1, Number(roundId) + 1);
+    pendingPurchase = `boomgold_entry_${pendingEntryRound}`;
+    purchasing = true;
+    phase = STATES.PURCHASING;
+    syncUI();
+    const request = {action:'requestPurchase', itemId:pendingPurchase, cost:selectedEntry};
+    if(window.BoomRoomSDK && typeof window.BoomRoomSDK.requestPurchase === 'function'){
+      window.BoomRoomSDK.requestPurchase(request.itemId, request.cost);
+    }else if(window.parent !== window){
+      window.parent.postMessage(JSON.stringify(request), '*');
+    }else{
+      purchasing = false;
+      phase = STATES.MENU;
+      syncUI();
+      showToast('無法連線到銀幣結算服務', '#ff7b92');
+    }
   }
 
   window.onPurchaseSuccess =
@@ -5050,8 +5114,21 @@
 
     currentPaid =
       true;
-
-    startRoundAfterEntry();
+    const paidRound = pendingEntryRound;
+    pendingEntryRound = 0;
+    phase = STATES.WAIT_HOST;
+    if(el.start) el.start.textContent = '入場完成，等待玩家付款…';
+    syncUI();
+    send('BBG_ENTRY_PAID', {
+      roundId:paidRound,
+      userId:ME.id,
+      entryFee:selectedEntry
+    });
+    if(isHost()){
+      const expectedPlayers = onlinePlayers().map(p => String(p.id));
+      const paidCount = expectedPlayers.filter(id => pendingEntryFees.has(id)).length;
+      showToast(`入場已付款，等待其他玩家 ${paidCount}/${expectedPlayers.length}`, '#ffd45c');
+    }
 
   };
 
@@ -5068,6 +5145,8 @@
 
     pendingPurchase =
       '';
+
+    if(el.start) el.start.textContent = '開始搶金';
 
     phase =
       STATES.MENU;
@@ -5087,7 +5166,6 @@
 
   function startRoundAfterEntry(){
 
-    autoStarted = false;
     try { initAudio(); } catch(_) {}
 
     electHost();
@@ -5157,6 +5235,9 @@
 
         entryCost:
           selectedEntry,
+
+        entryFees:
+          roundEntryFees,
 
         seed:
           roundSeed,
@@ -5271,24 +5352,24 @@
           ME.id
       );
 
+    const me = players.get(ME.id);
     const myScore = me ? (me.score || 0) : 0;
-    const baseEntry = Number(selectedEntry) > 0 ? Number(selectedEntry) : 100;
-    const reward =
-      idx === 0
-        ? baseEntry * 2
-        : idx === 1
-          ? Math.floor(baseEntry * 1.0)
-          : 50;
-
-    const safe = Math.floor(clamp(reward, 50, CFG.REWARD_CAP));
+    const poolTotal = roundEntryFees.reduce((sum, entry) => sum + Math.max(0, Number(entry.entryFee) || 0), 0);
+    const safe = idx === 0 ? Math.floor(poolTotal) : 0;
 
     if (!gameOverCalled) {
       gameOverCalled = true;
 
       const reqData = {
         action: 'game_over',
-        winAmount: safe,
-        score: myScore
+        winAmount: 0,
+        score: myScore,
+        poolSettlement: rows.length > 0 && isHost() ? {
+          roomId:gameRoomId,
+          sessionId:gameSessionId,
+          roundId,
+          winnerId:rows[0]?.id || ME.id
+        } : null
       };
 
       /*
@@ -5303,7 +5384,7 @@
 
         if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === 'function') {
           try {
-            window.BoomRoomSDK.gameOver(safe, myScore);
+            window.BoomRoomSDK.gameOver(0, myScore, reqData.poolSettlement);
           } catch (_) {}
         } else if (window.parent !== window) {
           try {
@@ -5311,12 +5392,6 @@
           } catch (_) {}
         }
       }, 3000);
-    }
-
-          },
-          CFG.RESULT_DISPLAY_MS
-        );
-
     }
 
     return safe;
@@ -5533,8 +5608,7 @@
         : '#f8fbff';
 
     el.reward.textContent =
-      '+' +
-      reward +
+      (won ? '+' + reward : '+0') +
       ' 銀幣';
 
     el.reward.style.color =
@@ -5865,7 +5939,8 @@
       phase ===
       STATES.DRAINING ||
       phase ===
-      STATES.RESULT
+      STATES.RESULT ||
+      (phase === STATES.WAIT_HOST && currentPaid)
     )return;
 
     initAudio();
@@ -5958,6 +6033,9 @@
         selectedEntry =
           v;
 
+        myEntryChoice =
+          v;
+
         document
           .querySelectorAll(
             '.entry'
@@ -6016,38 +6094,14 @@
 
   let totalRoomPlayersCount = 1;
   let readyPlayersSet = new Set();
-  let autoStarted = false;
-  let autoStartTimer = null;
 
   function updateAutoStartNotice() {
     const notice = document.getElementById("autoStartNotice");
     if (!notice) return;
     const currentCount = readyPlayersSet.size;
-    notice.textContent = "⏱️ 房間人數 " + currentCount + "/" + totalRoomPlayersCount + "，準備自動開始...";
-
-    if (currentCount >= totalRoomPlayersCount && !autoStarted && phase === STATES.MENU) {
-      triggerAutoStart();
-    }
-  }
-
-  function triggerAutoStart() {
-    if (autoStarted) return;
-    autoStarted = true;
-    clearTimeout(autoStartTimer);
-    const notice = document.getElementById("autoStartNotice");
-    if (notice) notice.textContent = "🚀 人數已齊全，自動開局！";
-    setTimeout(() => {
-      requestEntry();
-    }, 600);
-  }
-
-  function scheduleAutoStartFallback() {
-    clearTimeout(autoStartTimer);
-    autoStartTimer = setTimeout(() => {
-      if (!autoStarted && phase === STATES.MENU) {
-        triggerAutoStart();
-      }
-    }, 3500);
+    notice.textContent = currentCount >= totalRoomPlayersCount
+      ? "✅ 玩家已到齊，請選擇入場金額並開始"
+      : "⏱️ 房間玩家載入中 " + currentCount + "/" + totalRoomPlayersCount;
   }
 
   function hello(){
