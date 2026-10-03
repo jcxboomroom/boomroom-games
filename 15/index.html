@@ -1186,6 +1186,11 @@
   let activeTurnSeconds=30;
   let lobbyTimer=null;
   let lobbySecondsLeft=CONFIG.LOBBY_COUNTDOWN_SECONDS;
+  let lobbyDeadlineAt=0;
+  let lobbyResolved=false;
+  let lobbySyncVersion=0;
+  let appliedLobbySyncVersion=0;
+  let lastLobbySyncSentAt=0;
   let guessHistory=[];
 
   const chatSeenKeys=new Set();
@@ -1496,6 +1501,12 @@
     return ensureHostAuthority(false);
   }
 
+  // 大廳階段先以平台注入的房主身分為準；房主失聯後才允許接管。
+  function isLobbyAuthority(){
+    if(DEV || sdkIsHost) return true;
+    return !!currentHostId && String(currentHostId)===String(ME.id) && isLiveHost(currentHostId);
+  }
+
   function ensureHostSecretWord(){
     if(!isLocalAuthority() || currentTurnIndex<0) return null;
     if(!currentWord){ currentWord=wordForTurn(selectedCategory,currentTurnIndex,roundSeed); }
@@ -1554,6 +1565,7 @@
         return;
       }
       if(elected){
+        if(!matchStarted && !currentHostId){ return; }
         const changed=String(currentHostId)!==String(elected);
         currentHostId=String(elected);
         currentHostLastSeen=nowMs();
@@ -1618,23 +1630,22 @@
     currentHostId=sdkIsHost ? ME.id : safeString(data.hostId,"",64);
 
     if(Array.isArray(data.roomPlayers)){
-      data.roomPlayers.forEach(rp=>{
-        const p=addPlayer(String(rp.id), rp.username, rp.avatar, "READY");
-        if(p && rp.joinedAt!=null){ p.joinedAt=finite(rp.joinedAt,p.joinedAt); }
+      const baseJoinTime=nowMs()-Math.max(0,data.roomPlayers.length-1)*20;
+      data.roomPlayers.forEach((rp,index)=>{
+        const pid=String(rp.id);
+        const p=addPlayer(pid, rp.username, rp.avatar, "READY");
+        if(p){
+          p.joinedAt=rp.joinedAt!=null ? finite(rp.joinedAt,p.joinedAt) : baseJoinTime+index*20;
+        }
         if(!sdkIsHost && !currentHostId && (rp.isHost===true || rp.host===true || String(rp.role||"").toLowerCase()==="host")){
-          currentHostId=String(rp.id);
+          currentHostId=pid;
         }
       });
     }
 
-    // 沒有平台提供 hostId 時，用相同排序規則在所有端選出同一位接管者。
-    if(!currentHostId){
-      currentHostId=electedHostId();
-      currentHostLastSeen=nowMs();
-    }
-
     if(sdkIsHost){
       currentHostId=ME.id;
+      currentHostLastSeen=nowMs();
     }
 
     addPlayer(ME.id, ME.username, ME.avatar, "READY");
@@ -1645,9 +1656,29 @@
 
     render();
     requestFlutterVoiceConfig();
-    sendEvent("PLAYER_HELLO", { roundId:roundId||"LOBBY", userId:ME.id, username:ME.username, avatar:ME.avatar, joinedAt:players.get(ME.id)?.joinedAt||nowMs() }, { bypassAuthority:true });
+
+    if(sdkIsHost || DEV){
+      currentHostId=ME.id;
+      currentHostLastSeen=nowMs();
+      if(!lobbyDeadlineAt) lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
+      sendEvent("HOST_HEARTBEAT", { roundId:roundId||"LOBBY", hostId:ME.id, at:gameNow() }, { bypassAuthority:true });
+    }
+
+    sendEvent("PLAYER_HELLO", {
+      roundId:roundId||"LOBBY",
+      userId:ME.id,
+      username:ME.username,
+      avatar:ME.avatar,
+      joinedAt:players.get(ME.id)?.joinedAt||nowMs(),
+      categoryVote:categoryVotes.get(String(ME.id)),
+      roundsVote:roundsVotes.get(String(ME.id)),
+      turnSecondsVote:secondsVotes.get(String(ME.id)),
+      isHost:!!sdkIsHost
+    }, { bypassAuthority:true });
+
     startLobbyAutoCountdown();
     startHostMonitor();
+    if(sdkIsHost || DEV) setTimeout(()=>broadcastLobbyState("setup",true),60);
     if(matchStarted) requestStateSnapshot();
   }
 
@@ -1722,6 +1753,7 @@
       categoryVotes.set(String(ME.id), selectedCategory);
       roundsVotes.set(String(ME.id), selectedRounds);
       secondsVotes.set(String(ME.id), selectedTurnSeconds);
+      if(!lobbyDeadlineAt) lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
       render();
       startLobbyAutoCountdown();
     }
@@ -1817,47 +1849,87 @@
      LOBBY
   ========================================================= */
 
+  function lobbyParticipantList(){
+    return [...players.values()]
+      .filter(p=>p && p.status!=="LEFT" && p.status!=="TIMEOUT")
+      .sort((a,b)=>finite(a.joinedAt,0)-finite(b.joinedAt,0)||String(a.id).localeCompare(String(b.id)))
+      .slice(0,CONFIG.MAX_SNAPSHOT_PLAYERS);
+  }
+
+  function buildLobbySync(reason){
+    return {
+      roundId:roundId||"LOBBY",
+      type:"LOBBY_SYNC",
+      lobbyVersion:++lobbySyncVersion,
+      hostId:ME.id,
+      hostNow:gameNow(),
+      deadlineAt:lobbyDeadlineAt||gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000,
+      reason,
+      players:lobbyParticipantList().map(p=>({id:p.id,username:p.username,avatar:p.avatar,status:p.status,joinedAt:finite(p.joinedAt,nowMs())})),
+      votes:{
+        category:[...categoryVotes.entries()].map(([id,value])=>[String(id),String(value)]),
+        rounds:[...roundsVotes.entries()].map(([id,value])=>[String(id),normalizeRounds(value)]),
+        seconds:[...secondsVotes.entries()].map(([id,value])=>[String(id),normalizeTurnSeconds(value)])
+      }
+    };
+  }
+
+  function broadcastLobbyState(reason="sync", force=false){
+    if(matchStarted || !isLobbyAuthority()) return;
+    const now=nowMs();
+    if(!lobbyDeadlineAt) lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
+    if(!force && now-lastLobbySyncSentAt<120) return;
+    lastLobbySyncSentAt=now;
+    sendEvent("GAME_EVENT",buildLobbySync(reason),{bypassAuthority:true});
+  }
+
   function startLobbyAutoCountdown(){
     clearInterval(lobbyTimer);
-    lobbySecondsLeft=CONFIG.LOBBY_COUNTDOWN_SECONDS;
-    render();
-
-    lobbyTimer=setInterval(()=>{
-      lobbySecondsLeft--;
+    if(matchStarted) return;
+    if(isLobbyAuthority() && !lobbyDeadlineAt){
+      lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
+      broadcastLobbyState("countdown_start",true);
+    }
+    const tick=()=>{
+      if(matchStarted || lobbyResolved){ clearInterval(lobbyTimer); return; }
+      const remainMs=lobbyDeadlineAt ? Math.max(0,lobbyDeadlineAt-gameNow()) : CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
+      lobbySecondsLeft=Math.max(0,Math.ceil(remainMs/1000));
       const el=document.getElementById("lobbySecText");
-      if(el){ el.textContent=String(Math.max(0, lobbySecondsLeft)); }
-
-      if(lobbySecondsLeft<=0){
+      if(el) el.textContent=String(lobbySecondsLeft);
+      const syncEl=document.getElementById("lobbySyncText");
+      if(syncEl) syncEl.textContent=lobbyDeadlineAt ? (isLobbyAuthority()?"房主裁決中，票數已即時同步":"等待房主同步開局") : "正在同步房主狀態…";
+      if(remainMs<=0){
         clearInterval(lobbyTimer);
-        if(isLocalAuthority()){
-          resolveLobbyVotesAsHost();
-        }else{
-          lobbySecondsLeft=0;
-          render();
-        }
+        if(isLobbyAuthority()) resolveLobbyVotesAsHost();
+        else render();
+        return;
       }
-    }, 1000);
+      render();
+    };
+    tick();
+    lobbyTimer=setInterval(tick,250);
   }
 
   function resolveLobbyVotesAsHost(){
-    if(!isLocalAuthority()){ return; }
-
-    selectedCategory=pickVoteWinner(categoryVotes, CATEGORIES.map(c=>c.id), selectedCategory);
-    selectedRounds=pickVoteWinner(roundsVotes, ROUND_OPTIONS, normalizeRounds(selectedRounds));
-    selectedTurnSeconds=pickVoteWinner(secondsVotes, TURN_OPTIONS, normalizeTurnSeconds(selectedTurnSeconds));
+    if(matchStarted || lobbyResolved || !isLobbyAuthority()) return;
+    lobbyResolved=true;
+    selectedCategory=pickVoteWinner(categoryVotes,CATEGORIES.map(c=>c.id),selectedCategory);
+    selectedRounds=pickVoteWinner(roundsVotes,ROUND_OPTIONS,normalizeRounds(selectedRounds));
+    selectedTurnSeconds=pickVoteWinner(secondsVotes,TURN_OPTIONS,normalizeTurnSeconds(selectedTurnSeconds));
     activeTurnSeconds=selectedTurnSeconds;
-
     render();
     startDirectGameAsHost();
   }
 
   function startDirectGameAsHost(){
-    if(!isLocalAuthority()){ return; }
+    if(!isLobbyAuthority()){ return; }
     if(matchStarted){ return; }
     clearInterval(lobbyTimer);
 
     roundId=makeRoundId();
     roundSeed=makeSeed();
+    lobbyResolved=true;
+    lobbyDeadlineAt=0;
     currentHostId=ME.id;
     currentHostLastSeen=nowMs();
     selectedRounds=normalizeRounds(selectedRounds);
@@ -1941,6 +2013,9 @@
 
     appliedRoundStartId=incomingRoundId;
     appliedRoundEndId="";
+    lobbyResolved=true;
+    lobbyDeadlineAt=0;
+    clearInterval(lobbyTimer);
     turnStartSeenKeys.clear();
     turnEndSeenKeys.clear();
 
@@ -1999,20 +2074,23 @@
 
   function startCountdown(){
     clearTimeout(turnStateTimer);
-    countdownValue=CONFIG.COUNTDOWN_SECONDS;
     state=STATES.COUNTDOWN;
-    render();
-
+    const goAt=finite(roundStartAt,0)>0 ? finite(roundStartAt,gameNow()+CONFIG.COUNTDOWN_SECONDS*1000) : gameNow()+CONFIG.COUNTDOWN_SECONDS*1000;
+    roundStartAt=goAt;
+    let lastShown=-1;
     const tick=()=>{
-      if(matchEnded){ return; }
-      if(countdownValue<=0){
-        startNextTurnAsHost();
+      if(matchEnded) return;
+      const remainMs=goAt-gameNow();
+      const next=Math.max(0,Math.ceil(remainMs/1000));
+      if(next!==lastShown){ if(next>0) playTone(520+next*80,.06); lastShown=next; }
+      countdownValue=next;
+      render();
+      if(remainMs<=0){
+        if(isLocalAuthority()) startNextTurnAsHost();
+        else turnStateTimer=setTimeout(tick,100);
         return;
       }
-      playTone(520+countdownValue*80, .06);
-      render();
-      countdownValue--;
-      turnStateTimer=setTimeout(tick, 850);
+      turnStateTimer=setTimeout(tick,100);
     };
     tick();
   }
@@ -2772,6 +2850,7 @@
     setOwnVote(categoryVotes, id);
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_CAT", categoryId: id, voterId: ME.id });
+    if(isLobbyAuthority()) broadcastLobbyState("my_category_vote",true);
     render();
   }
 
@@ -2782,6 +2861,7 @@
     setOwnVote(roundsVotes, value);
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_RND", rounds: value, voterId: ME.id });
+    if(isLobbyAuthority()) broadcastLobbyState("my_round_vote",true);
     render();
   }
 
@@ -2792,6 +2872,7 @@
     setOwnVote(secondsVotes, value);
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_SEC", turnSeconds: value, voterId: ME.id });
+    if(isLobbyAuthority()) broadcastLobbyState("my_seconds_vote",true);
     render();
   }
 
@@ -2824,7 +2905,20 @@
         if(payload.joinedAt!=null) p.joinedAt=finite(payload.joinedAt,p.joinedAt);
         p.lastSeen=nowMs();
       }
+      if(payload.isHost===true){
+        currentHostId=uid;
+        currentHostLastSeen=nowMs();
+      }
+      if(!matchStarted){
+        if(CATEGORIES.some(c=>c.id===payload.categoryVote)) categoryVotes.set(uid,payload.categoryVote);
+        if(ROUND_OPTIONS.includes(Number(payload.roundsVote))) roundsVotes.set(uid,Number(payload.roundsVote));
+        if(TURN_OPTIONS.includes(Number(payload.turnSecondsVote))) secondsVotes.set(uid,Number(payload.turnSecondsVote));
+      }
       refreshPlayersOnly();
+      if(!matchStarted && isLobbyAuthority()){
+        if(!lobbyDeadlineAt) lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
+        setTimeout(()=>broadcastLobbyState("player_join",true),40);
+      }
       if(matchStarted && isLocalAuthority()) setTimeout(()=>broadcastStateSnapshot('player_join'),80);
       return;
     }
@@ -2897,12 +2991,74 @@
     const sender=uid;
     const type=safeString(payload.type,"",40);
 
+    if(type==="LOBBY_SYNC"){
+      const claimedHost=safeString(payload.hostId,sender,64);
+      if(claimedHost!==sender) return;
+      if(currentHostId && String(currentHostId)!==sender && isLiveHost(currentHostId)) return;
+      if(matchStarted) return;
+      const incomingLobbyVersion=Number(payload.lobbyVersion)||0;
+      if(incomingLobbyVersion>0 && incomingLobbyVersion<appliedLobbySyncVersion) return;
+      if(incomingLobbyVersion>0){ appliedLobbySyncVersion=incomingLobbyVersion; }
+
+      currentHostId=sender;
+      currentHostLastSeen=nowMs();
+      lobbyResolved=false;
+      lobbyDeadlineAt=finite(payload.deadlineAt,0);
+      syncClock(payload.hostNow);
+
+      // 以房主的完整名單為準，清掉已離房玩家，避免他們的舊票數繼續顯示。
+      const incomingIds=new Set();
+      if(Array.isArray(payload.players)){
+        payload.players.forEach(row=>{
+          if(row?.id==null) return;
+          const pid=String(row.id);
+          incomingIds.add(pid);
+          const p=addPlayer(pid,row.username||"玩家",row.avatar||"",row.status||"READY");
+          if(p){
+            if(row.joinedAt!=null) p.joinedAt=finite(row.joinedAt,p.joinedAt);
+            p.status=safeString(row.status,p.status||"READY",30);
+            p.lastSeen=nowMs();
+          }
+        });
+        for(const [pid,p] of players){
+          if(pid!==String(ME.id) && !incomingIds.has(pid)){
+            p.status="LEFT";
+            p.lastSeen=nowMs();
+          }
+        }
+      }
+
+      const votes=payload.votes||{};
+      // 房主快照是完整權威狀態：先清除再重建，避免本機殘留票數。
+      categoryVotes.clear();
+      roundsVotes.clear();
+      secondsVotes.clear();
+      if(Array.isArray(votes.category)) votes.category.forEach(pair=>{
+        if(Array.isArray(pair)&&pair.length>=2&&CATEGORIES.some(c=>c.id===pair[1])) categoryVotes.set(String(pair[0]),String(pair[1]));
+      });
+      if(Array.isArray(votes.rounds)) votes.rounds.forEach(pair=>{
+        if(Array.isArray(pair)&&pair.length>=2&&ROUND_OPTIONS.includes(Number(pair[1]))) roundsVotes.set(String(pair[0]),Number(pair[1]));
+      });
+      if(Array.isArray(votes.seconds)) votes.seconds.forEach(pair=>{
+        if(Array.isArray(pair)&&pair.length>=2&&TURN_OPTIONS.includes(Number(pair[1]))) secondsVotes.set(String(pair[0]),Number(pair[1]));
+      });
+
+      selectedCategory=categoryVotes.get(String(ME.id))||selectedCategory;
+      selectedRounds=normalizeRounds(roundsVotes.get(String(ME.id))||selectedRounds);
+      selectedTurnSeconds=normalizeTurnSeconds(secondsVotes.get(String(ME.id))||selectedTurnSeconds);
+      refreshPlayersOnly();
+      render();
+      startLobbyAutoCountdown();
+      return;
+    }
+
     if(type==="SELECT_CAT"){
       const actor=safeString(payload.voterId,payload.userId,64);
       if(actor!==sender) return;
       const value=safeString(payload.categoryId,"",30);
       if(CATEGORIES.some(c=>c.id===value)) categoryVotes.set(sender,value);
       render();
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_category",true);
       return;
     }
 
@@ -2912,6 +3068,7 @@
       const value=normalizeRounds(payload.rounds);
       if(ROUND_OPTIONS.includes(value)) roundsVotes.set(sender,value);
       render();
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_rounds",true);
       return;
     }
 
@@ -2921,6 +3078,7 @@
       const value=normalizeTurnSeconds(payload.turnSeconds);
       if(TURN_OPTIONS.includes(value)) secondsVotes.set(sender,value);
       render();
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_seconds",true);
       return;
     }
 
@@ -3232,15 +3390,16 @@
   function renderLobby(main){
     main.innerHTML=`
       <div class="notice" style="background:#112333;border:1px solid var(--cyan);border-radius:12px;padding:8px;font-size:13px;font-weight:bold;color:var(--cyan);">
-        🗳️ 多人投票中
+        🗳️ 多人同步投票中
         <span style="color:#dce2f2;font-weight:600;">（題型／輪數／秒數分開計票）</span>
+        <span id="lobbySyncText" style="color:#98a3ba;font-weight:700;margin-left:4px;">${isLobbyAuthority()?"房主裁決中，票數已即時同步":"等待房主同步開局"}</span>
         倒數
         <b id="lobbySecText" style="font-size:18px;color:var(--gold);margin:0 4px;">${lobbySecondsLeft}</b>
         秒將自動開始！
       </div>
 
       <section class="panel">
-        <div class="sectionTitle">🎨 題型投票｜依實際畫畫難度<span class="muted tiny">（每人 1 票）</span></div>
+        <div class="sectionTitle">🎨 題型投票｜依實際畫畫難度<span class="muted tiny">（每人 1 票）</span> · ${lobbyParticipantList().length} 人</div>
         <div class="voteGrid">
           ${CATEGORIES.map(c=>`
             <div class="chip ${selectedCategory===c.id?"active":""}" id="cat_${c.id}">
@@ -3280,9 +3439,8 @@
         <div class="sectionTitle">房內玩家</div>
         <div class="players">${renderPlayers()}</div>
       </section>
-
-      <button id="hostStartBtn" class="cta" style="margin-top:10px;" ${!isLocalAuthority()?"disabled":""}>
-        ${!isLocalAuthority()?"⏳ 等待房主開始":"🚀 立即依票數開始"}
+      <button id="hostStartBtn" class="cta" style="margin-top:10px;" disabled>
+        ⏳ 倒數結束後自動依多數票開局
       </button>
     `;
 
@@ -3299,14 +3457,7 @@
       if(el){ el.onclick=e=>{ e.preventDefault(); bindSecondsClick(s); }; }
     });
 
-    const hostBtn=document.getElementById("hostStartBtn");
-    if(hostBtn){
-      hostBtn.onclick=e=>{
-        e.preventDefault();
-        ensureAudio();
-        if(isLocalAuthority()){ resolveLobbyVotesAsHost(); }
-      };
-    }
+    // 大廳改為全房統一倒數，不再允許單一裝置提前開局。
   }
 
   /* =========================================================
@@ -3679,7 +3830,7 @@
       }
     }
 
-    if(!currentHostId || !isLiveHost(currentHostId) || now-currentHostLastSeen>CONFIG.PLAYER_TIMEOUT_MS){
+    if((matchStarted || currentHostId) && (!currentHostId || !isLiveHost(currentHostId) || now-currentHostLastSeen>CONFIG.PLAYER_TIMEOUT_MS)){
       const elected=electedHostId();
       if(elected){
         currentHostId=elected;
@@ -3689,8 +3840,10 @@
     }
 
     if(isLocalAuthority() && now-lastHostAnnounceAt>CONFIG.HOST_CHECK_MS){
-      sendEvent("HOST_HEARTBEAT", { roundId:roundId||"LOBBY", hostId:ME.id, at:now }, { bypassAuthority:true });
+      sendEvent("HOST_HEARTBEAT", { roundId:roundId||"LOBBY", hostId:ME.id, at:gameNow() }, { bypassAuthority:true });
       lastHostAnnounceAt=now;
+      if(!matchStarted) broadcastLobbyState("heartbeat",true);
+      else broadcastStateSnapshot("heartbeat");
     }
   }
 
@@ -3701,7 +3854,11 @@
   document.addEventListener("visibilitychange", ()=>{
     if(document.hidden){ hiddenAt=Date.now(); }
     else{
-      if(state===STATES.PLAYING && hiddenAt && Date.now()-hiddenAt>2500){ hiddenAt=0; }
+      if(hiddenAt && Date.now()-hiddenAt>500){
+        if(matchStarted) requestStateSnapshot();
+        else startLobbyAutoCountdown();
+      }
+      hiddenAt=0;
     }
   });
 
