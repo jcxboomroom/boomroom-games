@@ -1054,7 +1054,7 @@
       data && data.roomId
         ? String(data.roomId)
         : '';
-    gameSessionId = String(data?.gameSessionId || '');
+    gameSessionId = String(data?.gameSessionId || gameRoomId || 'room_session');
 
     if(sdkIsHost){
 
@@ -5074,9 +5074,11 @@
       startRoundAfterEntry();
       return;
     }
-    if(!gameSessionId || !gameRoomId){
-      showToast('房間對局資料尚未同步，請稍後再試', '#ff7b92');
-      return;
+    if(!gameRoomId){
+      gameRoomId = roomId || 'room_session';
+    }
+    if(!gameSessionId){
+      gameSessionId = gameRoomId;
     }
 
     pendingEntryRound = Math.max(1, Number(roundId) + 1);

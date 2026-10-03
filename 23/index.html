@@ -996,20 +996,35 @@ function sendEvent(eventName,payload){
    GAME EVENTS
 ========================================================= */
 
-function handleGameEvent(
-  eventName,
-  payload,
-  senderId
-){
-
-  if(
-    eventName==="PIKA_VOLLEY_START"
-  ){
-
+function handleGameEvent(eventName, payload, senderId){
+  if (eventName === "PIKA_VOLLEY_START") {
     beginMatch();
-
+  } else if (eventName === "PIKA_INPUT" && payload) {
+    if (payload.userId !== me.id && payload.keys) {
+      if (payload.isP1) {
+        keys.left1 = payload.keys.left;
+        keys.right1 = payload.keys.right;
+        keys.jump1 = payload.keys.jump;
+        keys.smash1 = payload.keys.smash;
+      } else {
+        keys.left2 = payload.keys.left;
+        keys.right2 = payload.keys.right;
+        keys.jump2 = payload.keys.jump;
+        keys.smash2 = payload.keys.smash;
+      }
+    }
+  } else if (eventName === "PIKA_STATE" && payload && !isHost()) {
+    if (payload.p1) { p1.x = payload.p1.x; p1.y = payload.p1.y; p1.vx = payload.p1.vx; p1.vy = payload.p1.vy; }
+    if (payload.p2) { p2.x = payload.p2.x; p2.y = payload.p2.y; p2.vx = payload.p2.vx; p2.vy = payload.p2.vy; }
+    if (payload.ball) {
+      ball.x = payload.ball.x; ball.y = payload.ball.y;
+      ball.vx = payload.ball.vx; ball.vy = payload.ball.vy;
+      ball.active = payload.ball.active; ball.smash = payload.ball.smash;
+    }
+    if (payload.scoreP1 != null) scoreP1 = payload.scoreP1;
+    if (payload.scoreP2 != null) scoreP2 = payload.scoreP2;
+    if (payload.state != null) state = payload.state;
   }
-
 }
 
 
@@ -1180,8 +1195,21 @@ function vibrate(pattern){
    MATCH START
 ========================================================= */
 
-function beginMatch(){
+let playerP1 = null;
+let playerP2 = null;
 
+function assignRoles() {
+  const pList = [...players.values()].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  playerP1 = pList[0] || me;
+  if (pList.length >= 2) {
+    playerP2 = pList[1];
+  } else {
+    playerP2 = { id: 'ai-bot', username: '🤖 柴柴 AI', isBot: true };
+  }
+}
+
+function beginMatch(){
+  assignRoles();
   clearTimeout(pointTimer);
 
   clearInterval(countdownTimer);
@@ -1508,35 +1536,30 @@ function pointScored(side){
 ========================================================= */
 
 function finishMatch(){
-
   state="RESULT";
-
   cancelAnimationFrame(gameLoopId);
-
   gameLoopId=null;
 
-  const winner=
-    scoreP1>=CONFIG.WIN_SCORE
-      ? "P1（你）"
-      : "P2（AI）";
+  const playerP1Name = playerP1 ? playerP1.username : "P1";
+  const playerP2Name = playerP2 ? playerP2.username : "P2";
 
-  feed.push(
-    `🏆 比賽結束！${winner} 獲勝！`
-  );
+  const winnerName = scoreP1 >= CONFIG.WIN_SCORE ? playerP1Name : playerP2Name;
+  const isMyWin = (scoreP1 >= CONFIG.WIN_SCORE && me.id === playerP1?.id) ||
+                  (scoreP2 >= CONFIG.WIN_SCORE && me.id === playerP2?.id);
 
+  feed.push(`🏆 比賽結束！恭喜 ${winnerName} 獲勝！`);
   trimFeed();
 
-  try{
+  const myScore = (me.id === playerP1?.id ? scoreP1 : scoreP2) * 100 + Math.max(0, (5 - (me.id === playerP1?.id ? scoreP2 : scoreP1)) * 50);
+  const winCoins = isMyWin ? 100 : 20;
 
-    if(
-      window.BoomRoomSDK &&
-      typeof window.BoomRoomSDK.gameOver===
-        "function"
-    ){
-
-      window.BoomRoomSDK.gameOver(
-        scoreP1*20
-      );
+  try {
+    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
+      window.BoomRoomSDK.gameOver(winCoins, myScore);
+    } else if (window.parent && window.parent !== window) {
+      window.parent.postMessage(JSON.stringify({ action: "game_over", winAmount: winCoins, score: myScore }), "*");
+    }
+  } catch(_) {}
 
     }
 
