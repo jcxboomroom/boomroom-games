@@ -3767,8 +3767,10 @@
         startVoiceGuess();
       });
       const releaseVoiceButton=event=>{
-        event?.preventDefault?.();
-        if(speechHoldActive) stopVoiceGuess({submitOnRelease:true});
+        if(!speechHoldActive) return;
+        // Do not cancel ordinary pointer-up defaults: the window listener also
+        // sees taps on the answer field, which must be allowed to receive focus.
+        stopVoiceGuess({submitOnRelease:true});
       };
       voiceBtn?.addEventListener("pointerup", releaseVoiceButton);
       voiceBtn?.addEventListener("pointercancel", releaseVoiceButton);
@@ -3786,6 +3788,11 @@
         if(e.key==="Enter" && !e.isComposing && !e.shiftKey){
           e.preventDefault(); e.stopPropagation(); submitGuess();
         }
+      });
+      document.getElementById("guessInput")?.addEventListener("pointerdown", ()=>{
+        // If recognition is still held, tapping the answer field ends it first
+        // so late transcripts cannot keep replacing what the player types.
+        if(speechHoldActive) stopVoiceGuess({submitOnRelease:true});
       });
     }
   }
@@ -3806,7 +3813,15 @@
   function restoreGuessInputFocus(){
     requestAnimationFrame(()=>{
       const currentInput=document.getElementById("guessInput");
-      if(currentInput?.isConnected) currentInput.focus({preventScroll:true});
+      if(currentInput?.isConnected){
+        const active=document.activeElement;
+        if(active && active!==document.body && active!==currentInput && active.id!=="voiceBtn") return;
+        currentInput.focus({preventScroll:true});
+        try{
+          const end=currentInput.value.length;
+          currentInput.setSelectionRange(end,end);
+        }catch(_){}
+      }
     });
   }
 
@@ -3914,14 +3929,22 @@
   }
 
   window.receiveVoiceText=function(text,isFinal){
-    if(state!==STATES.PLAYING || isDrawer() || matchEnded) return;
+    if(state!==STATES.PLAYING || isDrawer() || matchEnded || (!speechHoldActive && !speechStopSubmitPending)) return;
     const cleanText=safeString(text,"",CONFIG.MAX_GUESS_LENGTH);
     if(!cleanText) return;
 
     speechFinalText=cleanText;
+    const input=document.getElementById("guessInput");
+    // Show the live transcript while the player is holding the mic. Once they
+    // release it, late recognition callbacks may still be scored but must not
+    // overwrite anything they start typing into the answer field.
+    if(speechHoldActive && input){
+      input.value=cleanText;
+      try{ input.setSelectionRange(cleanText.length,cleanText.length); }catch(_){}
+    }
 
     // Final results are sent to the host for private exact-answer checking.
-    // Never replace the separate typing field with an unreliable transcript.
+    // The transcript is only a preview; it is not submitted to the chat.
     if(isFinal) submitVoiceGuess(cleanText);
   };
 
