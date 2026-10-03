@@ -3664,6 +3664,8 @@
     if(isFinal){
       submitGuess();
       showToast("🎙️ 已送出："+cleanText);
+      // 一次按鍵只辨識並送出一句；結束後由 Flutter 還原玩家原本的房間麥克風狀態。
+      stopVoiceGuess();
       // 正解由 Host 廣播 GUESS_CORRECT 統一判定，猜題端不保留完整答案。
     }
   };
@@ -3671,17 +3673,11 @@
   window.onFlutterSpeechStopped=function(){
     speechListening=false;
     speechMode="flutter";
+    voiceEnabledForTurn=false;
+    clearTimeout(speechRestartTimer);
+    speechRestartTimer=null;
     const btn=document.getElementById("voiceBtn");
-    if(state===STATES.PLAYING && !isDrawer() && !matchEnded && voiceEnabledForTurn && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
-      if(btn) btn.classList.add("voice-active");
-      clearTimeout(speechRestartTimer);
-      speechRestartTimer=setTimeout(()=>{
-        speechRestartTimer=null;
-        if(state===STATES.PLAYING && voiceEnabledForTurn) startVoiceGuess();
-      },450);
-    }else if(btn){
-      btn.classList.remove("voice-active");
-    }
+    if(btn) btn.classList.remove("voice-active");
   };
 
   function startVoiceGuess(){
@@ -3690,7 +3686,10 @@
       return;
     }
 
-    if(speechListening) return;
+    if(speechListening){
+      stopVoiceGuess();
+      return;
+    }
     voiceEnabledForTurn=true;
     speechListening=true;
     const session=++speechSessionId;
@@ -3756,25 +3755,19 @@
 
       speechRecognition.onerror=(event)=>{
         if(session!==speechSessionId) return;
-        if(event?.error==="no-speech" || event?.error==="aborted") return;
-        speechListening=false;
-        if(btn) btn.classList.remove("voice-active");
-        showToast("🎤 中文語音暫時無法使用，請再按一次麥克風");
+        if(event?.error!=="no-speech" && event?.error!=="aborted"){
+          showToast("🎤 中文語音暫時無法使用，請再按一次麥克風");
+        }
+        stopVoiceGuess();
       };
 
       speechRecognition.onend=()=>{
         if(session!==speechSessionId) return;
         speechRecognition=null;
         speechListening=false;
-        if(state===STATES.PLAYING && !isDrawer() && !matchEnded && voiceEnabledForTurn && !(Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
-          clearTimeout(speechRestartTimer);
-          speechRestartTimer=setTimeout(()=>{
-            speechRestartTimer=null;
-            if(session===speechSessionId) startVoiceGuess();
-          },450);
-        }else if(btn){
-          btn.classList.remove("voice-active");
-        }
+        voiceEnabledForTurn=false;
+        if(btn) btn.classList.remove("voice-active");
+        if(speechMode==="flutter") postHostMessage({action:"stopVoiceRecognition"});
       };
 
       speechRecognition.start();
