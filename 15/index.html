@@ -3638,7 +3638,7 @@
   }
 
   /* =========================================================
-     VOICE GUESS (全平台統一交由 Flutter 接管)
+     VOICE GUESS (WEB 使用瀏覽器辨識；APK／WINDOWS 使用 Flutter 原生辨識)
   ========================================================= */
 
   function stopVoiceGuess({submitOnRelease=false}={}){
@@ -3656,7 +3656,7 @@
 
     if(wasListening || wasHeld){
       postHostMessage({
-        action:"stopVoiceRecognition",
+        action:speechMode==="webNative" ? "endWebSpeechRecognition" : "stopVoiceRecognition",
         locale:CONFIG.VOICE_LOCALE,
         language:CONFIG.VOICE_LANGUAGE,
         languageCode:CONFIG.VOICE_LANGUAGE
@@ -3685,6 +3685,13 @@
         showToast("沒有辨識到內容，請按住麥克風再說一次");
       }
     }
+
+    // 不論玩家放開、瀏覽器失焦或辨識服務中止，都把焦點還給輸入框；
+    // 否則語音按鈕會留住鍵盤焦點，讓玩家誤以為文字輸入失效。
+    if(wasHeld) requestAnimationFrame(()=>{
+      const currentInput=document.getElementById("guessInput");
+      if(currentInput?.isConnected) currentInput.focus({preventScroll:true});
+    });
   }
 
   window.receiveVoiceText=function(text,isFinal){
@@ -3740,10 +3747,9 @@
     }
 
     ensureAudio();
-    requestFlutterVoiceConfig();
-
-    // Flutter / BoomRoom：明確要求台灣繁中，避免 Android/iOS 自動選成英文。
-    if(window.BoomRoomJS || window.parent!==window){
+    // APK／Windows 由 Flutter 原生辨識；WEB iframe 直接使用瀏覽器辨識，
+    // 避免 Flutter Web speech_to_text 在 iframe 工作階段中回報 listen=false。
+    if(window.BoomRoomJS){
       speechMode="flutter";
       postHostMessage({
         action:"startVoiceRecognition",
@@ -3760,7 +3766,8 @@
       return;
     }
 
-    // 純瀏覽器 fallback。
+    // Browser Web Speech API also runs inside the WEB iframe. Notify Flutter
+    // only to mute/restore room voice; keep recognition in the iframe itself.
     const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Recognition){
       speechListening=false;
@@ -3771,7 +3778,8 @@
       return;
     }
 
-    speechMode="native";
+    speechMode=window.parent!==window ? "webNative" : "native";
+    if(speechMode==="webNative") postHostMessage({action:"beginWebSpeechRecognition"});
     speechFinalText="";
     try{
       speechRecognition=new Recognition();
@@ -3794,8 +3802,13 @@
 
       speechRecognition.onerror=(event)=>{
         if(session!==speechSessionId) return;
-        if(event?.error!=="no-speech" && event?.error!=="aborted"){
-          showToast("🎤 中文語音暫時無法使用，請再按一次麥克風");
+        if(event?.error==="no-speech" || event?.error==="aborted") return;
+        if(event?.error==="not-allowed" || event?.error==="service-not-allowed"){
+          showToast("🎤 瀏覽器未授權此遊戲使用麥克風，請允許網站麥克風權限後重試");
+        }else if(event?.error==="audio-capture"){
+          showToast("🎤 找不到可用麥克風，請檢查裝置與其他程式是否占用");
+        }else{
+          showToast("🎤 中文語音服務中斷，請確認麥克風權限後重試");
         }
         stopVoiceGuess();
       };
@@ -3809,7 +3822,7 @@
           speechRestartTimer=setTimeout(()=>{
             speechRestartTimer=null;
             if(speechHoldActive && session===speechSessionId) startVoiceGuess({restart:true});
-          },350);
+          },900);
         }else{
           voiceEnabledForTurn=false;
           if(btn) btn.classList.remove("voice-active");
@@ -3818,11 +3831,18 @@
 
       speechRecognition.start();
     }catch(err){
-      speechListening=false;
-      speechHoldActive=false;
-      voiceEnabledForTurn=false;
-      if(btn) btn.classList.remove("voice-active");
       console.warn("native speech start error",err);
+      if(speechHoldActive){
+        clearTimeout(speechRestartTimer);
+        speechRestartTimer=setTimeout(()=>{
+          speechRestartTimer=null;
+          if(speechHoldActive && session===speechSessionId) startVoiceGuess({restart:true});
+        },1500);
+      }else{
+        speechListening=false;
+        voiceEnabledForTurn=false;
+        if(btn) btn.classList.remove("voice-active");
+      }
     }
   }
 
