@@ -1224,6 +1224,7 @@
 
   let speechRecognition=null;
   let speechListening=false;
+  let speechHoldActive=false;
   let speechFinalText="";
   let speechMode="";
   let speechRestartTimer=null;
@@ -3532,7 +3533,7 @@
           <div>❓ 答案 ${getCurrentWordLength()} 字 · 已猜 <span id="gameGuessCount">${correctGuessers.length}/${currentRequiredCorrectCount}</span></div>
           <div class="wordRevealLine" id="wordRevealChars">${getMaskedAnswerHtml()}</div>
         `}</div>
-        <div class="cursorHint">${drawer?"手指拖曳作畫，不要直接寫答案":"可打字或按 🎤 使用繁體中文語音猜題 · 剩 10 秒自動揭第 1 字，剩 5 秒再揭第 2 字"}</div>
+        <div class="cursorHint">${drawer?"手指拖曳作畫，不要直接寫答案":"可打字；按住 🎤 說繁體中文，放開送出 · 剩 10 秒自動揭第 1 字，剩 5 秒再揭第 2 字"}</div>
       </section>
 
       <div class="guessChatBox" id="guessChatBox" aria-live="polite" aria-atomic="false">
@@ -3573,7 +3574,7 @@
       `:`
         <div class="guessArea">
           <input id="guessInput" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
-          <button id="voiceBtn" type="button" aria-label="開啟中文語音猜題" title="中文語音猜題（繁體中文）" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;">🎤</button>
+          <button id="voiceBtn" type="button" aria-label="按住說話" title="按住麥克風說出答案，放開後送出辨識結果" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
           <button id="guessBtn">猜！</button>
         </div>
       `}
@@ -3608,7 +3609,26 @@
       document.getElementById("skipBtn")?.addEventListener("click", skipTurn);
     }else{
       document.getElementById("guessBtn")?.addEventListener("click", submitGuess);
-      document.getElementById("voiceBtn")?.addEventListener("click", startVoiceGuess);
+      const voiceBtn=document.getElementById("voiceBtn");
+      voiceBtn?.addEventListener("pointerdown", event=>{
+        if(event.button!==undefined && event.button!==0) return;
+        event.preventDefault();
+        try{ voiceBtn.setPointerCapture(event.pointerId); }catch(_){}
+        startVoiceGuess();
+      });
+      const releaseVoiceButton=event=>{
+        event?.preventDefault?.();
+        if(speechHoldActive) stopVoiceGuess({submitOnRelease:true});
+      };
+      voiceBtn?.addEventListener("pointerup", releaseVoiceButton);
+      voiceBtn?.addEventListener("pointercancel", releaseVoiceButton);
+      // The game rerenders its play panel while other players send events; listen
+      // at window level so replacing the button DOM does not end a held session.
+      window.addEventListener("pointerup", releaseVoiceButton);
+      window.addEventListener("pointercancel", releaseVoiceButton);
+      window.addEventListener("blur", releaseVoiceButton);
+      voiceBtn?.addEventListener("contextmenu", event=>event.preventDefault());
+      voiceBtn?.addEventListener("click", event=>event.preventDefault());
       document.getElementById("guessInput")?.addEventListener("keydown", e=>{
         if(e.key==="Enter" && !e.isComposing && !e.shiftKey){
           e.preventDefault(); e.stopPropagation(); submitGuess();
@@ -3621,15 +3641,20 @@
      VOICE GUESS (全平台統一交由 Flutter 接管)
   ========================================================= */
 
-  function stopVoiceGuess(){
+  function stopVoiceGuess({submitOnRelease=false}={}){
     clearTimeout(speechRestartTimer);
     speechRestartTimer=null;
     speechSessionId++;
     const wasListening=speechListening;
+    const wasHeld=speechHoldActive;
+    const shouldSubmit=submitOnRelease && wasHeld;
+    const input=document.getElementById("guessInput");
+    const recognizedText=safeString(input?.value||speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
     speechListening=false;
+    speechHoldActive=false;
     voiceEnabledForTurn=false;
 
-    if(wasListening){
+    if(wasListening || wasHeld){
       postHostMessage({
         action:"stopVoiceRecognition",
         locale:CONFIG.VOICE_LOCALE,
@@ -3646,8 +3671,19 @@
     const btn=document.getElementById("voiceBtn");
     if(btn){
       btn.classList.remove("voice-active");
-      btn.setAttribute("aria-label","開啟中文語音猜題");
-      btn.title="中文語音猜題（繁體中文）";
+      btn.setAttribute("aria-label","按住說話");
+      btn.title="按住麥克風說出答案，放開後送出辨識結果";
+    }
+
+    if(shouldSubmit){
+      if(input && recognizedText) input.value=recognizedText;
+      if(recognizedText){
+        submitGuess();
+        showToast("🎙️ 已送出辨識內容，正在判斷答案");
+      }else{
+        if(input) input.value="";
+        showToast("沒有辨識到內容，請按住麥克風再說一次");
+      }
     }
   }
 
@@ -3660,45 +3696,47 @@
     if(input) input.value=cleanText;
     speechFinalText=cleanText;
 
-    // 語音中間結果只顯示，不送出；final 才提交，避免一個詞被重複計算。
-    if(isFinal){
-      submitGuess();
-      showToast("🎙️ 已送出："+cleanText);
-      // 一次按鍵只辨識並送出一句；結束後由 Flutter 還原玩家原本的房間麥克風狀態。
-      stopVoiceGuess();
-      // 正解由 Host 廣播 GUESS_CORRECT 統一判定，猜題端不保留完整答案。
-    }
+    // 按住期間只顯示最新辨識結果；放開麥克風時才送出，由遊戲主機判斷正誤。
+    if(isFinal) speechFinalText=cleanText;
   };
 
   window.onFlutterSpeechStopped=function(){
     speechListening=false;
     speechMode="flutter";
+    speechHoldActive=false;
     voiceEnabledForTurn=false;
     clearTimeout(speechRestartTimer);
     speechRestartTimer=null;
     const btn=document.getElementById("voiceBtn");
-    if(btn) btn.classList.remove("voice-active");
+    if(btn){
+      btn.classList.remove("voice-active");
+      btn.setAttribute("aria-label","按住說話");
+      btn.title="按住麥克風說出答案，放開後送出辨識結果";
+    }
   };
 
-  function startVoiceGuess(){
+  function startVoiceGuess({restart=false}={}){
     if(state!==STATES.PLAYING || isDrawer() || matchEnded || (Array.isArray(correctGuessers) && correctGuessers.some(x=>x.id===ME.id))){
       stopVoiceGuess();
       return;
     }
 
-    if(speechListening){
-      stopVoiceGuess();
-      return;
-    }
+    if(speechHoldActive && !restart) return;
+    speechHoldActive=true;
     voiceEnabledForTurn=true;
     speechListening=true;
+    const input=document.getElementById("guessInput");
+    if(!restart){
+      speechFinalText="";
+      if(input) input.value="";
+    }
     const session=++speechSessionId;
 
     const btn=document.getElementById("voiceBtn");
     if(btn){
       btn.classList.add("voice-active");
-      btn.setAttribute("aria-label","正在聽取繁體中文");
-      btn.title="正在聽取繁體中文…";
+      btn.setAttribute("aria-label","正在聽取繁體中文，放開以送出");
+      btn.title="正在聽取繁體中文，放開麥克風以送出";
     }
 
     ensureAudio();
@@ -3726,6 +3764,7 @@
     const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Recognition){
       speechListening=false;
+      speechHoldActive=false;
       voiceEnabledForTurn=false;
       if(btn) btn.classList.remove("voice-active");
       showToast("此瀏覽器不支援語音辨識，請用打字猜題");
@@ -3765,14 +3804,22 @@
         if(session!==speechSessionId) return;
         speechRecognition=null;
         speechListening=false;
-        voiceEnabledForTurn=false;
-        if(btn) btn.classList.remove("voice-active");
-        if(speechMode==="flutter") postHostMessage({action:"stopVoiceRecognition"});
+        if(speechHoldActive){
+          clearTimeout(speechRestartTimer);
+          speechRestartTimer=setTimeout(()=>{
+            speechRestartTimer=null;
+            if(speechHoldActive && session===speechSessionId) startVoiceGuess({restart:true});
+          },350);
+        }else{
+          voiceEnabledForTurn=false;
+          if(btn) btn.classList.remove("voice-active");
+        }
       };
 
       speechRecognition.start();
     }catch(err){
       speechListening=false;
+      speechHoldActive=false;
       voiceEnabledForTurn=false;
       if(btn) btn.classList.remove("voice-active");
       console.warn("native speech start error",err);
