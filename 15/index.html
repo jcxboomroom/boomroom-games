@@ -1817,9 +1817,9 @@
   function getVoteCount(map, value){
     let count = 0;
     for(const [uid, val] of map.entries()){
-      const p = players.get(uid);
-      if(p && p.status !== "LEFT" && p.status !== "TIMEOUT" && String(val) === String(value)){
-        count++;
+      const p = players.get(String(uid));
+      if(!p || (p.status !== "LEFT" && p.status !== "TIMEOUT")){
+        if(String(val) === String(value)) count++;
       }
     }
     return count;
@@ -3053,32 +3053,38 @@
     }
 
     if(type==="SELECT_CAT"){
-      const actor=safeString(payload.voterId,payload.userId,64);
-      if(actor!==sender) return;
-      const value=safeString(payload.categoryId,"",30);
-      if(CATEGORIES.some(c=>c.id===value)) categoryVotes.set(sender,value);
+      const actor=safeString(payload.voterId, payload.userId || sender, 64);
+      const value=safeString(payload.categoryId, "", 30);
+      if(CATEGORIES.some(c=>c.id===value)) {
+        categoryVotes.set(String(actor), value);
+        categoryVotes.set(String(sender), value);
+      }
       render();
-      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_category",true);
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_category", true);
       return;
     }
 
     if(type==="SELECT_RND"){
-      const actor=safeString(payload.voterId,payload.userId,64);
-      if(actor!==sender) return;
+      const actor=safeString(payload.voterId, payload.userId || sender, 64);
       const value=normalizeRounds(payload.rounds);
-      if(ROUND_OPTIONS.includes(value)) roundsVotes.set(sender,value);
+      if(ROUND_OPTIONS.includes(value)) {
+        roundsVotes.set(String(actor), value);
+        roundsVotes.set(String(sender), value);
+      }
       render();
-      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_rounds",true);
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_rounds", true);
       return;
     }
 
     if(type==="SELECT_SEC"){
-      const actor=safeString(payload.voterId,payload.userId,64);
-      if(actor!==sender) return;
+      const actor=safeString(payload.voterId, payload.userId || sender, 64);
       const value=normalizeTurnSeconds(payload.turnSeconds);
-      if(TURN_OPTIONS.includes(value)) secondsVotes.set(sender,value);
+      if(TURN_OPTIONS.includes(value)) {
+        secondsVotes.set(String(actor), value);
+        secondsVotes.set(String(sender), value);
+      }
       render();
-      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_seconds",true);
+      if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_seconds", true);
       return;
     }
 
