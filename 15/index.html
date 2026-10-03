@@ -1240,6 +1240,7 @@
   let currentWord=null;
   let knownStrokes=[];
   let localStrokeIds=[];
+  let canvasRevision=0;
   let currentStroke=null;
   let strokeSentPointCount=0;
   let strokeBatchLastAt=0;
@@ -2109,6 +2110,8 @@
     resetRevealState();
     knownStrokes=[];
     localStrokeIds=[];
+    canvasRevision=0;
+    remoteStrokeBuffers.clear();
     currentStroke=null;
     matchStarted=true;
     matchEnded=false;
@@ -2286,6 +2289,7 @@
     speechFinalText="";
     knownStrokes=[];
     localStrokeIds=[];
+    canvasRevision=0;
     currentStroke=null;
     currentWord=wordForTurn(selectedCategory,currentTurnIndex,roundSeed);
     currentWordLength=getAnswerLength(currentWord);
@@ -2340,7 +2344,7 @@
     currentWord=(isDrawer()||isLocalAuthority())?wordForTurn(selectedCategory,currentTurnIndex,roundSeed):null;
     if(currentWord) currentWordLength=getAnswerLength(currentWord);
     resetRevealState();
-    knownStrokes=[]; localStrokeIds=[]; remoteStrokeBuffers.clear(); currentStroke=null;
+    knownStrokes=[]; localStrokeIds=[]; canvasRevision=0; remoteStrokeBuffers.clear(); currentStroke=null;
     state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！按住麥克風說答案，或直接打字。';
     lastVoiceSubmittedText=""; lastVoiceSubmittedAt=0;
     appendChatMessage({chatKey:'TURN_START|'+roundId+'|'+currentTurnIndex,roundId,turnIndex:currentTurnIndex,username:'系統',
@@ -3269,18 +3273,20 @@
 
     if(type==="STROKE"){
       if(sender!==String(currentDrawerId)||payload.turnIndex!==currentTurnIndex||sender===String(ME.id)) return;
-      receiveStroke(payload.stroke);
+      receiveStroke(payload.stroke,payload.canvasRevision);
       return;
     }
 
     if(type==="CLEAR_CANVAS"){
       if(sender!==String(currentDrawerId)||payload.turnIndex!==currentTurnIndex) return;
+      if(!acceptCanvasMutation(payload.canvasRevision)) return;
       if(!isDrawer()){ knownStrokes=[]; remoteStrokeBuffers.clear(); redrawCanvas(); }
       return;
     }
 
     if(type==="UNDO_STROKE"){
       if(sender!==String(currentDrawerId)||payload.turnIndex!==currentTurnIndex) return;
+      if(!acceptCanvasMutation(payload.canvasRevision)) return;
       if(!isDrawer()){ remoteStrokeBuffers.delete(String(payload.strokeId||"")); removeKnownStroke(payload.strokeId); redrawCanvas(); }
       return;
     }
@@ -3311,9 +3317,20 @@
 
   function buildStateSnapshot(reason){
     const strokes=[];
+    const snapshotStrokeSources=knownStrokes.slice();
+    const snapshotStrokeIds=new Set(snapshotStrokeSources.map(stroke=>String(stroke?.id||"")));
+    for(const stroke of remoteStrokeBuffers.values()){
+      if(!snapshotStrokeIds.has(String(stroke.id||""))){
+        snapshotStrokeSources.push({...stroke,inProgress:true});
+        snapshotStrokeIds.add(String(stroke.id||""));
+      }
+    }
+    if(currentStroke && ["pen","eraser"].includes(currentStroke.tool) && strokeSentPointCount>0 && !snapshotStrokeIds.has(String(currentStroke.id||""))){
+      snapshotStrokeSources.push({...currentStroke,points:currentStroke.points.slice(0,strokeSentPointCount),inProgress:true});
+    }
     let totalPoints=0;
-    for(let i=Math.max(0,knownStrokes.length-CONFIG.MAX_SNAPSHOT_STROKES);i<knownStrokes.length;i++){
-      const src=knownStrokes[i];
+    for(let i=Math.max(0,snapshotStrokeSources.length-CONFIG.MAX_SNAPSHOT_STROKES);i<snapshotStrokeSources.length;i++){
+      const src=snapshotStrokeSources[i];
       if(!src||!Array.isArray(src.points)||!src.points.length) continue;
       const points=src.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE);
       if(totalPoints+points.length>CONFIG.MAX_SNAPSHOT_POINTS){
@@ -3321,7 +3338,7 @@
         if(remain<=0) break;
         points.splice(remain);
       }
-      strokes.push({id:safeString(src.id,'stroke',100),color:safeString(src.color,'#151923',20),size:clamp(src.size,2,30),tool:safeString(src.tool,'pen',20),points:points.map(p=>({x:clamp(p.x,0,1),y:clamp(p.y,0,1)}))});
+      strokes.push({id:safeString(src.id,'stroke',100),color:safeString(src.color,'#151923',20),size:clamp(src.size,2,30),tool:safeString(src.tool,'pen',20),inProgress:!!src.inProgress,points:points.map(p=>({x:clamp(p.x,0,1),y:clamp(p.y,0,1)}))});
       totalPoints+=points.length;
       if(totalPoints>=CONFIG.MAX_SNAPSHOT_POINTS) break;
     }
@@ -3347,6 +3364,7 @@
       correctGuessers:correctGuessers.map(x=>({id:x.id,rank:x.rank,gain:x.gain})),
       revealedCharacters:[...revealedCharacters.entries()].map(([index,char])=>({index,char})),
       wordLength:currentWordLength,
+      canvasRevision,
       canvasStrokes:strokes,
       scores:[...players.values()].slice(0,CONFIG.MAX_SNAPSHOT_PLAYERS).map(p=>({
         id:p.id,username:p.username,score:intClamp(p.score,0,100000),
@@ -3415,6 +3433,8 @@
       lastVoiceSubmittedText="";
       lastVoiceSubmittedAt=0;
       skipRequestTurnKey="";
+      localStrokeIds=[];
+      canvasRevision=0;
     }
     currentTurnStartedAt=finite(payload.currentTurnStartedAt,0);
     currentTurnResolved=!!payload.currentTurnResolved;
@@ -3436,20 +3456,30 @@
     currentWordLength=currentWord?getAnswerLength(currentWord):intClamp(payload.wordLength||currentWordLength,0,64);
     revealIndexes=currentWord?buildRevealIndexes(currentWord):[];
 
-    knownStrokes=[];
-    localStrokeIds=[];
-    remoteStrokeBuffers.clear();
-    if(Array.isArray(payload.canvasStrokes)){
+    const snapshotCanvasRevision=Math.max(0,Math.floor(Number(payload.canvasRevision)||0));
+    const shouldApplyCanvas=snapshotCanvasRevision>=canvasRevision;
+    if(shouldApplyCanvas){
+      canvasRevision=snapshotCanvasRevision;
+      knownStrokes=[];
+      remoteStrokeBuffers.clear();
+    }
+    if(shouldApplyCanvas && Array.isArray(payload.canvasStrokes)){
       for(const st of payload.canvasStrokes.slice(-CONFIG.MAX_SNAPSHOT_STROKES)){
         if(!st||!Array.isArray(st.points)) continue;
         const safeTool=['pen','eraser','fill','line','rect','circle'].includes(st.tool)?st.tool:'pen';
-        knownStrokes.push({
+        const safeStroke={
           id:safeString(st.id,'snapshot',100),
           color:safeString(st.color,'#151923',20),
           size:clamp(st.size,2,30),
           tool:safeTool,
+          inProgress:!!st.inProgress,
           points:st.points.slice(0,CONFIG.MAX_POINTS_PER_STROKE).map(p=>({x:clamp(p?.x,0,1),y:clamp(p?.y,0,1)}))
-        });
+        };
+        if(safeStroke.inProgress && (safeTool==='pen'||safeTool==='eraser')){
+          remoteStrokeBuffers.set(safeStroke.id,{...safeStroke,points:safeStroke.points.slice()});
+        }else{
+          knownStrokes.push(safeStroke);
+        }
       }
     }
 
@@ -4535,7 +4565,8 @@
       knownStrokes.push(fillStroke); localStrokeIds.push(fillStroke.id);
       if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
       redrawCanvas();
-      sendEvent("GAME_EVENT",{ roundId, type:"STROKE", stroke:fillStroke, turnIndex:currentTurnIndex });
+      canvasRevision++;
+      sendEvent("GAME_EVENT",{ roundId, type:"STROKE", stroke:fillStroke, turnIndex:currentTurnIndex, canvasRevision });
       drawingPointerId=null; playTone(520,.04); vibrate(20);
       return;
     }
@@ -4595,7 +4626,8 @@
     while(strokeSentPointCount<currentStroke.points.length){
       const end=Math.min(currentStroke.points.length,strokeSentPointCount+CONFIG.MAX_STROKE_CHUNK_POINTS);
       const points=currentStroke.points.slice(strokeSentPointCount,end); if(!points.length)break;
-      sendEvent('GAME_EVENT',{roundId,type:'STROKE_CHUNK',turnIndex:currentTurnIndex,stroke:{id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,tool:currentStroke.tool,points}});
+      canvasRevision++;
+      sendEvent('GAME_EVENT',{roundId,type:'STROKE_CHUNK',turnIndex:currentTurnIndex,canvasRevision,stroke:{id:currentStroke.id,color:currentStroke.color,size:currentStroke.size,tool:currentStroke.tool,points}});
       strokeSentPointCount=end; strokeBatchLastAt=now; if(!force)break;
     }
   }
@@ -4618,20 +4650,23 @@
     knownStrokes.push(stroke); localStrokeIds.push(stroke.id);
     if(stroke.tool==="line" || stroke.tool==="rect" || stroke.tool==="circle"){
       clearShapePreview();
-      redrawCanvas();
     }
     if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
 
     if(!cancelled){
       sendCurrentStrokeChunk(true);
-      sendEvent("GAME_EVENT", { roundId, type: "STROKE", stroke, turnIndex: currentTurnIndex });
+      canvasRevision++;
+      sendEvent("GAME_EVENT", { roundId, type: "STROKE", stroke, turnIndex: currentTurnIndex, canvasRevision });
     }
     try{ if(canvas?.hasPointerCapture?.(e?.pointerId)) canvas.releasePointerCapture(e.pointerId); }catch(_){}
     currentStroke=null; drawingPointerId=null; mouseDrawing=false; strokeSentPointCount=0; strokeBatchLastAt=0;
 
-    // 如果畫畫期間發生過 resize，現在才安全地重設/重畫畫布。
+    // 將完成的筆畫從資料重繪，避免畫布在拖曳期間被重建後，筆畫只留在舊 canvas 像素上。
+    // 若畫畫期間發生過 resize，現在才安全地重設/重畫畫布。
     if(canvasResizePending){
       resizeCanvas();
+    }else{
+      redrawCanvas();
     }
 
     // 筆畫完成後才處理拖曳期間被延後的同步。
@@ -4728,8 +4763,18 @@
     canvas.addEventListener("dragstart", e=>e.preventDefault());
   }
 
+  function acceptCanvasMutation(revision){
+    if(revision===undefined || revision===null || revision==="") return true;
+    const value=Number(revision);
+    if(!Number.isFinite(value) || value<=0) return true;
+    if(value<=canvasRevision) return false;
+    canvasRevision=Math.floor(value);
+    return true;
+  }
+
   function receiveStrokeChunk(payload){
     const stroke=payload?.stroke; if(!stroke||!stroke.id||!Array.isArray(stroke.points)||stroke.points.length>CONFIG.MAX_STROKE_CHUNK_POINTS)return;
+    if(!acceptCanvasMutation(payload.canvasRevision)) return;
     const safeTool=(stroke.tool==='pen'||stroke.tool==='eraser')?stroke.tool:'pen';
     let b=remoteStrokeBuffers.get(String(stroke.id));
     if(!b){b={id:safeString(stroke.id,'remote',100),color:safeString(stroke.color,'#151923',20),size:clamp(stroke.size,2,30),tool:safeTool,points:[]};remoteStrokeBuffers.set(b.id,b);}
@@ -4738,10 +4783,11 @@
     const pts=b.points.slice(Math.max(0,before-1)); if(pts.length>=2)drawStroke({color:b.color,size:b.size,tool:b.tool,points:pts}); else if(b.points.length===1)drawStroke(b);
   }
 
-  function receiveStroke(stroke){
+  function receiveStroke(stroke,revision){
     if(!stroke || !Array.isArray(stroke.points) || stroke.points.length>CONFIG.MAX_POINTS_PER_STROKE){ return; }
+    if(!acceptCanvasMutation(revision)) return;
     if(stroke.id) remoteStrokeBuffers.delete(String(stroke.id));
-    if(stroke.id && knownStrokes.some(s=>s.id===stroke.id)){ redrawCanvas(); return; }
+    const existingIndex=stroke.id?knownStrokes.findIndex(s=>s.id===stroke.id):-1;
 
     const allowedTools=new Set(["pen", "eraser", "fill", "line", "rect", "circle"]);
     const safeTool=allowedTools.has(stroke.tool) ? stroke.tool : "pen";
@@ -4753,6 +4799,12 @@
       tool: safeTool,
       points: stroke.points.slice(0, CONFIG.MAX_POINTS_PER_STROKE).map(p=>({ x:clamp(p.x,0,1), y:clamp(p.y,0,1) }))
     };
+
+    if(existingIndex>=0){
+      knownStrokes[existingIndex]=safeStroke;
+      redrawCanvas();
+      return;
+    }
 
     knownStrokes.push(safeStroke);
     if(knownStrokes.length>CONFIG.MAX_STROKES){ knownStrokes.shift(); }
@@ -4774,7 +4826,8 @@
     const id=localStrokeIds.pop();
     removeKnownStroke(id);
     redrawCanvas();
-    sendEvent("GAME_EVENT", { roundId, type: "UNDO_STROKE", strokeId: id, turnIndex: currentTurnIndex });
+    canvasRevision++;
+    sendEvent("GAME_EVENT", { roundId, type: "UNDO_STROKE", strokeId: id, turnIndex: currentTurnIndex, canvasRevision });
     playTone(400, .05);
   }
 
@@ -4783,7 +4836,9 @@
     knownStrokes=[]; localStrokeIds=[]; currentStroke=null; drawingPointerId=null; mouseDrawing=false;
     clearShapePreview();
     redrawCanvas();
-    sendEvent("GAME_EVENT", { roundId, type: "CLEAR_CANVAS", turnIndex: currentTurnIndex });
+    remoteStrokeBuffers.clear();
+    canvasRevision++;
+    sendEvent("GAME_EVENT", { roundId, type: "CLEAR_CANVAS", turnIndex: currentTurnIndex, canvasRevision });
     playTone(350, .05);
   }
 
