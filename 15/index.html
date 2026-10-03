@@ -1226,12 +1226,16 @@
   let speechListening=false;
   let speechHoldActive=false;
   let speechFinalText="";
+  let lastVoiceSubmittedText="";
+  let lastVoiceSubmittedAt=0;
   let speechMode="";
   let speechRestartTimer=null;
   let speechSubmitTimer=null;
   let speechSessionId=0;
   let speechStopSubmitPending=false;
   let voiceEnabledForTurn=false;
+  let voiceReleaseWindowBound=false;
+  let skipRequestTurnKey="";
 
   let currentWord=null;
   let knownStrokes=[];
@@ -1522,6 +1526,34 @@
   function refreshPlayersOnly(){
     const html=renderPlayers();
     document.querySelectorAll('.players').forEach(el=>{ el.innerHTML=html; });
+  }
+
+  function refreshLobbyVoteUI(){
+    if(!document.getElementById("lobbySyncText")) return false;
+    CATEGORIES.forEach(category=>{
+      const option=document.getElementById("cat_"+category.id);
+      if(!option) return;
+      option.classList.toggle("active",selectedCategory===category.id);
+      const small=option.querySelector("small");
+      if(small) small.textContent=category.hint+" · 🗳️ "+getVoteCount(categoryVotes,category.id)+" 票";
+    });
+    ROUND_OPTIONS.forEach(rounds=>{
+      const option=document.getElementById("rnd_"+rounds);
+      if(!option) return;
+      option.classList.toggle("active",selectedRounds===rounds);
+      const small=option.querySelector("small");
+      if(small) small.textContent=(rounds===3?"標準局":"馬拉松")+" · 🗳️ "+getVoteCount(roundsVotes,rounds)+" 票";
+    });
+    TURN_OPTIONS.forEach(seconds=>{
+      const option=document.getElementById("sec_"+seconds);
+      if(!option) return;
+      option.classList.toggle("active",selectedTurnSeconds===seconds);
+      const small=option.querySelector("small");
+      if(small) small.textContent=(seconds===30?"標準":seconds===45?"充裕":"細繪")+" · 🗳️ "+getVoteCount(secondsVotes,seconds)+" 票";
+    });
+    const voterCount=document.getElementById("lobbyVoterCount");
+    if(voterCount) voterCount.textContent=String(lobbyParticipantList().length);
+    return true;
   }
 
   function refreshChatUI(){
@@ -1923,10 +1955,8 @@
       if(remainMs<=0){
         clearInterval(lobbyTimer);
         if(isLobbyAuthority()) resolveLobbyVotesAsHost();
-        else render();
         return;
       }
-      render();
     };
     tick();
     lobbyTimer=setInterval(tick,250);
@@ -1939,7 +1969,6 @@
     selectedRounds=pickVoteWinner(roundsVotes,ROUND_OPTIONS,normalizeRounds(selectedRounds));
     selectedTurnSeconds=pickVoteWinner(secondsVotes,TURN_OPTIONS,normalizeTurnSeconds(selectedTurnSeconds));
     activeTurnSeconds=selectedTurnSeconds;
-    render();
     startDirectGameAsHost();
   }
 
@@ -2304,6 +2333,7 @@
     acceptStateVersion(payload.stateVersion); syncClock(payload.hostNow);
     currentTurnIndex=incomingTurnIndex; currentDrawerId=safeString(payload.drawerId,'',64);
     currentTurnStartedAt=finite(payload.startTime,gameNow()); currentTurnResolved=false; clearTimeoutAnswer(); correctGuessers=[];
+    skipRequestTurnKey="";
     currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount||getRequiredCorrectCount(),1,Math.max(1,CONFIG.GUESS_REWARDS.length));
     speechFinalText=''; selectedCategory=safeString(payload.category,selectedCategory,30);
     currentWordLength=intClamp(payload.wordLength||0,0,64);
@@ -2312,6 +2342,7 @@
     resetRevealState();
     knownStrokes=[]; localStrokeIds=[]; remoteStrokeBuffers.clear(); currentStroke=null;
     state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！按住麥克風說答案，或直接打字。';
+    lastVoiceSubmittedText=""; lastVoiceSubmittedAt=0;
     appendChatMessage({chatKey:'TURN_START|'+roundId+'|'+currentTurnIndex,roundId,turnIndex:currentTurnIndex,username:'系統',
       text:isDrawer()?'🎨 第 '+(currentTurnIndex+1)+' 回合開始！答案共 '+currentWordLength+' 字，開始作畫！':'🎨 第 '+(currentTurnIndex+1)+' 回合開始！提示：答案共 '+currentWordLength+' 字，搶先猜！本回合需 '+currentRequiredCorrectCount+' 名玩家猜中。',isCorrect:false,isSystem:true});
     const me=players.get(ME.id); if(me) me.status='PLAYING';
@@ -2576,10 +2607,20 @@
     scheduleChatScroll();
 
     clearTimeout(turnStateTimer);
-    turnStateTimer=setTimeout(()=>{
-      if(matchEnded || !isLocalAuthority()) return;
-      startNextTurnAsHost();
-    }, turnTransitionDelay);
+    const completedRoundId=roundId;
+    const completedTurnIndex=incomingTurnIndex;
+    let advanceAttempts=0;
+    const advanceTurn=()=>{
+      if(matchEnded || roundId!==completedRoundId || currentTurnIndex!==completedTurnIndex || !currentTurnResolved) return;
+      if(isLocalAuthority()){
+        startNextTurnAsHost();
+        return;
+      }
+      // If the room host disappeared at the end of a turn, keep checking long
+      // enough for the normal host-election timeout to select a replacement.
+      if(advanceAttempts++<24) turnStateTimer=setTimeout(advanceTurn,750);
+    };
+    turnStateTimer=setTimeout(advanceTurn, turnTransitionDelay);
   }
 
   /* =========================================================
@@ -2677,6 +2718,41 @@
     refreshGameLiveUI();
   }
 
+  function submitVoiceGuess(utterance){
+    if(state!==STATES.PLAYING || isDrawer() || matchEnded || !isParticipant(ME.id)){ return false; }
+    const text=safeString(utterance,"",CONFIG.MAX_GUESS_LENGTH);
+    const normalized=normalizeText(text);
+    if(!normalized) return false;
+    const now=Date.now();
+    if(normalized===lastVoiceSubmittedText && now-lastVoiceSubmittedAt<1200) return false;
+    lastVoiceSubmittedText=normalized;
+    lastVoiceSubmittedAt=now;
+
+    const payload={
+      roundId,
+      type:"VOICE_GUESS",
+      userId:ME.id,
+      turnIndex:currentTurnIndex,
+      utterance:text,
+      eventId:ME.id+"_voice_"+now.toString(36)+"_"+Math.random().toString(36).slice(2,7)
+    };
+    sendEvent("GAME_EVENT",payload);
+    if(isLocalAuthority()) processVoiceGuessAsHost(payload);
+    return true;
+  }
+
+  function processVoiceGuessAsHost(payload){
+    if(!isLocalAuthority() || matchEnded || currentTurnResolved || state!==STATES.PLAYING || payload.turnIndex!==currentTurnIndex){ return; }
+    const uid=safeString(payload.userId,"",64);
+    if(!participants.has(uid) || uid===currentDrawerId || correctGuessers.some(x=>x.id===uid)){ return; }
+    const utterance=safeString(payload.utterance,"",CONFIG.MAX_GUESS_LENGTH);
+    if(!utterance) return;
+    ensureHostSecretWord();
+    // Voice transcripts are checked privately by the host: only a correct match
+    // emits the normal score event; incorrect recognition never enters the chat.
+    if(answerMatches(utterance,currentWord)) resolveTurnAsHost("CORRECT",uid);
+  }
+
   function processGuessAsHost(payload){
     if(!isLocalAuthority()){ return; }
     if(matchEnded || currentTurnResolved || state!==STATES.PLAYING || payload.turnIndex!==currentTurnIndex){ return; }
@@ -2734,9 +2810,29 @@
 
   function skipTurn(){
     if(!isDrawer() || state!==STATES.PLAYING || matchEnded || currentTurnResolved){ return; }
+    const requestRoundId=String(roundId);
+    const requestTurnIndex=currentTurnIndex;
+    const requestKey=requestRoundId+"|"+requestTurnIndex;
+    if(skipRequestTurnKey===requestKey) return;
+    skipRequestTurnKey=requestKey;
     ensureAudio();
-    sendEvent("GAME_EVENT", { roundId, type:"SKIP_TURN", userId:ME.id, turnIndex:currentTurnIndex });
-    resolveTurnAsHost("SKIP", ME.id);
+    const localAuthority=isLocalAuthority();
+    const sent=sendEvent("GAME_EVENT", { roundId, type:"SKIP_TURN", userId:ME.id, turnIndex:currentTurnIndex });
+    if(!sent && !localAuthority){
+      skipRequestTurnKey="";
+      showToast("無法送出跳過請求，請再試一次");
+      return;
+    }
+    if(localAuthority) resolveTurnAsHost("SKIP", ME.id);
+    if(!localAuthority){
+      showToast("正在跳過本題…");
+      setTimeout(()=>{
+        if(skipRequestTurnKey===requestKey && roundId===requestRoundId && currentTurnIndex===requestTurnIndex && !currentTurnResolved){
+          skipRequestTurnKey="";
+          showToast("房主尚未回應，請再按一次跳過本題");
+        }
+      },1800);
+    }
   }
 
   /* =========================================================
@@ -2876,7 +2972,7 @@
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_CAT", categoryId: id, voterId: ME.id });
     if(isLobbyAuthority()) broadcastLobbyState("my_category_vote",true);
-    render();
+    refreshLobbyVoteUI();
   }
 
   function bindRoundsClick(r){
@@ -2887,7 +2983,7 @@
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_RND", rounds: value, voterId: ME.id });
     if(isLobbyAuthority()) broadcastLobbyState("my_round_vote",true);
-    render();
+    refreshLobbyVoteUI();
   }
 
   function bindSecondsClick(s){
@@ -2898,7 +2994,7 @@
     playTone(660, 0.06);
     sendEvent("GAME_EVENT", { roundId: roundId||"LOBBY", type: "SELECT_SEC", turnSeconds: value, voterId: ME.id });
     if(isLobbyAuthority()) broadcastLobbyState("my_seconds_vote",true);
-    render();
+    refreshLobbyVoteUI();
   }
 
   /* =========================================================
@@ -2940,6 +3036,7 @@
         if(TURN_OPTIONS.includes(Number(payload.turnSecondsVote))) secondsVotes.set(uid,Number(payload.turnSecondsVote));
       }
       refreshPlayersOnly();
+      refreshLobbyVoteUI();
       if(!matchStarted && isLobbyAuthority()){
         if(!lobbyDeadlineAt) lobbyDeadlineAt=gameNow()+CONFIG.LOBBY_COUNTDOWN_SECONDS*1000;
         setTimeout(()=>broadcastLobbyState("player_join",true),40);
@@ -2957,6 +3054,7 @@
       }
       if(String(uid)===String(currentHostId)) currentHostLastSeen=nowMs();
       refreshPlayersOnly();
+      refreshLobbyVoteUI();
       return;
     }
 
@@ -2969,6 +3067,7 @@
         ensureHostAuthority(true);
       }
       refreshPlayersOnly();
+      refreshLobbyVoteUI();
       if(matchStarted && isLocalAuthority()) setTimeout(()=>broadcastStateSnapshot('player_leave'),80);
       return;
     }
@@ -3072,7 +3171,7 @@
       selectedRounds=normalizeRounds(roundsVotes.get(String(ME.id))||selectedRounds);
       selectedTurnSeconds=normalizeTurnSeconds(secondsVotes.get(String(ME.id))||selectedTurnSeconds);
       refreshPlayersOnly();
-      render();
+      if(!refreshLobbyVoteUI()) render();
       startLobbyAutoCountdown();
       return;
     }
@@ -3084,7 +3183,7 @@
         categoryVotes.set(String(actor), value);
         categoryVotes.set(String(sender), value);
       }
-      render();
+      if(!refreshLobbyVoteUI()) render();
       if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_category", true);
       return;
     }
@@ -3096,7 +3195,7 @@
         roundsVotes.set(String(actor), value);
         roundsVotes.set(String(sender), value);
       }
-      render();
+      if(!refreshLobbyVoteUI()) render();
       if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_rounds", true);
       return;
     }
@@ -3108,7 +3207,7 @@
         secondsVotes.set(String(actor), value);
         secondsVotes.set(String(sender), value);
       }
-      render();
+      if(!refreshLobbyVoteUI()) render();
       if(!matchStarted && isLobbyAuthority()) broadcastLobbyState("vote_seconds", true);
       return;
     }
@@ -3116,6 +3215,12 @@
     if(type==="GUESS"){
       if(safeString(payload.userId,"",64)!==sender) return;
       if(isLocalAuthority()) processGuessAsHost({...payload,userId:sender});
+      return;
+    }
+
+    if(type==="VOICE_GUESS"){
+      if(safeString(payload.userId,"",64)!==sender) return;
+      if(isLocalAuthority()) processVoiceGuessAsHost({...payload,userId:sender});
       return;
     }
 
@@ -3273,6 +3378,12 @@
       pendingRender=true;
       return;
     }
+    const previousState=state;
+    const previousTurnIndex=currentTurnIndex;
+    const previousDrawerId=currentDrawerId;
+    const previousTurnResolved=currentTurnResolved;
+    const previousWordLength=currentWordLength;
+    const previousRevealCount=revealedCharCount;
     const incoming=Number(payload.stateVersion)||0;
     if(incoming<stateVersion) return;
     if(incoming===stateVersion&&nowMs()-lastSnapshotAppliedAt<800) return;
@@ -3299,6 +3410,12 @@
 
     currentTurnIndex=intClamp(payload.currentTurnIndex,-1,Math.max(-1,turnOrder.length));
     currentDrawerId=safeString(payload.currentDrawerId,'',64);
+    if(previousTurnIndex!==currentTurnIndex){
+      speechFinalText="";
+      lastVoiceSubmittedText="";
+      lastVoiceSubmittedAt=0;
+      skipRequestTurnKey="";
+    }
     currentTurnStartedAt=finite(payload.currentTurnStartedAt,0);
     currentTurnResolved=!!payload.currentTurnResolved;
     currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount||getRequiredCorrectCount(),1,Math.max(1,CONFIG.GUESS_REWARDS.length));
@@ -3354,9 +3471,23 @@
     matchStarted=!!payload.matchStarted;
     matchEnded=!!payload.matchEnded;
     if([STATES.LOBBY,STATES.COUNTDOWN,STATES.PLAYING,STATES.RESULT].includes(payload.state)) state=payload.state;
-    refreshPlayersOnly();
-    if(state===STATES.COUNTDOWN||state===STATES.PLAYING) render();
-    else if(state===STATES.RESULT) renderResult(document.getElementById('main'));
+    if(state===STATES.COUNTDOWN){
+      render();
+    }else if(state===STATES.PLAYING){
+      const needsFullRender=previousState!==state || previousTurnIndex!==currentTurnIndex || previousDrawerId!==currentDrawerId || previousTurnResolved!==currentTurnResolved || previousWordLength!==currentWordLength;
+      if(needsFullRender){
+        render();
+      }else{
+        refreshGameLiveUI();
+        const reveal=document.getElementById("wordRevealChars");
+        if(reveal && previousRevealCount!==revealedCharCount) reveal.innerHTML=getMaskedAnswerHtml();
+        if(ensureCanvas()) redrawCanvas();
+      }
+    }else if(state===STATES.RESULT){
+      renderResult(document.getElementById('main'));
+    }else{
+      refreshPlayersOnly();
+    }
     recoverHostFlow();
   }
 
@@ -3430,7 +3561,7 @@
       </div>
 
       <section class="panel">
-        <div class="sectionTitle">🎨 題型投票｜依實際畫畫難度<span class="muted tiny">（每人 1 票）</span> · ${lobbyParticipantList().length} 人</div>
+        <div class="sectionTitle">🎨 題型投票｜依實際畫畫難度<span class="muted tiny">（每人 1 票）</span> · <span id="lobbyVoterCount">${lobbyParticipantList().length}</span> 人</div>
         <div class="voteGrid">
           ${CATEGORIES.map(c=>`
             <div class="chip ${selectedCategory===c.id?"active":""}" id="cat_${c.id}">
@@ -3497,6 +3628,12 @@
 
   function renderGame(main){
     const drawer=isDrawer();
+    const previousGuessInput=document.getElementById("guessInput");
+    const preserveGuessInput=!!(!drawer && previousGuessInput && previousGuessInput.dataset.turnIndex===String(currentTurnIndex));
+    const previousGuessValue=preserveGuessInput?previousGuessInput.value:"";
+    const previousGuessHadFocus=preserveGuessInput && document.activeElement===previousGuessInput;
+    const previousSelectionStart=preserveGuessInput?previousGuessInput.selectionStart:null;
+    const previousSelectionEnd=preserveGuessInput?previousGuessInput.selectionEnd:null;
     const remain=Math.max(0, Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-gameNow())/1000));
     const my=players.get(ME.id);
     const turnPlayer=players.get(currentDrawerId);
@@ -3525,7 +3662,7 @@
           <div>❓ 答案 ${getCurrentWordLength()} 字 · 已猜 <span id="gameGuessCount">${correctGuessers.length}/${currentRequiredCorrectCount}</span></div>
           <div class="wordRevealLine" id="wordRevealChars">${getMaskedAnswerHtml()}</div>
         `}</div>
-        <div class="cursorHint">${drawer?"手指拖曳作畫，不要直接寫答案":"可打字；按住 🎤 說繁體中文，放開送出 · 剩 10 秒自動揭第 1 字，剩 5 秒再揭第 2 字"}</div>
+        <div class="cursorHint">${drawer?"手指拖曳作畫，不要直接寫答案":"可打字；按住 🎤 說繁體中文，辨識正確會自動計分 · 剩 10 秒揭第 1 字，剩 5 秒揭第 2 字"}</div>
       </section>
 
       <div class="guessChatBox" id="guessChatBox" aria-live="polite" aria-atomic="false">
@@ -3565,8 +3702,8 @@
         </div>
       `:`
         <div class="guessArea">
-          <input id="guessInput" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
-          <button id="voiceBtn" type="button" aria-label="按住說話" title="按住麥克風說出答案，放開後送出辨識結果" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
+          <input id="guessInput" data-turn-index="${currentTurnIndex}" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
+          <button id="voiceBtn" type="button" aria-label="按住說話" title="按住麥克風說答案；辨識正確會自動計分" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
           <button id="guessBtn">猜！</button>
         </div>
       `}
@@ -3577,6 +3714,21 @@
       </div>
       <div class="players">${renderPlayers()}</div>
     `;
+
+    if(preserveGuessInput){
+      const nextGuessInput=document.getElementById("guessInput");
+      if(nextGuessInput){
+        nextGuessInput.value=previousGuessValue;
+        if(previousGuessHadFocus){
+          nextGuessInput.focus({preventScroll:true});
+          try{
+            if(previousSelectionStart!==null && previousSelectionEnd!==null){
+              nextGuessInput.setSelectionRange(previousSelectionStart,previousSelectionEnd);
+            }
+          }catch(_){}
+        }
+      }
+    }
 
     scheduleChatScroll();
     ensureCanvas();
@@ -3598,7 +3750,13 @@
       });
       document.getElementById("undoBtn")?.addEventListener("click", undoLastStroke);
       document.getElementById("clearBtn")?.addEventListener("click", clearAllCanvas);
-      document.getElementById("skipBtn")?.addEventListener("click", skipTurn);
+      const skipButton=document.getElementById("skipBtn");
+      skipButton?.addEventListener("pointerdown", event=>{
+        if(event.button!==undefined && event.button!==0) return;
+        event.preventDefault();
+        skipTurn();
+      });
+      skipButton?.addEventListener("click", event=>{ event.preventDefault(); skipTurn(); });
     }else{
       document.getElementById("guessBtn")?.addEventListener("click", submitGuess);
       const voiceBtn=document.getElementById("voiceBtn");
@@ -3616,9 +3774,12 @@
       voiceBtn?.addEventListener("pointercancel", releaseVoiceButton);
       // The game rerenders its play panel while other players send events; listen
       // at window level so replacing the button DOM does not end a held session.
-      window.addEventListener("pointerup", releaseVoiceButton);
-      window.addEventListener("pointercancel", releaseVoiceButton);
-      window.addEventListener("blur", releaseVoiceButton);
+      if(!voiceReleaseWindowBound){
+        window.addEventListener("pointerup", releaseVoiceButton);
+        window.addEventListener("pointercancel", releaseVoiceButton);
+        window.addEventListener("blur", releaseVoiceButton);
+        voiceReleaseWindowBound=true;
+      }
       voiceBtn?.addEventListener("contextmenu", event=>event.preventDefault());
       voiceBtn?.addEventListener("click", event=>event.preventDefault());
       document.getElementById("guessInput")?.addEventListener("keydown", e=>{
@@ -3654,7 +3815,7 @@
     if(!btn) return;
     btn.classList.remove("voice-active");
     btn.setAttribute("aria-label","按住說話");
-    btn.title="按住麥克風說出答案，放開後送出辨識結果";
+    btn.title="按住麥克風說答案；辨識正確會自動計分";
   }
 
   function finishPendingSpeechGuess(session){
@@ -3667,8 +3828,7 @@
     speechHoldActive=false;
     voiceEnabledForTurn=false;
     tellHostSpeechStopped();
-    const input=document.getElementById("guessInput");
-    const recognizedText=safeString(input?.value||speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
+    const recognizedText=safeString(speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
     const recognition=speechRecognition;
     speechRecognition=null;
     if(recognition){
@@ -3679,11 +3839,9 @@
     }
     showVoiceButtonIdle();
     if(recognizedText){
-      if(input) input.value=recognizedText;
-      submitGuess();
-      showToast("🎙️ 已送出辨識內容，正在判斷答案");
+      submitVoiceGuess(recognizedText);
+      showToast("🎙️ 語音辨識完成；答對會自動計分");
     }else{
-      if(input) input.value="";
       showToast("沒有辨識到內容，請按住麥克風再說一次");
     }
     restoreGuessInputFocus();
@@ -3698,8 +3856,7 @@
     const session=speechSessionId;
 
     // stop() asks Web Speech for its final result. Keep the result callback
-    // alive until onend so the last Chinese words are not discarded before
-    // submitGuess reads the input field.
+    // alive until onend so the last Chinese words can be checked by the host.
     if(shouldSubmit && speechRecognition &&
        (speechMode==="webNative" || speechMode==="native")){
       speechHoldActive=false;
@@ -3725,8 +3882,7 @@
     speechSubmitTimer=null;
     speechStopSubmitPending=false;
     speechSessionId++;
-    const input=document.getElementById("guessInput");
-    const recognizedText=safeString(input?.value||speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
+    const recognizedText=safeString(speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
     speechListening=false;
     speechHoldActive=false;
     voiceEnabledForTurn=false;
@@ -3745,12 +3901,10 @@
 
     showVoiceButtonIdle();
     if(shouldSubmit){
-      if(input && recognizedText) input.value=recognizedText;
       if(recognizedText){
-        submitGuess();
-        showToast("🎙️ 已送出辨識內容，正在判斷答案");
+        submitVoiceGuess(recognizedText);
+        showToast("🎙️ 語音辨識完成；答對會自動計分");
       }else{
-        if(input) input.value="";
         showToast("沒有辨識到內容，請按住麥克風再說一次");
       }
     }
@@ -3764,12 +3918,11 @@
     const cleanText=safeString(text,"",CONFIG.MAX_GUESS_LENGTH);
     if(!cleanText) return;
 
-    const input=document.getElementById("guessInput");
-    if(input) input.value=cleanText;
     speechFinalText=cleanText;
 
-    // 按住期間只顯示最新辨識結果；放開麥克風時才送出，由遊戲主機判斷正誤。
-    if(isFinal) speechFinalText=cleanText;
+    // Final results are sent to the host for private exact-answer checking.
+    // Never replace the separate typing field with an unreliable transcript.
+    if(isFinal) submitVoiceGuess(cleanText);
   };
 
   window.onFlutterSpeechStopped=function(){
@@ -3783,7 +3936,7 @@
     if(btn){
       btn.classList.remove("voice-active");
       btn.setAttribute("aria-label","按住說話");
-      btn.title="按住麥克風說出答案，放開後送出辨識結果";
+      btn.title="按住麥克風說答案；辨識正確會自動計分";
     }
   };
 
@@ -3807,8 +3960,8 @@
     const btn=document.getElementById("voiceBtn");
     if(btn){
       btn.classList.add("voice-active");
-      btn.setAttribute("aria-label","正在聽取繁體中文，放開以送出");
-      btn.title="正在聽取繁體中文，放開麥克風以送出";
+      btn.setAttribute("aria-label","正在聽取繁體中文，答對會自動計分");
+      btn.title="正在聽取繁體中文；辨識到正確答案會自動計分";
     }
 
     ensureAudio();
@@ -3863,7 +4016,7 @@
         for(let i=0;i<event.results.length;i++){
           const transcript=event.results[i][0]?.transcript||"";
           if(transcript) textValue+=(textValue?" ":"")+transcript;
-          if(event.results[i].isFinal) hasFinal=true;
+          if(i===event.results.length-1) hasFinal=!!event.results[i].isFinal;
         }
         if(textValue){
           console.info("[BoomRoom voice] Chinese result received", {final:hasFinal, length:textValue.length});
