@@ -672,6 +672,9 @@
       padding:0 13px;
       outline:none;
       user-select:text;
+      -webkit-user-select:text;
+      touch-action:manipulation;
+      pointer-events:auto;
     }
 
     .guessArea input:focus{
@@ -1210,6 +1213,9 @@
   let currentDrawerId="";
   let currentTurnStartedAt=0;
   let currentTurnResolved=false;
+  let currentTurnResolvedAt=0;
+  let lastTurnRecoveryRequestAt=0;
+  let watchdogAdvancedTurnKey="";
   let correctGuessers=[];
   let currentRequiredCorrectCount=3;
   let revealedCharCount=0;
@@ -1260,10 +1266,13 @@
   let timeoutAnswerTimer=null;
   let feedText="";
   let lastGuessAt=0;
+  let guessDraft="";
+  let guessDraftTurnIndex=-1;
   let countdownValue=CONFIG.COUNTDOWN_SECONDS;
   let loopHandle=0;
   let lastFrame=0;
   let turnStateTimer=null;
+  let turnWatchdogTimer=null;
   let heartbeatTimer=null;
   let rafRunning=true;
   let fps=0;
@@ -1747,7 +1756,7 @@
       // 🌟 新增：攔截 Flutter Web 傳來的語音辨識結果
       if(data.action === "flutterSpeechResult"){
         if(typeof window.receiveVoiceText === 'function') {
-          window.receiveVoiceText(data.text, data.isFinal);
+          window.receiveVoiceText(data.text, data.isFinal, data.sessionId);
         }
         return;
       }
@@ -1755,7 +1764,7 @@
       // 🌟 新增：攔截 Flutter Web 傳來的語音停止事件
       if(data.action === "flutterSpeechStopped"){
         if(typeof window.onFlutterSpeechStopped === 'function') {
-          window.onFlutterSpeechStopped();
+          window.onFlutterSpeechStopped(data.sessionId);
         }
         return;
       }
@@ -2105,6 +2114,9 @@
     currentTurnIndex=-1;
     currentDrawerId="";
     currentTurnResolved=false;
+    currentTurnResolvedAt=0;
+    guessDraft="";
+    guessDraftTurnIndex=-1;
     currentRequiredCorrectCount=getRequiredCorrectCount();
     currentWord=null;
     resetRevealState();
@@ -2283,6 +2295,7 @@
     currentDrawerId=turnOrder[currentTurnIndex];
     currentTurnStartedAt=gameNow()+250;
     currentTurnResolved=false;
+    currentTurnResolvedAt=0;
     stateVersion=bumpStateVersion();
     correctGuessers=[];
     currentRequiredCorrectCount=getRequiredCorrectCount();
@@ -2336,7 +2349,8 @@
     if(payload.turnSeconds){activeTurnSeconds=normalizeTurnSeconds(payload.turnSeconds);selectedTurnSeconds=activeTurnSeconds;}
     acceptStateVersion(payload.stateVersion); syncClock(payload.hostNow);
     currentTurnIndex=incomingTurnIndex; currentDrawerId=safeString(payload.drawerId,'',64);
-    currentTurnStartedAt=finite(payload.startTime,gameNow()); currentTurnResolved=false; clearTimeoutAnswer(); correctGuessers=[];
+    currentTurnStartedAt=finite(payload.startTime,gameNow()); currentTurnResolved=false; currentTurnResolvedAt=0; clearTimeoutAnswer(); correctGuessers=[];
+    guessDraft=""; guessDraftTurnIndex=incomingTurnIndex;
     skipRequestTurnKey="";
     currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount||getRequiredCorrectCount(),1,Math.max(1,CONFIG.GUESS_REWARDS.length));
     speechFinalText=''; selectedCategory=safeString(payload.category,selectedCategory,30);
@@ -2563,6 +2577,7 @@
 
     acceptStateVersion(payload.stateVersion); syncClock(payload.hostNow);
     currentTurnResolved=true;
+    currentTurnResolvedAt=Date.now();
     remoteStrokeBuffers.clear();
     if(payload.drawerId && players.has(payload.drawerId)){
       players.get(payload.drawerId).score=intClamp(payload.drawerScore, 0, 100000);
@@ -2701,6 +2716,8 @@
 
     const guess=safeString(input.value, "", CONFIG.MAX_GUESS_LENGTH);
     input.value="";
+    guessDraft="";
+    guessDraftTurnIndex=currentTurnIndex;
 
     if(!guess){ return; }
     lastGuessAt=Date.now();
@@ -3433,11 +3450,15 @@
       lastVoiceSubmittedText="";
       lastVoiceSubmittedAt=0;
       skipRequestTurnKey="";
+      currentTurnResolvedAt=0;
       localStrokeIds=[];
       canvasRevision=0;
+      guessDraft="";
+      guessDraftTurnIndex=currentTurnIndex;
     }
     currentTurnStartedAt=finite(payload.currentTurnStartedAt,0);
     currentTurnResolved=!!payload.currentTurnResolved;
+    currentTurnResolvedAt=currentTurnResolved?(currentTurnResolvedAt||Date.now()):0;
     currentRequiredCorrectCount=intClamp(payload.requiredCorrectCount||getRequiredCorrectCount(),1,Math.max(1,CONFIG.GUESS_REWARDS.length));
     correctGuessers=Array.isArray(payload.correctGuessers)?payload.correctGuessers.map(x=>({id:String(x.id),rank:intClamp(x.rank,1,3),gain:intClamp(x.gain,0,100000)})).sort((a,b)=>a.rank-b.rank):[];
 
@@ -3660,7 +3681,7 @@
     const drawer=isDrawer();
     const previousGuessInput=document.getElementById("guessInput");
     const preserveGuessInput=!!(!drawer && previousGuessInput && previousGuessInput.dataset.turnIndex===String(currentTurnIndex));
-    const previousGuessValue=preserveGuessInput?previousGuessInput.value:"";
+    const previousGuessValue=preserveGuessInput?previousGuessInput.value:(!drawer && guessDraftTurnIndex===currentTurnIndex?guessDraft:"");
     const previousGuessHadFocus=preserveGuessInput && document.activeElement===previousGuessInput;
     const previousSelectionStart=preserveGuessInput?previousGuessInput.selectionStart:null;
     const previousSelectionEnd=preserveGuessInput?previousGuessInput.selectionEnd:null;
@@ -3732,7 +3753,7 @@
         </div>
       `:`
         <div class="guessArea">
-          <input id="guessInput" data-turn-index="${currentTurnIndex}" inputmode="text" autocomplete="off" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
+          <input id="guessInput" type="text" data-turn-index="${currentTurnIndex}" inputmode="text" enterkeyhint="send" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
           <button id="voiceBtn" type="button" aria-label="按住說話" title="按住麥克風說答案；辨識正確會自動計分" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
           <button id="guessBtn">猜！</button>
         </div>
@@ -3789,6 +3810,10 @@
       skipButton?.addEventListener("click", event=>{ event.preventDefault(); skipTurn(); });
     }else{
       document.getElementById("guessBtn")?.addEventListener("click", submitGuess);
+      document.getElementById("guessInput")?.addEventListener("input", event=>{
+        guessDraft=safeString(event.currentTarget?.value,"",CONFIG.MAX_GUESS_LENGTH);
+        guessDraftTurnIndex=currentTurnIndex;
+      });
       const voiceBtn=document.getElementById("voiceBtn");
       voiceBtn?.addEventListener("pointerdown", event=>{
         if(event.button!==undefined && event.button!==0) return;
@@ -3831,12 +3856,13 @@
      VOICE GUESS (WEB 使用瀏覽器辨識；APK／WINDOWS 使用 Flutter 原生辨識)
   ========================================================= */
 
-  function tellHostSpeechStopped(){
+  function tellHostSpeechStopped(sessionId=speechSessionId){
     postHostMessage({
       action:speechMode==="webNative" ? "endWebSpeechRecognition" : "stopVoiceRecognition",
       locale:CONFIG.VOICE_LOCALE,
       language:CONFIG.VOICE_LANGUAGE,
-      languageCode:CONFIG.VOICE_LANGUAGE
+      languageCode:CONFIG.VOICE_LANGUAGE,
+      sessionId
     });
   }
 
@@ -3863,16 +3889,16 @@
     btn.title="按住麥克風說答案；辨識正確會自動計分";
   }
 
-  function finishPendingSpeechGuess(session){
+  function finishPendingSpeechGuess(session,hostAlreadyStopped=false){
     if(!speechStopSubmitPending || session!==speechSessionId) return;
     speechStopSubmitPending=false;
     clearTimeout(speechSubmitTimer);
     speechSubmitTimer=null;
-    speechSessionId++;
     speechListening=false;
     speechHoldActive=false;
     voiceEnabledForTurn=false;
-    tellHostSpeechStopped();
+    if(!hostAlreadyStopped) tellHostSpeechStopped(session);
+    speechSessionId++;
     const recognizedText=safeString(speechFinalText,"",CONFIG.MAX_GUESS_LENGTH);
     const recognition=speechRecognition;
     speechRecognition=null;
@@ -3902,8 +3928,8 @@
 
     // stop() asks Web Speech for its final result. Keep the result callback
     // alive until onend so the last Chinese words can be checked by the host.
-    if(shouldSubmit && speechRecognition &&
-       (speechMode==="webNative" || speechMode==="native")){
+    if(shouldSubmit && ((speechRecognition &&
+       (speechMode==="webNative" || speechMode==="native")) || speechMode==="flutter")){
       speechHoldActive=false;
       speechStopSubmitPending=true;
       speechListening=true;
@@ -3915,11 +3941,20 @@
         btn.title="正在完成最後一段語音辨識";
       }
       speechSubmitTimer=setTimeout(()=>finishPendingSpeechGuess(session),1400);
-      try{
-        speechRecognition.stop();
-      }catch(_){
-        finishPendingSpeechGuess(session);
+      if(speechMode==="flutter"){
+        // Ask Flutter to finalize the native recognition session; it returns
+        // the last transcript before acknowledging that the mic was restored.
+        tellHostSpeechStopped(session);
+      }else{
+        try{
+          speechRecognition.stop();
+        }catch(_){
+          finishPendingSpeechGuess(session);
+        }
       }
+      // Restore keyboard focus immediately; the final speech callback is allowed
+      // to finish in the background and cannot overwrite newly typed text.
+      restoreGuessInputFocus();
       return;
     }
 
@@ -3932,7 +3967,7 @@
     speechHoldActive=false;
     voiceEnabledForTurn=false;
 
-    if(wasListening || wasHeld) tellHostSpeechStopped();
+    if(wasListening || wasHeld) tellHostSpeechStopped(session);
 
     if(speechRecognition){
       try{
@@ -3958,7 +3993,8 @@
     if(wasHeld) restoreGuessInputFocus();
   }
 
-  window.receiveVoiceText=function(text,isFinal){
+  window.receiveVoiceText=function(text,isFinal,sessionId){
+    if(sessionId!==undefined && sessionId!==null && Number(sessionId)!==speechSessionId) return;
     if(state!==STATES.PLAYING || isDrawer() || matchEnded || (!speechHoldActive && !speechStopSubmitPending)) return;
     const cleanText=safeString(text,"",CONFIG.MAX_GUESS_LENGTH);
     if(!cleanText) return;
@@ -3970,6 +4006,8 @@
     // overwrite anything they start typing into the answer field.
     if(speechHoldActive && input){
       input.value=cleanText;
+      guessDraft=cleanText;
+      guessDraftTurnIndex=currentTurnIndex;
       try{ input.setSelectionRange(cleanText.length,cleanText.length); }catch(_){}
     }
 
@@ -3978,19 +4016,20 @@
     if(isFinal) submitVoiceGuess(cleanText);
   };
 
-  window.onFlutterSpeechStopped=function(){
+  window.onFlutterSpeechStopped=function(sessionId){
+    if(sessionId!==undefined && sessionId!==null && Number(sessionId)!==speechSessionId) return;
+    if(speechStopSubmitPending){
+      finishPendingSpeechGuess(speechSessionId,true);
+      return;
+    }
     speechListening=false;
     speechMode="flutter";
     speechHoldActive=false;
     voiceEnabledForTurn=false;
     clearTimeout(speechRestartTimer);
     speechRestartTimer=null;
-    const btn=document.getElementById("voiceBtn");
-    if(btn){
-      btn.classList.remove("voice-active");
-      btn.setAttribute("aria-label","按住說話");
-      btn.title="按住麥克風說答案；辨識正確會自動計分";
-    }
+    showVoiceButtonIdle();
+    restoreGuessInputFocus();
   };
 
   function startVoiceGuess({restart=false}={}){
@@ -4006,6 +4045,8 @@
     const input=document.getElementById("guessInput");
     if(!restart){
       speechFinalText="";
+      guessDraft="";
+      guessDraftTurnIndex=currentTurnIndex;
       if(input) input.value="";
     }
     const session=++speechSessionId;
@@ -4051,7 +4092,7 @@
     }
 
     speechMode=window.parent!==window ? "webNative" : "native";
-    if(speechMode==="webNative") postHostMessage({action:"beginWebSpeechRecognition"});
+    if(speechMode==="webNative") postHostMessage({action:"beginWebSpeechRecognition",sessionId:session});
     speechFinalText="";
     try{
       speechRecognition=new Recognition();
@@ -4073,7 +4114,7 @@
         }
         if(textValue){
           console.info("[BoomRoom voice] Chinese result received", {final:hasFinal, length:textValue.length});
-          window.receiveVoiceText(textValue,hasFinal);
+          window.receiveVoiceText(textValue,hasFinal,session);
         }
       };
 
@@ -4190,22 +4231,62 @@
 
   function gameLoop(ts){
     if(!rafRunning)return;
-    const dt=Math.min(Math.max((ts-lastFrame)/1000,0),0.033); lastFrame=ts; fps=0.9*fps+0.1*(1/Math.max(dt,0.001));
-    if(state===STATES.PLAYING&&!matchEnded){
-      const now=gameNow();
-      if(isLocalAuthority()){
-        const drawer=players.get(currentDrawerId); if(!drawer||drawer.status==='LEFT'||drawer.status==='TIMEOUT') resolveTurnAsHost('SKIP','');
-        if(now>=currentTurnStartedAt+activeTurnSeconds*1000) resolveTurnAsHost('TIMEOUT','');
+    try{
+      const dt=Math.min(Math.max((ts-lastFrame)/1000,0),0.033); lastFrame=ts; fps=0.9*fps+0.1*(1/Math.max(dt,0.001));
+      if(state===STATES.PLAYING&&!matchEnded){
+        const now=gameNow();
+        if(isLocalAuthority()){
+          const drawer=players.get(currentDrawerId); if(!drawer||drawer.status==='LEFT'||drawer.status==='TIMEOUT') resolveTurnAsHost('SKIP','');
+          if(currentTurnStartedAt>0 && now>=currentTurnStartedAt+activeTurnSeconds*1000) resolveTurnAsHost('TIMEOUT','');
+        }
+        const timer=document.getElementById('gameTimer');
+        const remain=Math.max(0,Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-now)/1000));
+        if(timer){
+          timer.textContent=String(remain);
+          timer.parentElement?.classList.toggle('timerWarn',remain<=4);
+        }
+        if(isLocalAuthority()) processRevealAsHost(remain);
       }
+    }catch(err){
+      console.error('[BoomRoom draw-and-guess] game loop recovered after error',err);
+    }finally{
+      if(rafRunning) loopHandle=requestAnimationFrame(gameLoop);
+    }
+  }
+
+  function checkTurnWatchdog(){
+    if(!rafRunning || state!==STATES.PLAYING || matchEnded) return;
+    try{
+      const now=gameNow();
+      const deadline=currentTurnStartedAt+activeTurnSeconds*1000;
+      const remain=Math.max(0,Math.ceil((deadline-now)/1000));
       const timer=document.getElementById('gameTimer');
-      const remain=Math.max(0,Math.ceil((currentTurnStartedAt+activeTurnSeconds*1000-now)/1000));
       if(timer){
         timer.textContent=String(remain);
         timer.parentElement?.classList.toggle('timerWarn',remain<=4);
       }
-      if(isLocalAuthority()) processRevealAsHost(remain);
+      if(isLocalAuthority() && !currentTurnResolved) processRevealAsHost(remain);
+
+      if(currentTurnResolved){
+        if(isLocalAuthority() && currentTurnResolvedAt>0 && Date.now()-currentTurnResolvedAt>=3000){
+          const turnKey=String(roundId)+'|'+currentTurnIndex;
+          if(watchdogAdvancedTurnKey!==turnKey){
+            watchdogAdvancedTurnKey=turnKey;
+            startNextTurnAsHost();
+          }
+        }
+        return;
+      }
+      if(currentTurnStartedAt<=0 || now<deadline) return;
+      if(isLocalAuthority()){
+        resolveTurnAsHost('TIMEOUT','');
+      }else if(Date.now()-lastTurnRecoveryRequestAt>=2500){
+        lastTurnRecoveryRequestAt=Date.now();
+        requestStateSnapshot();
+      }
+    }catch(err){
+      console.error('[BoomRoom draw-and-guess] turn watchdog recovered after error',err);
     }
-    loopHandle=requestAnimationFrame(gameLoop);
   }
 
   /* =========================================================
@@ -4273,6 +4354,7 @@
       sendEvent("PLAYER_LEAVE", { roundId:roundId||"LOBBY", userId:ME.id, username:ME.username, at:nowMs() }, { bypassAuthority:true });
     }catch(_){}
     clearTimeout(turnStateTimer);
+    clearInterval(turnWatchdogTimer);
     clearTimeout(speechRestartTimer);
     clearTimeout(speechSubmitTimer);
     speechStopSubmitPending=false;
@@ -4935,6 +5017,7 @@
     lastFrame=performance.now();
     rafRunning=true;
     loopHandle=requestAnimationFrame(gameLoop);
+    turnWatchdogTimer=setInterval(checkTurnWatchdog,250);
     heartbeatTimer=setInterval(heartbeat, CONFIG.HEARTBEAT_MS);
   }
 

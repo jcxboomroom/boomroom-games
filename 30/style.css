@@ -33,7 +33,7 @@ body, html {
   flex-direction: column;
   width: 100vw;
   height: 100vh;
-  max-width: 480px;
+  max-width: 720px;
   margin: 0 auto;
   position: relative;
   background: radial-gradient(circle at 50% 15%, #25184a, #0a0614);
@@ -163,8 +163,8 @@ body, html {
 }
 
 #boardCanvas {
-  width: min(94vw, 420px);
-  height: min(94vw, 420px);
+  width: min(92vw, 65vh, 600px);
+  height: min(92vw, 65vh, 600px);
   background: linear-gradient(135deg, #e5b375, #cd9758);
   border-radius: 18px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(0, 0, 0, 0.25);

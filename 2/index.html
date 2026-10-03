@@ -533,7 +533,10 @@
     update(dt){
       if(!this.moving) return;
       this.x += this.speed*this.dir*dt;
-      const left=CONFIG.sideMargin, right=Math.max(left,width-CONFIG.sideMargin-this.w);
+      const center = stackCenterX();
+      const maxDist = Math.min(width * 0.4, Math.max(160, this.w * 1.8));
+      const left = Math.max(CONFIG.sideMargin, center - maxDist - this.w * 0.5);
+      const right = Math.min(width - CONFIG.sideMargin - this.w, center + maxDist - this.w * 0.5);
       if(this.x <= left){ this.x=left; this.dir=1; }
       else if(this.x >= right){ this.x=right; this.dir=-1; }
     }
@@ -1944,17 +1947,8 @@
     const total=getRoundPlayerIds().length || state.roundPlayerCount || state.roomPlayerCount || 1;
     const finished=getFinishedCount();
 
-    if (finished > 0 && firstFinishTime === 0) {
-      firstFinishTime = Date.now();
-    }
-
-    const timeElapsedSinceFirst = firstFinishTime > 0 ? (Date.now() - firstFinishTime) : 0;
-    if(reason!=='TIMEOUT' && finished < total && timeElapsedSinceFirst < 4000) {
-      setTimeout(() => {
-        if (!state.roundFinalized && isHost()) {
-          tryFinalizeWholeRound('TIMEOUT');
-        }
-      }, 4000);
+    // 🌟 多人模式：只有全房所有玩家皆完成疊塔 (finished >= total) 或超時才會進行全房結算！
+    if (reason !== 'TIMEOUT' && finished < total) {
       return;
     }
     finalizeWholeRound(reason);
@@ -2181,12 +2175,13 @@
 
     if(!state.gameOverCalled){
       state.gameOverCalled=true;
+      const score=clamp(state.score, 0, 999999);
       try{
         if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-          window.BoomRoomSDK.gameOver(reward);
+          window.BoomRoomSDK.gameOver(reward, score);
           state.closeSent=true;
         } else if (window.parent && window.parent !== window) {
-          window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: reward }), '*');
+          window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: reward, score: score }), '*');
           state.closeSent=true;
         }
       }catch(_){ }

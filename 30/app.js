@@ -783,9 +783,22 @@ function finishRound(winnerColor) {
       }
     }
 
-    setTimeout(() => {
-      returnToRoom();
-    }, 3000);
+    let resultCountdownSec = 5;
+    const autoCloseHintEl = document.querySelector('.auto-close-hint');
+    if (autoCloseHintEl) {
+      autoCloseHintEl.textContent = `${resultCountdownSec} 秒後自動返回房間...`;
+    }
+
+    const autoCloseTimer = setInterval(() => {
+      resultCountdownSec--;
+      if (autoCloseHintEl) {
+        autoCloseHintEl.textContent = `${resultCountdownSec} 秒後自動返回房間...`;
+      }
+      if (resultCountdownSec <= 0) {
+        clearInterval(autoCloseTimer);
+        returnToRoom();
+      }
+    }, 1000);
   } else {
     // Automatically start next round after 2 seconds
     setTimeout(() => {
