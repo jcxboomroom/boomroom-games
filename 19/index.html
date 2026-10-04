@@ -130,6 +130,7 @@ function setupSDK(data) {
     });
   }
   render();
+  startLobbyCountdown();
 }
 
 window.addEventListener("message", e => {
@@ -411,6 +412,52 @@ function triggerAiBotTurn(botP) {
   handleGameEvent("MAKE_BID", payload, botP.id);
 }
 
+let lobbyCountdownSec = 6;
+let lobbyCountdownTimer = null;
+
+function pickWinningMode() {
+  const counts = { CLASSIC: 0, PARTY: 0, HELL: 0 };
+  for (const v of modeVotes.values()) {
+    if (counts[v] !== undefined) counts[v]++;
+  }
+  let bestMode = selectedMode || 'CLASSIC';
+  let maxVotes = -1;
+  for (const [m, count] of Object.entries(counts)) {
+    if (count > maxVotes) {
+      maxVotes = count;
+      bestMode = m;
+    }
+  }
+  return bestMode;
+}
+
+function startLobbyCountdown() {
+  if (state !== 'LOBBY' || lobbyCountdownTimer) return;
+  lobbyCountdownSec = 6;
+  lobbyCountdownTimer = setInterval(() => {
+    if (state !== 'LOBBY') {
+      clearInterval(lobbyCountdownTimer);
+      lobbyCountdownTimer = null;
+      return;
+    }
+    lobbyCountdownSec--;
+    const cdEl = document.getElementById('lobbyCountdownText');
+    if (cdEl) {
+      cdEl.textContent = `${lobbyCountdownSec} 秒後自動開局...`;
+    }
+    if (lobbyCountdownSec <= 0) {
+      clearInterval(lobbyCountdownTimer);
+      lobbyCountdownTimer = null;
+      if (isHost()) {
+        const winMode = pickWinningMode();
+        const startSeed = Date.now();
+        sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: winMode, seed: startSeed });
+        handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: winMode, seed: startSeed }, ME.id);
+      }
+    }
+  }, 1000);
+}
+
 // Bidding Form state
 let bidQty = 2;
 let bidFace = 2;
@@ -420,6 +467,7 @@ function render() {
   if (!main) return;
 
   if (state === "LOBBY") {
+    startLobbyCountdown();
     main.innerHTML = `
       <section class="panel">
         <div class="sectionTitle">🎮 選擇遊戲模式 (每人 1 票)：</div>
@@ -431,7 +479,7 @@ function render() {
       </section>
       <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>5 顆</b><span>骰子/人</span></div><div class="stat"><b>1 為萬能</b><span>經典規則</span></div></div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 開始《吹牛王》對決</button>` : '<button id="startBtn" class="cta">🚀 點擊開始《吹牛王》對決</button>'}
+      <button id="startBtn" class="cta">🚀 開始《吹牛王》對決 (<span id="lobbyCountdownText">${lobbyCountdownSec} 秒後自動開局...</span>)</button>
       <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
     `;
 
@@ -445,12 +493,17 @@ function render() {
     });
 
     document.getElementById("startBtn")?.addEventListener("click", () => {
+      clearInterval(lobbyCountdownTimer);
+      lobbyCountdownTimer = null;
       const startSeed = Date.now();
-      sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode, seed: startSeed });
-      handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode, seed: startSeed }, ME.id);
+      const winMode = pickWinningMode();
+      sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: winMode, seed: startSeed });
+      handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: winMode, seed: startSeed }, ME.id);
     });
 
     document.getElementById("devBtn")?.addEventListener("click", () => {
+      clearInterval(lobbyCountdownTimer);
+      lobbyCountdownTimer = null;
       runLocalDevTest();
     });
     return;
