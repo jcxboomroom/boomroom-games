@@ -88,7 +88,7 @@ function addPlayer(id, username, avatar) {
   id = String(id);
   let p = players.get(id);
   if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 13, score: 0 };
+    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 13, score: 0, hand: [] };
     players.set(id, p);
   } else {
     p.username = safeString(username, p.username, 12);
@@ -232,7 +232,9 @@ function identifyCombo(cards) {
     }
 
     if (isSameSuit) {
-      return { type: "FLUSH", name: "同花", categoryRank: 2, topValue: getCardValue(sorted[4]), len: 5 };
+      const suitValue = SUITS.indexOf(sorted[0].suit);
+      const topRankValue = getCardRankValue(sorted[4]);
+      return { type: "FLUSH", name: "同花", categoryRank: 2, topValue: suitValue * 100 + topRankValue, len: 5 };
     }
 
     if (isStraight) {
@@ -281,14 +283,52 @@ function canBeat(newCards, lastPlayObj) {
   return { valid: false, reason: `牌型等級不足，無法壓過 ${lastCombo.name}` };
 }
 
-function generateFullDeck() {
+/* =========================================================
+   SEEDED 52-CARD DECK DEALER
+========================================================= */
+
+function seededRandom(seed) {
+  let s = (Number(seed) || 12345) % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return function() {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function dealSeededDeck(seed) {
+  const rng = seededRandom(seed);
   const deck = [];
   for (const r of RANKS) {
     for (const s of SUITS) {
       deck.push({ rank: r, suit: s });
     }
   }
-  return deck.sort(() => Math.random() - 0.5);
+
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const temp = deck[i];
+    deck[i] = deck[j];
+    deck[j] = temp;
+  }
+
+  const pList = [...players.values()].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  pList.forEach((p, idx) => {
+    p.hand = sortCards(deck.slice(idx * 13, (idx + 1) * 13));
+    p.cardCount = 13;
+    if (String(p.id) === String(ME.id)) {
+      hand = p.hand;
+    }
+  });
+
+  let startId = pList[0]?.id || ME.id;
+  for (const p of pList) {
+    if (p.hand.some(c => c.rank === '3' && c.suit === '♣')) {
+      startId = p.id;
+      break;
+    }
+  }
+  return startId;
 }
 
 function handleGameEvent(eventName, payload, senderId) {
@@ -304,23 +344,30 @@ function handleGameEvent(eventName, payload, senderId) {
       addPlayer("bot_3", "🤖 爆哥", "");
     }
 
-    feed = ["♠ 大老二正式開局！每人發 13 張牌。持有 梅花3 (3♣) 玩家率先出牌！"];
-    generateHand();
-    currentTurnUserId = payload.startUserId || find3ClubOwner();
+    const dealSeed = Number(payload.seed) || Date.now();
+    currentTurnUserId = dealSeededDeck(dealSeed);
+
+    const firstPlayerName = players.get(currentTurnUserId)?.username || "玩家";
+    feed = [`♠ 正統大老二發牌完成！每人發 13 張牌 (52張牌無重覆)。`, `♣ 由持有 梅花3 (3♣) 的【${esc(firstPlayerName)}】率先出牌！`];
     render();
   } else if (eventName === "PLAY_COMBO") {
     lastPlay = { userId: payload.userId, username: payload.username, cardList: payload.cardList, comboType: payload.comboType };
     passCount = 0;
     isFirstPlayOfMatch = false;
     const p = players.get(payload.userId);
-    if (p) p.cardCount = Math.max(0, p.cardCount - payload.cardList.length);
+    if (p) {
+      p.cardCount = Math.max(0, p.cardCount - payload.cardList.length);
+      if (p.hand) {
+        p.hand = p.hand.filter(c => !payload.cardList.some(pc => pc.rank === c.rank && pc.suit === c.suit));
+      }
+    }
     feed.push(`🃏 ${esc(payload.username)} 出牌 [ ${payload.comboType || '牌組'} ]: ${payload.cardList.map(c=>c.suit+c.rank).join(" ")}`);
 
     if (p && p.cardCount === 0) {
-      feed.push(`🏆 恭喜 ${esc(payload.username)} 清空手牌，奪得大老二冠軍！`);
+      feed.push(`🏆 恭喜 ${esc(payload.username)} 清空手牌，獲得正統大老二冠軍！`);
       const myP = players.get(ME.id);
       const myCardsLeft = myP ? (myP.cardCount || 0) : 13;
-      const finalScore = (13 - myCardsLeft) * 100 + (payload.userId === ME.id ? 500 : 0);
+      const finalScore = (13 - myCardsLeft) * 100 + (payload.userId === ME.id ? 1000 : 0);
       const isWinner = payload.userId === ME.id;
       const winCoins = isWinner ? 100 : 20;
 
@@ -355,21 +402,6 @@ function handleGameEvent(eventName, payload, senderId) {
   }
 }
 
-function find3ClubOwner() {
-  for (const [id, p] of players.entries()) {
-    if (p.hand && p.hand.some(c => c.rank === '3' && c.suit === '♣')) {
-      return id;
-    }
-  }
-  return [...players.keys()][0] || ME.id;
-}
-
-function generateHand() {
-  const deck = generateFullDeck();
-  hand = sortCards(deck.slice(0, 13));
-  selectedIndices.clear();
-}
-
 function renderPlayers() {
   return [...players.values()].map(p => {
     const isMe = p.id === ME.id;
@@ -389,17 +421,13 @@ function runLocalDevTest() {
   addPlayer("dev_2", "小米", "");
   addPlayer("dev_3", "阿樂", "");
   addPlayer("dev_4", "可可", "");
-  sendEvent("BIGTWO_START", { startUserId: ME.id });
-  handleGameEvent("BIGTWO_START", { startUserId: ME.id }, ME.id);
+  const testSeed = Date.now();
+  sendEvent("BIGTWO_START", { startUserId: ME.id, seed: testSeed });
+  handleGameEvent("BIGTWO_START", { startUserId: ME.id, seed: testSeed }, ME.id);
 }
 
 function triggerAiBotTurn(botP) {
   if (state !== "PLAYING" || currentTurnUserId !== botP.id) return;
-
-  if (!botP.hand || botP.hand.length === 0) {
-    const deck = generateFullDeck();
-    botP.hand = sortCards(deck.slice(0, botP.cardCount || 13));
-  }
 
   let playable = null;
 
@@ -426,6 +454,16 @@ function triggerAiBotTurn(botP) {
           }
         }
       }
+    } else if (lastLen === 5) {
+      if (botP.hand.length >= 5) {
+        for (let i = 0; i <= botP.hand.length - 5; i++) {
+          const comboCandidate = botP.hand.slice(i, i + 5);
+          if (canBeat(comboCandidate, lastPlay).valid) {
+            playable = comboCandidate;
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -435,6 +473,8 @@ function triggerAiBotTurn(botP) {
 
   if (playable) {
     botP.hand = botP.hand.filter(c => !playable.some(pc => pc.rank === c.rank && pc.suit === c.suit));
+    botP.cardCount = botP.hand.length;
+    isFirstPlayOfMatch = false;
     const comboInfo = identifyCombo(playable);
     const payload = { userId: botP.id, username: botP.username, cardList: playable, comboType: comboInfo ? comboInfo.name : "牌組", nextUserId };
     sendEvent("PLAY_COMBO", payload);
@@ -453,14 +493,15 @@ function render() {
 
   if (state === "LOBBY") {
     main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>13 張</b><span>初始手牌</span></div><div class="stat"><b>大老二</b><span>經典規則</span></div></div></section>
+      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>13 張</b><span>初始手牌</span></div><div class="stat"><b>正統大老二</b><span>52張發牌</span></div></div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始大老二對決</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始正統大老二對決</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
       <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
     `;
     document.getElementById("startBtn")?.addEventListener("click", () => {
-      sendEvent("BIGTWO_START", { startUserId: ME.id });
-      handleGameEvent("BIGTWO_START", { startUserId: ME.id }, ME.id);
+      const dealSeed = Date.now();
+      sendEvent("BIGTWO_START", { startUserId: ME.id, seed: dealSeed });
+      handleGameEvent("BIGTWO_START", { startUserId: ME.id, seed: dealSeed }, ME.id);
     });
     document.getElementById("devBtn")?.addEventListener("click", () => {
       runLocalDevTest();
@@ -531,7 +572,6 @@ function render() {
       if (!isMyTurn || selectedIndices.size === 0) return;
       const playedCards = [...selectedIndices].map(i => hand[i]);
 
-      // 大老二規則驗證
       if (isFirstPlayOfMatch) {
         const has3Club = playedCards.some(c => c.rank === '3' && c.suit === '♣');
         if (!has3Club) {
