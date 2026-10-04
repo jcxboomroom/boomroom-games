@@ -1,568 +1,978 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#070912">
-<title>爆爆吹牛：極限博弈</title>
-<style>
-:root{
-  --bg:#070912;--panel:#111625;--panel2:#161c2d;--line:#2b3550;--text:#f7f8fb;--muted:#98a3ba;
-  --cyan:#62e7ff;--purple:#b76cff;--green:#4ee08a;--red:#ff637a;--gold:#ffd166;
-  --t:env(safe-area-inset-top,0px);--b:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;user-select:none}
-button{font:inherit;border:0;color:var(--text);cursor:pointer}
-button:disabled{opacity:.4;cursor:default}
-#app{width:100%;height:100dvh;display:flex;justify-content:center}
-.shell{width:min(100%,760px);height:100%;display:flex;flex-direction:column;padding:calc(8px + var(--t)) 10px calc(8px + var(--b));gap:8px}
-.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:12px}
-.center{display:flex;align-items:center;justify-content:center;text-align:center}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.stat{padding:8px 5px;background:#0b0f18;border:1px solid var(--line);border-radius:12px;text-align:center}
-.stat b{display:block;font-size:15px}.stat span{font-size:9px;color:var(--muted)}
-.sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}.muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
-.cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#070912;font-weight:1000;font-size:15px}
-.cta.secondary{background:#192032;color:#fff;border:1px solid var(--line)}
-.cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff}
-.cta:active{transform:scale(.97)}
-.notice{min-height:22px;color:#d1d6e4;font-size:11px;text-align:center}
-.players{display:flex;gap:6px;overflow-x:auto}
-.player{min-width:100px;padding:6px 8px;border-radius:11px;background:#0b101c;border:1px solid var(--line);font-size:10px;flex:none}
-.player b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.player em{display:block;font-style:normal;color:var(--muted)}
-.player.me{border-color:#42537b}.player.turn{border-color:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.2)}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#070912">
+  <title>爆爆吹牛：極限博弈</title>
+  <style>
+    :root{
+      --bg:#070912;
+      --panel:#101625;
+      --panel2:#151d2e;
+      --panel3:#0b101c;
+      --line:#293551;
+      --text:#f7f8fb;
+      --muted:#98a3ba;
+      --cyan:#62e7ff;
+      --purple:#b76cff;
+      --green:#4ee08a;
+      --red:#ff637a;
+      --gold:#ffd166;
+      --shadow:0 10px 30px rgba(0,0,0,.28);
+      --t:env(safe-area-inset-top,0px);
+      --b:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{
+      margin:0;width:100%;height:100%;overflow:hidden;
+      background:
+        radial-gradient(circle at 50% -10%,rgba(98,231,255,.10),transparent 34%),
+        radial-gradient(circle at 100% 80%,rgba(183,108,255,.08),transparent 35%),
+        var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;
+      user-select:none;
+    }
+    button{font:inherit;border:0;color:var(--text);cursor:pointer}
+    button:disabled{opacity:.42;cursor:default}
+    button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+    #app{width:100%;height:100dvh;display:flex;justify-content:center}
+    .shell{
+      width:min(100%,760px);
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      padding:calc(8px + var(--t)) 10px calc(8px + var(--b));
+      gap:8px;
+    }
+    .topbar{
+      flex:0 0 auto;
+      min-height:44px;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:8px;
+      padding:3px 2px;
+    }
+    .brand{display:flex;align-items:center;gap:8px;min-width:0}
+    .brandIcon{
+      width:34px;height:34px;border-radius:11px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--cyan),var(--purple));
+      color:#08101a;font-size:18px;font-weight:1000;
+      box-shadow:0 8px 18px rgba(98,231,255,.16);
+    }
+    .brandText{min-width:0}
+    .brandText b{display:block;font-size:14px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brandText span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+    .topActions{display:flex;gap:6px;flex:none}
+    .iconBtn{
+      width:38px;height:38px;border-radius:12px;
+      background:#0f1523;border:1px solid var(--line);
+      display:grid;place-items:center;font-size:17px;
+    }
+    .iconBtn:active{transform:scale(.94)}
+    .screen{
+      flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;
+      overflow-y:auto;overflow-x:hidden;padding-bottom:2px;
+    }
+    .panel{
+      background:linear-gradient(180deg,rgba(21,29,46,.96),rgba(16,22,37,.96));
+      border:1px solid var(--line);
+      border-radius:18px;padding:12px;
+      box-shadow:var(--shadow);
+    }
+    .hero{
+      padding:16px;
+      background:
+        radial-gradient(circle at 100% 0%,rgba(183,108,255,.15),transparent 42%),
+        radial-gradient(circle at 0% 100%,rgba(98,231,255,.10),transparent 38%),
+        linear-gradient(180deg,#151d30,#0e1421);
+    }
+    .heroTitle{font-size:23px;font-weight:1000;letter-spacing:.3px}
+    .heroSub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.55}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+    .stat{
+      padding:8px 6px;background:rgba(7,11,19,.65);
+      border:1px solid var(--line);border-radius:12px;text-align:center;
+    }
+    .stat b{display:block;font-size:15px}.stat span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+    .sectionTitle{font-size:13px;font-weight:1000;margin-bottom:8px}
+    .muted{color:var(--muted)}.tiny{font-size:10px;line-height:1.45}
+    .notice{
+      min-height:22px;color:#d1d6e4;font-size:11px;text-align:center;
+      line-height:1.5;
+    }
+    .cta{
+      width:100%;min-height:48px;border-radius:14px;
+      background:linear-gradient(135deg,var(--cyan),var(--purple));
+      color:#07101a;font-weight:1000;font-size:15px;
+      box-shadow:0 9px 24px rgba(98,231,255,.12);
+    }
+    .cta:active{transform:scale(.975)}
+    .cta.secondary{background:#192235;color:#fff;border:1px solid var(--line);box-shadow:none}
+    .cta.danger{background:linear-gradient(135deg,#ff4d6d,#e63946);color:#fff}
+    .cta.green{background:linear-gradient(135deg,#4ee08a,#23b26d);color:#06120c}
+    .players{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:6px;
+    }
+    .player{
+      min-width:0;padding:7px 8px;border-radius:12px;
+      background:#0b101b;border:1px solid var(--line);font-size:10px;
+    }
+    .playerHead{display:flex;align-items:center;gap:7px;min-width:0}
+    .avatar{
+      width:28px;height:28px;border-radius:9px;
+      background:linear-gradient(135deg,#25304a,#111827);
+      object-fit:cover;flex:none;
+    }
+    .avatarFallback{
+      width:28px;height:28px;border-radius:9px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,#27314b,#141c2c);
+      color:#dbe7ff;font-weight:1000;font-size:11px;flex:none;
+    }
+    .playerInfo{min-width:0;flex:1}
+    .player b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .player em{display:block;font-style:normal;color:var(--muted);margin-top:2px}
+    .playerBadge{
+      padding:3px 6px;border-radius:6px;background:#19243a;
+      font-size:8px;color:#b9c7de;flex:none;
+    }
+    .player.me{border-color:#42537b}.player.turn{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,209,102,.12),0 0 18px rgba(255,209,102,.07)}
+    .emptyPlayer{
+      grid-column:1/-1;text-align:center;color:var(--muted);
+      font-size:11px;padding:12px 6px;
+    }
+    .selectRow{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+    .choice{
+      min-height:72px;padding:9px 7px;border-radius:14px;
+      background:#111a2a;border:1px solid var(--line);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:2px;text-align:center;
+    }
+    .choice b{font-size:16px}.choice span{font-size:9px;color:var(--muted)}
+    .choice.active{
+      border-color:var(--cyan);
+      background:linear-gradient(180deg,rgba(98,231,255,.16),rgba(183,108,255,.12));
+      box-shadow:inset 0 0 0 1px rgba(98,231,255,.18),0 0 15px rgba(98,231,255,.08);
+    }
+    .toggle{
+      width:100%;min-height:58px;padding:10px 12px;border-radius:14px;
+      background:#101827;border:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .toggleMain{display:flex;align-items:center;gap:10px;text-align:left}
+    .toggleIcon{
+      width:36px;height:36px;border-radius:11px;background:#1a2335;
+      display:grid;place-items:center;font-size:19px;
+    }
+    .toggleText b{display:block;font-size:13px}.toggleText span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+    .switch{
+      width:46px;height:26px;border-radius:999px;background:#202a3d;
+      position:relative;flex:none;border:1px solid #33415f;
+    }
+    .switch::after{
+      content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;
+      background:#8c97ad;transition:transform .18s,background .18s;
+    }
+    .toggle.active .switch{background:rgba(98,231,255,.18);border-color:var(--cyan)}
+    .toggle.active .switch::after{transform:translateX(20px);background:var(--cyan)}
+    .setupSummary{
+      margin-top:9px;padding:9px 10px;border-radius:11px;background:#0b101c;border:1px solid var(--line);
+      display:flex;justify-content:space-between;gap:8px;font-size:10px;
+    }
+    .setupSummary b{font-size:11px;color:#fff}
+    .waitCard{text-align:center;padding:20px 14px}
+    .waitIcon{font-size:35px;line-height:1}.waitCard h3{margin:8px 0 5px;font-size:17px}.waitCard p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+    .tableCenter{
+      min-height:162px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(98,231,255,.06),transparent 50%),
+        #080d18;
+      border:1px solid #25304a;border-radius:18px;padding:13px;position:relative;
+      overflow:hidden;
+    }
+    .tableCenter::after{
+      content:"";position:absolute;inset:10px;border:1px solid rgba(98,231,255,.08);
+      border-radius:14px;pointer-events:none;
+    }
+    .turnLabel{
+      font-size:10px;color:var(--gold);font-weight:1000;letter-spacing:.3px;
+      margin-bottom:7px;position:relative;z-index:1;
+    }
+    .claimBox{
+      max-width:94%;background:#111827;border:1px solid var(--cyan);
+      border-radius:11px;padding:7px 11px;font-size:12px;color:var(--cyan);
+      margin-bottom:7px;font-weight:1000;position:relative;z-index:1;text-align:center;
+    }
+    .pileCount{font-size:20px;font-weight:1000;color:var(--gold);position:relative;z-index:1}
+    .pileSub{font-size:9px;color:var(--muted);margin-top:3px;position:relative;z-index:1}
+    .actionRow{display:flex;gap:7px;margin-top:9px;position:relative;z-index:2}
+    .actionRow .cta{width:auto;min-width:140px}
+    .handPanel{padding-bottom:10px}
+    .handHeader{display:flex;justify-content:space-between;align-items:end;gap:8px}
+    .handHeader .hint{font-size:9px;color:var(--muted);text-align:right}
+    .handArea{
+      display:flex;gap:6px;overflow-x:auto;padding:12px 4px 6px;min-height:102px;align-items:flex-end;
+      scrollbar-width:none;
+    }
+    .handArea::-webkit-scrollbar{display:none}
+    .card{
+      width:54px;height:80px;background:#fff;color:#121419;
+      border-radius:9px;display:flex;flex-direction:column;justify-content:space-between;
+      padding:5px;font-weight:900;font-size:12px;box-shadow:0 6px 13px rgba(0,0,0,.42);
+      transition:transform .14s,box-shadow .14s,border-color .14s;
+      flex:0 0 auto;cursor:pointer;position:relative;border:2px solid transparent;
+      touch-action:manipulation;
+    }
+    .card.red{color:#e63946}.card.joker{background:linear-gradient(135deg,#fff1a8,#ffb9f5);color:#8b3db6}
+    .card.selected{
+      transform:translateY(-13px);
+      border-color:var(--gold);
+      box-shadow:0 0 0 1px rgba(255,209,102,.25),0 9px 20px rgba(255,209,102,.14);
+    }
+    .card.disabledCard{opacity:.5;filter:saturate(.5);cursor:default}
+    .cardSuit{text-align:center;font-size:20px;line-height:1}
+    .cardBottom{text-align:right}
+    .rankGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:7px 0 10px}
+    .rankBtn{
+      padding:8px 2px;background:#141e31;border:1px solid var(--line);border-radius:9px;
+      font-size:12px;font-weight:1000;text-align:center;color:#fff;min-height:34px;
+    }
+    .rankBtn.active{background:linear-gradient(135deg,var(--purple),#7b4ce0);border-color:var(--gold);box-shadow:0 0 12px rgba(183,108,255,.14)}
+    .playMeta{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      margin-top:4px;font-size:10px;color:var(--muted)
+    }
+    .feedBox{
+      max-height:106px;overflow-y:auto;font-size:10px;line-height:1.5;
+      background:#0b0f18;border:1px solid var(--line);border-radius:11px;padding:7px;
+    }
+    .feedLine + .feedLine{margin-top:4px}
+    .resultHero{text-align:center;padding:22px 14px}
+    .resultHero .emoji{font-size:46px;line-height:1}
+    .resultHero h2{margin:8px 0 4px;font-size:23px}
+    .resultHero p{margin:0;color:var(--muted);font-size:11px}
+    .rankList{display:flex;flex-direction:column;gap:6px;max-height:270px;overflow-y:auto;margin-top:9px}
+    .rankRow{
+      display:grid;grid-template-columns:34px 1fr auto;gap:7px;align-items:center;
+      padding:9px 10px;background:#0b101b;border:1px solid var(--line);border-radius:12px;font-size:11px;
+    }
+    .rankNo{font-weight:1000;color:var(--gold);font-size:10px}
+    .rankName b{display:block;font-size:12px}
+    .rankScore{font-weight:1000;color:#fff;font-size:11px}
+    .rankDetail{grid-column:2/4;color:var(--muted);font-size:9px}
+    .modal{
+      position:fixed;inset:0;z-index:30;display:none;
+      background:rgba(3,6,13,.72);backdrop-filter:blur(8px);
+      align-items:center;justify-content:center;padding:18px;
+    }
+    .modal.show{display:flex}
+    .modalCard{
+      width:min(100%,520px);max-height:min(78dvh,620px);overflow:auto;
+      background:linear-gradient(180deg,#182033,#0e1422);
+      border:1px solid #33415f;border-radius:20px;padding:17px;box-shadow:0 22px 70px rgba(0,0,0,.45)
+    }
+    .modalHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .modalHead h3{margin:0;font-size:17px}
+    .modalClose{width:34px;height:34px;border-radius:10px;background:#111827;border:1px solid var(--line)}
+    .rules{font-size:11px;line-height:1.7;color:#d7dced}
+    .rules strong{color:#fff}
+    .toast{
+      position:fixed;left:50%;bottom:calc(16px + var(--b));transform:translateX(-50%) translateY(10px);
+      z-index:40;background:#111827;border:1px solid #3b4b6f;border-radius:999px;padding:8px 13px;
+      font-size:10px;color:#fff;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;white-space:nowrap;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @media (max-width:430px){
+      .shell{padding-left:8px;padding-right:8px}
+      .panel{border-radius:16px;padding:10px}
+      .hero{padding:14px}
+      .heroTitle{font-size:21px}
+      .card{width:49px;height:73px;font-size:11px}
+      .cardSuit{font-size:18px}
+      .handArea{gap:5px;min-height:94px}
+      .players{grid-template-columns:1fr 1fr}
+      .actionRow .cta{min-width:0}
+    }
+    @media (max-width:350px){
+      .players{grid-template-columns:1fr}
+      .rankGrid{grid-template-columns:repeat(5,1fr)}
+      .choice{min-height:67px}
+    }
 
-/* 🃏 Card styling */
-.handArea{display:flex;gap:6px;overflow-x:auto;padding:8px 4px;min-height:96px;align-items:center}
-.card{width:54px;height:80px;background:#fff;color:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between;padding:5px;font-weight:bold;font-size:13px;box-shadow:0 4px 10px rgba(0,0,0,.4);transition:transform .15s;flex:none;cursor:pointer;position:relative}
-.card.red{color:#e63946}
-.card.joker{background:linear-gradient(135deg,#ffe5ec,#ffc6ff);color:#9d4edd}
-.card.selected{transform:translateY(-14px);border:2px solid var(--gold);box-shadow:0 0 12px var(--gold)}
-
-/* Table Center */
-.tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;background:#080d1a;border:1px dashed var(--line);border-radius:16px;padding:12px;position:relative}
-.pileCount{font-size:22px;font-weight:1000;color:var(--gold);margin-top:4px}
-.claimBox{background:#111827;border:1px solid var(--cyan);border-radius:10px;padding:6px 12px;font-size:12px;color:var(--cyan);margin-bottom:6px;font-weight:bold}
-
-.rankGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0}
-.rankBtn{padding:8px 2px;background:#161f33;border:1px solid var(--line);border-radius:8px;font-size:12px;font-weight:bold;text-align:center;color:#fff}
-.rankBtn.active{background:var(--purple);color:#fff;border-color:var(--gold)}
-
-.miniTag{padding:6px 12px;border-radius:8px;background:#161f33;border:1px solid var(--line);color:#fff;font-size:12px;font-weight:bold}
-.miniTag.active{background:var(--purple);border-color:var(--gold)}
-
-.feedBox{max-height:90px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
-.rankList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;margin-top:8px}
-.rankRow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:8px 10px;background:#0b101b;border:1px solid var(--line);border-radius:11px;font-size:12px}
-</style>
+    /* Advanced gameplay polish */
+    .player.turn{position:relative;overflow:hidden}
+    .player.turn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);box-shadow:0 0 12px rgba(255,209,102,.6)}
+    .playerBar{height:4px;border-radius:99px;background:#1b2437;overflow:hidden;margin-top:7px}
+    .playerBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:inherit}
+    .turnPulse{display:inline-flex;align-items:center;gap:4px;color:var(--gold);font-weight:1000}
+    .turnDot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(255,209,102,.9);animation:pulse 1s infinite}
+    @keyframes pulse{50%{transform:scale(.65);opacity:.55}}
+    .challengeTimer{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:8px;background:#281b12;color:#ffd166;font-size:9px;margin-top:6px}
+    .challengeTimer b{font-size:11px}
+    .lockHint{padding:8px 10px;border-radius:10px;background:#101827;border:1px solid #2b3a57;color:#bfc9dc;font-size:9px;text-align:center;margin-top:7px}
+    .setupMini{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+    .setupMiniBox{padding:8px 10px;border-radius:10px;background:#0b101c;border:1px solid var(--line)}
+    .setupMiniBox span{display:block;color:var(--muted);font-size:8px}.setupMiniBox b{display:block;margin-top:2px;font-size:11px}
+    .actionDock{position:sticky;bottom:0;z-index:5;margin:0 -2px;padding:8px 2px calc(4px + var(--b));background:linear-gradient(180deg,rgba(7,9,18,0),rgba(7,9,18,.92) 24%,rgba(7,9,18,.98));}
+    .actionDock .cta{box-shadow:0 12px 28px rgba(7,9,18,.48)}
+    .compactNote{padding:8px 10px;border-radius:10px;background:#0d1421;border:1px dashed #33415f;color:#aeb9ce;font-size:9px;line-height:1.45}
+    @media (max-width:430px){.actionDock{margin:0 -1px}.playerBar{margin-top:6px}}
+  </style>
 </head>
 <body>
-<div id="app"><div class="shell">
-  <main id="main" class="screen"></main>
-</div></div>
+<div id="app">
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandIcon">🃏</div>
+        <div class="brandText">
+          <b>爆爆吹牛・極限博弈</b>
+          <span id="topStatus">連線中…</span>
+        </div>
+      </div>
+      <div class="topActions">
+        <button id="soundBtn" class="iconBtn" aria-label="切換音效">🔊</button>
+        <button id="helpBtn" class="iconBtn" aria-label="遊戲規則">?</button>
+      </div>
+    </header>
+    <main id="main" class="screen"></main>
+  </div>
+</div>
+
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-label="遊戲規則">
+  <div class="modalCard">
+    <div class="modalHead">
+      <h3>🃏 遊戲規則</h3>
+      <button id="closeHelpBtn" class="modalClose">✕</button>
+    </div>
+    <div class="rules" style="margin-top:10px">
+      <p><strong>① 市長設定牌組</strong><br>由市長選擇 1～3 副撲克牌，再決定是否加入鬼牌，按下開始後本局設定鎖定。</p>
+      <p><strong>② 每人先拿 6 張</strong><br>輪到你時，選 1 張以上手牌，並宣稱這些牌都是你選擇的點數。</p>
+      <p><strong>③ 可以抓包</strong><br>其他玩家不相信時，可以按「抓吹牛」。鬼牌視為萬能牌；只要有非鬼牌不是宣稱點數，就算吹牛。</p>
+      <p><strong>④ 抓對／抓錯</strong><br>抓對：中央牌全部回到說謊者手上；抓錯：中央牌全部由抓包者拿走。</p>
+      <p><strong>⑤ 誰先清空手牌誰贏</strong><br>每次出牌後都有 2.6 秒抓包窗口；若最後一張牌清空手牌，窗口結束仍沒人抓包才直接獲勝。</p>
+      <p class="muted">每次出牌後所有其他玩家都能搶先抓包，第一位成功送出的抓包指令會進入判定。</p>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
 
 <script>
-"use strict";
+  "use strict";
 
-const CONFIG = Object.freeze({
-  ENTRY_FEE: 100,
-  MIN_PLAYERS: 1,
-  MAX_PLAYERS: 8,
-  RANKS: ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
-});
+  const CONFIG = Object.freeze({
+    MAX_PLAYERS: 8,
+    START_HAND: 6,
+    RANKS: ["A","2","3","4","5","6","7","8","9","10","J","Q","K"],
+    CHALLENGE_WINDOW_MS: 2600,
+    WIN_REWARD: 100
+  });
 
-let ME = { id: "local_" + Math.random().toString(36).slice(2, 10), username: "本地玩家", avatar: "", joinedAt: Date.now() };
-let sdkIsHost = false;
-let gameRoomId = "";
+  let ME = { id:"", username:"玩家", avatar:"" };
+  let sdkReady = false;
+  let sdkIsHost = false;
+  let gameRoomId = "";
+  let hostUserId = "";
 
-let players = new Map();
-let hand = []; // Local user's cards
-let selectedIndices = new Set();
-let selectedClaimRank = "A";
+  let players = new Map();
+  let state = "LOBBY"; // LOBBY, PLAYING, RESULT
+  let selectedDecks = 1;
+  let selectedJokers = false;
 
-let state = "LOBBY"; // LOBBY, VOTING, PLAYING, RESULT
-let currentTurnUserId = "";
-let centerPile = []; // All cards face-down in center
-let lastClaim = null; // { userId, username, rank, count, cards: [] }
-let feed = [];
-let challengeLock = false; // Prevents double challenge trigger
+  let roundId = "";
+  let roundSeed = 0;
+  let roundOrder = [];
+  let hand = [];
+  let selectedIndices = new Set();
+  let selectedClaimRank = "A";
+  let currentTurnUserId = "";
+  let centerPile = [];
+  let lastClaim = null;
+  let challengeLock = false;
+  let claimWindowUntil = 0;
+  let pendingWinnerUserId = "";
+  let feed = [];
+  let gameOverCalled = false;
+  let nextTurnTimer = 0;
+  let actionRenderTimer = 0;
+  let finalWinnerId = "";
 
-// Voting States
-let votedDecks = 0;
-let votedJokers = null;
-let decksVotes = new Map();  // userId -> 1, 2, 3
-let jokersVotes = new Map(); // userId -> true, false
-let selectedDecks = 1;
-let selectedJokers = false;
+  const seenEvents = new Set();
+  let soundOn = true;
+  let audioCtx = null;
+  let toastTimer = 0;
 
-function isHost() { return sdkIsHost || players.size <= 1; }
-
-function safeString(v, fallback, maxLen) {
-  if (v === null || v === undefined) return fallback;
-  const s = String(v).trim();
-  return s ? s.slice(0, maxLen) : fallback;
-}
-
-function addPlayer(id, username, avatar) {
-  if (!id) return;
-  id = String(id);
-  let p = players.get(id);
-  if (!p) {
-    p = { id, username: safeString(username, "玩家", 12), avatar: safeString(avatar, "", 300), cardCount: 6, handCards: [], score: 0 };
-    players.set(id, p);
-  } else {
-    p.username = safeString(username, p.username, 12);
+  function isHost(){ return sdkIsHost; }
+  function esc(v){ return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function safeString(v,fallback,maxLen=60){
+    if(v===null || v===undefined) return fallback;
+    const s=String(v).trim();
+    return s?s.slice(0,maxLen):fallback;
   }
-  return p;
-}
-
-function setupSDK(data) {
-  if (data && data.user) {
-    players.delete(ME.id);
-    ME.id = String(data.user.id);
-    ME.username = safeString(data.user.username, "玩家", 12);
-    ME.avatar = safeString(data.user.avatar, "", 300);
-    addPlayer(ME.id, ME.username, ME.avatar);
+  function now(){ return Date.now(); }
+  function addFeed(msg){
+    feed.push(msg);
+    if(feed.length>40) feed=feed.slice(-40);
   }
-  sdkIsHost = !!(data && data.isHost);
-  gameRoomId = (data && data.roomId) || "";
-
-  if (Array.isArray(data.roomPlayers)) {
-    data.roomPlayers.forEach(rp => {
-      if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
-    });
+  function clearRoundTimers(){
+    clearTimeout(nextTurnTimer);
+    clearTimeout(actionRenderTimer);
+    nextTurnTimer=0;
+    actionRenderTimer=0;
   }
-  render();
-}
-
-window.addEventListener("message", e => {
-  try {
-    const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
-    if (d && d.action === "initSDK") setupSDK(d);
-    else if (d && d.action === "gameEventReceived") handleGameEvent(d.eventName, d.payload, d.userId);
-  } catch (_) {}
-});
-
-window.initBoomRoomSDK = function(data) {
-  setupSDK(data);
-};
-
-window.onBoomRoomSDKReady = function() {
-  if (window.BoomRoomSDK) {
-    setupSDK({
-      user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
-      isHost: window.BoomRoomSDK.isHost,
-      roomId: window.BoomRoomSDK.roomId,
-      roomPlayers: window.BoomRoomSDK.roomPlayers || []
-    });
-  }
-};
-
-if (window.BoomRoomSDK) {
-  window.onBoomRoomSDKReady();
-}
-
-function sendEvent(eventName, payload) {
-  try {
-    if (window.BoomRoomSDK && typeof window.BoomRoomSDK.sendGameEvent === "function") {
-      window.BoomRoomSDK.sendGameEvent(eventName, payload);
-    } else if (window.parent !== window) {
-      window.parent.postMessage(JSON.stringify({ action: "sendGameEvent", eventName, payload }), "*");
+  function avatarMarkup(p){
+    const n=safeString(p.username,"玩家",12);
+    if(p.avatar){
+      return '<img class="avatar" src="'+esc(p.avatar)+'" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'grid\'"><span class="avatarFallback" style="display:none">'+esc(n.slice(0,1))+'</span>';
     }
-  } catch (_) {}
-}
+    return '<span class="avatarFallback">'+esc(n.slice(0,1))+'</span>';
+  }
+  function addPlayer(id,username,avatar){
+    if(id===null || id===undefined || id==="") return null;
+    const key=String(id);
+    let p=players.get(key);
+    if(!p){
+      p={id:key,username:safeString(username,"玩家",12),avatar:safeString(avatar,"",300),cardCount:CONFIG.START_HAND,bluffCaughtCount:0,bluffSuccessCount:0};
+      players.set(key,p);
+    }else{
+      p.username=safeString(username,p.username,12);
+      if(avatar) p.avatar=safeString(avatar,p.avatar,300);
+    }
+    return p;
+  }
+  function syncRoomPlayers(roomPlayers){
+    if(!Array.isArray(roomPlayers)) return;
+    for(const p of roomPlayers){
+      if(p&&p.id!=null) addPlayer(p.id,p.username,p.avatar);
+    }
+    if(players.size>CONFIG.MAX_PLAYERS){
+      const keep=[...players.values()].slice(0,CONFIG.MAX_PLAYERS);
+      players=new Map(keep.map(p=>[p.id,p]));
+    }
+  }
+  function updateTopStatus(){
+    const el=document.getElementById("topStatus");
+    if(!el) return;
+    if(!sdkReady || !ME.id){ el.textContent="等待 BoomRoom…"; return; }
+    if(state==="LOBBY") el.textContent=isHost()?`市長模式・${players.size}/${CONFIG.MAX_PLAYERS} 人`:`等待市長・${players.size}/${CONFIG.MAX_PLAYERS} 人`;
+    else if(state==="PLAYING") el.textContent=`多人對局・${roundOrder.length} 人・${selectedDecks} 副牌${selectedJokers?"＋鬼牌":""}`;
+    else el.textContent="本局結算・等待下一局";
+  }
 
-function generateDeck(decksCount, useJokers) {
-  const suits = ["♠","♥","♦","♣"];
-  let deck = [];
-  for (let d = 0; d < decksCount; d++) {
-    for (const r of CONFIG.RANKS) {
-      for (const s of suits) {
-        deck.push({ rank: r, suit: s, isJoker: false });
+  function setupSDK(data){
+    const u=data&&data.user;
+    if(u&&u.id!=null){
+      ME.id=String(u.id);
+      ME.username=safeString(u.username,"玩家",12);
+      ME.avatar=safeString(u.avatar,"",300);
+      addPlayer(ME.id,ME.username,ME.avatar);
+      sdkReady=true;
+    }
+    sdkIsHost=!!(data&&data.isHost);
+    if(sdkIsHost && ME.id) hostUserId=ME.id;
+    else if(data&&data.hostUserId!=null) hostUserId=String(data.hostUserId);
+    gameRoomId=safeString(data&&data.roomId,"",120);
+    syncRoomPlayers(data&&data.roomPlayers);
+    if(ME.id) addPlayer(ME.id,ME.username,ME.avatar);
+    updateTopStatus();
+    render();
+    if(sdkReady) setTimeout(()=>emitEvent("PLAYER_HELLO",{id:ME.id,username:ME.username,avatar:ME.avatar}),250);
+  }
+  window.addEventListener("message",e=>{
+    try{
+      const d=typeof e.data==="string"?JSON.parse(e.data):e.data;
+      if(!d) return;
+      if(d.action==="initSDK") setupSDK(d);
+      else if(d.action==="gameEventReceived") handleGameEvent(d.eventName,d.payload,d.userId);
+    }catch(_){ }
+  });
+  window.initBoomRoomSDK=setupSDK;
+  window.onBoomRoomSDKReady=function(){
+    if(window.BoomRoomSDK){
+      setupSDK({
+        user:typeof window.BoomRoomSDK.getUser==="function"?window.BoomRoomSDK.getUser():{},
+        isHost:!!window.BoomRoomSDK.isHost,
+        hostUserId:window.BoomRoomSDK.hostUserId||"",
+        roomId:window.BoomRoomSDK.roomId||"",
+        roomPlayers:Array.isArray(window.BoomRoomSDK.roomPlayers)?window.BoomRoomSDK.roomPlayers:[]
+      });
+    }else{
+      updateTopStatus();
+      render();
+    }
+  };
+  if(window.BoomRoomSDK) window.onBoomRoomSDKReady();
+
+  function makeEventId(){ return `${ME.id||"unknown"}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,9)}`; }
+  function sendEvent(eventName,payload={}){
+    if(!sdkReady || !window.BoomRoomSDK || typeof window.BoomRoomSDK.sendGameEvent!=="function"){
+      showToast("尚未連上 BoomRoom，多人功能暫不可用");
+      return false;
+    }
+    const body={...payload,eventId:payload.eventId||makeEventId()};
+    try{
+      window.BoomRoomSDK.sendGameEvent(eventName,body);
+      return body.eventId;
+    }catch(_){
+      showToast("遊戲事件傳送失敗");
+      return false;
+    }
+  }
+  function emitEvent(eventName,payload={}){
+    const body={...payload,eventId:makeEventId()};
+    const ok=sendEvent(eventName,body);
+    if(ok) handleGameEvent(eventName,body,ME.id);
+    return ok;
+  }
+  function shouldIgnore(payload){
+    const id=payload&&payload.eventId;
+    if(!id) return false;
+    if(seenEvents.has(id)) return true;
+    seenEvents.add(id);
+    if(seenEvents.size>800){
+      const keep=[...seenEvents].slice(-400);
+      seenEvents.clear();
+      keep.forEach(x=>seenEvents.add(x));
+    }
+    return false;
+  }
+
+  function seededRandom(seed){
+    let x=(seed>>>0)||1;
+    return function(){
+      x^=x<<13; x>>>=0;
+      x^=x>>>17; x>>>=0;
+      x^=x<<5; x>>>=0;
+      return (x>>>0)/4294967296;
+    };
+  }
+  function generateDeck(decksCount,useJokers,seed){
+    const suits=["♠","♥","♦","♣"],deck=[];
+    for(let d=0;d<decksCount;d++){
+      for(const rank of CONFIG.RANKS) for(const suit of suits) deck.push({rank,suit,isJoker:false});
+      if(useJokers){
+        deck.push({rank:"JOKER",suit:"🤡",isJoker:true});
+        deck.push({rank:"JOKER",suit:"🃏",isJoker:true});
       }
     }
-    if (useJokers) {
-      deck.push({ rank: "JOKER", suit: "🤡", isJoker: true });
-      deck.push({ rank: "JOKER", suit: "🃏", isJoker: true });
+    const rnd=seededRandom(seed);
+    for(let i=deck.length-1;i>0;i--){
+      const j=Math.floor(rnd()*(i+1));
+      [deck[i],deck[j]]=[deck[j],deck[i]];
+    }
+    return deck;
+  }
+  function getRoundPlayers(){ return roundOrder.map(id=>players.get(id)).filter(Boolean); }
+  function getNextTurn(id){
+    const idx=roundOrder.indexOf(id);
+    if(idx<0 || !roundOrder.length) return roundOrder[0]||"";
+    return roundOrder[(idx+1)%roundOrder.length];
+  }
+  function dealLocalHand(){
+    const deck=generateDeck(selectedDecks,selectedJokers,roundSeed);
+    const idx=roundOrder.indexOf(ME.id);
+    hand=idx>=0?deck.slice(idx*CONFIG.START_HAND,idx*CONFIG.START_HAND+CONFIG.START_HAND):[];
+    selectedIndices.clear();
+  }
+  function sortHand(){
+    const order=new Map(CONFIG.RANKS.map((r,i)=>[r,i]));
+    const suits=new Map([["♠",0],["♥",1],["♦",2],["♣",3]]);
+    hand.sort((a,b)=>{
+      if(a.isJoker!==b.isJoker) return a.isJoker?1:-1;
+      if(a.isJoker&&b.isJoker) return a.suit.localeCompare(b.suit);
+      return (order.get(a.rank)-order.get(b.rank)) || (suits.get(a.suit)-suits.get(b.suit));
+    });
+  }
+  function suggestClaimRank(){
+    const counts=new Map();
+    hand.forEach(c=>{if(!c.isJoker)counts.set(c.rank,(counts.get(c.rank)||0)+1);});
+    let best="A",bestCount=-1;
+    for(const r of CONFIG.RANKS){const n=counts.get(r)||0;if(n>bestCount){bestCount=n;best=r;}}
+    selectedClaimRank=best;
+  }
+
+  function startRound(payload){
+    clearRoundTimers();
+    state="PLAYING";
+    finalWinnerId="";
+    roundId=safeString(payload.roundId,"",100);
+    roundSeed=Number(payload.seed)>>>0;
+    selectedDecks=Math.max(1,Math.min(3,Number(payload.decks)||1));
+    selectedJokers=!!payload.useJokers;
+    if(Array.isArray(payload.players)) payload.players.forEach(p=>{if(p&&p.id!=null)addPlayer(p.id,p.username,p.avatar);});
+    const incoming=Array.isArray(payload.order)?payload.order.map(String):[];
+    roundOrder=[...new Set(incoming)].slice(0,CONFIG.MAX_PLAYERS);
+    if(!roundOrder.length) roundOrder=[...players.keys()].slice(0,CONFIG.MAX_PLAYERS);
+    roundOrder.forEach(id=>{if(!players.has(id)) addPlayer(id,"玩家","");});
+    for(const id of roundOrder){
+      const p=players.get(id);
+      if(p){p.cardCount=CONFIG.START_HAND;p.bluffCaughtCount=0;p.bluffSuccessCount=0;}
+    }
+    centerPile=[];lastClaim=null;challengeLock=false;claimWindowUntil=0;pendingWinnerUserId="";gameOverCalled=false;
+    currentTurnUserId=String(payload.startUserId||roundOrder[0]||"");
+    feed=[`🎲 本局開始：${selectedDecks} 副牌・${selectedJokers?"含鬼牌":"不含鬼牌"}・每人 6 張。`];
+    dealLocalHand();
+    playTone("start");
+    render();
+  }
+
+  function handleGameEvent(eventName,payload={},senderId=""){
+    if(shouldIgnore(payload)) return;
+    switch(eventName){
+      case "PLAYER_HELLO":{
+        if(payload.id!=null) addPlayer(payload.id,payload.username,payload.avatar);
+        if(isHost()&&state==="LOBBY") sendEvent("PLAYER_LIST_SYNC",{hostUserId:ME.id,players:[...players.values()].map(p=>({id:p.id,username:p.username,avatar:p.avatar}))});
+        render();
+        break;
+      }
+      case "PLAYER_LIST_SYNC":{
+        if(hostUserId && senderId && String(senderId)!==String(hostUserId)) break;
+        if(payload.hostUserId!=null) hostUserId=String(payload.hostUserId);
+        syncRoomPlayers(payload.players);
+        if(ME.id) addPlayer(ME.id,ME.username,ME.avatar);
+        render();
+        break;
+      }
+      case "BLUFF_START":{
+        if(isHost()){
+          if(senderId && String(senderId)!==String(ME.id)) break;
+        }else{
+          const announced=payload.hostUserId!=null?String(payload.hostUserId):"";
+          if(!hostUserId && senderId) hostUserId=String(senderId);
+          if(announced && hostUserId && announced!==hostUserId) break;
+          if(hostUserId && senderId && String(senderId)!==String(hostUserId)) break;
+          if(!hostUserId && announced) hostUserId=announced;
+        }
+        if(payload.hostUserId!=null && !hostUserId) hostUserId=String(payload.hostUserId);
+        startRound(payload);
+        break;
+      }
+      case "PLAY_CLAIM":{
+        if(state!=="PLAYING"||String(payload.roundId)!==String(roundId)) break;
+        const uid=String(payload.userId||senderId||"");
+        if(!uid||uid!==currentTurnUserId) break;
+        if(senderId&&String(senderId)!==uid) break;
+        if(!Array.isArray(payload.playedCards)) break;
+        const count=payload.playedCards.length;
+        if(count<1) break;
+        const p=players.get(uid);
+        if(!p||p.cardCount<count) break;
+        if(claimWindowUntil>now()) break;
+
+        const nextUserId=getNextTurn(uid);
+        lastClaim={
+          userId:uid,
+          username:safeString(payload.username,p.username,12),
+          rank:safeString(payload.rank,"A",4),
+          count,
+          cards:payload.playedCards,
+          eventId:payload.eventId||""
+        };
+        centerPile.push(...payload.playedCards);
+        p.cardCount=Math.max(0,p.cardCount-count);
+        currentTurnUserId=nextUserId;
+        challengeLock=false;
+        claimWindowUntil=now()+CONFIG.CHALLENGE_WINDOW_MS;
+        pendingWinnerUserId=p.cardCount===0?uid:"";
+
+        addFeed(`🃏 ${esc(lastClaim.username)} 出 ${count} 張，宣稱 [ ${esc(lastClaim.rank)} ]`);
+        playTone("card");
+        render();
+
+        clearTimeout(nextTurnTimer);
+        nextTurnTimer=setTimeout(()=>{
+          if(state!=="PLAYING"||String(roundId)!==String(payload.roundId)) return;
+          if(pendingWinnerUserId&&!challengeLock&&isHost()){
+            emitEvent("BLUFF_ROUND_WIN",{
+              roundId,
+              winnerUserId:pendingWinnerUserId,
+              winnerMessage:`🏆 ${players.get(pendingWinnerUserId)?.username||"玩家"} 打完所有手牌，贏得本局！`
+            });
+          }
+          if(!pendingWinnerUserId){ render(); }
+        },CONFIG.CHALLENGE_WINDOW_MS+80);
+        scheduleActionRefresh();
+        break;
+      }
+      case "CALL_BLUFF":{
+        if(state!=="PLAYING"||String(payload.roundId)!==String(roundId)||!lastClaim||challengeLock) break;
+        if(claimWindowUntil&&now()>claimWindowUntil) break;
+        const challengerId=String(payload.challengerUserId||senderId||"");
+        if(!roundOrder.includes(challengerId)||challengerId===lastClaim.userId) break;
+        if(!isHost()){
+          challengeLock=true;
+          playTone("bad");
+          render();
+          break;
+        }
+        challengeLock=true;
+        clearTimeout(nextTurnTimer);
+        const isBluff=lastClaim.cards.some(c=>!c.isJoker&&c.rank!==lastClaim.rank);
+        emitEvent("BLUFF_CHALLENGE_RESULT",{
+          roundId,
+          challengeBy:challengerId,
+          claimUserId:lastClaim.userId,
+          claimUserName:lastClaim.username,
+          rank:lastClaim.rank,
+          isBluff,
+          pileCount:centerPile.length
+        });
+        break;
+      }
+      case "BLUFF_CHALLENGE_RESULT":{
+        if(isHost()){
+          if(senderId && String(senderId)!==String(ME.id)) break;
+        }else if(hostUserId && senderId && String(senderId)!==String(hostUserId)) break;
+        if(state!=="PLAYING"||String(payload.roundId)!==String(roundId)||!lastClaim) break;
+        challengeLock=true;
+        clearTimeout(nextTurnTimer);
+        const challengerId=String(payload.challengeBy||"");
+        const challenger=players.get(challengerId);
+        const claimer=players.get(lastClaim.userId);
+        const pile=centerPile.slice();
+        if(payload.isBluff){
+          if(claimer) claimer.cardCount+=pile.length;
+          if(lastClaim.userId===ME.id){ hand.push(...pile); sortHand(); suggestClaimRank(); }
+          if(challenger) challenger.bluffCaughtCount=(challenger.bluffCaughtCount||0)+1;
+          addFeed(`🔥 抓包成功！${esc(challenger?.username||"玩家")} 抓到 ${esc(lastClaim.username)} 吹牛。`);
+          addFeed(`📦 中央 ${pile.length} 張牌全部回到 ${esc(lastClaim.username)} 手上。`);
+          playTone("win");
+          currentTurnUserId=challengerId;
+        }else{
+          if(challenger) challenger.cardCount+=pile.length;
+          if(challengerId===ME.id){ hand.push(...pile); sortHand(); suggestClaimRank(); }
+          if(claimer) claimer.bluffSuccessCount=(claimer.bluffSuccessCount||0)+1;
+          addFeed(`❌ 抓包失敗！${esc(lastClaim.username)} 說的是真的。`);
+          addFeed(`📦 ${esc(challenger?.username||"抓包者")} 拿走中央 ${pile.length} 張牌。`);
+          playTone("bad");
+          currentTurnUserId=lastClaim.userId;
+        }
+        centerPile=[];
+        pendingWinnerUserId="";
+        claimWindowUntil=0;
+        const winner=getRoundPlayers().find(p=>p.cardCount===0);
+        lastClaim=null;
+        challengeLock=false;
+        if(winner){
+          if(isHost()) emitEvent("BLUFF_ROUND_WIN",{roundId,winnerUserId:winner.id,winnerMessage:`🏆 ${winner.username} 打完所有手牌，贏得本局！`});
+        }else render();
+        break;
+      }
+      case "BLUFF_ROUND_WIN":{
+        if(state!=="PLAYING"||String(payload.roundId)!==String(roundId)) break;
+        state="RESULT";
+        clearRoundTimers();
+        finalWinnerId=String(payload.winnerUserId||"");
+        const winner=players.get(finalWinnerId);
+        addFeed(payload.winnerMessage||`🏆 ${winner?.username||"玩家"} 贏得本局！`);
+        currentTurnUserId="";pendingWinnerUserId="";lastClaim=null;centerPile=[];claimWindowUntil=0;
+        playTone(finalWinnerId===ME.id?"victory":"result");
+        if(finalWinnerId===ME.id&&!gameOverCalled){
+          gameOverCalled=true;
+          try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(CONFIG.WIN_REWARD);}catch(_){ }
+        }
+        render();
+        break;
+      }
+      case "BLUFF_LOBBY":{
+        if(isHost()){
+          if(senderId && String(senderId)!==String(ME.id)) break;
+        }else if(hostUserId && senderId && String(senderId)!==String(hostUserId)) break;
+        if(state==="LOBBY") return;
+        state="LOBBY";
+        clearRoundTimers();
+        roundId="";roundSeed=0;roundOrder=[];hand=[];selectedIndices.clear();centerPile=[];lastClaim=null;challengeLock=false;claimWindowUntil=0;pendingWinnerUserId="";currentTurnUserId="";feed=[];finalWinnerId="";
+        render();
+        break;
+      }
     }
   }
-  return deck.sort(() => Math.random() - 0.5);
-}
 
-function handleGameEvent(eventName, payload, senderId) {
-  if (eventName === "TOGGLE_SOUND") {
-    return;
+  function startGameAsHost(){
+    if(!sdkReady||!ME.id||!isHost()){showToast("只有 BoomRoom 市長可以開始");return;}
+    if(state!=="LOBBY") return;
+    const eligible=[...players.values()].slice(0,CONFIG.MAX_PLAYERS);
+    if(eligible.length<2){showToast("至少需要 2 位玩家才能開局");return;}
+    const seed=(Math.random()*0xFFFFFFFF)>>>0;
+    emitEvent("BLUFF_START",{
+      roundId:`${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`,
+      seed,
+      decks:selectedDecks,
+      useJokers:selectedJokers,
+      order:eligible.map(p=>p.id),
+      hostUserId:ME.id,
+      players:eligible.map(p=>({id:p.id,username:p.username,avatar:p.avatar})),
+      startUserId:ME.id
+    });
   }
-  if (eventName === "BLUFF_VOTE_START") {
-    state = "VOTING";
-    votedDecks = 0;
-    votedJokers = null;
-    decksVotes.clear();
-    jokersVotes.clear();
-    render();
-  } else if (eventName === "VOTE_DECKS") {
-    decksVotes.set(payload.userId, payload.decks);
-    render();
-  } else if (eventName === "VOTE_JOKERS") {
-    jokersVotes.set(payload.userId, payload.useJokers);
-    render();
-  } else if (eventName === "BLUFF_START") {
-    state = "PLAYING";
-    selectedDecks = payload.decks || 1;
-    selectedJokers = !!payload.useJokers;
-    centerPile = [];
-    lastClaim = null;
-    challengeLock = false;
-    feed = [`🎲 吹牛開局！使用 ${selectedDecks} 副牌（${selectedJokers?'含鬼牌':'無鬼牌'}）。`];
-
-    // Deal 6 cards to local player
-    const fullDeck = generateDeck(selectedDecks, selectedJokers);
-    hand = fullDeck.slice(0, 6);
+  function backToLobbyAsHost(){if(isHost())emitEvent("BLUFF_LOBBY",{});}
+  function selectDecks(n){if(state!=="LOBBY"||!isHost())return;selectedDecks=Math.max(1,Math.min(3,Number(n)||1));playTone("tap");render();}
+  function toggleJokers(){if(state!=="LOBBY"||!isHost())return;selectedJokers=!selectedJokers;playTone("tap");render();}
+  function claimCards(){
+    if(state!=="PLAYING"||currentTurnUserId!==ME.id||pendingWinnerUserId)return;
+    if(claimWindowUntil>now()){showToast("先等等，看看有人要不要抓包");return;}
+    if(selectedIndices.size<1)return;
+    const picked=[...selectedIndices].sort((a,b)=>a-b).map(i=>hand[i]).filter(Boolean);
+    if(!picked.length)return;
+    hand=hand.filter((_,i)=>!selectedIndices.has(i));
     selectedIndices.clear();
+    emitEvent("PLAY_CLAIM",{roundId,userId:ME.id,username:ME.username,rank:selectedClaimRank,playedCards:picked});
+  }
+  function callBluff(){
+    if(state!=="PLAYING"||!lastClaim||challengeLock)return;
+    if(lastClaim.userId===ME.id||!roundOrder.includes(ME.id))return;
+    if(claimWindowUntil&&now()>claimWindowUntil){showToast("抓包時機已過");return;}
+    emitEvent("CALL_BLUFF",{roundId,challengerUserId:ME.id});
+  }
+  function toggleCard(idx){
+    if(state!=="PLAYING"||currentTurnUserId!==ME.id||pendingWinnerUserId||claimWindowUntil>now())return;
+    if(idx<0||idx>=hand.length)return;
+    if(selectedIndices.has(idx))selectedIndices.delete(idx);else selectedIndices.add(idx);
+    playTone("tap");render();
+  }
+  function setRank(rank){
+    if(state!=="PLAYING"||currentTurnUserId!==ME.id||pendingWinnerUserId||claimWindowUntil>now())return;
+    selectedClaimRank=rank;playTone("tap");render();
+  }
+  function scheduleActionRefresh(){
+    clearTimeout(actionRenderTimer);
+    const remain=claimWindowUntil-now();
+    if(remain>0&&state==="PLAYING")actionRenderTimer=setTimeout(()=>render(),Math.min(remainingRefresh(),300));
+  }
+  function remainingRefresh(){
+    const ms=claimWindowUntil-now();
+    if(ms<=0)return 50;
+    return ms<900?100:260;
+  }
 
-    players.forEach(p => p.cardCount = 6);
-    currentTurnUserId = payload.startUserId || ME.id;
-    render();
-  } else if (eventName === "PLAY_CLAIM") {
-    lastClaim = {
-      userId: payload.userId,
-      username: payload.username,
-      rank: payload.rank,
-      count: payload.count,
-      cards: payload.playedCards
-    };
-    centerPile.push(...payload.playedCards);
-    challengeLock = false; // Reset challenge lock for next claim!
-
-    const p = players.get(payload.userId);
-    if (p) p.cardCount = Math.max(0, p.cardCount - payload.count);
-
-    feed.push(`🃏 ${esc(payload.username)} 出 ${payload.count} 張牌，宣稱是 [ ${payload.rank} ]`);
-
-    // Check if player won immediately by clearing cards!
-    if (p && p.cardCount === 0) {
-      triggerWinner(payload.userId, `${esc(payload.username)} 率先打完所有手牌，奪得冠軍！`);
+  function renderPlayers(){
+    const list=state==="PLAYING"||state==="RESULT"?getRoundPlayers():[...players.values()];
+    if(!list.length)return '<div class="emptyPlayer">等待房內玩家連線…</div>';
+    return list.map((p,i)=>{
+      const me=p.id===ME.id,turn=p.id===currentTurnUserId;
+      const maxCards=Math.max(CONFIG.START_HAND,p.cardCount||0);
+      const pct=Math.max(0,Math.min(100,((p.cardCount||0)/maxCards)*100));
+      const badge=turn?'<span class="playerBadge turnPulse"><i class="turnDot"></i>行動中</span>':(i===0&&state==="LOBBY"&&isHost()?'<span class="playerBadge">市長</span>':'');
+      return `<div class="player ${me?"me":""} ${turn?"turn":""}">
+        <div class="playerHead">${avatarMarkup(p)}<div class="playerInfo"><b>${esc(p.username)} ${me?"(你)":""}</b><em>${state==="LOBBY"?"已連線":`剩餘 ${p.cardCount} 張牌`}</em></div>${badge}</div>
+        ${state!=="LOBBY"?`<div class="playerBar"><i style="width:${pct}%"></i></div>`:""}
+      </div>`;
+    }).join("");
+  }
+  function renderSetup(){
+    const count=players.size;
+    const totalCards=selectedDecks*52+(selectedJokers?selectedDecks*2:0);
+    return `
+      <section class="panel hero"><div class="heroTitle">👑 市長設定本局</div><div class="heroSub">市長直接決定牌組，不投票；設定完成後所有玩家同時收到同一副牌局。</div>
+        <div class="stats"><div class="stat"><b>${count}/${CONFIG.MAX_PLAYERS}</b><span>房內玩家</span></div><div class="stat"><b>${totalCards}</b><span>牌堆總張數</span></div><div class="stat"><b>6</b><span>每人起始牌數</span></div></div>
+        <div class="setupMini"><div class="setupMiniBox"><span>勝者獎勵</span><b>+${CONFIG.WIN_REWARD} 銀幣</b></div><div class="setupMiniBox"><span>抓包窗口</span><b>${CONFIG.CHALLENGE_WINDOW_MS/1000} 秒</b></div></div>
+      </section>
+      <section class="panel"><div class="sectionTitle">🃏 選擇撲克牌副數</div><div class="selectRow">${[1,2,3].map(n=>`<button class="choice ${selectedDecks===n?"active":""}" data-decks="${n}"><b>${n} 副</b><span>${n*52}${selectedJokers?` + ${n*2} 鬼牌`:" 張"}</span></button>`).join("")}</div><div class="setupSummary"><span>目前規則</span><b>${selectedDecks} 副牌・${selectedJokers?"含鬼牌":"不含鬼牌"}</b></div></section>
+      <section class="panel"><button id="jokerToggle" class="toggle ${selectedJokers?"active":""}"><div class="toggleMain"><div class="toggleIcon">🃏</div><div class="toggleText"><b>加入鬼牌</b><span>鬼牌視為萬能牌，可以當作任何點數</span></div></div><div class="switch"></div></button></section>
+      <section class="panel"><div class="sectionTitle">👥 本局參戰玩家</div><div class="players">${renderPlayers()}</div><div class="compactNote" style="margin-top:8px">${count<2?"至少需要 2 位玩家。":"玩家人數已足夠；開始後名單鎖定，新加入者等下一局。"}</div></section>
+      <div class="actionDock"><button id="startBtn" class="cta" ${count>=2?"":"disabled"}>⚡ 市長開始遊戲</button></div>`;
+  }
+  function renderLobbyGuest(){
+    return `
+      <section class="panel hero"><div class="heroTitle">🃏 等待市長開局</div><div class="heroSub">市長會直接選擇 1～3 副牌與是否加入鬼牌。你不需要投票，開局後會自動拿到自己的 6 張牌。</div>
+        <div class="stats"><div class="stat"><b>${players.size}/${CONFIG.MAX_PLAYERS}</b><span>房內玩家</span></div><div class="stat"><b>6</b><span>每人手牌</span></div><div class="stat"><b>同步</b><span>多人牌局</span></div></div></section>
+      <section class="panel"><div class="sectionTitle">👥 房內玩家</div><div class="players">${renderPlayers()}</div></section>
+      <section class="panel waitCard"><div class="waitIcon">👑</div><h3>等待市長設定</h3><p>不投票、不需要額外準備。市長按下開始後，本局會立即同步開始。</p></section>`;
+  }
+  function renderPlaying(){
+    const myTurn=currentTurnUserId===ME.id;
+    const remaining=Math.max(0,claimWindowUntil-now());
+    const inWindow=remaining>0&&!!lastClaim&&!challengeLock;
+    const canChallenge=inWindow&&lastClaim.userId!==ME.id&&roundOrder.includes(ME.id);
+    const sec=(remaining/1000).toFixed(1);
+    const lockedForWin=!!pendingWinnerUserId;
+    const turnName=players.get(currentTurnUserId)?.username||"下一位玩家";
+    return `
+      <section class="tableCenter"><div class="turnLabel">${myTurn?'<span class="turnPulse"><i class="turnDot"></i>輪到你行動</span>':`⏳ ${esc(turnName)} 的回合`}</div>
+        ${lastClaim?`<div class="claimBox">上一手：${esc(lastClaim.username)} 宣稱 <b>${lastClaim.count} 張 ${esc(lastClaim.rank)}</b></div>`:'<div class="claimBox">首手由 '+esc(players.get(currentTurnUserId)?.username||"市長")+' 開始</div>'}
+        <div class="pileCount">🂠 ${centerPile.length} 張</div><div class="pileSub">中央牌堆</div>
+        ${inWindow?`<div class="challengeTimer">🔥 可搶先抓包 <b>${sec}s</b></div>`:""}
+        ${lockedForWin&&!challengeLock?'<div class="lockHint">最後一手已清空手牌，等待這一瞬間的抓包判定…</div>':""}
+        ${canChallenge?'<div class="actionRow"><button id="callBluffBtn" class="cta danger">🔥 抓吹牛</button></div>':""}
+        ${challengeLock?'<div class="lockHint">已有玩家搶先抓包，正在揭牌判定…</div>':""}
+      </section>
+      <section class="panel"><div class="sectionTitle">👥 本局玩家</div><div class="players">${renderPlayers()}</div></section>
+      <div class="feedBox">${feed.slice().reverse().map(f=>`<div class="feedLine">${f}</div>`).join("")}</div>
+      <section class="panel handPanel"><div class="handHeader"><div class="sectionTitle" style="margin:0">你的手牌・${hand.length} 張</div><div class="hint">${lockedForWin?"等待抓包結果":inWindow?"先等等抓包窗口":myTurn?"點牌選擇・再選宣稱":"等待你的回合"}</div></div>
+        <div class="handArea">${hand.length?hand.map((c,idx)=>{const red=c.suit==="♥"||c.suit==="♦";const sel=selectedIndices.has(idx);const disabled=!myTurn||inWindow||lockedForWin;return `<div class="card ${c.isJoker?"joker":red?"red":""} ${sel?"selected":""} ${disabled?"disabledCard":""}" data-idx="${idx}"><div>${esc(c.rank)}</div><div class="cardSuit">${esc(c.suit)}</div><div class="cardBottom">${esc(c.rank)}</div></div>`}).join(""):'<div class="notice" style="width:100%">你的手牌已出完，等待本局結算。</div>'}</div>
+        <div class="sectionTitle" style="margin-top:4px">宣稱點數</div><div class="rankGrid">${CONFIG.RANKS.map(r=>`<button class="rankBtn ${selectedClaimRank===r?"active":""}" data-rank="${r}" ${myTurn&&!inWindow&&!lockedForWin?"":"disabled"}>${r}</button>`).join("")}</div>
+        <div class="playMeta"><span>${selectedIndices.size?`已選 ${selectedIndices.size} 張`:"尚未選牌"}</span><span>${lockedForWin?"最後一手等待判定":inWindow?`抓包窗口 ${sec}s`:myTurn?"可以出牌":"回合鎖定"}</span></div>
+      </section>
+      <div class="actionDock"><button id="playBtn" class="cta" ${myTurn&&!inWindow&&!lockedForWin&&selectedIndices.size>0?"":"disabled"}>${lockedForWin?"等待抓包判定…":inWindow?"等待抓包窗口…":myTurn?(selectedIndices.size>0?`出 ${selectedIndices.size} 張・宣稱 [ ${esc(selectedClaimRank)} ]`:"請先選牌"):"等待其他玩家行動…"}</button></div>`;
+  }
+  function renderResult(){
+    const sorted=getRoundPlayers().slice().sort((a,b)=>a.cardCount-b.cardCount||(b.bluffCaughtCount||0)-(a.bluffCaughtCount||0));
+    const winner=players.get(finalWinnerId)||sorted[0];
+    return `
+      <section class="panel resultHero"><div class="emoji">🏆</div><h2>${esc(winner?.username||"本局勝者")}</h2><p>${winner?.id===ME.id?"恭喜你，拿下本局！":"恭喜勝者！等待市長開下一局。"}</p>${winner?.id===ME.id?`<div style="margin-top:10px;color:var(--gold);font-weight:1000;font-size:13px">+${CONFIG.WIN_REWARD} 銀幣</div>`:""}</section>
+      <section class="panel"><div class="sectionTitle">📊 本局結果</div><div class="rankList">${sorted.map((p,i)=>`<div class="rankRow"><div class="rankNo">#${i+1}</div><div class="rankName"><b>${esc(p.username)} ${p.id===ME.id?"(你)":""}</b></div><div class="rankScore">剩 ${p.cardCount} 張</div><div class="rankDetail">成功抓包 ${p.bluffCaughtCount||0} 次 · 成功吹牛 ${p.bluffSuccessCount||0} 次</div></div>`).join("")}</div></section>
+      <div class="feedBox">${feed.slice().reverse().map(f=>`<div class="feedLine">${f}</div>`).join("")}</div>
+      <div class="actionDock"><button id="nextBtn" class="cta green" ${isHost()?"":"disabled"}>${isHost()?"👑 市長開始下一局":"等待市長開始下一局…"}</button></div>`;
+  }
+  function getRoundWinnerId(){ return finalWinnerId; }
+  function render(){
+    const main=document.getElementById("main");
+    if(!main)return;
+    if(!sdkReady||!ME.id){
+      main.innerHTML='<section class="panel hero"><div class="heroTitle">🃏 爆爆吹牛</div><div class="heroSub">等待 BoomRoom 多人連線…</div></section><section class="panel waitCard"><div class="waitIcon">📡</div><h3>正在連接房間</h3><p>請從 BoomRoom 房間進入遊戲。此版本沒有本地測試，也不會建立虛擬玩家。</p></section>';
+      updateTopStatus();
       return;
     }
-
-    currentTurnUserId = payload.nextUserId;
-    render();
-  } else if (eventName === "CALL_BLUFF_TRIGGER") {
-    if (challengeLock) return; // Ignore if already challenged!
-    challengeLock = true;
-
-    const challenger = players.get(payload.challengerUserId);
-    const challengerName = challenger ? challenger.username : "對手";
-
-    if (!lastClaim) return;
-
-    // Check if bluff! (Jokers act as wildcard and count as true!)
-    const isBluff = lastClaim.cards.some(c => !c.isJoker && c.rank !== lastClaim.rank);
-
-    if (isBluff) {
-      feed.push(`🔥 【抓包成功！】${esc(challengerName)} 抓出 ${esc(lastClaim.username)} 在吹牛說謊！` +
-        `（真實牌：${lastClaim.cards.map(c=>c.rank).join(" ")}）`);
-      feed.push(`📦 中央 ${centerPile.length} 張牌全部罰給說謊者 [ ${esc(lastClaim.username)} ]！`);
-
-      if (challenger) challenger.bluffCaughtCount = (challenger.bluffCaughtCount || 0) + 1;
-
-      const bluffer = players.get(lastClaim.userId);
-      if (bluffer) bluffer.cardCount += centerPile.length;
-      if (lastClaim.userId === ME.id) {
-        hand.push(...centerPile);
-      }
-
-      // 🌟 抓包成功的人獲得優先出牌權！
-      currentTurnUserId = payload.challengerUserId;
-      feed.push(`👑 由抓包成功的 ${esc(challengerName)} 獲得優先出牌權！`);
-    } else {
-      feed.push(`❌ 【抓包失敗！】${esc(lastClaim.username)} 沒說謊！全都是 [ ${lastClaim.rank} ]！`);
-      feed.push(`📦 中央 ${centerPile.length} 張牌全部罰給抓錯人的 [ ${esc(challengerName)} ]！`);
-
-      const claimer = players.get(lastClaim.userId);
-      if (claimer) claimer.bluffSuccessCount = (claimer.bluffSuccessCount || 0) + 1;
-
-      if (challenger) challenger.cardCount += centerPile.length;
-      if (payload.challengerUserId === ME.id) {
-        hand.push(...centerPile);
-      }
-
-      // 🌟 證明清白的人獲得優先出牌權！
-      currentTurnUserId = lastClaim.userId;
-      feed.push(`👑 由證明清白的 ${esc(lastClaim.username)} 獲得優先出牌權！`);
-    }
-
-    centerPile = [];
-    lastClaim = null;
-
-    // Check if anyone won after cards penalty
-    const winner = [...players.values()].find(p => p.cardCount === 0);
-    if (winner) {
-      triggerWinner(winner.id, `🏆 ${esc(winner.username)} 打完所有手牌，贏得比賽！`);
-    } else {
-      render();
-    }
+    if(state==="LOBBY")main.innerHTML=isHost()?renderSetup():renderLobbyGuest();
+    else if(state==="PLAYING")main.innerHTML=renderPlaying();
+    else main.innerHTML=renderResult();
+    bindEvents();
+    updateTopStatus();
+    if(state==="PLAYING"&&claimWindowUntil>now())scheduleActionRefresh();
   }
-}
-
-function triggerWinner(winnerUserId, winnerMsg) {
-  state = "RESULT";
-  feed.push(winnerMsg);
-  if (winnerUserId === ME.id) {
-    try {
-      if (window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver === "function") {
-        window.BoomRoomSDK.gameOver(100);
-      }
-    } catch(_) {}
+  function bindEvents(){
+    document.querySelectorAll("[data-decks]").forEach(btn=>btn.addEventListener("click",()=>selectDecks(Number(btn.dataset.decks))));
+    document.getElementById("jokerToggle")?.addEventListener("click",toggleJokers);
+    document.getElementById("startBtn")?.addEventListener("click",startGameAsHost);
+    document.getElementById("nextBtn")?.addEventListener("click",backToLobbyAsHost);
+    document.getElementById("callBluffBtn")?.addEventListener("click",callBluff);
+    document.getElementById("playBtn")?.addEventListener("click",claimCards);
+    document.querySelectorAll(".card[data-idx]").forEach(el=>el.addEventListener("click",()=>toggleCard(Number(el.dataset.idx))));
+    document.querySelectorAll(".rankBtn[data-rank]").forEach(el=>el.addEventListener("click",()=>setRank(el.dataset.rank)));
   }
+  function showToast(msg){
+    const el=document.getElementById("toast");
+    if(!el)return;
+    el.textContent=msg;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),1800);
+  }
+  function ensureAudio(){
+    if(!soundOn)return null;
+    try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();return audioCtx;}catch(_){return null;}
+  }
+  function playTone(type){
+    if(!soundOn)return;
+    const ctx=ensureAudio();if(!ctx)return;
+    const nowT=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    const presets={tap:[520,.035,.045],card:[360,.06,.06],start:[420,.08,.08],win:[740,.12,.12],bad:[190,.12,.10],victory:[880,.18,.16],result:[560,.09,.08]};
+    const [freq,dur,vol]=presets[type]||presets.tap;
+    osc.frequency.setValueAtTime(freq,nowT);osc.type="sine";gain.gain.setValueAtTime(.0001,nowT);gain.gain.exponentialRampToValueAtTime(vol,nowT+.01);gain.gain.exponentialRampToValueAtTime(.0001,nowT+dur);osc.start(nowT);osc.stop(nowT+dur+.02);
+  }
+  function setSound(){soundOn=!soundOn;const btn=document.getElementById("soundBtn");if(btn)btn.textContent=soundOn?"🔊":"🔇";if(soundOn)playTone("tap");}
+  function openHelp(){document.getElementById("helpModal")?.classList.add("show");}
+  function closeHelp(){document.getElementById("helpModal")?.classList.remove("show");}
+  document.getElementById("soundBtn")?.addEventListener("click",setSound);
+  document.getElementById("helpBtn")?.addEventListener("click",openHelp);
+  document.getElementById("closeHelpBtn")?.addEventListener("click",closeHelp);
+  document.getElementById("helpModal")?.addEventListener("click",e=>{if(e.target.id==="helpModal")closeHelp();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeHelp();});
   render();
 
-  setTimeout(() => {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ action: 'leaveGame' }, '*');
-    } else {
-      try { window.close(); } catch(e){}
-    }
-  }, 3000);
-}
-
-function finishVotingAndStart() {
-  if (!isHost()) return;
-  // Compute majority for Decks
-  const dCounts = { 1: 0, 2: 0, 3: 0 };
-  decksVotes.forEach(v => { if (dCounts[v] !== undefined) dCounts[v]++; });
-  let maxD = -1, bestD = 1;
-  [1, 2, 3].forEach(d => { if (dCounts[d] > maxD) { maxD = dCounts[d]; bestD = d; } });
-
-  // Compute majority for Jokers
-  let yesJ = 0, noJ = 0;
-  jokersVotes.forEach(v => { if (v) yesJ++; else noJ++; });
-  const bestJ = yesJ > noJ;
-
-  const payload = { startUserId: ME.id, decks: bestD, useJokers: bestJ };
-  sendEvent("BLUFF_START", payload);
-  handleGameEvent("BLUFF_START", payload, ME.id);
-}
-
-function checkAllVoted() {
-  if (isHost() && decksVotes.size >= players.size && jokersVotes.size >= players.size) {
-    finishVotingAndStart();
-  }
-}
-
-function renderPlayers() {
-  return [...players.values()].map(p => {
-    const isMe = p.id === ME.id;
-    const isTurn = p.id === currentTurnUserId;
-    return `<div class="player ${isMe?'me':''} ${isTurn?'turn':''}">
-      <b>${esc(p.username)} ${isMe?'(你)':''}</b>
-      <em>剩餘: ${p.cardCount || 0} 張牌</em>
-    </div>`;
-  }).join("");
-}
-
-function esc(s) { return String(s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
-
-function runLocalDevTest() {
-  players.clear();
-  addPlayer(ME.id, ME.username, ME.avatar);
-  addPlayer("dev_2", "小米", "");
-  addPlayer("dev_3", "阿樂", "");
-  addPlayer("dev_4", "可可", "");
-  finishVotingAndStart();
-}
-
-function render() {
-  const main = document.getElementById("main");
-  if (!main) return;
-
-  if (state === "LOBBY") {
-    main.innerHTML = `
-      <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>多副牌</b><span>可選鬼牌</span></div><div class="stat"><b>勝者通吃</b><span>獎池規則</span></div></div></section>
-      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startVoteBtn" class="cta">👑 室長：發起投票選牌數與鬼牌</button>` : '<div class="notice">等待室長發起投票...</div>'}
-      <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
-    `;
-    document.getElementById("startVoteBtn")?.addEventListener("click", () => {
-      sendEvent("BLUFF_VOTE_START", {});
-      handleGameEvent("BLUFF_VOTE_START", {}, ME.id);
-    });
-    document.getElementById("devBtn")?.addEventListener("click", () => {
-      runLocalDevTest();
-    });
-    return;
-  }
-
-  if (state === "VOTING") {
-    const d1 = [...decksVotes.values()].filter(v=>v===1).length;
-    const d2 = [...decksVotes.values()].filter(v=>v===2).length;
-    const d3 = [...decksVotes.values()].filter(v=>v===3).length;
-    const jYes = [...jokersVotes.values()].filter(v=>v===true).length;
-    const jNo = [...jokersVotes.values()].filter(v=>v===false).length;
-
-    main.innerHTML = `
-      <section class="panel">
-        <div class="sectionTitle">🗳️ 投票 1：選擇撲克牌副數</div>
-        <div style="display:flex;gap:8px">
-          <button class="miniTag ${votedDecks===1?'active':''}" data-decks="1" ${votedDecks?'disabled':''}>1 副牌 (${d1}票)</button>
-          <button class="miniTag ${votedDecks===2?'active':''}" data-decks="2" ${votedDecks?'disabled':''}>2 副牌 (${d2}票)</button>
-          <button class="miniTag ${votedDecks===3?'active':''}" data-decks="3" ${votedDecks?'disabled':''}>3 副牌 (${d3}票)</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="sectionTitle">🗳️ 投票 2：是否包含鬼牌 (萬能牌)</div>
-        <div style="display:flex;gap:8px">
-          <button class="miniTag ${votedJokers===true?'active':''}" data-joker="true" ${votedJokers!==null?'disabled':''}>🃏 有鬼牌 (${jYes}票)</button>
-          <button class="miniTag ${votedJokers===false?'active':''}" data-joker="false" ${votedJokers!==null?'disabled':''}>🚫 無鬼牌 (${jNo}票)</button>
-        </div>
-      </section>
-
-      <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div><div class="notice">所有人投完票後將自動開始對局！</div></section>
-    `;
-
-    document.querySelectorAll("[data-decks]").forEach(b => {
-      b.addEventListener("click", () => {
-        const d = Number(b.dataset.decks);
-        votedDecks = d;
-        sendEvent("VOTE_DECKS", { userId: ME.id, decks: d });
-        handleGameEvent("VOTE_DECKS", { userId: ME.id, decks: d }, ME.id);
-        checkAllVoted();
-      });
-    });
-
-    document.querySelectorAll("[data-joker]").forEach(b => {
-      b.addEventListener("click", () => {
-        const useJ = b.dataset.joker === "true";
-        votedJokers = useJ;
-        sendEvent("VOTE_JOKERS", { userId: ME.id, useJokers: useJ });
-        handleGameEvent("VOTE_JOKERS", { userId: ME.id, useJokers: useJ }, ME.id);
-        checkAllVoted();
-      });
-    });
-
-    return;
-  }
-
-  if (state === "PLAYING") {
-    const isMyTurn = currentTurnUserId === ME.id;
-    main.innerHTML = `
-      <section class="tableCenter">
-        ${lastClaim ? `<div class="claimBox">上一手：${esc(lastClaim.username)} 宣稱 [ ${lastClaim.count} 張 ${lastClaim.rank} ]</div>` : '<div class="claimBox">等待首位玩家出牌...</div>'}
-        <div class="pileCount">🂠 中央牌堆：${centerPile.length} 張</div>
-        ${lastClaim && !isMyTurn ? `<button id="callBluffBtn" class="cta danger" style="margin-top:10px;width:auto;padding:0 24px;">🔥 抓吹牛！ (搶先抓說謊)</button>` : ''}
-      </section>
-
-      <section class="panel">
-        <div class="sectionTitle">房內玩家狀態</div>
-        <div class="players">${renderPlayers()}</div>
-      </section>
-
-      <div class="feedBox">${feed.map(f => `<div>${f}</div>`).join("")}</div>
-
-      <section class="panel">
-        <div class="sectionTitle">你的手牌 (${hand.length} 張，點擊選牌)：</div>
-        <div class="handArea">
-          ${hand.map((c, idx) => {
-            const isRed = c.suit === "♥" || c.suit === "♦";
-            const sel = selectedIndices.has(idx) ? "selected" : "";
-            return `<div class="card ${c.isJoker?'joker':(isRed?'red':'')} ${sel}" data-idx="${idx}">
-              <div>${c.rank}</div>
-              <div style="font-size:20px;text-align:center;">${c.suit}</div>
-              <div style="text-align:right;">${c.rank}</div>
-            </div>`;
-          }).join("")}
-        </div>
-
-        <div class="sectionTitle" style="margin-top:8px;">宣稱出的點數：</div>
-        <div class="rankGrid">
-          ${CONFIG.RANKS.map(r => `<button class="rankBtn ${selectedClaimRank===r?'active':''}" data-rank="${r}">${r}</button>`).join("")}
-        </div>
-
-        <button id="playBtn" class="cta" ${isMyTurn && selectedIndices.size > 0 ? '' : 'disabled'}>
-          ${isMyTurn ? `宣稱出 ${selectedIndices.size} 張 [ ${selectedClaimRank} ]` : '等待其他玩家行動...'}
-        </button>
-      </section>
-    `;
-
-    document.querySelectorAll(".card").forEach(el => {
-      el.addEventListener("click", () => {
-        const idx = Number(el.dataset.idx);
-        if (selectedIndices.has(idx)) selectedIndices.delete(idx);
-        else selectedIndices.add(idx);
-        render();
-      });
-    });
-
-    document.querySelectorAll(".rankBtn").forEach(el => {
-      el.addEventListener("click", () => {
-        selectedClaimRank = el.dataset.rank;
-        render();
-      });
-    });
-
-    document.getElementById("playBtn")?.addEventListener("click", () => {
-      if (!isMyTurn || selectedIndices.size === 0) return;
-      const playedCards = [...selectedIndices].map(i => hand[i]);
-      hand = hand.filter((_, i) => !selectedIndices.has(i));
-      selectedIndices.clear();
-
-      const nextUserIds = [...players.keys()];
-      const currentIdx = nextUserIds.indexOf(ME.id);
-      const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
-
-      const payload = { userId: ME.id, username: ME.username, rank: selectedClaimRank, count: playedCards.length, playedCards, nextUserId };
-      sendEvent("PLAY_CLAIM", payload);
-      handleGameEvent("PLAY_CLAIM", payload, ME.id);
-    });
-
-    document.getElementById("callBluffBtn")?.addEventListener("click", () => {
-      if (!lastClaim || challengeLock) return;
-      const payload = { challengerUserId: ME.id };
-      sendEvent("CALL_BLUFF_TRIGGER", payload);
-      handleGameEvent("CALL_BLUFF_TRIGGER", payload, ME.id);
-    });
-
-    return;
-  }
-
-  if (state === "RESULT") {
-    const sorted = [...players.values()].sort((a,b) => a.cardCount - b.cardCount);
-    const topCatcher = [...players.values()].sort((a,b) => (b.bluffCaughtCount||0) - (a.bluffCaughtCount||0))[0];
-
-    main.innerHTML = `
-      <section class="panel center" style="flex:1;">
-        <div style="width:100%;">
-          <h2>🏆 吹牛對決結算</h2>
-          ${topCatcher && (topCatcher.bluffCaughtCount||0) > 0 ? `<div style="background:#221538;border:1px solid var(--purple);border-radius:12px;padding:8px;margin-bottom:12px;color:var(--gold);font-weight:bold;">👑 抓包之王 (抓包第一名)：${esc(topCatcher.username)} (成功抓包 ${topCatcher.bluffCaughtCount} 次)</div>` : ''}
-          <div class="rankList">
-            ${sorted.map((p, i) => `
-              <div class="rankRow">
-                <div class="rankNo">第 ${i+1} 名</div>
-                <div class="rankName"><b>${esc(p.username)}</b> ${p.id===ME.id?'(你)':''}</div>
-                <div class="rankScore">剩餘 ${p.cardCount} 張牌</div>
-                <div class="tiny muted" style="grid-column:2/4;">成功抓包 ${p.bluffCaughtCount||0} 次 · 成功吹牛 ${p.bluffSuccessCount||0} 次</div>
-              </div>
-            `).join("")}
-          </div>
-          <div class="feedBox" style="max-height:110px;margin-top:12px;">${feed.map(f => `<div>${f}</div>`).join("")}</div>
-          <button id="restartBtn" class="cta" style="margin-top:16px;">返回大廳</button>
-        </div>
-      </section>
-    `;
-    document.getElementById("restartBtn")?.addEventListener("click", () => {
-      state = "LOBBY";
-      render();
-    });
-  }
-}
-
-// 預設初次渲染
-addPlayer(ME.id, ME.username, ME.avatar);
-render();
 </script>
 </body>
 </html>
