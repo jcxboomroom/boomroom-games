@@ -690,6 +690,14 @@
       cursor:pointer;
     }
 
+    .guessVoiceHint{
+      margin-top:6px;
+      color:#aebbd0;
+      font-size:12px;
+      line-height:1.45;
+      text-align:center;
+    }
+
     .skipBtn{
       height:44px;
       min-width:86px;
@@ -2388,7 +2396,7 @@
     if(currentWord) currentWordLength=getAnswerLength(currentWord);
     resetRevealState();
     knownStrokes=[]; localStrokeIds=[]; canvasRevision=0; remoteStrokeBuffers.clear(); currentStroke=null;
-    state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！按住麥克風說答案，或直接打字。';
+    state=STATES.PLAYING; feedText=isDrawer()?'輪到你！畫出題目，別寫字。':'快猜！按住 🎤 開始說話，講完後鬆開；也可以直接打字。';
     lastVoiceSubmittedText=""; lastVoiceSubmittedAt=0;
     appendChatMessage({chatKey:'TURN_START|'+roundId+'|'+currentTurnIndex,roundId,turnIndex:currentTurnIndex,username:'系統',
       text:isDrawer()?'🎨 第 '+(currentTurnIndex+1)+' 回合開始！答案共 '+currentWordLength+' 字，開始作畫！':'🎨 第 '+(currentTurnIndex+1)+' 回合開始！提示：答案共 '+currentWordLength+' 字，搶先猜！本回合需 '+currentRequiredCorrectCount+' 名玩家猜中。',isCorrect:false,isSystem:true});
@@ -3806,10 +3814,13 @@
           <button class="tool skipBtn" id="skipBtn" type="button" aria-label="跳過本題" title="跳過本題">跳過本題</button>
         </div>
       `:`
-        <div class="guessArea">
-          <input id="guessInput" type="text" data-turn-index="${currentTurnIndex}" inputmode="text" enterkeyhint="send" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
-          <button id="voiceBtn" type="button" aria-label="按住說話" title="按住麥克風說答案；辨識正確會自動計分" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
-          <button id="guessBtn">猜！</button>
+        <div>
+          <div class="guessArea">
+            <input id="guessInput" type="text" data-turn-index="${currentTurnIndex}" inputmode="text" enterkeyhint="send" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="${CONFIG.MAX_GUESS_LENGTH}" placeholder="輸入答案…">
+            <button id="voiceBtn" type="button" aria-label="按住麥克風開始說話，講完後鬆開" title="按住麥克風開始說話，持續按住並講完後鬆開；辨識到正確答案會自動計分" style="width:52px;border-radius:14px;background:#182235;border:1px solid var(--line);color:#fff;font-size:20px;touch-action:none;user-select:none;">🎤</button>
+            <button id="guessBtn">猜！</button>
+          </div>
+          <div class="guessVoiceHint">語音操作：按住 🎤 開始說話，持續按住並講完後鬆開；辨識到正確答案會自動計分。</div>
         </div>
       `}
 
@@ -3951,8 +3962,8 @@
     const btn=document.getElementById("voiceBtn");
     if(!btn) return;
     btn.classList.remove("voice-active");
-    btn.setAttribute("aria-label","按住說話");
-    btn.title="按住麥克風說答案；辨識正確會自動計分";
+    btn.setAttribute("aria-label","按住麥克風開始說話，講完後鬆開");
+    btn.title="按住麥克風開始說話，持續按住並講完後鬆開；辨識到正確答案會自動計分";
   }
 
   function finishPendingSpeechGuess(session,hostAlreadyStopped=false){
