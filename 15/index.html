@@ -1381,10 +1381,9 @@
     const candidates=[normalizeText(word.answer)].concat(Array.isArray(word.aliases)?word.aliases.map(normalizeText):[]).filter(Boolean);
     if(candidates.includes(g)) return true;
 
-    // Voice recognition often returns a short sentence, not only the answer.
-    // Accept a contained multi-character answer without matching single
-    // character fragments from unrelated words.
-    if(candidates.some(candidate=>candidate.length>=2 && g.includes(candidate))) return true;
+    // Recognition may include a short answer inside a phrase. This also needs
+    // to support one-character answers such as 湖 or 山 (小湖／大山).
+    if(candidates.some(candidate=>g.includes(candidate))) return true;
 
     // 語音常會多出「是、啊、喔、欸、耶、的」等語尾，允許只去掉少量語尾後再比對。
     const trimmed=g.replace(/(是|啊|喔|哦|欸|耶|的|啦|呀)+$/g, "");
@@ -2780,7 +2779,7 @@
     const normalized=normalizeText(text);
     if(!normalized) return false;
     const now=Date.now();
-    if(normalized===lastVoiceSubmittedText && now-lastVoiceSubmittedAt<1200) return false;
+    if(normalized===lastVoiceSubmittedText) return false;
     const payload={
       roundId,
       type:"VOICE_GUESS",
@@ -4080,7 +4079,10 @@
 
     // Final results are sent to the host for private exact-answer checking.
     // The transcript is only a preview; it is not submitted to the chat.
-    if(isFinal) submitVoiceGuess(cleanText);
+    // Send changing interim transcripts privately too, so a one-word answer
+    // can score as soon as the recognizer produces it instead of waiting for
+    // the platform's delayed final-result callback.
+    submitVoiceGuess(cleanText);
   };
 
   window.onFlutterSpeechStopped=function(sessionId){
