@@ -43,7 +43,7 @@ button:disabled{opacity:.4;cursor:default}
 
 /* Table Center */
 .tableCenter{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;background:#080d1a;border:1px dashed var(--line);border-radius:16px;padding:12px;position:relative}
-.lastPlayBox{display:flex;gap:6px;margin-top:8px;justify-content:center}
+.lastPlayBox{display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap}
 
 .actionRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .feedBox{max-height:85px;overflow-y:auto;font-size:11px;background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:6px;margin-top:4px}
@@ -72,6 +72,7 @@ let state = "LOBBY"; // LOBBY, PLAYING, RESULT
 let currentTurnUserId = "";
 let lastPlay = null; // { userId, username, comboType, cardList: [] }
 let passCount = 0;
+let isFirstPlayOfMatch = true;
 let feed = [];
 
 function isHost() { return sdkIsHost || players.size <= 1; }
@@ -151,14 +152,133 @@ function sendEvent(eventName, payload) {
   } catch (_) {}
 }
 
+/* =========================================================
+   BIG TWO COMBINATION & COMPARISON ENGINE
+========================================================= */
+
 function getCardValue(c) {
   const rankIdx = RANKS.indexOf(c.rank);
   const suitIdx = SUITS.indexOf(c.suit);
   return rankIdx * 4 + suitIdx;
 }
 
-function sortHand(cards) {
-  return cards.sort((a, b) => getCardValue(a) - getCardValue(b));
+function getCardRankValue(c) {
+  return RANKS.indexOf(c.rank);
+}
+
+function sortCards(cards) {
+  return [...cards].sort((a, b) => getCardValue(a) - getCardValue(b));
+}
+
+function identifyCombo(cards) {
+  if (!cards || cards.length === 0) return null;
+  const sorted = sortCards(cards);
+  const len = sorted.length;
+
+  if (len === 1) {
+    return { type: "SINGLE", name: "單張", topValue: getCardValue(sorted[0]), len: 1 };
+  }
+
+  if (len === 2) {
+    if (sorted[0].rank === sorted[1].rank) {
+      return { type: "PAIR", name: "對子", topValue: getCardValue(sorted[1]), len: 2 };
+    }
+    return null;
+  }
+
+  if (len === 3) {
+    if (sorted[0].rank === sorted[1].rank && sorted[1].rank === sorted[2].rank) {
+      return { type: "TRIPLE", name: "三條", topValue: getCardValue(sorted[2]), len: 3 };
+    }
+    return null;
+  }
+
+  if (len === 5) {
+    const isSameSuit = sorted.every(c => c.suit === sorted[0].suit);
+
+    let isStraight = false;
+    let straightTopCard = sorted[4];
+
+    const ranksIdx = sorted.map(c => getCardRankValue(c));
+    if (ranksIdx[1] === ranksIdx[0] + 1 && ranksIdx[2] === ranksIdx[1] + 1 &&
+        ranksIdx[3] === ranksIdx[2] + 1 && ranksIdx[4] === ranksIdx[3] + 1) {
+      isStraight = true;
+      straightTopCard = sorted[4];
+    } else {
+      const rankNames = sorted.map(c => c.rank).join('');
+      if (rankNames === "345A2" || rankNames === "34562") {
+        isStraight = true;
+        straightTopCard = sorted.find(c => c.rank === '2') || sorted[4];
+      }
+    }
+
+    if (isStraight && isSameSuit) {
+      return { type: "STRAIGHT_FLUSH", name: "同花順", categoryRank: 5, topValue: getCardValue(straightTopCard), len: 5 };
+    }
+
+    const rankCounts = {};
+    sorted.forEach(c => rankCounts[c.rank] = (rankCounts[c.rank] || 0) + 1);
+    const fourRank = Object.keys(rankCounts).find(r => rankCounts[r] === 4);
+    if (fourRank) {
+      const fourCard = sorted.filter(c => c.rank === fourRank).pop();
+      return { type: "FOUR_OF_KIND", name: "鐵支", categoryRank: 4, topValue: getCardValue(fourCard), len: 5 };
+    }
+
+    const tripleRank = Object.keys(rankCounts).find(r => rankCounts[r] === 3);
+    const pairRank = Object.keys(rankCounts).find(r => rankCounts[r] === 2);
+    if (tripleRank && pairRank) {
+      const tripleCard = sorted.filter(c => c.rank === tripleRank).pop();
+      return { type: "FULL_HOUSE", name: "葫蘆", categoryRank: 3, topValue: getCardValue(tripleCard), len: 5 };
+    }
+
+    if (isSameSuit) {
+      return { type: "FLUSH", name: "同花", categoryRank: 2, topValue: getCardValue(sorted[4]), len: 5 };
+    }
+
+    if (isStraight) {
+      return { type: "STRAIGHT", name: "順子", categoryRank: 1, topValue: getCardValue(straightTopCard), len: 5 };
+    }
+  }
+
+  return null;
+}
+
+function canBeat(newCards, lastPlayObj) {
+  const newCombo = identifyCombo(newCards);
+  if (!newCombo) return { valid: false, reason: "不符合大老二合法牌型（單張/對子/三條/五張牌型）" };
+
+  if (!lastPlayObj) {
+    return { valid: true, combo: newCombo };
+  }
+
+  const lastCombo = identifyCombo(lastPlayObj.cardList);
+  if (!lastCombo) return { valid: true, combo: newCombo };
+
+  if (newCombo.len !== lastCombo.len) {
+    return { valid: false, reason: `必須跟出相同的張數 (${lastCombo.len} 張)` };
+  }
+
+  if (newCombo.len < 5) {
+    if (newCombo.type !== lastCombo.type) {
+      return { valid: false, reason: `牌型不符合，必須壓同牌型 (${lastCombo.name})` };
+    }
+    if (newCombo.topValue > lastCombo.topValue) {
+      return { valid: true, combo: newCombo };
+    }
+    return { valid: false, reason: `點數太小，無法壓過對手的 ${lastCombo.name}` };
+  }
+
+  if (newCombo.categoryRank > lastCombo.categoryRank) {
+    return { valid: true, combo: newCombo };
+  }
+  if (newCombo.categoryRank === lastCombo.categoryRank) {
+    if (newCombo.topValue > lastCombo.topValue) {
+      return { valid: true, combo: newCombo };
+    }
+    return { valid: false, reason: `點數/花色太小，無法壓過對手的 ${lastCombo.name}` };
+  }
+
+  return { valid: false, reason: `牌型等級不足，無法壓過 ${lastCombo.name}` };
 }
 
 function generateFullDeck() {
@@ -176,6 +296,7 @@ function handleGameEvent(eventName, payload, senderId) {
     state = "PLAYING";
     lastPlay = null;
     passCount = 0;
+    isFirstPlayOfMatch = true;
 
     if (players.size <= 1) {
       addPlayer("bot_1", "🤖 阿強", "");
@@ -183,16 +304,17 @@ function handleGameEvent(eventName, payload, senderId) {
       addPlayer("bot_3", "🤖 爆哥", "");
     }
 
-    feed = ["♠ 大老二對決開始！每人發 13 張牌。"];
+    feed = ["♠ 大老二正式開局！每人發 13 張牌。持有 梅花3 (3♣) 玩家率先出牌！"];
     generateHand();
-    currentTurnUserId = payload.startUserId || ME.id;
+    currentTurnUserId = payload.startUserId || find3ClubOwner();
     render();
   } else if (eventName === "PLAY_COMBO") {
     lastPlay = { userId: payload.userId, username: payload.username, cardList: payload.cardList, comboType: payload.comboType };
     passCount = 0;
+    isFirstPlayOfMatch = false;
     const p = players.get(payload.userId);
     if (p) p.cardCount = Math.max(0, p.cardCount - payload.cardList.length);
-    feed.push(`🃏 ${esc(payload.username)} 出牌 [ ${payload.cardList.map(c=>c.suit+c.rank).join(" ")} ]`);
+    feed.push(`🃏 ${esc(payload.username)} 出牌 [ ${payload.comboType || '牌組'} ]: ${payload.cardList.map(c=>c.suit+c.rank).join(" ")}`);
 
     if (p && p.cardCount === 0) {
       feed.push(`🏆 恭喜 ${esc(payload.username)} 清空手牌，奪得大老二冠軍！`);
@@ -226,16 +348,25 @@ function handleGameEvent(eventName, payload, senderId) {
     feed.push(`🤐 ${esc(payload.username)} 選擇 PASS (過)`);
     if (passCount >= players.size - 1) {
       lastPlay = null; // Trick reset!
-      feed.push(`🌟 上圈全 PASS！由 ${esc(payload.nextUsername)} 獲得發牌權！`);
+      feed.push(`🌟 上圈全 PASS！由 ${esc(payload.nextUsername)} 獲得自由出牌權！`);
     }
     currentTurnUserId = payload.nextUserId;
     render();
   }
 }
 
+function find3ClubOwner() {
+  for (const [id, p] of players.entries()) {
+    if (p.hand && p.hand.some(c => c.rank === '3' && c.suit === '♣')) {
+      return id;
+    }
+  }
+  return [...players.keys()][0] || ME.id;
+}
+
 function generateHand() {
   const deck = generateFullDeck();
-  hand = sortHand(deck.slice(0, 13));
+  hand = sortCards(deck.slice(0, 13));
   selectedIndices.clear();
 }
 
@@ -267,17 +398,34 @@ function triggerAiBotTurn(botP) {
 
   if (!botP.hand || botP.hand.length === 0) {
     const deck = generateFullDeck();
-    botP.hand = sortHand(deck.slice(0, botP.cardCount || 13));
+    botP.hand = sortCards(deck.slice(0, botP.cardCount || 13));
   }
 
-  let playedCards = [];
+  let playable = null;
+
   if (!lastPlay) {
-    playedCards = [botP.hand[0]];
+    if (isFirstPlayOfMatch) {
+      const club3 = botP.hand.find(c => c.rank === '3' && c.suit === '♣');
+      if (club3) playable = [club3];
+      else playable = [botP.hand[0]];
+    } else {
+      playable = [botP.hand[0]];
+    }
   } else {
-    const targetVal = getCardValue(lastPlay.cardList[lastPlay.cardList.length - 1]);
-    const higherCard = botP.hand.find(c => getCardValue(c) > targetVal);
-    if (higherCard) {
-      playedCards = [higherCard];
+    const lastLen = lastPlay.cardList.length;
+    if (lastLen === 1) {
+      const beatCard = botP.hand.find(c => canBeat([c], lastPlay).valid);
+      if (beatCard) playable = [beatCard];
+    } else if (lastLen === 2) {
+      for (let i = 0; i < botP.hand.length - 1; i++) {
+        if (botP.hand[i].rank === botP.hand[i+1].rank) {
+          const pair = [botP.hand[i], botP.hand[i+1]];
+          if (canBeat(pair, lastPlay).valid) {
+            playable = pair;
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -285,9 +433,10 @@ function triggerAiBotTurn(botP) {
   const currentIdx = nextUserIds.indexOf(botP.id);
   const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
 
-  if (playedCards.length > 0) {
-    botP.hand = botP.hand.filter(c => c !== playedCards[0]);
-    const payload = { userId: botP.id, username: botP.username, cardList: playedCards, comboType: "SINGLE", nextUserId };
+  if (playable) {
+    botP.hand = botP.hand.filter(c => !playable.some(pc => pc.rank === c.rank && pc.suit === c.suit));
+    const comboInfo = identifyCombo(playable);
+    const payload = { userId: botP.id, username: botP.username, cardList: playable, comboType: comboInfo ? comboInfo.name : "牌組", nextUserId };
     sendEvent("PLAY_COMBO", payload);
     handleGameEvent("PLAY_COMBO", payload, botP.id);
   } else {
@@ -326,12 +475,15 @@ function render() {
     if (currentP && currentP.id.startsWith("bot_") && (currentP.cardCount || 13) > 0) {
       setTimeout(() => triggerAiBotTurn(currentP), 1000);
     }
+
+    const currentComboInfo = lastPlay ? identifyCombo(lastPlay.cardList) : null;
+
     main.innerHTML = `
       <section class="tableCenter">
-        ${lastPlay ? `<div class="tiny muted">上一手出牌 (${esc(lastPlay.username)})：</div><div class="lastPlayBox">${lastPlay.cardList.map(c => {
+        ${lastPlay ? `<div class="tiny muted">上一手出牌 (${esc(lastPlay.username)} · ${currentComboInfo?currentComboInfo.name:'牌組'})：</div><div class="lastPlayBox">${lastPlay.cardList.map(c => {
           const isRed = c.suit === "♥" || c.suit === "♦";
           return `<div class="card ${isRed?'red':''}"><div>${c.rank}</div><div style="font-size:18px;text-align:center;">${c.suit}</div><div style="text-align:right;">${c.rank}</div></div>`;
-        }).join("")}</div>` : '<div class="notice">🌟 自由牌權：出任意合法牌型！</div>'}
+        }).join("")}</div>` : '<div class="notice">🌟 自由出牌權：請出任意合法大老二牌型！</div>'}
       </section>
 
       <section class="panel">
@@ -378,6 +530,22 @@ function render() {
     document.getElementById("playBtn")?.addEventListener("click", () => {
       if (!isMyTurn || selectedIndices.size === 0) return;
       const playedCards = [...selectedIndices].map(i => hand[i]);
+
+      // 大老二規則驗證
+      if (isFirstPlayOfMatch) {
+        const has3Club = playedCards.some(c => c.rank === '3' && c.suit === '♣');
+        if (!has3Club) {
+          alert('首回合出牌必須包含 梅花3 (3♣)！');
+          return;
+        }
+      }
+
+      const beatResult = canBeat(playedCards, lastPlay);
+      if (!beatResult.valid) {
+        alert(`❌ 不合規定的出牌：${beatResult.reason}`);
+        return;
+      }
+
       hand = hand.filter((_, i) => !selectedIndices.has(i));
       selectedIndices.clear();
 
@@ -385,7 +553,7 @@ function render() {
       const currentIdx = nextUserIds.indexOf(ME.id);
       const nextUserId = nextUserIds[(currentIdx + 1) % nextUserIds.length];
 
-      const payload = { userId: ME.id, username: ME.username, cardList: playedCards, comboType: "SINGLE", nextUserId };
+      const payload = { userId: ME.id, username: ME.username, cardList: playedCards, comboType: beatResult.combo.name, nextUserId };
       sendEvent("PLAY_COMBO", payload);
       handleGameEvent("PLAY_COMBO", payload, ME.id);
     });
