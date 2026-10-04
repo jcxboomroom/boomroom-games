@@ -251,9 +251,21 @@ function buildParticipants(humans) {
   return realHumans;
 }
 
+function isLocalUserId(id) {
+  if (!id) return false;
+  const target = String(id);
+  const myId = String(user?.id ?? user?.userId ?? ME.id ?? "");
+  const localId = String(localPlayer?.id ?? "");
+  return (myId && target === myId) || (localId && target === localId);
+}
+
 function createGameplayPlayers(participants) {
-  return (Array.isArray(participants) ? participants : []).slice(0, MAX_PLAYERS)
-    .map((raw, index) => makePlayer(raw, index, raw.id === String(user?.id ?? ""), Boolean(raw.isBot)));
+  const list = (Array.isArray(participants) ? participants : []).slice(0, MAX_PLAYERS);
+  return list.map((raw, index) => {
+    const rawId = String(raw.id ?? raw.userId ?? "");
+    const isLocal = isLocalUserId(rawId);
+    return makePlayer(raw, index, isLocal, Boolean(raw.isBot));
+  });
 }
 
 function resetTilesForMap(map) {
@@ -675,7 +687,12 @@ function resetBattleState(participants, mapIndex = 0, number = 1) {
   currentMapIndex = Math.max(0, Math.min(MAPS.length - 1, Number(mapIndex) || ((battleNumber - 1) % MAPS.length)));
   resetTilesForMap(MAPS[currentMapIndex]);
   players = createGameplayPlayers(participants);
-  localPlayer = players.find((p) => p.isLocal) || players[0] || null;
+  localPlayer = players.find((p) => isLocalUserId(p.id)) || players.find((p) => p.isLocal) || null;
+  if (!localPlayer && players.length > 0) {
+    const myName = String(user?.username ?? user?.name ?? "你").slice(0, 14);
+    localPlayer = players.find((p) => p.name === myName) || players[0];
+    if (localPlayer) localPlayer.isLocal = true;
+  }
   players.forEach((player, index) => {
     const angle = index * 2.3999632297 + 0.28;
     const radius = index === 0 ? 0.10 : 0.43 + (index % 3) * 0.065;
