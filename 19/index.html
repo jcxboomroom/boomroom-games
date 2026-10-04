@@ -169,15 +169,46 @@ function sendEvent(eventName, payload) {
   } catch (_) {}
 }
 
-function rollDice() {
-  return Array.from({ length: 5 }, () => Math.floor(Math.random() * 6) + 1).sort((a,b) => a - b);
+let modeVotes = new Map();
+
+function getModeVoteCount(mode) {
+  let count = 0;
+  for (const [uid, v] of modeVotes.entries()) {
+    if (v === mode) count++;
+  }
+  return count;
+}
+
+function seededRandom(seed) {
+  let s = (Number(seed) || 12345) % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return function() {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+function generateDiceForPlayers(seed) {
+  const rng = seededRandom(seed);
+  const pList = [...players.values()].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  pList.forEach(p => {
+    if (p.lives > 0) {
+      p.dice = Array.from({ length: 5 }, () => Math.floor(rng() * 6) + 1).sort((a, b) => a - b);
+      if (String(p.id) === String(ME.id)) {
+        myDice = p.dice;
+      }
+    }
+  });
 }
 
 function handleGameEvent(eventName, payload, senderId) {
   if (eventName === "TOGGLE_SOUND") return;
 
   if (eventName === "DICE_MODE_SELECT") {
-    selectedMode = payload.mode || "CLASSIC";
+    const uid = String(payload.userId || senderId || "");
+    const mode = payload.mode || "CLASSIC";
+    if (uid) modeVotes.set(uid, mode);
+    selectedMode = mode;
     render();
   } else if (eventName === "DICE_GAME_START") {
     state = "PLAYING";
@@ -196,12 +227,22 @@ function handleGameEvent(eventName, payload, senderId) {
       addPlayer("bot_3", "🤖 爆哥", "");
     }
 
-    players.forEach(p => { p.lives = initialLives; p.dice = rollDice(); p.successfulBluffs = 0; p.successfulChallenges = 0; });
-    myDice = rollDice();
+    players.forEach(p => { p.lives = initialLives; p.successfulBluffs = 0; p.successfulChallenges = 0; });
+    const seed = Number(payload.seed) || Date.now();
+    generateDiceForPlayers(seed);
+
     lastBid = null;
     challengeLock = false;
-    feed = [`🎲 《吹牛王》${selectedMode==='HELL'?'地獄':selectedMode==='PARTY'?'派對':'經典'}模式開局！全場重新擲骰，1 為萬能骰！`];
+    feed = [`🎲 《吹牛王》${selectedMode==='HELL'?'地獄':selectedMode==='PARTY'?'派對':'經典'}模式開局！全場雙向同步擲骰，1 為萬能骰！`];
     currentTurnUserId = payload.startUserId || ME.id;
+    render();
+  } else if (eventName === "DICE_NEXT_ROUND") {
+    const seed = Number(payload.seed) || Date.now();
+    generateDiceForPlayers(seed);
+    lastBid = null;
+    challengeLock = false;
+    currentTurnUserId = payload.startUserId || currentTurnUserId;
+    feed.push(`🎲 進入新一輪！全場重新同步擲骰！`);
     render();
   } else if (eventName === "MAKE_BID") {
     lastBid = { userId: payload.userId, username: payload.username, quantity: payload.quantity, face: payload.face };
@@ -261,14 +302,15 @@ function handleGameEvent(eventName, payload, senderId) {
     if (alivePlayers.length <= 1) {
       const winner = alivePlayers[0] || [...players.values()][0];
       triggerWinner(winner.id, `🏆 恭喜 ${esc(winner.username)} 成為最後生還者，奪得吹牛王總冠軍！`);
-    } else {
-      // Next Round: Roll dice again!
-      players.forEach(p => { if (p.lives > 0) p.dice = rollDice(); });
-      myDice = rollDice();
-      lastBid = null;
-      setTimeout(() => render(), 1500);
+    } else if (isHost()) {
+      setTimeout(() => {
+        const nextSeed = Date.now() + Math.floor(Math.random() * 1000);
+        sendEvent("DICE_NEXT_ROUND", { seed: nextSeed, startUserId: currentTurnUserId });
+        handleGameEvent("DICE_NEXT_ROUND", { seed: nextSeed, startUserId: currentTurnUserId }, ME.id);
+      }, 3000);
     }
   }
+}
 }
 
 function lastClaimName(bid) {
@@ -380,30 +422,32 @@ function render() {
   if (state === "LOBBY") {
     main.innerHTML = `
       <section class="panel">
-        <div class="sectionTitle">🎮 選擇遊戲模式：</div>
+        <div class="sectionTitle">🎮 選擇遊戲模式 (每人 1 票)：</div>
         <div style="display:flex;gap:8px">
-          <button class="miniTag ${selectedMode==='CLASSIC'?'active':''}" data-mode="CLASSIC">🎲 經典模式 (3❤️/1萬能)</button>
-          <button class="miniTag ${selectedMode==='PARTY'?'active':''}" data-mode="PARTY">🔥 派對模式 (8s快計)</button>
-          <button class="miniTag ${selectedMode==='HELL'?'active':''}" data-mode="HELL">💀 地獄模式 (1❤️/無萬能)</button>
+          <button class="miniTag ${selectedMode==='CLASSIC'?'active':''}" data-mode="CLASSIC">🎲 經典模式 · 🗳️ ${getModeVoteCount('CLASSIC')} 票</button>
+          <button class="miniTag ${selectedMode==='PARTY'?'active':''}" data-mode="PARTY">🔥 派對模式 · 🗳️ ${getModeVoteCount('PARTY')} 票</button>
+          <button class="miniTag ${selectedMode==='HELL'?'active':''}" data-mode="HELL">💀 地獄模式 · 🗳️ ${getModeVoteCount('HELL')} 票</button>
         </div>
       </section>
       <section class="panel"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>5 顆</b><span>骰子/人</span></div><div class="stat"><b>1 為萬能</b><span>經典規則</span></div></div></section>
       <section class="panel"><div class="sectionTitle">房內玩家</div><div class="players">${renderPlayers()}</div></section>
-      ${isHost() ? `<button id="startBtn" class="cta">👑 室長：開始《吹牛王》對決</button>` : '<div class="notice">等待室長開始遊戲...</div>'}
+      ${isHost() ? `<button id="startBtn" class="cta">👑 開始《吹牛王》對決</button>` : '<button id="startBtn" class="cta">🚀 點擊開始《吹牛王》對決</button>'}
       <button id="devBtn" class="cta secondary" style="margin-top:8px;">🧪 本地測試：直接開局體驗</button>
     `;
 
     document.querySelectorAll("[data-mode]").forEach(b => {
       b.addEventListener("click", () => {
         selectedMode = b.dataset.mode;
-        sendEvent("DICE_MODE_SELECT", { mode: selectedMode });
+        modeVotes.set(String(ME.id), selectedMode);
+        sendEvent("DICE_MODE_SELECT", { mode: selectedMode, userId: ME.id });
         render();
       });
     });
 
     document.getElementById("startBtn")?.addEventListener("click", () => {
-      sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode });
-      handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode }, ME.id);
+      const startSeed = Date.now();
+      sendEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode, seed: startSeed });
+      handleGameEvent("DICE_GAME_START", { startUserId: ME.id, mode: selectedMode, seed: startSeed }, ME.id);
     });
 
     document.getElementById("devBtn")?.addEventListener("click", () => {
