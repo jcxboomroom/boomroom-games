@@ -3,6 +3,9 @@ const COLS_LABELS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O'
 
 // 🌟 全局預先綁定 SDK 訊息監聽器，確保不漏接任何 postMessage
 window.addEventListener('message', e => {
+  // SDK v2 validates parent/source/session and owns dispatch. Keep the legacy
+  // path only for older native hosts to avoid processing every move twice.
+  if (window.BoomRoomSDK?.version === 2) return;
   try {
     const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
     if (!data) return;
@@ -15,6 +18,7 @@ window.addEventListener('message', e => {
 });
 
 window.addEventListener('gameEventReceived', e => {
+  if (window.BoomRoomSDK?.version === 2) return;
   const detail = e.detail || {};
   handleNetworkEvent(detail.eventName, detail.payload, detail.senderId);
 });
@@ -72,6 +76,80 @@ let aiDifficulty = 'normal';
 const handledUndoRequests = new Set();
 const appliedUndoRequests = new Set();
 let pendingUndoRequestId = null;
+let authoritativeGomoku = false, serverVersion = 0, serverState = null;
+let serverStartTime = 0, serverTimeReceived = 0, serverReceivedAt = 0;
+let serverSyncTimer = null, serverUiTimer = null, shownServerRequest = null;
+let serverCommandPending = false;
+
+function gameServerTime() {
+  return serverTimeReceived + performance.now() - serverReceivedAt;
+}
+function sendServerCommand(kind, fields = {}) {
+  if (!authoritativeGomoku || !sdk?.isReady) return false;
+  if (kind !== 'SYNC' && serverCommandPending) return false;
+  let command = { kind };
+  if (kind !== 'SYNC') {
+    if (!window.crypto?.randomUUID) { showToast('此環境無法送出正式棋局操作，請更新瀏覽器。'); return false; }
+    command = { ...fields, kind, commandId: window.crypto.randomUUID(), expectedVersion: serverVersion };
+    serverCommandPending = true;
+  }
+  const sent = sdk.sendGameEvent('GOMOKU_COMMAND', command);
+  if (!sent) serverCommandPending = false;
+  return sent;
+}
+function refreshServerNotice() {
+  if (!serverState) return;
+  const now = gameServerTime();
+  if (serverState.phase === 'PLAYING') {
+    isPlaying = now >= serverStartTime;
+    ui.autoStartNotice.textContent = isPlaying ? '🎮 伺服器對局中 · 三勝制'
+      : `⏱️ ${Math.max(0, Math.ceil((serverStartTime - now) / 1000))} 秒後開始`;
+  } else if (serverState.phase === 'MATCH_RESULT') {
+    const hint = document.querySelector('.auto-close-hint');
+    if (hint) hint.textContent = `${Math.max(0, Math.ceil((serverState.returnAt - now) / 1000))} 秒後返回房間…`;
+  } else {
+    ui.resultReward.textContent = `${Math.max(0, Math.ceil((serverState.nextRoundAt - now) / 1000))} 秒後下一局…`;
+  }
+}
+function applyServerState(packet) {
+  if (!packet || !Number.isSafeInteger(packet.version) || packet.version < serverVersion ||
+      !packet.state || packet.state.rulesVersion !== 1 || !Array.isArray(packet.state.board)) return;
+  const state = packet.state;
+  // State is only dispatched from the SDK's authenticated SYSTEM envelope.
+  if (state.board.length !== BOARD_SIZE || state.board.some(row => !Array.isArray(row) || row.length !== BOARD_SIZE)) return;
+  serverVersion = packet.version; serverState = state; serverCommandPending = false;
+  serverStartTime = Number(packet.startTime); serverTimeReceived = Number(packet.serverTime); serverReceivedAt = performance.now();
+  const participants = sdk.getSession().players;
+  const role = id => id === null ? { id: 'AI', username: '🤖 伺服器 AI', isBot: true }
+    : { ...participants.find(p => Number(p.userId ?? p.id) === id), id: String(id) };
+  playerBlack = role(state.blackId); playerWhite = role(state.whiteId);
+  board = state.board.map(row => [...row]); moveHistory = state.moves.map(move => [...move]);
+  currentTurn = state.turn; winningStones = state.winningStones || []; hintPos = null;
+  playerScores.clear(); Object.entries(state.scores).forEach(([id, score]) => playerScores.set(id, score));
+  roundCount = state.round - 1; autoStarted = true; isPlaying = state.phase === 'PLAYING' && gameServerTime() >= serverStartTime;
+  ui.aiDifficultyBar?.classList.add('hidden'); if (ui.btnHint) ui.btnHint.style.display = 'none';
+  updateRosterUI(); updateTurnUI(); drawBoard(); refreshServerNotice();
+  if (state.phase === 'PLAYING') ui.resultOverlay.classList.add('hidden');
+  else {
+    const winner = state.winnerColor === 1 ? playerBlack : state.winnerColor === 2 ? playerWhite : null;
+    ui.resultTitle.textContent = !winner ? '🤝 平手！' : state.phase === 'MATCH_RESULT'
+      ? `🏆 ${winner.username} 奪得三勝總冠軍！` : `🎉 本局由 ${winner.username} 獲勝！`;
+    ui.resultSubtitle.textContent = `伺服器比分：${playerBlack.username} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite.username}`;
+    if (state.phase === 'MATCH_RESULT') ui.resultReward.textContent = packet.resultVerified
+      ? '結果已由伺服器驗證 · 本遊戲尚未設定銀幣獎勵' : '結果等待伺服器驗證';
+    ui.resultOverlay.classList.remove('hidden');
+  }
+  const pending = state.pending;
+  if (!pending) { shownServerRequest = null; document.getElementById('confirmOverlay')?.classList.add('hidden'); }
+  if (pending && pending.requesterId !== Number(me.id) && isActivePlayer() && shownServerRequest !== pending.id) {
+    shownServerRequest = pending.id;
+    const kind = pending.kind === 'UNDO' ? 'UNDO_RESPONSE' : 'RESTART_RESPONSE';
+    showConfirmModal(pending.kind === 'UNDO' ? '💬 悔棋申請' : '🔄 重開對局申請',
+      pending.kind === 'UNDO' ? '對手申請悔棋一步，是否同意？' : '對手申請重開並重置比分，是否同意？',
+      () => sendServerCommand(kind, { requestId: pending.id, accept: true }),
+      () => sendServerCommand(kind, { requestId: pending.id, accept: false }));
+  }
+}
 
 /* =========================================================
    AUDIO & SFX
@@ -152,6 +230,15 @@ function setupSDK(data) {
 
   totalRoomPlayersCount = Math.max(1, roomPlayersMap.size);
   readyPlayersSet.add(me.id);
+  const session = window.BoomRoomSDK?.getSession?.();
+  if (session?.engine === 'GOMOKU' && window.BoomRoomSDK.version === 2) {
+    authoritativeGomoku = true; sdk = window.BoomRoomSDK;
+    applyServerState({ state: session.engineState, version: session.version, startTime: session.startTime,
+      serverTime: session.serverTime, resultVerified: session.resultVerified });
+    if (!serverSyncTimer) serverSyncTimer = setInterval(() => sendServerCommand('SYNC'), 2000);
+    if (!serverUiTimer) serverUiTimer = setInterval(refreshServerNotice, 200);
+    sendServerCommand('SYNC'); return;
+  }
   assignRoles();
   updateRosterUI();
   updateAutoStartNotice();
@@ -168,8 +255,22 @@ function setupSDK(data) {
 }
 
 // 定期同步房間最新玩家清單
-setInterval(() => {
+const rosterTimer = setInterval(() => {
   if (window.BoomRoomSDK && Array.isArray(window.BoomRoomSDK.roomPlayers)) {
+    if (window.BoomRoomSDK.version === 2 && window.BoomRoomSDK.isReady) {
+      const players = window.BoomRoomSDK.getRoomPlayers();
+      const activeIds = new Set(players.map(player => String(player.id ?? player.userId)));
+      let removed = false;
+      for (const id of roomPlayersMap.keys()) {
+        if (!activeIds.has(id)) { roomPlayersMap.delete(id); readyPlayersSet.delete(id); removed = true; }
+      }
+      if (removed) {
+        totalRoomPlayersCount = roomPlayersMap.size;
+        // Existing stones/roles stay bound to this round after a disconnect.
+        if (!isPlaying && !authoritativeGomoku) assignRoles();
+        updateRosterUI(); updateAutoStartNotice();
+      }
+    }
     if (window.BoomRoomSDK.roomPlayers.length > 0) {
       let changed = false;
       window.BoomRoomSDK.roomPlayers.forEach((rp, i) => {
@@ -188,7 +289,7 @@ setInterval(() => {
       });
       if (changed) {
         totalRoomPlayersCount = Math.max(1, roomPlayersMap.size);
-        assignRoles();
+        if (!isPlaying && !authoritativeGomoku) assignRoles();
         updateRosterUI();
         updateAutoStartNotice();
         if (roomPlayersMap.size >= 2 && !isPlaying && !autoStarted) {
@@ -226,7 +327,8 @@ function updateRosterUI() {
   ui.playerCounter.textContent = `👥 ${roomPlayersMap.size}/10 人`;
   ui.rosterList.innerHTML = '';
 
-  const pList = [playerBlack, playerWhite, ...[...roomPlayersMap.values()].filter(p => p !== playerBlack && p !== playerWhite)];
+  const activeIds = new Set([playerBlack?.id, playerWhite?.id]);
+  const pList = [playerBlack, playerWhite, ...[...roomPlayersMap.values()].filter(p => !activeIds.has(p.id))];
   pList.filter(Boolean).forEach((p, idx) => {
     const chip = document.createElement('div');
     chip.className = `roster-chip${p.id === me.id ? ' active' : ''}`;
@@ -234,9 +336,18 @@ function updateRosterUI() {
     chip.textContent = `${p.username}${roleTag}`;
     ui.rosterList.appendChild(chip);
   });
+  const spectator = !isActivePlayer();
+  ui.btnUndo.disabled = spectator;
+  ui.btnResign.disabled = spectator;
+  ui.btnRestart.disabled = spectator;
+}
+
+function isActivePlayer() {
+  return me.id === playerBlack?.id || me.id === playerWhite?.id;
 }
 
 function updateAutoStartNotice() {
+  if (authoritativeGomoku) { refreshServerNotice(); return; }
   if (!ui.autoStartNotice) return;
   const count = readyPlayersSet.size;
   ui.autoStartNotice.textContent = `⏱️ 房間人數 ${count}/${totalRoomPlayersCount}，準備自動開始...`;
@@ -247,6 +358,7 @@ function updateAutoStartNotice() {
 }
 
 function triggerAutoStart() {
+  if (authoritativeGomoku) return;
   if (autoStarted) return;
   autoStarted = true;
   clearTimeout(autoStartTimer);
@@ -266,6 +378,7 @@ function scheduleAutoStartFallback() {
 }
 
 function startGomokuRound() {
+  if (authoritativeGomoku) return;
   assignRoles();
   board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
   moveHistory = [];
@@ -295,7 +408,7 @@ function updateTurnUI() {
     ui.turnText.textContent = `${myColorStr} · 白子（${playerWhite?.username || '白棋'}）落子`;
   }
 
-  if (isPlaying && ((currentTurn === 1 && playerBlack?.isBot) || (currentTurn === 2 && playerWhite?.isBot))) {
+  if (!authoritativeGomoku && isPlaying && ((currentTurn === 1 && playerBlack?.isBot) || (currentTurn === 2 && playerWhite?.isBot))) {
     setTimeout(triggerAiMove, 400);
   }
 }
@@ -318,6 +431,17 @@ function resetMatchScores() {
 
 function resizeCanvas() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const container = ui.canvas.parentElement;
+  const available = container.getBoundingClientRect();
+  const style = getComputedStyle(container);
+  const horizontalPadding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  const size = Math.max(1, Math.floor(Math.min(
+    available.width - horizontalPadding,
+    available.height - verticalPadding
+  )));
+  ui.canvas.style.width = `${size}px`;
+  ui.canvas.style.height = `${size}px`;
   const rect = ui.canvas.getBoundingClientRect();
   ui.canvas.width = rect.width * dpr;
   ui.canvas.height = rect.height * dpr;
@@ -466,6 +590,7 @@ function handleCanvasClick(e) {
   const row = Math.round((y - margin) / cell);
 
   if (col >= 0 && col < BOARD_SIZE && row >= 0 && row < BOARD_SIZE && board[row][col] === 0) {
+    if (authoritativeGomoku) { sendServerCommand('MOVE', { row, col }); return; }
     placeMove(row, col, currentTurn, true);
   }
 }
@@ -692,7 +817,8 @@ function applyUndoRequestOnce(requestId) {
 }
 
 function handleUndo() {
-  if (!isPlaying || moveHistory.length === 0) return;
+  if (!isActivePlayer() || !isPlaying || moveHistory.length === 0) return;
+  if (authoritativeGomoku) { sendServerCommand('UNDO_REQUEST'); return; }
   ensureAudio();
 
   if (isSinglePlayer()) {
@@ -712,7 +838,8 @@ function handleUndo() {
 }
 
 function handleResign() {
-  if (!isPlaying) return;
+  if (!isActivePlayer() || !isPlaying) return;
+  if (authoritativeGomoku) { sendServerCommand('RESIGN'); return; }
   ensureAudio();
 
   if (isSinglePlayer()) {
@@ -727,6 +854,8 @@ function handleResign() {
 }
 
 function handleRestart() {
+  if (!isActivePlayer()) return;
+  if (authoritativeGomoku) { sendServerCommand('RESTART_REQUEST'); return; }
   ensureAudio();
 
   if (isSinglePlayer()) {
@@ -745,6 +874,7 @@ function handleRestart() {
 ========================================================= */
 
 function finishRound(winnerColor) {
+  if (authoritativeGomoku) return;
   if (!isPlaying) return;
   isPlaying = false;
   playWinSound();
@@ -766,7 +896,7 @@ function finishRound(winnerColor) {
       ? `🏆 ${roundWinnerName} 奪得三勝總冠軍！`
       : `🎉 本局由 ${roundWinnerName} 獲勝！`;
   ui.resultSubtitle.textContent = `當前比分：${playerBlack?.username || '黑子'} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite?.username || '白子'} (三勝制)`;
-  ui.resultReward.textContent = isMatchOver ? '+100 銀幣' : '準備進入下一局…';
+  ui.resultReward.textContent = isMatchOver ? '銀幣獎勵尚待伺服器驗證' : '準備進入下一局…';
 
   ui.resultOverlay.classList.remove('hidden');
 
@@ -778,7 +908,7 @@ function finishRound(winnerColor) {
         try {
           const winnerWins = getPlayerScore(winner);
           const finalScore = isWinner ? 1000 + winnerWins * 100 + Math.max(0, 50 - moveHistory.length) : 0;
-          window.BoomRoomSDK.gameOver(isWinner ? 100 : 0, finalScore);
+          window.BoomRoomSDK.gameOver(0, finalScore);
         } catch (_) {}
       }
     }
@@ -835,10 +965,21 @@ function sendGameEvent(eventName, payload) {
 }
 
 window.handleGameEvent = function(eventName, payload, userId) {
+  if (window.BoomRoomSDK?.version === 2) return;
   handleNetworkEvent(eventName, payload, userId);
 };
 
 function handleNetworkEvent(eventName, payload, senderId) {
+  if (authoritativeGomoku) {
+    if (senderId !== 'SYSTEM') return;
+    if (eventName === 'GOMOKU_STATE') applyServerState(payload);
+    else if (eventName === 'GOMOKU_ERROR') {
+      // The bounded polling interval resynchronizes. An immediate retry here
+      // would loop when the session store or lifecycle is temporarily unavailable.
+      serverCommandPending = false; showToast(payload?.message || '操作失敗，正在重新同步');
+    }
+    return;
+  }
   if (!payload && !eventName) return;
 
   if (eventName === 'GOMOKU_MOVE' && payload) {
@@ -895,10 +1036,14 @@ function handleNetworkEvent(eventName, payload, senderId) {
       applyUndoRequestOnce(String(payload.requestId));
     }
   } else if (eventName === 'GOMOKU_RESIGN') {
-    if (payload.senderId !== me.id) {
-      const myColor = me.id === playerBlack?.id ? 1 : 2;
-      showToast('🏳️ 對手認輸！恭喜您獲得本局勝利！');
-      finishRound(myColor);
+    const resigningId = String(payload?.senderId ?? '');
+    if (resigningId !== me.id &&
+        (senderId == null || String(senderId) === resigningId)) {
+      const winnerColor = resigningId === playerBlack?.id ? 2
+        : resigningId === playerWhite?.id ? 1 : 0;
+      if (!winnerColor) return;
+      showToast('🏳️ 玩家認輸，本局已結算。');
+      finishRound(winnerColor);
     }
   } else if (eventName === 'GOMOKU_RESTART_REQ') {
     if (payload.senderId !== me.id) {
@@ -952,7 +1097,7 @@ window.initBoomRoomSDK = function(data) {
 };
 
 window.onBoomRoomSDKReady = function() {
-  if (window.BoomRoomSDK) {
+  if (window.BoomRoomSDK && window.BoomRoomSDK.isReady !== false) {
     setupSDK({
       user: typeof window.BoomRoomSDK.getUser === 'function' ? window.BoomRoomSDK.getUser() : {},
       isHost: window.BoomRoomSDK.isHost,
@@ -962,9 +1107,14 @@ window.onBoomRoomSDKReady = function() {
   }
 };
 
-if (window.BoomRoomSDK) {
+const sdkSubscriptions = [];
+if (window.BoomRoomSDK?.version === 2) {
+  sdkSubscriptions.push(window.BoomRoomSDK.onGameEvent(handleNetworkEvent));
+}
+
+if (window.BoomRoomSDK && window.BoomRoomSDK.isReady !== false) {
   window.onBoomRoomSDKReady();
-} else {
+} else if (window.parent === window) {
   // Standalone browser testing still starts a local human-vs-AI match.
   setTimeout(() => {
     if (!sdkInitialized) {
@@ -973,7 +1123,19 @@ if (window.BoomRoomSDK) {
   }, 1500);
 }
 
+window.addEventListener('pagehide', event => {
+  if (event.persisted) return;
+  clearInterval(rosterTimer);
+  clearInterval(serverSyncTimer); clearInterval(serverUiTimer);
+  clearTimeout(autoStartTimer);
+  for (const unsubscribe of sdkSubscriptions) unsubscribe();
+});
+
 window.addEventListener('resize', resizeCanvas);
+// The roster and AI controls also change the space left for the board.
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(resizeCanvas).observe(ui.canvas.parentElement);
+}
 ui.canvas.addEventListener('click', handleCanvasClick);
 ui.btnHint.addEventListener('click', handleHint);
 ui.btnUndo.addEventListener('click', handleUndo);

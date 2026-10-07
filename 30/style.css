@@ -33,7 +33,7 @@ body, html {
   flex-direction: column;
   width: 100vw;
   height: 100vh;
-  max-width: 720px;
+  height: 100dvh;
   margin: 0 auto;
   position: relative;
   background: radial-gradient(circle at 50% 15%, #25184a, #0a0614);
@@ -155,6 +155,7 @@ body, html {
 /* Canvas Area */
 .board-container {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,8 +164,8 @@ body, html {
 }
 
 #boardCanvas {
-  width: min(92vw, 65vh, 600px);
-  height: min(92vw, 65vh, 600px);
+  width: min(92vw, 65vh);
+  height: min(92vw, 65vh);
   background: linear-gradient(135deg, #e5b375, #cd9758);
   border-radius: 18px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(0, 0, 0, 0.25);
@@ -205,6 +206,11 @@ body, html {
 .tool-btn:active {
   transform: scale(0.95);
   background: rgba(255, 255, 255, 0.2);
+}
+
+.tool-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .tool-btn.danger {
@@ -306,4 +312,33 @@ body, html {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 14px;
+}
+
+/* Keep a usable board beside the controls on short landscape screens. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .game-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 32%);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  }
+
+  .board-container {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    min-width: 0;
+  }
+
+  .topbar, .status-bar, .ai-difficulty-bar, .action-toolbar, .footer-notice {
+    grid-column: 2;
+  }
+
+  .topbar { grid-row: 1; }
+  .status-bar { grid-row: 2; flex-wrap: wrap; gap: 6px; }
+  .ai-difficulty-bar { grid-row: 3; flex-wrap: wrap; }
+  .action-toolbar {
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer-notice { grid-row: 5; overflow: auto; }
 }
