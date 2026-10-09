@@ -1,14 +1,16 @@
-/* BoomRoom SDK v2. No local players, purchases or rewards are fabricated.
+/* BoomRoom SDK v2 / additive API revision 3.
+ * No local players, purchases or rewards are fabricated.
  * Games must wait for onBoomRoomSDKReady/onSessionStart before playing.
  * This SDK transports intents; only the authenticated server can award coins.
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 3) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR']);
   const hooks = new Map(), pendingPurchases = new Map();
   let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0;
   const monotonic = () => root.performance ? root.performance.now() : Date.now();
@@ -25,6 +27,22 @@
     }
   }
   function failure(code) { notify('error', { code }); return false; }
+  function lifecycleState() {
+    if (closed) return 'DISPOSED';
+    return data ? data.session.status : 'WAITING_FOR_SESSION';
+  }
+  function commandUuid() {
+    try {
+      if (typeof root.crypto?.randomUUID === 'function') return root.crypto.randomUUID();
+      if (typeof root.crypto?.getRandomValues !== 'function') return null;
+      const bytes = new Uint8Array(16);
+      root.crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = [...bytes].map(value => value.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    } catch (_) { return null; }
+  }
   function subscribe(name, callback) {
     if (typeof callback !== 'function' || closed) return () => {};
     if (!hooks.has(name)) hooks.set(name, new Set());
@@ -48,10 +66,16 @@
     const key = player => String(player.id ?? player.userId);
     const before = new Map(data.roomPlayers.map(player => [key(player), player]));
     const after = new Map(incoming.map(player => [key(player), player]));
+    const previousPlayers = data.roomPlayers;
     data.roomPlayers = incoming;
     if (announce) {
-      for (const [id, player] of before) if (!after.has(id)) notify('playerLeave', player);
-      for (const [id, player] of after) if (!before.has(id)) notify('playerJoin', player);
+      const left = [...before].filter(([id]) => !after.has(id)).map(([, player]) => player);
+      const joined = [...after].filter(([id]) => !before.has(id)).map(([, player]) => player);
+      for (const player of left) notify('playerLeave', player);
+      for (const player of joined) notify('playerJoin', player);
+      if (JSON.stringify(previousPlayers) !== JSON.stringify(incoming)) {
+        notify('roomPlayersChange', { players: incoming, joined, left });
+      }
     }
     return true;
   }
@@ -71,15 +95,23 @@
     if (data && data.gameSessionId !== id) return failure('SESSION_MISMATCH');
     if (data && Number(session.version) < Number(data.session.version)) return failure('SESSION_STALE');
     const first = !data;
-    const beforeStatus = data?.session.status;
+    const previousSession = data ? copy(data.session) : null;
+    const beforeStatus = previousSession?.status;
     const beforePlayers = data?.roomPlayers || [];
     data = { user: copy(packet.user), roomId, gameSessionId: id, session: copy(session),
       isHost: !!packet.isHost, roomPlayers: beforePlayers };
     timeAtReceive = monotonic();
     updatePlayers(roster, !first);
-    if (first && typeof root.onBoomRoomSDKReady === 'function') {
-      try { root.onBoomRoomSDKReady(); }
-      catch (error) { root.console.error('BoomRoom SDK ready callback failed:', error); }
+    if (first) {
+      notify('ready', data.session);
+      notify('statusChange', lifecycleState(), null);
+      if (typeof root.onBoomRoomSDKReady === 'function') {
+        try { root.onBoomRoomSDKReady(); }
+        catch (error) { root.console.error('BoomRoom SDK ready callback failed:', error); }
+      }
+    } else if (Number(session.version) > Number(previousSession.version)) {
+      notify('sessionUpdate', data.session, previousSession);
+      if (beforeStatus !== session.status) notify('statusChange', lifecycleState(), beforeStatus);
     }
     if (first || beforeStatus !== session.status) {
       if (session.status === 'PLAYING') notify('sessionStart', session);
@@ -138,6 +170,10 @@
         // Peer payloads are still untrusted and cannot update the SDK session.
         if (!initialize({ ...data, session: packet.payload.session })) return;
       }
+      if (packet.eventName === 'BLUFF_PRIVATE' && packet.userId === 'SYSTEM' && packet.payload?.session) {
+        // The authenticated app forwards this reserved event only to its seat.
+        if (!initialize({ ...data, session: packet.payload.session })) return;
+      }
       notify('gameEvent', packet.eventName, packet.payload, packet.userId);
     }
     if (packet.action === 'purchaseSuccess' || packet.action === 'purchaseFailed') {
@@ -157,7 +193,10 @@
     if (packet.action === 'sessionEnd' && packet.session?.sessionId === data.gameSessionId &&
         ['ENDED', 'ABORTED'].includes(packet.session.status) && packet.session.version >= data.session.version) {
       const alreadyEnded = ['ENDED', 'ABORTED'].includes(data.session.status);
+      const previousSession = copy(data.session);
       data.session = copy(packet.session);
+      if (Number(data.session.version) > Number(previousSession.version)) notify('sessionUpdate', data.session, previousSession);
+      if (data.session.status !== previousSession.status) notify('statusChange', lifecycleState(), previousSession.status);
       for (const pending of pendingPurchases.values()) root.clearTimeout(pending.timer);
       pendingPurchases.clear();
       if (!alreadyEnded) notify('sessionEnd', data.session);
@@ -165,19 +204,59 @@
   }
   const sdk = {
     version: 2,
+    apiRevision: 3,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
     get sessionId() { return data?.gameSessionId || ''; },
     get gameSessionId() { return data?.gameSessionId || ''; },
+    get status() { return lifecycleState(); },
     get roomPlayers() { return copy(data?.roomPlayers || []); },
     getUser: () => copy(data?.user || null),
     getRoomPlayers: () => copy(data?.roomPlayers || []),
     getSession: () => copy(data?.session || null),
     getServerTime: () => data ? Number(data.session.serverTime) + monotonic() - timeAtReceive : null,
+    getStatus: () => ({ state: lifecycleState(), ready: !!data && !closed,
+      sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
+    getCapabilities: () => ({
+      protocolVersion: 2,
+      apiRevision: 3,
+      readiness: true,
+      sessionSnapshots: true,
+      roomRoster: true,
+      gameEventRelay: true,
+      versionedCommands: true,
+      verifiedScoring: false,
+      serverAuthoritativeRules: false,
+    }),
+    isSessionCurrent(sessionId, minimumVersion = 1) {
+      return !!data && !closed && sessionId === data.gameSessionId &&
+        Number.isSafeInteger(minimumVersion) && data.session.version >= minimumVersion;
+    },
+    createCommand(kind, fields = {}, options = {}) {
+      if (!data || closed || data.session.status !== 'PLAYING') { failure('SESSION_UNAVAILABLE'); return null; }
+      if (typeof kind !== 'string' || !/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(kind) ||
+          !fields || typeof fields !== 'object' || Array.isArray(fields) ||
+          !options || typeof options !== 'object' || Array.isArray(options)) {
+        failure('COMMAND_INVALID'); return null;
+      }
+      const expectedVersion = options.expectedVersion ?? data.session.version;
+      if (!Number.isSafeInteger(expectedVersion) || expectedVersion < 1) { failure('COMMAND_VERSION_INVALID'); return null; }
+      let commandFields;
+      try { commandFields = copy(fields); }
+      catch (_) { failure('COMMAND_FIELDS_INVALID'); return null; }
+      const commandId = commandUuid();
+      if (!commandId || !uuid.test(commandId)) { failure('COMMAND_ID_UNAVAILABLE'); return null; }
+      return { ...commandFields, kind, commandId, expectedVersion };
+    },
     sendGameEvent(eventName, payload) {
       if (typeof eventName !== 'string' || !eventName.trim() || eventName.length > 128) return failure('EVENT_INVALID');
+      if (reservedEvents.has(eventName)) return failure('EVENT_RESERVED');
       return send('sendGameEvent', { eventName, payload });
+    },
+    sendCommand(eventName, kind, fields = {}, options = {}) {
+      const command = sdk.createCommand(kind, fields, options);
+      return command ? sdk.sendGameEvent(eventName, command) : false;
     },
     requestPurchase(itemId, cost) {
       if (typeof itemId !== 'string' || !itemId || itemId.length > 128 || !Number.isSafeInteger(cost) || cost <= 0) return failure('PURCHASE_INVALID');
@@ -220,10 +299,54 @@
     },
     leaveGame() { return send('leaveGame',{}); },
     onGameEvent: callback => subscribe('gameEvent', callback),
+    onReady(callback) {
+      const unsubscribe = subscribe('ready', callback);
+      if (data && !closed) root.queueMicrotask(() => {
+        if (!closed && hooks.get('ready')?.has(callback)) {
+          try { callback(copy(data.session)); }
+          catch (error) { root.console.error('BoomRoom SDK callback failed:', error); }
+        }
+      });
+      return unsubscribe;
+    },
+    whenReady({ timeoutMs = 15000, signal } = {}) {
+      if (closed) return Promise.reject(Object.assign(new Error('SDK_DISPOSED'), { code: 'SDK_DISPOSED' }));
+      if (data) return Promise.resolve(copy(data.session));
+      return new Promise((resolve, reject) => {
+        let timer = null, settled = false;
+        const cleanup = () => {
+          offReady(); offDisposed();
+          if (timer !== null) root.clearTimeout(timer);
+          signal?.removeEventListener?.('abort', onAbort);
+        };
+        const finish = (callback, value) => {
+          if (settled) return;
+          settled = true; cleanup(); callback(value);
+        };
+        const onAbort = () => finish(reject, Object.assign(new Error('SDK_WAIT_ABORTED'), { code: 'SDK_WAIT_ABORTED' }));
+        const offReady = subscribe('ready', session => finish(resolve, session));
+        const offDisposed = subscribe('disposed', () => finish(reject, Object.assign(new Error('SDK_DISPOSED'), { code: 'SDK_DISPOSED' })));
+        if (Number.isFinite(timeoutMs) && timeoutMs >= 0) {
+          timer = root.setTimeout(() => finish(reject, Object.assign(new Error('SDK_READY_TIMEOUT'), { code: 'SDK_READY_TIMEOUT' })), timeoutMs);
+        }
+        if (signal?.aborted) onAbort();
+        else signal?.addEventListener?.('abort', onAbort, { once: true });
+      });
+    },
     onPurchaseSuccess: callback => subscribe('purchaseSuccess', callback),
     onPurchaseFailed: callback => subscribe('purchaseFailed', callback),
     onPlayerJoin: callback => subscribe('playerJoin', callback),
     onPlayerLeave: callback => subscribe('playerLeave', callback),
+    onRoomPlayersChange: callback => subscribe('roomPlayersChange', callback),
+    onSessionUpdate: callback => subscribe('sessionUpdate', callback),
+    onStatusChange(callback) {
+      const unsubscribe = subscribe('statusChange', callback);
+      if (!closed && hooks.get('statusChange')?.has(callback)) {
+        try { callback(lifecycleState(), null); }
+        catch (error) { root.console.error('BoomRoom SDK callback failed:', error); }
+      }
+      return unsubscribe;
+    },
     onSessionStart(callback) {
       const unsubscribe = subscribe('sessionStart', callback);
       if (data?.session.status === 'PLAYING') root.queueMicrotask(() => {
@@ -240,7 +363,11 @@
     requestSettlement: () => failure('SETTLEMENT_REQUEST_UNSUPPORTED'),
     dispose() {
       if (closed) return;
-      closed = true; hooks.clear();
+      const before = lifecycleState();
+      closed = true;
+      notify('statusChange', 'DISPOSED', before);
+      notify('disposed');
+      hooks.clear();
       for (const pending of pendingPurchases.values()) root.clearTimeout(pending.timer);
       pendingPurchases.clear(); data = null;
       root.removeEventListener('message', receive);

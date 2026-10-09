@@ -80,9 +80,28 @@ let authoritativeGomoku = false, serverVersion = 0, serverState = null;
 let serverStartTime = 0, serverTimeReceived = 0, serverReceivedAt = 0;
 let serverSyncTimer = null, serverUiTimer = null, shownServerRequest = null;
 let serverCommandPending = false;
+let serverPendingCommand = null, serverCommandTimeout = null, optimisticMove = null;
 
 function gameServerTime() {
   return serverTimeReceived + performance.now() - serverReceivedAt;
+}
+function clearPendingServerCommand() {
+  clearTimeout(serverCommandTimeout); serverCommandTimeout = null;
+  serverPendingCommand = null; serverCommandPending = false;
+}
+function syncAiDifficultyControls() {
+  const aiGame = authoritativeGomoku && serverState && (serverState.blackId === null || serverState.whiteId === null);
+  ui.aiDifficultyBar?.classList.toggle('hidden', !aiGame);
+  if (!aiGame) return;
+  const selected = serverPendingCommand?.kind === 'SET_DIFFICULTY'
+    ? aiDifficulty : (['easy', 'normal', 'master'].includes(serverState.aiDifficulty) ? serverState.aiDifficulty : 'normal');
+  aiDifficulty = selected;
+  for (const difficulty of ['easy', 'normal', 'master']) {
+    const button = document.getElementById(`diff${difficulty[0].toUpperCase()}${difficulty.slice(1)}`);
+    button?.classList.toggle('active', selected === difficulty);
+    if (button) button.disabled = serverState.phase !== 'PLAYING' || serverState.moves.length > 0 ||
+      serverCommandPending || optimisticMove !== null;
+  }
 }
 function sendServerCommand(kind, fields = {}) {
   if (!authoritativeGomoku || !sdk?.isReady) return false;
@@ -91,10 +110,22 @@ function sendServerCommand(kind, fields = {}) {
   if (kind !== 'SYNC') {
     if (!window.crypto?.randomUUID) { showToast('此環境無法送出正式棋局操作，請更新瀏覽器。'); return false; }
     command = { ...fields, kind, commandId: window.crypto.randomUUID(), expectedVersion: serverVersion };
-    serverCommandPending = true;
+    serverCommandPending = true; serverPendingCommand = command;
+    clearTimeout(serverCommandTimeout);
+    const commandId = command.commandId;
+    serverCommandTimeout = setTimeout(() => {
+      if (serverPendingCommand?.commandId !== commandId) return;
+      const timedOutKind = serverPendingCommand.kind;
+      clearPendingServerCommand(); optimisticMove = null;
+      if (timedOutKind === 'SET_DIFFICULTY' && serverState) aiDifficulty = serverState.aiDifficulty || 'normal';
+      updateTurnUI(); drawBoard(); syncAiDifficultyControls();
+      showToast('伺服器回覆較慢，已取消暫存並重新同步棋局。');
+      sendServerCommand('SYNC');
+    }, 5000);
+    syncAiDifficultyControls();
   }
   const sent = sdk.sendGameEvent('GOMOKU_COMMAND', command);
-  if (!sent) serverCommandPending = false;
+  if (!sent && kind !== 'SYNC') clearPendingServerCommand();
   return sent;
 }
 function refreshServerNotice() {
@@ -117,7 +148,17 @@ function applyServerState(packet) {
   const state = packet.state;
   // State is only dispatched from the SDK's authenticated SYSTEM envelope.
   if (state.board.length !== BOARD_SIZE || state.board.some(row => !Array.isArray(row) || row.length !== BOARD_SIZE)) return;
-  serverVersion = packet.version; serverState = state; serverCommandPending = false;
+  if (serverPendingCommand && packet.version > serverPendingCommand.expectedVersion) clearPendingServerCommand();
+  if (optimisticMove && packet.version > optimisticMove.expectedVersion) {
+    const confirmed = Array.isArray(state.moves) && state.moves.some(move =>
+      move[0] === optimisticMove.row && move[1] === optimisticMove.col && move[2] === optimisticMove.color);
+    optimisticMove = null;
+    if (!confirmed) showToast('這步沒有被伺服器接受，棋盤已同步。');
+  } else if (optimisticMove && Array.isArray(state.moves) && state.moves.some(move =>
+    move[0] === optimisticMove.row && move[1] === optimisticMove.col && move[2] === optimisticMove.color)) {
+    optimisticMove = null;
+  }
+  serverVersion = packet.version; serverState = state;
   serverStartTime = Number(packet.startTime); serverTimeReceived = Number(packet.serverTime); serverReceivedAt = performance.now();
   const participants = sdk.getSession().players;
   const role = id => id === null ? { id: 'AI', username: '🤖 伺服器 AI', isBot: true }
@@ -127,8 +168,9 @@ function applyServerState(packet) {
   currentTurn = state.turn; winningStones = state.winningStones || []; hintPos = null;
   playerScores.clear(); Object.entries(state.scores).forEach(([id, score]) => playerScores.set(id, score));
   roundCount = state.round - 1; autoStarted = true; isPlaying = state.phase === 'PLAYING' && gameServerTime() >= serverStartTime;
-  ui.aiDifficultyBar?.classList.add('hidden'); if (ui.btnHint) ui.btnHint.style.display = 'none';
-  updateRosterUI(); updateTurnUI(); drawBoard(); refreshServerNotice();
+  aiDifficulty = ['easy', 'normal', 'master'].includes(state.aiDifficulty) ? state.aiDifficulty : 'normal';
+  if (ui.btnHint) ui.btnHint.style.display = 'none';
+  updateRosterUI(); updateTurnUI(); syncAiDifficultyControls(); drawBoard(); refreshServerNotice();
   if (state.phase === 'PLAYING') ui.resultOverlay.classList.add('hidden');
   else {
     const winner = state.winnerColor === 1 ? playerBlack : state.winnerColor === 2 ? playerWhite : null;
@@ -503,8 +545,14 @@ function drawBoard() {
     }
   }
 
-  if (moveHistory.length > 0) {
-    const [lastR, lastC, lastColor] = moveHistory[moveHistory.length - 1];
+  if (optimisticMove && board[optimisticMove.row]?.[optimisticMove.col] === 0) {
+    drawStone(optimisticMove.col, optimisticMove.row, optimisticMove.color, margin, cell);
+  }
+
+  if (optimisticMove || moveHistory.length > 0) {
+    const [lastR, lastC, lastColor] = optimisticMove
+      ? [optimisticMove.row, optimisticMove.col, optimisticMove.color]
+      : moveHistory[moveHistory.length - 1];
     ctx.strokeStyle = lastColor === 1 ? '#ff3a9d' : '#35e6ff';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -590,7 +638,18 @@ function handleCanvasClick(e) {
   const row = Math.round((y - margin) / cell);
 
   if (col >= 0 && col < BOARD_SIZE && row >= 0 && row < BOARD_SIZE && board[row][col] === 0) {
-    if (authoritativeGomoku) { sendServerCommand('MOVE', { row, col }); return; }
+    if (authoritativeGomoku) {
+      if (serverCommandPending || optimisticMove) return;
+      const color = currentTurn;
+      optimisticMove = { row, col, color, expectedVersion: serverVersion };
+      hintPos = null; playStoneSound(); drawBoard();
+      ui.turnText.textContent = '落子已送出 · 等待伺服器確認';
+      syncAiDifficultyControls();
+      if (!sendServerCommand('MOVE', { row, col })) {
+        optimisticMove = null; drawBoard(); syncAiDifficultyControls();
+      }
+      return;
+    }
     placeMove(row, col, currentTurn, true);
   }
 }
@@ -974,9 +1033,14 @@ function handleNetworkEvent(eventName, payload, senderId) {
     if (senderId !== 'SYSTEM') return;
     if (eventName === 'GOMOKU_STATE') applyServerState(payload);
     else if (eventName === 'GOMOKU_ERROR') {
-      // The bounded polling interval resynchronizes. An immediate retry here
-      // would loop when the session store or lifecycle is temporarily unavailable.
-      serverCommandPending = false; showToast(payload?.message || '操作失敗，正在重新同步');
+      const failedKind = serverPendingCommand?.kind;
+      clearPendingServerCommand(); optimisticMove = null;
+      if (failedKind === 'SET_DIFFICULTY' && serverState) aiDifficulty = serverState.aiDifficulty || 'normal';
+      updateTurnUI(); drawBoard(); syncAiDifficultyControls();
+      showToast(payload?.message || '操作失敗，正在重新同步');
+      // One immediate read repairs rejected/stale optimistic UI. The regular
+      // two-second sync remains the bounded fallback if the socket is offline.
+      sendServerCommand('SYNC');
     }
     return;
   }
@@ -1082,6 +1146,20 @@ function handleNetworkEvent(eventName, payload, senderId) {
 ========================================================= */
 
 function setAiDifficulty(diff) {
+  if (!['easy', 'normal', 'master'].includes(diff)) return;
+  if (authoritativeGomoku) {
+    const isAiGame = serverState && (serverState.blackId === null || serverState.whiteId === null);
+    if (!isAiGame || serverState.moves.length > 0 || serverCommandPending || optimisticMove) {
+      showToast('請在第一步落子前選擇 AI 難度。');
+      return;
+    }
+    const previous = serverState.aiDifficulty || 'normal';
+    aiDifficulty = diff;
+    if (!sendServerCommand('SET_DIFFICULTY', { difficulty: diff })) {
+      aiDifficulty = previous; syncAiDifficultyControls();
+    } else syncAiDifficultyControls();
+    return;
+  }
   aiDifficulty = diff;
   document.getElementById('diffEasy')?.classList.toggle('active', diff === 'easy');
   document.getElementById('diffNormal')?.classList.toggle('active', diff === 'normal');
@@ -1127,7 +1205,7 @@ window.addEventListener('pagehide', event => {
   if (event.persisted) return;
   clearInterval(rosterTimer);
   clearInterval(serverSyncTimer); clearInterval(serverUiTimer);
-  clearTimeout(autoStartTimer);
+  clearTimeout(autoStartTimer); clearTimeout(serverCommandTimeout);
   for (const unsubscribe of sdkSubscriptions) unsubscribe();
 });
 
