@@ -52,7 +52,7 @@
 <body>
 <div id="app"><div class="shell"><div id="main" class="screen"></div></div></div>
 <div id="toast" class="toast"></div>
-<script>
+<script type="application/boomroom-game">
   "use strict";
 
   /* =========================================================
@@ -913,5 +913,6 @@
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){sendEvent("BIGTWO_ROOM_HELLO",{user:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}});setTimeout(requestGameState,250);}});
   render();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

@@ -243,7 +243,7 @@ body{position:relative}
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -456,7 +456,7 @@ function autoEntryAndStart(){
   autoLaunchBusy=true;
   if(DEMO){hasPaid=false;beginRoundCountdown();return}
   purchasePending=true;showToast('房內玩家已同步，正在自動處理房主入場…');render();
-  try{const s=refreshSDK();if(!s||typeof s.requestPurchase!=='function')throw new Error('purchase unavailable');s.requestPurchase('miner_entry',ENTRY_FEE)}catch(e){purchasePending=false;autoLaunchBusy=false;state.autoStartAt=0;showToast('無法發起房主入場扣款');render()}
+  try{const s=refreshSDK();if(!s||typeof s.requestAdmission!=='function')throw new Error('purchase unavailable');s.requestAdmission('miner_entry',ENTRY_FEE)}catch(e){purchasePending=false;autoLaunchBusy=false;state.autoStartAt=0;showToast('無法發起房主入場扣款');render()}
 }
 window.onPurchaseSuccess=function(itemId){if(itemId!=='miner_entry')return;purchasePending=false;autoLaunchBusy=false;hasPaid=true;state.hostPaid=true;const p=players.get(ME.id);if(p)p.online=true;sfx.pay();showToast('房主入場成功，所有玩家同步開始！');if(isHost()&&state.phase==='LOBBY')beginRoundCountdown();else broadcastState(true);render()}
 window.onPurchaseFailed=function(itemId){if(itemId!=='miner_entry')return;purchasePending=false;autoLaunchBusy=false;state.autoStartAt=0;state.hostPaid=false;showToast('房主入場扣款未完成，本局尚未開始');if(isHost())broadcastState(true);render()}
@@ -733,6 +733,7 @@ setTimeout(() => {
 }, 1500);
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 
 </html>

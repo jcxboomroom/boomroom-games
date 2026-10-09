@@ -48,7 +48,13 @@ button:active{transform:scale(.97)}
 </head>
 <body>
 <div id="app">
-
+  <header class="header">
+    <div class="brand"><div class="logo" aria-hidden="true">🎯</div><div><h1>爆閃找王</h1><small>BOOM HUNT · 反應挑戰</small></div></div>
+    <div class="actions">
+      <button class="icon-btn" id="soundBtn" aria-label="切換音效">🔊</button>
+      <button class="icon-btn" id="helpBtn" aria-label="查看玩法">?</button>
+    </div>
+  </header>
   <main class="main">
     <section class="hud">
       <div class="stat"><div class="k">TIME</div><div class="v" id="timeText">30.0</div></div>
@@ -95,7 +101,7 @@ button:active{transform:scale(.97)}
       <div class="result-score" id="resultScore">0</div>
       <p id="resultReason">完整結束本局。</p>
       <div class="result-meta"><div class="rm"><b id="resultHits">0</b><span>命中</span></div><div class="rm"><b id="resultBest">0</b><span>最高連擊</span></div><div class="rm"><b id="resultReward">0</b><span>銀幣</span></div></div>
-      <button class="primary" id="leaveBtn">返回 BoomRoom</button>
+      <button class="primary" id="leaveBtn">再挑戰一次</button>
       <div class="dev">本局已結束；新的遊戲實例由房間重新開啟</div>
     </div>
   </div>
@@ -113,7 +119,8 @@ button:active{transform:scale(.97)}
   <div id="toast"></div>
 </div>
 
-<script>
+<script type="application/boomroom-game" data-boomroom-src="./board.js"></script>
+<script type="application/boomroom-game">
 'use strict';
 const DEBUG = false;
 const GAME_INFO = Object.freeze({
@@ -341,27 +348,22 @@ function makeBoard(){
   const seed=(seedForRound()+boardVersion*0x9E3779B9)>>>0;
   const rnd=mulberry32(seed);
 
-  const availableShapes = [...SHAPES];
-  for (let i = availableShapes.length - 1; i > 0; i--) {
-    const j = Math.floor(rnd() * (i + 1));
-    const temp = availableShapes[i];
-    availableShapes[i] = availableShapes[j];
-    availableShapes[j] = temp;
-  }
-
-  targetIndex = Math.floor(rnd() * 12);
-  const targetObj = availableShapes[targetIndex];
-
-  $('ruleIcon').innerHTML = `<span style="font-size:24px;">${targetObj.symbol}</span>`;
-  $('ruleTitle').innerHTML = `尋找：${targetObj.symbol} ${targetObj.name}`;
-  $('ruleDesc').textContent = `在下方 12 格中點選唯一的 ${targetObj.symbol} ${targetObj.name}`;
+  currentRule=RULES[(boardVersion-1)%RULES.length];
+  const mode=currentRule.id;
+  const board=buildHuntBoard(mode,seed,SHAPES,COLORS);
+  targetIndex=board.targetIndex;
+  const targetObj=board.tiles[targetIndex];
+  $('ruleIcon').innerHTML = `<span style="font-size:24px;color:${board.color||'inherit'}">${board.symbol}</span>`;
+  $('ruleTitle').textContent = board.title;
+  $('ruleDesc').textContent = `在下方 12 格中點選唯一的 ${targetObj.name}`;
 
   grid.innerHTML='';
   const cells=[];
   for(let i=0;i<12;i++){
     const tile=document.createElement('button');
-    tile.type='button'; tile.className='tile'; tile.dataset.index=i; tile.setAttribute('aria-label', availableShapes[i].name);
-    tile.innerHTML='<span class="glyph" style="font-size:32px;">'+availableShapes[i].symbol+'</span>';
+    const content=board.tiles[i];
+    tile.type='button'; tile.className='tile'; tile.dataset.index=i; tile.setAttribute('aria-label', content.name);
+    tile.innerHTML='<span class="glyph" style="font-size:32px;color:'+(content.color||'inherit')+';">'+content.symbol+'</span>';
     tile.addEventListener('pointerdown',handleTilePointer,{passive:false});
     cells.push(tile); grid.appendChild(tile);
   }
@@ -489,15 +491,14 @@ function finishGame(reason){
   })).sort((a, b) => b.score - a.score);
 
   const myRank = allPlayers.findIndex(p => p.id === String(user.id)) + 1;
-  const reward = myRank === 1 ? 100 : myRank === 2 ? 50 : 20;
-  const finalReward = safeInt(reward, 0, 100);
+  const finalReward = 0;
 
   sendEvent('PLAYER_END',{roundId,username:user.username,status:'FINISHED',score:finalScore,reward:finalReward,reason});
 
   $('resultScore').textContent=finalScore.toLocaleString();
   $('resultHits').textContent=hits;
   $('resultBest').textContent=bestCombo;
-  $('resultReward').textContent=finalReward;
+  $('resultReward').textContent='未驗證';
   $('resultReason').textContent=`第 ${myRank} 名 · 命中 ${hits} 次 · 連擊 ${bestCombo}`;
 
   let rankHtml = '<div style="margin-top:10px;text-align:left;max-height:130px;overflow-y:auto;">';
@@ -523,8 +524,8 @@ function finishGame(reason){
     gameOverCalled=true;
     setTimeout(() => {
       try{
-        if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function'){
-          window.BoomRoomSDK.gameOver(finalReward, finalScore);
+        if(window.BoomRoomSDK && typeof window.BoomRoomSDK.completeRound==='function'){
+          window.BoomRoomSDK.completeRound(finalScore);
         } else if (window.parent && window.parent !== window) {
           window.parent.postMessage(JSON.stringify({ action: 'game_over', winAmount: finalReward, score: finalScore }), '*');
         }
@@ -555,5 +556,6 @@ if(DEBUG){
   console.log('DEBUG READY');
 }
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

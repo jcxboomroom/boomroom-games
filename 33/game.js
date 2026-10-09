@@ -152,7 +152,7 @@ function makePlayer({ id, name, color, local = false, bot = false }, index) {
   const radius = index === 0 ? 0 : 0.43;
   return {
     id: String(id),
-    name: name || `Player ${index + 1}`,
+    name: bot?`🤖 ${name||`跳球 ${index+1}`} AI`:(name || `Player ${index + 1}`),
     color: color || COLORS[index % COLORS.length],
     local,
     bot,
@@ -544,8 +544,13 @@ function onGameEvent(event) {
   if (payload.roomId && roomId !== "mock-room" && String(payload.roomId) !== String(roomId)) return;
   if (payload.senderId && String(payload.senderId) === String(localId)) return;
   switch (eventName) {
+    case 'PLAYER_READY':
+      if(isHost&&['COUNTDOWN','PLAYING'].includes(state))broadcast('ROUND_START',{roundNumber:matchRound,seed:gameSeed,startAt:countdownStartedAt});
+      break;
     case "ROUND_START":
+      if(Number(payload.roundNumber)===matchRound&&Number(payload.startAt)===countdownStartedAt)break;
       prepareMatchRound(Number(payload.roundNumber) || 1, payload.seed);
+      state='LOADING';
       beginCountdown(Number(payload.startAt) || Date.now());
       break;
     case "PLAYER_STATE":
@@ -634,6 +639,18 @@ function onGameEvent(event) {
 }
 
 function bindGameEvents() {
+  if(sdk?.onGameEvent){
+    const hostId=String(sdk.getSession()?.hostId||'');
+    const controls=new Set(['ROUND_START','ORB_SPAWN','ORB_CLAIMED','PLAYER_HIT','ROUND_SURGE','ROUND_END']);
+    sdk.onGameEvent((eventName,payload,sender)=>{
+      sender=String(sender||'');
+      if(!sdk.roomPlayers.some(player=>String(player.id)===sender))return;
+      if(controls.has(eventName)&&sender!==hostId)return;
+      if(['PLAYER_STATE','ORB_REQUEST'].includes(eventName)&&String(payload?.playerId)!==sender)return;
+      onGameEvent({eventName,payload:{...payload,senderId:sender}});
+    });
+    return;
+  }
   window.addEventListener("gameEventReceived", onGameEvent);
   if (sdk?.addEventListener) {
     try { sdk.addEventListener("gameEventReceived", onGameEvent); } catch (_) {}
@@ -655,7 +672,7 @@ function resolveBootIdentity() {
   isHost = Boolean(sdk.isHost);
   roomId = String(sdk.roomId || "boomroom");
   const timeout = new Promise(resolve => setTimeout(resolve, 900));
-  const getUser = typeof sdk.getUser === "function" ? sdk.getUser().catch(() => null) : Promise.resolve(null);
+  const getUser = typeof sdk.getUser === "function" ? Promise.resolve(sdk.getUser()) : Promise.resolve(null);
   return Promise.race([getUser, timeout]).then(user => {
     const identity = getUserIdentity(user);
     const roomPlayers = roomPlayerList();
@@ -685,10 +702,8 @@ function startRound() {
   } else {
     state = "LOADING";
     countdownEl.classList.add("is-hidden");
-    // Hosts normally start everyone together; this failsafe prevents a broken room event from freezing a client.
-    setTimeout(() => {
-      if (state === "LOADING") beginCountdown(Date.now());
-    }, 5500);
+    announce('等待房主同步開局');
+    broadcast('PLAYER_READY',{playerId:localId});
   }
 }
 
@@ -1515,7 +1530,7 @@ function finishRound(forcedWinnerId = null, fromNetwork = false) {
   resultScoreLabelEl.textContent = isFinalRound ? "你的勝場" : "本戰能量";
   resultScoreEl.textContent = String(isFinalRound ? (matchWins.get(me?.id) || 0) : (me?.score || 0));
   resultNextEl.textContent = isFinalRound
-    ? "五戰結束 · 即將返回房間"
+    ? "五戰完成 · 挑戰成績不發放銀幣"
     : `下一戰準備中 · 第 ${matchRound + 1} 戰`;
   const shownRanking = isFinalRound ? seriesRanking : ranking;
   resultRankingEl.innerHTML = shownRanking.slice(0, 5).map((player, index) => `
@@ -1530,21 +1545,17 @@ function finishRound(forcedWinnerId = null, fromNetwork = false) {
   safeVibrate(rankIndex === 0 ? [45, 40, 90, 35, 120] : [50, 35, 60]);
   if (isFinalRound && !gameOverCalled) {
     gameOverCalled = true;
-    const reward = seriesRankIndex === 0 ? 100 : seriesRankIndex === 1 ? 40 : 20;
-    try { sdk?.gameOver?.(reward); } catch (error) { console.warn("BoomRoom gameOver failed", error); }
+    try { sdk?.completeRound?.(matchPoints.get(me?.id)||0); } catch (error) { console.warn("BoomRoom round completion failed", error); }
   }
   if (!endSent && isHost && !fromNetwork) {
     endSent = true;
     broadcast("ROUND_END", { winnerId: winner?.id || null, scores: ranking.slice(0, 10).map(player => [player.id, player.score]) });
   }
   if (isFinalRound) {
-    exitTimer = setTimeout(() => {
-      state = "EXIT";
-      try { window.parent?.postMessage({ action: "leaveGame" }, "*"); } catch (_) {}
-      if (window.parent === window || !window.parent) {
-        try { location.href = "../room.html"; } catch (_) {}
-      }
-    }, 3000);
+    document.querySelector('#match-replay').hidden=false;
+    document.querySelector('#match-exit').hidden=false;
+    document.querySelector('#match-replay').disabled=!isHost;
+    document.querySelector('#match-replay').textContent=isHost?'再挑戰五戰':'等待房主再開五戰';
   } else if (isHost) {
     exitTimer = setTimeout(startNextMatchRound, 3500);
   }
@@ -1607,3 +1618,10 @@ async function boot() {
 }
 
 boot();
+document.querySelector('#match-replay').addEventListener('click',()=>{
+  if(state!=='RESULT'||matchRound<MATCH_ROUNDS||!isHost)return;
+  clearTimeout(exitTimer);matchWins.clear();matchPoints.clear();gameOverCalled=false;
+  document.querySelector('#match-replay').hidden=true;document.querySelector('#match-exit').hidden=true;
+  startRound();
+});
+document.querySelector('#match-exit').addEventListener('click',()=>{state='EXIT';sdk?.leaveGame?.();});

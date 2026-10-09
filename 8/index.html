@@ -115,7 +115,7 @@ h1{margin:0;text-align:center;font-size:clamp(30px,9vw,48px);line-height:.96;col
   </div>
 </div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -140,6 +140,10 @@ const CFG={
   ENTRY_ITEM:'crown_clash_entry_100', ENTRY_COST:100
 };
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d',{alpha:false}),$=id=>document.getElementById(id);
+const crownTarget=document.createElement('button');
+crownTarget.type='button';crownTarget.setAttribute('aria-label','搶王冠');
+crownTarget.style.cssText='position:fixed;width:92px;height:92px;border:0;border-radius:50%;background:transparent;padding:0;z-index:5;display:none;touch-action:manipulation;cursor:pointer';
+document.body.appendChild(crownTarget);
 let W=innerWidth,H=innerHeight,DPR=1;
 
 function resize(){
@@ -180,6 +184,7 @@ addPlayer(ME);
 function listPlayers(){return [...players.values()].sort((a,b)=>a.joinedAt-b.joinedAt||a.id.localeCompare(b.id));}
 function onlinePlayers(){const now=Date.now();return listPlayers().filter(p=>p.online&&now-p.lastSeen<CFG.HOST_TIMEOUT);}
 function electHost(){
+  if(SDK){state.hostId=String(SDK.getSession()?.hostId||'');return;}
   if(DEV){state.hostId=ME.id;return;}
   const list=onlinePlayers();if(!list.length)return;
   const current=players.get(state.hostId);
@@ -233,14 +238,14 @@ window.onPurchaseFailed=item=>{
 function requestEntry(){
   if(currentRoundPaid||purchaseLocked)return;
   if(DEV){currentRoundPaid=true;beginRound();return;}
-  if(!SDK||typeof SDK.requestPurchase!=='function'){showMsg('SDK 不可用','#ff8aa0');return;}
+  if(!SDK||typeof SDK.requestAdmission!=='function'){showMsg('SDK 不可用','#ff8aa0');return;}
   purchaseLocked=true;pendingPurchaseItem=CFG.ENTRY_ITEM;$('startBtn').disabled=true;
-  try{SDK.requestPurchase(CFG.ENTRY_ITEM,CFG.ENTRY_COST);}catch(e){purchaseLocked=false;pendingPurchaseItem=null;$('startBtn').disabled=false;showMsg('購買請求失敗','#ff8aa0');}
+  try{SDK.requestAdmission(CFG.ENTRY_ITEM,CFG.ENTRY_COST);}catch(e){purchaseLocked=false;pendingPurchaseItem=null;$('startBtn').disabled=false;showMsg('購買請求失敗','#ff8aa0');}
 }
 function settleReward(v){
-  const reward=Math.floor(clamp(v,0,CFG.MAX_REWARD));
+  const reward=0;
   if(currentRoundSettled)return reward;currentRoundSettled=true;
-  if(!gameOverCalled){gameOverCalled=true;try{if(SDK&&typeof SDK.gameOver==='function')SDK.gameOver(reward);}catch(e){}}
+  if(!gameOverCalled){gameOverCalled=true;try{SDK?.completeRound?.(players.get(ME.id)?.score||0);}catch(e){}}
   return reward;
 }
 
@@ -288,6 +293,7 @@ function hostMoveCrown(){
   setCrownPosition();broadcastState(true);
 }
 function hostScoreTick(now){
+  if(players.size===1)return;
   const holder=state.crownOwner;if(!holder)return;
   const p=players.get(holder);if(!p)return;
   const gain=state.golden?2:1;p.score=clamp(p.score+gain,0,99999999);
@@ -321,7 +327,7 @@ function claimCrown(playerId,actionId){
   const now=Date.now();if(now-lastClaimAt<CFG.CLAIM_COOLDOWN_MS)return;lastClaimAt=now;
   const p=players.get(playerId);if(!p)return;
   state.crownOwner=playerId;state.totalClaims++;
-  p.score=clamp(p.score+5,0,99999999);
+  p.score=clamp(p.score+(state.golden?10:5),0,99999999);
   state.crownVisible=true;setCrownPosition();
   const text=state.golden?'黃金王冠！':'搶到了！';send('SPECIAL_EVENT',{roundId:state.roundId,type:'CROWN_STOLEN',playerId,text});
   broadcastState(true);showMsg(playerId===ME.id?'王冠到手！':`${p.username} 搶走王冠`,'#ffd35a');sfx(playerId===ME.id?'steal':'grab');
@@ -374,13 +380,8 @@ function setupSDK(data){
     });
   }
   if($('devBadge')) $('devBadge').style.display = 'none';
-  hello();
-
-  setTimeout(() => {
-    if(!currentRoundPaid && state.phase===STATES.LOBBY){
-      requestEntry();
-    }
-  }, 300);
+  electHost();
+  send('PLAYER_HELLO',{player:ME});
 }
 
 window.initBoomRoomSDK = function(data) {
@@ -411,7 +412,7 @@ addEventListener('message',e=>{
   if(ev==='PLAYER_HELLO'){if(p.player)addPlayer(p.player);if(isHost())broadcastState(true);return}
   if(ev==='PLAYER_HEARTBEAT'){if(p.player){const q=addPlayer(p.player);if(q){q.online=true;q.lastSeen=Date.now();}}if(isHost()&&p.requestState)broadcastState(true);return}
   if(ev==='ROUND_START'){if(!Number.isFinite(Number(p.roundId)))return;if(Number(p.roundId)<state.roundId)return;state.roundId=Number(p.roundId);state.seed=Number(p.seed)||0;state.startAt=Number(p.startAt)||0;state.phase=STATES.COUNTDOWN;state.phaseEndsAt=state.startAt;state.hostId=sender||state.hostId;gameState=STATES.COUNTDOWN;showMsg('READY','#ffd166');return}
-  if(ev==='CROWN_STATE'){renderRemoteState(p);gameState=state.phase;return}
+  if(ev==='CROWN_STATE'){renderRemoteState(p);if(gameState!==STATES.MENU)gameState=state.phase;return}
   if(ev==='CROWN_CLAIM'){if(isHost()){if(Number(p.roundId)!==state.roundId)return;const id=String(p.playerId||sender||'');if(sender&&id!==sender)return;claimCrown(id,String(p.actionId||''));}return}
   if(ev==='SPECIAL_EVENT'){if(Number(p.roundId)!==state.roundId)return;if(p.type==='GOLDEN_CROWN'){state.golden=true;state.goldenUntil=Number(p.until)||0;showMsg('黃金王冠 ×2','#ffd35a');sfx('gold')}if(p.type==='CROWN_STOLEN'){sfx('steal')}return}
   if(ev==='ROUND_END'){if(Number(p.roundId)!==state.roundId)return;if(Array.isArray(p.result))state.result=p.result;state.winner=p.winnerId?String(p.winnerId):null;state.phase=STATES.RESULT;gameState=STATES.RESULT;finishRemoteResult(p.reason||'本局結束');}
@@ -423,18 +424,13 @@ function finishRemoteResult(reason){
 }
 function renderResult(reward,won,reason,myScore,result){
   $('resultTitle').textContent=won?'你是王者！':'本局結束';$('resultTitle').style.color=won?'#ffd35a':'#ff6f8f';
-  $('reward').textContent='+'+reward+' 銀幣';$('reward').style.color=won?'#68ffb0':'#9da6c2';$('reason').textContent=reason+' · 你的分數 '+Math.round(myScore);
+  $('reward').textContent='本場分數 '+Math.round(myScore);$('reward').style.color=won?'#68ffb0':'#9da6c2';$('reason').textContent=reason+' · 不發銀幣，挑戰更高紀錄';
   const list=$('resultList');list.innerHTML='';
   result.slice(0,6).forEach((r,i)=>{const div=document.createElement('div');div.className='row '+(r.id===ME.id?'me':'');div.innerHTML='<span class="rank">#'+(i+1)+'</span><span>'+escapeHtml(r.username)+'</span><strong>'+Math.round(r.score)+'</strong>';list.appendChild(div);});
   $('result').style.display='grid';$('hud').style.display='none';gameState=STATES.RESULT;showMsg(won?'王者！':'時間到',won?'#ffd35a':'#ff6f8f');
+  $('replayBtn').textContent=isHost()?'再挑戰一局':'等待房主重新開局';
+  $('replayBtn').disabled=!isHost();
 
-  setTimeout(() => {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ action: 'leaveGame' }, '*');
-    } else {
-      try { window.close(); } catch(e){}
-    }
-  }, 3000);
 }
 function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
@@ -443,8 +439,8 @@ function point(e){const r=canvas.getBoundingClientRect();pointer.x=(e.clientX-r.
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();point(e);initAudio();requestClaim()},{passive:false});
 canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')point(e)},{passive:true});
 addEventListener('keydown',e=>{if((e.code==='Space'||e.code==='Enter')&&gameState===STATES.PLAYING){requestClaim();}});
-$('startBtn').addEventListener('pointerdown',e=>{e.preventDefault();initAudio();if(gameState===STATES.MENU){$('menu').style.display='none';$('hud').style.display='block';$('dev').style.display=DEV?'block':'none';electHost();gameState=STATES.LOBBY;state.phase=STATES.LOBBY;renderHud();if(isHost())startNewRound();else showMsg('等待房主','#ffd166');}});
-$('replayBtn').addEventListener('pointerdown',e=>{e.preventDefault();$('result').style.display='none';$('hud').style.display='block';gameState=STATES.LOBBY;state.phase=STATES.LOBBY;currentRoundPaid=false;currentRoundSettled=false;gameOverCalled=false;if(isHost())startNewRound();else showMsg('等待房主重新開局','#ffd166');});
+$('startBtn').addEventListener('click',e=>{e.preventDefault();initAudio();if(gameState===STATES.MENU){$('menu').style.display='none';$('hud').style.display='block';$('dev').style.display=DEV?'block':'none';electHost();gameState=STATES.LOBBY;state.phase=STATES.LOBBY;renderHud();if(isHost())startNewRound();else showMsg('等待房主','#ffd166');}});
+$('replayBtn').addEventListener('click',e=>{e.preventDefault();$('result').style.display='none';$('hud').style.display='block';gameState=STATES.LOBBY;state.phase=STATES.LOBBY;currentRoundPaid=false;currentRoundSettled=false;gameOverCalled=false;if(isHost())startNewRound();else showMsg('等待房主重新開局','#ffd166');});
 $('helpBtn').onclick=()=>{$('help').style.display='grid';initAudio();sfx('tap')};$('closeHelp').onclick=$('closeHelp2').onclick=()=>{$('help').style.display='none'};
 document.querySelectorAll('.emote').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();if(!state.roundId)return;send('PLAYER_EMOTE',{roundId:state.roundId,emoji:b.dataset.e});showMsg(b.dataset.e,'#fff')}));
 
@@ -456,8 +452,11 @@ function renderHud(){
   $('round').textContent='ROUND '+pad2(state.roundId||1);
   const sec=Math.max(0,Math.ceil((state.phaseEndsAt-Date.now())/1000));$('timer').textContent=state.phase===STATES.PLAYING?sec:'--';
   $('holder').textContent=state.crownOwner?(players.get(state.crownOwner)?.username||'玩家'):'王冠等待中';
-  $('tip').textContent=state.golden?'⚡ 黃金王冠 ×2！快搶！':state.crownOwner===ME.id?'👑 你正在當王：守住王冠！':'看到 👑 就直接點';
+  $('tip').textContent=state.golden?'⚡ 黃金王冠 ×2！快搶！':players.size===1?'連續點中王冠，挑戰更高分':state.crownOwner===ME.id?'👑 你正在當王：守住王冠！':'看到 👑 就直接點';
+  crownTarget.style.display=gameState===STATES.PLAYING?'block':'none';
+  crownTarget.style.left=(state.crownX-46)+'px';crownTarget.style.top=(state.crownY-46)+'px';
 }
+crownTarget.addEventListener('click',()=>{pointer.x=state.crownX;pointer.y=state.crownY;initAudio();requestClaim();});
 
 const parts=[];
 function burst(x,y,color,count=12){
@@ -499,6 +498,7 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 loop.lastSec=-1;
+requestAnimationFrame(loop);
 
 setInterval(()=>{
   const me=players.get(ME.id);if(me){me.online=true;me.lastSeen=Date.now();}
@@ -512,5 +512,6 @@ $('startBtn').disabled=false;
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

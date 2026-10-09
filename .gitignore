@@ -10,3 +10,19 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Local QA must not be served on GitHub Pages
+test/
+tests/
+RunnerTests/
+integration_test/
+coverage/
+verification/
+node_modules/
+build/
+dist/
+.env
+.env.*
+*.test.*
+*.spec.*
+*.log

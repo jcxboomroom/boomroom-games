@@ -10,6 +10,11 @@ const passButton = document.querySelector("#pass");
 const lifeStrip = document.querySelector("#life-strip");
 const hintEl = document.querySelector("#hint");
 const miniScoreEl = document.querySelector("#mini-score");
+const bombStatusEl = document.querySelector("#bomb-status");
+const rosterEl = document.querySelector("#roster");
+const resultTitleEl = document.querySelector("#result-title");
+const resultSummaryEl = document.querySelector("#result-summary");
+const resultListEl = document.querySelector("#result-list");
 
 const ROUND_SECONDS = 45;
 const PALETTES = ["#ff648e", "#65d7ff", "#ffcc58", "#a992ff", "#65e0b1", "#ff8d53", "#f477e2", "#b9e66c", "#73a3ff", "#ffadca"];
@@ -26,6 +31,7 @@ let resultTimer = 0;
 let elapsed = 0;
 let countdown = 3;
 let remaining = ROUND_SECONDS;
+let roundEndsAt=0;
 let lastFrame = performance.now();
 let lastNetworkSend = 0;
 let lastSecondSync = 0;
@@ -56,15 +62,16 @@ let screenShake = 0;
 let joystick = { x: 0, y: 0, pointerId: null };
 let keys = new Set();
 let touchActionDown = false;
-let aiDecisionTimer = 0;
 let winnerId = null;
+let winnerIds = [];
+let roundNumber = 0;
 
 function makeMockSDK() {
   const mockId = Math.max(1, Math.min(10, Number(params.get("players")) || 4));
   const roomPlayers = Array.from({ length: mockId }, (_, i) => ({
     id: i === 0 ? localUser.id : `mock-${i + 1}`,
     userId: i === 0 ? localUser.id : `mock-${i + 1}`,
-    username: i === 0 ? "你" : `玩家${i + 1}`,
+    username: i === 0 ? "你" : `玩家${i + 1} AI`,
     isBot: i > 0
   }));
   return {
@@ -72,8 +79,6 @@ function makeMockSDK() {
     roomId: "mock-room",
     roomPlayers,
     getUser: async () => localUser,
-    requestPurchase: async (itemId, cost) => ({ success: true, itemId, cost }),
-    gameOver: async (winAmount) => console.info("[Mock BoomRoom] gameOver", { winAmount }),
     sendGameEvent: (eventName, payload) => {
       mockEvents.push({ eventName, payload, timestamp: Date.now() });
       if (mockEvents.length > 80) mockEvents.shift();
@@ -85,7 +90,6 @@ function makeMockSDK() {
 
 if (!sdk) sdk = makeMockSDK();
 const isMock = !hasRealSDK;
-if (isMock) window.BoomRoomSDK = sdk;
 const isHost = Boolean(sdk.isHost);
 
 window.initBoomRoomSDK = function(data) {
@@ -95,12 +99,7 @@ window.initBoomRoomSDK = function(data) {
       localUser.username = data.user.username || localUser.username;
       localId = localUser.id;
     }
-    if (data.roomPlayers && Array.isArray(data.roomPlayers)) {
-      sdk.roomPlayers = data.roomPlayers;
-    }
-    sdk.isHost = !!data.isHost;
-    sdk.roomId = data.roomId || '';
-    init();
+    // The shared SDK owns canonical session properties; never overwrite them.
   }
 };
 
@@ -160,6 +159,7 @@ async function init() {
   }
 
   layoutPlayers();
+  document.querySelector('#exit').hidden = isMock;
   bindNetwork();
   buildLives();
   setTimeout(() => beginCountdown(), 250);
@@ -168,7 +168,7 @@ async function init() {
 
 function createPlayer(id, name, isLocal, isBot, index) {
   return {
-    id, name, isLocal, isBot,
+    id, name:isBot?`🤖 ${name} AI`:name, isLocal, isBot,
     color: PALETTES[index % PALETTES.length],
     x: 0, y: 0, tx: 0, ty: 0, vx: 0, vy: 0, knockX: 0, knockY: 0, lastMoveAt: 0,
     score: 0, hearts: 2, alive: true, angle: -Math.PI / 2, walk: 0, stun: 0,
@@ -198,13 +198,34 @@ function layoutPlayers() {
 
 function beginCountdown() {
   if (GAME_STATE !== State.LOADING) return;
+  if(!isHost&&!isMock){showCallout('等待房主開局');return;}
   GAME_STATE = State.COUNTDOWN;
   countdown = 3;
+  remaining = ROUND_SECONDS;
+  elapsed = 0;
+  hintEl.textContent = '移動躲開 · 拿到炸彈就傳給別人';
+  toastEl.classList.remove('show');
+  toastEl.textContent = '';
+  buildLives();
+  if(isHost)sendEvent('ROUND_PREPARE',{roundNumber:roundNumber+1});
   showCallout("3");
   playSound("score");
 }
 
 function bindNetwork() {
+  if (isMock) return;
+  if(sdk.onGameEvent){
+    const controls=new Set(['ROUND_PREPARE','ROUND_START','BOMB_PASS','BOMB_EXPLODE','ROUND_STATE','ROUND_END']);
+    sdk.onGameEvent((name,payload,senderId)=>{
+      const session=sdk.getSession(),sender=String(senderId||'');
+      if(!session?.players.some(p=>String(p.userId)===sender))return;
+      if(controls.has(name)&&sender!==String(session.hostId))return;
+      if(['PLAYER_MOVE','PLAYER_ACTION','PLAYER_LEFT'].includes(name)&&String(payload?.userId??payload?.playerId)!==sender)return;
+      onNetworkEvent(name,{...payload,senderId:sender});
+    });
+    sendEvent('PLAYER_READY',{userId:localId});
+    return;
+  }
   const receive = (event) => {
     const data = event?.detail ?? event?.data ?? event;
     const eventName = data?.eventName ?? data?.name ?? data?.type;
@@ -221,13 +242,30 @@ function bindNetwork() {
 }
 
 function sendEvent(eventName, payload = {}) {
-  try { sdk.sendGameEvent?.(eventName, { ...payload, roomId: sdk.roomId ?? null, senderId: localId, at: Date.now() }); }
+  try { sdk.sendGameEvent?.(eventName, { roundNumber, ...payload, roomId: sdk.roomId ?? null, senderId: localId, at: Date.now() }); }
   catch (error) { console.warn("BoomRoom event send failed", error); }
 }
 
 function onNetworkEvent(name, payload) {
   if (!payload || payload.senderId === localId) return;
+  const controls = ['ROUND_PREPARE','ROUND_START','BOMB_PASS','BOMB_EXPLODE','ROUND_STATE','ROUND_END'];
+  if (controls.includes(name) && !Number.isInteger(payload.roundNumber)) return;
+  if(Number.isInteger(payload.roundNumber)&&payload.roundNumber<roundNumber)return;
+  if (name === 'ROUND_PREPARE' && payload.roundNumber <= roundNumber) return;
+  if (GAME_STATE === State.RESULT && !['ROUND_PREPARE','PLAYER_READY','PLAYER_LEFT'].includes(name)) return;
   switch (name) {
+    case 'ROUND_PREPARE':
+      if(isHost)break;
+      roundNumber=payload.roundNumber;
+      resetRoundState();
+      GAME_STATE=State.COUNTDOWN;
+      hintEl.textContent='移動躲開 · 拿到炸彈就傳給別人';
+      toastEl.classList.remove('show');
+      buildLives();showCallout('3');
+      break;
+    case 'PLAYER_READY':
+      if(isHost&&GAME_STATE===State.PLAYING)broadcastRound();
+      break;
     case "PLAYER_MOVE": {
       const p = findPlayer(payload.userId ?? payload.playerId);
       if (!p || p.isLocal) return;
@@ -264,6 +302,13 @@ function onNetworkEvent(name, payload) {
       }
       break;
     case "ROUND_START":
+      if(isHost)break;
+      roundNumber=payload.roundNumber;
+      GAME_STATE=State.PLAYING;
+      gameOverCalled=false;
+      document.querySelector('#result-actions').hidden=true;
+      roundEndsAt=Date.now()+Math.max(0,Number(payload.remaining)||ROUND_SECONDS)*1000;
+      remaining=Math.max(0,Number(payload.remaining)||ROUND_SECONDS);
       if (Array.isArray(payload.players)) {
         payload.players.forEach(item => {
           const p = findPlayer(item.id);
@@ -275,7 +320,8 @@ function onNetworkEvent(name, payload) {
           }
         });
       }
-      if (payload.holderId) { bomb.holderId = payload.holderId; bomb.fuse = payload.fuse ?? 6.8; }
+      if (payload.holderId) { bomb.holderId = payload.holderId; bomb.fuse = payload.fuse ?? 6.8; bomb.fuseEndsAt=Date.now()+bomb.fuse*1000; }
+      buildLives();showCallout('開始！',true);
       break;
     case "BOMB_PASS":
       applyPass(payload);
@@ -284,17 +330,26 @@ function onNetworkEvent(name, payload) {
       applyExplosion(payload, false);
       bomb.holderId = payload.nextHolderId ?? null;
       bomb.fuse = Number(payload.nextFuse) || 6.8;
+      bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
       bomb.lastPasser = null;
       break;
     case "ROUND_STATE":
-      if (Number.isFinite(payload.remaining)) remaining = payload.remaining;
+      if (Number.isFinite(payload.remaining)) {remaining = payload.remaining;roundEndsAt=Date.now()+remaining*1000;}
+      if(Number.isFinite(payload.fuse)){
+        bomb.holderId=payload.holderId;
+        bomb.fuse=payload.fuse;
+        bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
+      }
       if (payload.players) {
         payload.players.forEach(item => {
           const p = findPlayer(item.id);
-          if (p && !p.isLocal) {
+          if (p) {
             p.score = item.score ?? p.score;
             p.hearts = item.hearts ?? p.hearts;
             p.alive = item.alive !== false;
+            if(!p.isLocal&&Number.isFinite(item.x)&&Number.isFinite(item.y)){
+              p.tx=item.x*arena.w;p.ty=item.y*arena.h;
+            }
           }
         });
       }
@@ -312,9 +367,9 @@ function onNetworkEvent(name, payload) {
     case "ROUND_END":
       if (Array.isArray(payload.ranking)) payload.ranking.forEach(item => {
         const p = findPlayer(item.id);
-        if (p && Number.isFinite(item.score)) p.score = item.score;
+        if (p && Number.isFinite(item.score)) {p.score = item.score;p.hearts=item.hearts??p.hearts;p.alive=item.alive!==false;}
       });
-      finishRound(payload.winnerId ?? null, false);
+      finishRound(payload.winnerId ?? null, false, payload.winnerIds);
       break;
     case "PLAYER_LEFT": {
       const p = findPlayer(payload.userId ?? payload.playerId);
@@ -327,19 +382,27 @@ function onNetworkEvent(name, payload) {
 function findPlayer(id) { return players.find(p => p.id === String(id)); }
 
 function startRound() {
+  if(!isHost&&!isMock)return;
   GAME_STATE = State.PLAYING;
+  roundNumber++;
   remaining = ROUND_SECONDS;
+  roundEndsAt=Date.now()+ROUND_SECONDS*1000;
   elapsed = 0;
   const candidates = players.filter(p => p.alive);
   const holder = candidates[Math.floor(Math.random() * candidates.length)];
   bomb.holderId = holder?.id ?? localId;
   bomb.fuse = 6.8;
+  bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
   bomb.lastPasser = null;
   showCallout("開始！", true);
   showToast("炸彈快爆時，把它傳給最近的人！");
   playSound("score");
-  if (isHost) sendEvent("ROUND_START", {
+  if(isHost)broadcastRound();
+}
+function broadcastRound(){
+  sendEvent("ROUND_START", {
     holderId: bomb.holderId, fuse: bomb.fuse,
+    remaining,
     normalized: true,
     players: players.map(p => ({ id: p.id, x: p.x / arena.w, y: p.y / arena.h, score: p.score, hearts: p.hearts, alive: p.alive }))
   });
@@ -364,7 +427,7 @@ function frame(now) {
 
 function updateGame(dt) {
   elapsed += dt;
-  remaining = Math.max(0, ROUND_SECONDS - elapsed);
+  remaining = Math.max(0,(roundEndsAt-Date.now())/1000);
   const local = players.find(p => p.isLocal);
   for (const p of players) {
     if (!p.alive || p.disconnected) continue;
@@ -381,13 +444,14 @@ function updateGame(dt) {
     p.flash = Math.max(0, p.flash - dt);
   }
   bumpPlayers();
+  bomb.fuse=Math.max(0,((bomb.fuseEndsAt||Date.now())-Date.now())/1000);
   if (isHost || isMock) {
-    bomb.fuse -= dt;
     const holder = findPlayer(bomb.holderId);
     if (!holder?.alive && players.some(p => p.alive)) {
       const next = players.filter(p => p.alive).sort((a, b) => distance(holder || { x: 0, y: 0 }, a) - distance(holder || { x: 0, y: 0 }, b))[0];
       bomb.holderId = next?.id ?? null;
       bomb.fuse = 5.5;
+      bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
     }
     if (bomb.fuse <= 0 && holder) explode(holder);
     if (remaining <= 0) endByScore();
@@ -397,7 +461,8 @@ function updateGame(dt) {
     lastSecondSync = nowMs();
     sendEvent("ROUND_STATE", {
       remaining,
-      players: players.map(p => ({ id: p.id, score: p.score, hearts: p.hearts, alive: p.alive }))
+      holderId:bomb.holderId,fuse:bomb.fuse,
+      players: players.map(p => ({ id: p.id, score: p.score, hearts: p.hearts, alive: p.alive,x:p.x/arena.w,y:p.y/arena.h }))
     });
   }
   bomb.bumpLock = Math.max(0, bomb.bumpLock - dt);
@@ -440,11 +505,11 @@ function updateBot(p, dt) {
     ? nearest(p, others)
     : (findPlayer(bomb.holderId) || nearest(p, others));
   if (!target) return;
-  aiDecisionTimer -= dt;
+  p.aiDecisionTimer = Math.max(0, (Number.isFinite(p.aiDecisionTimer) ? p.aiDecisionTimer : .7) - dt);
   let dx = target.x - p.x;
   let dy = target.y - p.y;
   let d = Math.hypot(dx, dy) || 1;
-  if (isHolder) {
+  if (!isHolder) {
     dx = -dx; dy = -dy;
     if (d < 165) { dx += (p.x - arena.w / 2) * .014; dy += (p.y - arena.h / 2) * .014; }
   }
@@ -458,9 +523,9 @@ function updateBot(p, dt) {
   p.knockY *= Math.pow(.025, dt);
   p.angle = Math.atan2(p.vy, p.vx);
   p.walk += dt * 9;
-  if (isHolder && d < 245 && aiDecisionTimer <= 0) {
+  if (isHolder && bomb.fuse < 2.3 && d < 245 && p.aiDecisionTimer <= 0 && Date.now() >= (p.aiReactionAt || 0)) {
     passBomb(p, false);
-    aiDecisionTimer = 1.1 + Math.random() * .9;
+    p.aiDecisionTimer = .85 + Math.random() * .4;
   }
 }
 
@@ -492,6 +557,8 @@ function bumpPlayers() {
 
 function passBomb(p, authoritative) {
   if (GAME_STATE !== State.PLAYING || p.id !== bomb.holderId || !p.alive) return;
+  if ((isHost || isMock) && bomb.fuseEndsAt <= Date.now()) { explode(p); return; }
+  if(Date.now()-(p.lastPassAt||0)<350)return;
   const targets = players.filter(q => q.id !== p.id && q.alive && !q.disconnected);
   const target = nearest(p, targets);
   if (!target || distance(p, target) > Math.min(arena.w, arena.h) * .78) {
@@ -502,7 +569,9 @@ function passBomb(p, authoritative) {
     sendEvent("PLAYER_ACTION", { userId: p.id, action: "pass" });
     return;
   }
-  const payload = { fromId: p.id, toId: target.id, fromX: p.x, fromY: p.y, toX: target.x, toY: target.y, fuse: Math.min(7.6, 6.5 + (remaining < 10 ? .3 : 0)) };
+  p.lastPassAt=Date.now();
+  // 傳遞同一顆炸彈不能延長引信，最後一刻傳出才有風險與反擊。
+  const payload = { fromId: p.id, toId: target.id, fromX: p.x, fromY: p.y, toX: target.x, toY: target.y, fuse: Math.max(0, (bomb.fuseEndsAt - Date.now()) / 1000) };
   applyPass(payload);
   sendEvent("BOMB_PASS", {
     ...payload, normalized: true,
@@ -521,7 +590,9 @@ function applyPass(payload) {
   }
   bomb.lastPasser = payload.fromId;
   bomb.holderId = target.id;
-  bomb.fuse = Number(payload.fuse) || 6.5;
+  if (target.isBot) target.aiReactionAt = Date.now() + 400;
+  bomb.fuse = Number.isFinite(payload.fuse) ? Math.max(0, payload.fuse) : 6.8;
+  if (!isHost && !isMock) bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
   bomb.bumpLock = .26;
   const fromX = payload.normalized ? payload.fromX * arena.w : payload.fromX;
   const fromY = payload.normalized ? payload.fromY * arena.h : payload.fromY;
@@ -531,7 +602,7 @@ function applyPass(payload) {
   burst(target.x, target.y, "#fff0a4", 10, 120);
   playSound("pass");
   vibrate(10);
-  showToast(from?.isLocal ? "傳得漂亮！+1 分" : `${from?.name || "玩家"} 把炸彈丟給 ${target.isLocal ? "你" : target.name}！`);
+  showToast(from?.isLocal ? "傳得漂亮！+1 分" : `${shortName(from?.name || '玩家', 8)} 傳給 ${target.isLocal ? '你' : shortName(target.name, 8)}！`);
 }
 
 function explode(holder) {
@@ -539,11 +610,15 @@ function explode(holder) {
   const points = golden ? 2 : 1;
   const payload = { holderId: holder.id, x: holder.x, y: holder.y, points, golden, scorerId: bomb.lastPasser };
   applyExplosion(payload, true);
+  bomb.lastPasser = null;
+  bomb.trail = null;
   bomb.holderId = null;
   bomb.fuse = 6.8;
+  bomb.fuseEndsAt=Date.now()+bomb.fuse*1000;
   goldenNext = Math.random() < .25;
   if (goldenNext && remaining > 13) {
-    setTimeout(() => { if (GAME_STATE === State.PLAYING) showToast("下一顆是雙倍炸彈！"); }, 500);
+    const explosionRound = roundNumber;
+    setTimeout(() => { if (GAME_STATE === State.PLAYING && roundNumber === explosionRound) showToast("下一顆是雙倍炸彈！"); }, 500);
   }
   if (players.filter(p => p.alive).length < 2) {
     const alive = players.find(p => p.alive);
@@ -606,41 +681,94 @@ function applyExplosion(payload, localAuthority) {
 }
 
 function endByScore() {
-  const sorted = [...players].sort((a, b) => b.score - a.score || b.hearts - a.hearts);
-  finishRound(sorted[0]?.id ?? null, true);
+  const survivors = players.filter(p => p.alive && !p.disconnected).sort((a, b) => b.score - a.score || b.hearts - a.hearts);
+  const first = survivors[0];
+  const winners = first ? survivors.filter(p => p.score === first.score && p.hearts === first.hearts).map(p => p.id) : [];
+  finishRound(winners.length === 1 ? winners[0] : null, true, winners);
 }
 
-function finishRound(id, broadcast) {
+function finishRound(id, broadcast, sharedWinners) {
   if (GAME_STATE === State.RESULT || GAME_STATE === State.EXIT) return;
   GAME_STATE = State.RESULT;
-  winnerId = id;
-  const ordered = [...players].sort((a, b) => b.score - a.score || b.hearts - a.hearts);
-  const winner = ordered.find(p => p.id === id) ?? ordered[0];
-  playSound(winner?.id === localId ? "score" : "explosion");
-  vibrate(winner?.id === localId ? [35, 40, 80] : 180);
-  if (broadcast && isHost) sendEvent("ROUND_END", { winnerId: winner?.id, ranking: ordered.map(p => ({ id: p.id, score: p.score })) });
+  winnerIds = (Array.isArray(sharedWinners) ? sharedWinners : id ? [id] : []).filter(candidate => findPlayer(candidate));
+  winnerId = winnerIds.length === 1 ? winnerIds[0] : null;
+  remaining = 0;
+  resetInput();
+  const ordered = rankedPlayers();
+  const winner = ordered.find(p => p.id === winnerId);
+  const localWins = winnerIds.includes(localId);
+  const title = winnerIds.length > 1 ? '並列勝利！' : localWins ? '你贏了！' : winner ? `${shortName(winner.name, 8)} 勝利` : '本局結束';
+  playSound(localWins ? "score" : "explosion");
+  vibrate(localWins ? [35, 40, 80] : 180);
+  if (broadcast && isHost) sendEvent("ROUND_END", { winnerId, winnerIds, ranking: ordered.map(p => ({ id: p.id, score: p.score, hearts:p.hearts, alive:p.alive })) });
   calloutEl.classList.remove("show", "small");
-  showToast(winner?.id === localId ? "你贏了！太會傳了" : `${winner?.name || "玩家"} 拿下勝利！`);
-  showCallout(winner?.id === localId ? "贏了！" : `${winner?.name || "玩家"} 勝利`, true);
+  showToast(title);
+  showCallout(title, true);
   if (!gameOverCalled) {
     gameOverCalled = true;
-    const winAmount = winner?.id === localId ? 100 : 0;
-    try { sdk.gameOver?.(winAmount); } catch (error) { console.warn("BoomRoom gameOver failed", error); }
+    try { sdk.completeRound?.(players.find(p=>p.isLocal)?.score||0); } catch (error) { console.warn("BoomRoom round completion failed", error); }
   }
-  hintEl.textContent = ordered.map((p, i) => `${i + 1}. ${p.name} ${p.score}`).join("　");
-  resultTimer = 3;
+  hintEl.textContent = '先比生存，再比傳球分數與剩餘生命';
+  resultTitleEl.textContent = title;
+  resultSummaryEl.textContent = winnerIds.length > 1 ? `${winnerIds.length} 位玩家同分、同生命，並列第一` : winner ? '存活玩家優先，傳球分數決定名次' : '所有玩家均已出局';
+  resultListEl.replaceChildren();
+  for (const p of ordered) {
+    const row = document.createElement('li');
+    const rank = document.createElement('strong');
+    rank.textContent = `#${p.rank}`;
+    const name = document.createElement('span');
+    name.className = 'result-name'; name.textContent = p.isLocal ? '你' : p.name; name.title = p.name;
+    const score = document.createElement('span');
+    score.className = 'result-score'; score.textContent = `${p.score} 分 · ${p.alive && !p.disconnected ? `${p.hearts} ♥` : '出局'}`;
+    row.append(rank, name, score); resultListEl.append(row);
+  }
+  buildLives();
+  document.querySelector('#result-actions').hidden=false;
+  document.querySelector('#replay').disabled=!isHost;
+  document.querySelector('#replay').textContent=isHost?'再挑戰一次':'等待房主再開一局';
 }
+function replayRound(){
+  if(GAME_STATE!==State.RESULT||!isHost)return;
+  resetRoundState();
+  GAME_STATE=State.LOADING;
+  document.querySelector('#result-actions').hidden=true;
+  layoutPlayers();buildLives();beginCountdown();
+}
+function resetRoundState() {
+  for (const p of players) Object.assign(p, {score:0, hearts:2, alive:!p.disconnected, stun:0, flash:0, x:0, y:0, tx:0, ty:0, vx:0, vy:0, knockX:0, knockY:0, lastMoveAt:0, lastPassAt:0, walk:0, dash:0, aiDecisionTimer:.7, aiReactionAt:0});
+  gameOverCalled=false; elapsed=0; countdown=3; remaining=ROUND_SECONDS; roundEndsAt=0;
+  winnerId=null; winnerIds=[]; particles=[]; floatingTexts=[]; screenShake=0; goldenNext=false;
+  lastNetworkSend=0; lastSecondSync=0; lastHudRefresh=0;
+  bomb={holderId:null, fuse:6.8, fuseEndsAt:0, x:0, y:0, trail:null, lastPasser:null, bumpLock:0};
+  resetInput();
+  toastEl.classList.remove('show'); toastEl.textContent=''; calloutEl.textContent='';
+  document.querySelector('#result-actions').hidden=true;
+  resultTitleEl.textContent=''; resultSummaryEl.textContent=''; resultListEl.replaceChildren();
+  layoutPlayers();
+}
+function resetInput() {
+  keys.clear(); touchActionDown=false;
+  if (joystick.pointerId !== null && joystickEl.hasPointerCapture?.(joystick.pointerId)) joystickEl.releasePointerCapture(joystick.pointerId);
+  joystick.pointerId=null; joystick.x=0; joystick.y=0; knobEl.style.transform='translate(0,0)';
+}
+function rankedPlayers() {
+  const metric = p => [winnerIds.includes(p.id) ? 1 : 0, p.alive && !p.disconnected ? 1 : 0, p.score, p.hearts];
+  const sorted = [...players].sort((a,b) => {
+    const am=metric(a),bm=metric(b);
+    for(let i=0;i<am.length;i++) if(am[i]!==bm[i]) return bm[i]-am[i];
+    return String(a.id).localeCompare(String(b.id));
+  });
+  let previous = null, rank = 0;
+  return sorted.map((p,i) => {
+    const current = metric(p);
+    if (!previous || current.some((value,j)=>value!==previous[j])) rank=i+1;
+    previous=current;
+    return {...p,rank};
+  });
+}
+function shortName(name,length=10){const letters=Array.from(name);return letters.length>length?letters.slice(0,length-1).join('')+'…':name;}
 
 function updateEffects(dt) {
-  if (GAME_STATE === State.RESULT) {
-    resultTimer -= dt;
-    if (resultTimer <= 0) {
-      GAME_STATE = State.EXIT;
-      try { window.parent.postMessage({ action: "leaveGame" }, "*"); } catch { /* Standalone fallback below. */ }
-      if (window.parent === window) location.href = "../room.html";
-      return;
-    }
-  }
   for (const p of particles) {
     p.x += p.vx * dt; p.y += p.vy * dt;
     p.vx *= Math.pow(.08, dt); p.vy *= Math.pow(.08, dt);
@@ -665,7 +793,7 @@ function render() {
   if (carrier?.alive && GAME_STATE === State.PLAYING) drawBomb(carrier);
   particles.forEach(drawParticle);
   floatingTexts.forEach(drawFloating);
-  if (GAME_STATE === State.RESULT) drawResults(w, h);
+  if (GAME_STATE === State.RESULT) { ctx.fillStyle='rgba(15,8,29,.64)'; ctx.fillRect(0,0,w,h); }
   ctx.restore();
 }
 
@@ -749,15 +877,16 @@ function drawPlayer(p) {
 }
 
 function drawNameTag(p) {
-  const text = p.name.length > 8 ? `${p.name.slice(0, 7)}…` : p.name;
-  ctx.font = "800 10px 'Noto Sans TC', Nunito, sans-serif";
+  const text = shortName(p.name, 8);
+  const fontSize = Math.max(12, 12 / (arena.renderScale || 1));
+  ctx.font = `800 ${fontSize}px 'Noto Sans TC', Nunito, sans-serif`;
   const width = ctx.measureText(text).width + 14;
   ctx.fillStyle = "rgba(19,11,35,.78)";
-  roundRect(ctx, -width / 2, -40, width, 16, 8);
+  roundRect(ctx, -width / 2, -40 - fontSize / 2, width, fontSize + 8, 8);
   ctx.fill();
   ctx.fillStyle = p.id === localId ? "#fff1cb" : "#eee7fa";
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(text, 0, -32);
+  ctx.fillText(text, 0, -36);
 }
 
 function drawBomb(holder) {
@@ -811,7 +940,7 @@ function drawFloating(f) {
 function drawResults(w, h) {
   ctx.fillStyle = "rgba(15,8,29,.64)";
   ctx.fillRect(0, 0, w, h);
-  const ordered = [...players].sort((a, b) => b.score - a.score || b.hearts - a.hearts);
+  const ordered = rankedPlayers();
   const panelW = Math.min(300, w - 42);
   const panelH = Math.min(250, h - 35);
   const x = (w - panelW) / 2, y = (h - panelH) / 2;
@@ -827,27 +956,45 @@ function drawResults(w, h) {
     const rowY = y + 60 + i * 27;
     ctx.fillStyle = i === 0 ? "rgba(255,214,110,.15)" : "rgba(255,255,255,.035)";
     roundRect(ctx, x + 14, rowY - 14, panelW - 28, 23, 8); ctx.fill();
-    ctx.fillStyle = p.color; ctx.fillText(`${["①","②","③","④","⑤"][i] || `${i+1}.`} ${p.name}`, w / 2 - 28, rowY + 1);
+    ctx.textAlign='left';
+    ctx.fillStyle = p.color; ctx.fillText(`${["①","②","③","④","⑤"][i] || `${i+1}.`} ${shortName(p.name,12)}`, x+25, rowY + 1,panelW-110);
     ctx.fillStyle = "#f5edf9";
-    ctx.fillText(`${p.score} 分`, w / 2 + panelW * .31, rowY + 1);
+    ctx.textAlign='right';ctx.fillText(`${p.score} 分`, x+panelW-25, rowY + 1);
   });
   ctx.fillStyle = "#bba9d1"; ctx.font = "700 10px Nunito,sans-serif";
-  ctx.fillText("即將返回房間…", w / 2, y + panelH - 16);
+  ctx.textAlign='center';ctx.fillText("使用下方按鈕再玩一局或返回", w / 2, y + panelH - 16);
 }
 
 function updateHud() {
   const sec = Math.ceil(remaining);
   clockEl.textContent = String(sec).padStart(2, "0");
   clockEl.closest(".round-clock").classList.toggle("urgent", sec <= 10 && GAME_STATE === State.PLAYING);
-  const sorted = [...players].sort((a, b) => b.score - a.score);
-  const rank = sorted.findIndex(p => p.id === localId) + 1;
+  const sorted = rankedPlayers();
+  const rank = sorted.find(p => p.id === localId)?.rank ?? 0;
   const leader = sorted[0];
-  leaderEl.textContent = leader ? `#${rank}　👑 ${leader.name} ${leader.score}` : "";
+  leaderEl.textContent = leader ? `#${rank}　👑 ${shortName(leader.name)} ${leader.score}` : "";
   const local = players.find(p => p.id === localId);
   miniScoreEl.textContent = `${local?.score ?? 0} 分`;
   passButton.classList.toggle("is-carrier", GAME_STATE === State.PLAYING && bomb.holderId === localId);
+  passButton.disabled = GAME_STATE !== State.PLAYING || !local?.alive || bomb.holderId !== localId;
+  const canMove = GAME_STATE === State.PLAYING && Boolean(local?.alive);
+  joystickEl.setAttribute('aria-disabled', String(!canMove));
+  joystickEl.classList.toggle('inactive', !canMove);
+  const humans=players.filter(p=>!p.isBot).length;
+  rosterEl.textContent=`真人 ${humans} 人${players.some(p=>p.isBot)?` · AI ${players.length-humans} 人`:''} · 存活 ${players.filter(p=>p.alive&&!p.disconnected).length}/${players.length}`;
+  const holder=findPlayer(bomb.holderId);
+  if (GAME_STATE === State.PLAYING) {
+    const fuse=Math.max(0, (bomb.fuseEndsAt-Date.now())/1000);
+    bombStatusEl.textContent=holder ? `${holder.isLocal?'你持有炸彈':`${shortName(holder.name,8)} 持有炸彈`} · ${fuse.toFixed(1)} 秒` : '新炸彈準備中';
+    bombStatusEl.classList.toggle('urgent', fuse<=2);
+    hintEl.textContent=!local?.alive?'你已出局，正在觀戰；下一局重新加入':bomb.holderId===localId?'快傳出去！引信不會重置':'躲開炸彈 · 每人兩條命';
+  } else {
+    bombStatusEl.textContent=GAME_STATE===State.RESULT?'本局已結束':GAME_STATE===State.COUNTDOWN?'準備開始 · 生存到最後！':'等待開局';
+    bombStatusEl.classList.remove('urgent');
+  }
   const points = local?.hearts ?? 0;
   lifeStrip.innerHTML = Array.from({ length: 2 }, (_, i) => `<span class="life-pip ${i >= points ? "lost" : ""}"></span>`).join("");
+  lifeStrip.setAttribute('aria-label',`剩餘生命 ${points} / 2`);
 }
 
 function buildLives() { updateHud(); }
@@ -923,13 +1070,15 @@ function roundRect(context, x, y, width, height, radius) {
 function resize() {
   const rect = canvas.getBoundingClientRect();
   const dpr = Math.min(2, window.devicePixelRatio || 1);
-  arena.w = Math.max(1, rect.width);
-  arena.h = Math.max(1, rect.height);
+  // 所有裝置使用同一個正方形競技場，位置、速度與碰撞不受螢幕尺寸影響。
+  arena.w = 500;
+  arena.h = 500;
   arena.dpr = dpr;
+  arena.renderScale = Math.max(.1, rect.width / arena.w);
   arena.inset = Math.min(30, Math.max(19, Math.min(arena.w, arena.h) * .065));
-  canvas.width = Math.round(arena.w * dpr);
-  canvas.height = Math.round(arena.h * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+  ctx.setTransform(rect.width / arena.w * dpr, 0, 0, rect.height / arena.h * dpr, 0, 0);
   layoutPlayers();
 }
 
@@ -946,6 +1095,7 @@ function updateJoystick(event) {
 }
 
 joystickEl.addEventListener("pointerdown", event => {
+  if (GAME_STATE !== State.PLAYING || !findPlayer(localId)?.alive) return;
   unlockAudio();
   joystick.pointerId = event.pointerId;
   joystickEl.setPointerCapture(event.pointerId);
@@ -990,4 +1140,6 @@ document.addEventListener("pointerdown", unlockAudio, { once: true });
 window.addEventListener("resize", resize);
 new ResizeObserver(resize).observe(canvas);
 resize();
+document.querySelector('#replay').addEventListener('click',replayRound);
+document.querySelector('#exit').addEventListener('click',()=>{GAME_STATE=State.EXIT;sdk.leaveGame?.();});
 init();

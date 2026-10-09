@@ -26,6 +26,8 @@ const AUTO_START_STABLE_MS = 900;
 const HEARTBEAT_MS = 1200;
 const SDK_RECOVERY_MS = 2200;
 const BOT_COUNT_FOR_SOLO = 5;
+const FLOOR_INTRO_MS = 2500;
+const TILE_COLLAPSE_MS = 1400;
 const BOT_NAMES = ["碰碰", "閃閃", "豆包", "小彈珠", "泡泡", "阿蹦", "蘑菇", "麻糬", "火花"];
 const MAPS = [
   { id: "courtyard", name: "小型庭院", tag: "7×7 小圖", grid: 7, radius: 1.04 },
@@ -433,6 +435,18 @@ function adoptSdk(realSdk) {
 function bindSdkEventBridge(realSdk) {
   if (!realSdk || boundSdk === realSdk) return;
   boundSdk = realSdk;
+  if(realSdk.onGameEvent){
+    const controls=new Set(['FLOOR_ROOM_SYNC','FLOOR_ROUND_START','PLAYER_HIT','PLAYER_OUT','TILE_STATE','ORB_STATE','ORB_PICKUP','GAME_STATE','BATTLE_END','SERIES_END']);
+    realSdk.onGameEvent((eventName,payload,senderId)=>{
+      const session=realSdk.getSession();
+      const sender=String(senderId||'');
+      if(!session?.players.some(p=>String(p.userId)===sender))return;
+      if(controls.has(eventName)&&sender!==String(session.hostId))return;
+      if(payload?.sourceId&&String(payload.sourceId)!==sender)return;
+      handleGameEvent({eventName,payload,senderId:sender});
+    });
+    return;
+  }
   const listener = (detail) => {
     const d = detail?.detail ?? detail ?? {};
     const eventName = d?.eventName ?? d?.name ?? d?.event ?? d?.type;
@@ -517,6 +531,7 @@ function installControls() {
 
 function installNetworkEvents() {
   const listener = (event) => {
+    if(sdk?.onGameEvent)return;
     const detail = event?.detail ?? event;
     const eventName = detail?.eventName ?? detail?.name ?? detail?.event ?? detail?.type;
     const payload = detail?.payload ?? detail?.data ?? {};
@@ -526,10 +541,11 @@ function installNetworkEvents() {
   window.addEventListener("gameEventReceived", listener);
   document.addEventListener("gameEventReceived", listener);
   window.addEventListener("message", (event) => {
+    if(sdk?.onGameEvent)return;
     try {
       const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       if (!data || typeof data !== "object") return;
-      if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady" || data.user || data.roomPlayers || data.roomId) {
+      if (data.action === "initSDK" || data.action === "sdkReady" || data.action === "boomroom:sdkReady") {
         sdkSignalSeen = true;
         setupSDK(data.data && typeof data.data === "object" ? data.data : data);
         return;
@@ -594,7 +610,6 @@ function setupSDK(data = {}) {
   if (nested.roomId != null) roomId = String(nested.roomId);
   if (nested.isHost !== undefined && nested.isHost !== null) {
     hostFlag = nested.isHost;
-    try { if (sdk) sdk.isHost = nested.isHost; } catch {}
   }
   sdkReady = true;
   mockMode = false;
@@ -670,6 +685,8 @@ function scheduleSeriesAutoStart() {
 
 function startSeries() {
   if (!isHost() || roomHumans.length <= 0 || state === GAME_STATE.PLAYING || state === GAME_STATE.COUNTDOWN) return;
+  gameOverCalled=false;
+  exitSent=false;
   seriesFinished = false;
   battleNumber = 1;
   currentMapIndex = 0;
@@ -998,8 +1015,8 @@ function applyHit(payload) {
 function damageTile(tile, level) {
   if (!isHost() || !tile || tile.level >= level || tile.level >= 3) return;
   tile.level = level;
-  tile.collapseAt = level === 2 ? now() + 820 : 0;
-  sendEvent("TILE_STATE", { key: tile.key, level: tile.level, collapseAt: Date.now() + (level === 2 ? 820 : 0) });
+  tile.collapseAt = level === 2 ? now() + TILE_COLLAPSE_MS : 0;
+  sendEvent("TILE_STATE", { key: tile.key, level: tile.level, collapseAt: Date.now() + (level === 2 ? TILE_COLLAPSE_MS : 0) });
   if (level === 1) {
     spawnBurst(tile.x, tile.y, "#9ba9ff", 3);
   } else if (level === 2) {
@@ -1032,6 +1049,7 @@ function tileAt(x, y) {
 
 function maybeCrackUnderPlayers() {
   if (!isHost()) return;
+  if (now() - matchStartedAt < FLOOR_INTRO_MS) return;
   players.forEach((player) => {
     if (!player.alive) return;
     const tile = tileAt(player.x, player.y);
@@ -1146,7 +1164,7 @@ function makeSnapshot() {
       alive: player.alive, charged: player.charged, knockouts: player.knockouts, orbs: player.orbs,
       seriesPoints: player.seriesPoints, battleWins: player.battleWins,
     })),
-    tiles: tiles.filter((tile) => tile.level > 0).map((tile) => ({ key: tile.key, level: tile.level })),
+    tiles: tiles.filter((tile) => tile.level > 0).map((tile) => ({ key: tile.key, level: tile.level, collapseAt: tile.level === 2 ? Date.now()+Math.max(0,tile.collapseAt-now()) : 0 })),
     safeRadius,
     orb: orb ? { id: orb.id, x: orb.x, y: orb.y, until: orb.until } : null,
   };
@@ -1180,7 +1198,7 @@ function finishRound(winnerId, reason = "最後站著的人") {
     knockouts: Number(player.knockouts || 0), survival: Math.floor(player.survival || 0),
   }));
   const final = battleNumber >= SERIES_BATTLES;
-  showResults(winner, reason, resultRows, final);
+  if(!final)showResults(winner, reason, resultRows, false);
 
   if (!isHost()) return;
   const battlePayload = { battleNumber, winnerId: winner?.id || null, reason, standings: resultRows, nextBattleNumber: battleNumber + 1, nextMapIndex: battleNumber % MAPS.length };
@@ -1206,6 +1224,7 @@ function finishRound(winnerId, reason = "最後站著的人") {
       standings: seriesStanding.map((player, index) => ({ id: player.id, name: player.name, rank: index + 1, seriesPoints: Number(player.seriesPoints || 0), battleWins: Number(player.battleWins || 0) })).slice(0, 10),
     };
     if (!mockMode) sendEvent("SERIES_END", endPayload);
+    applySeriesEnd(endPayload);
   }
 }
 
@@ -1221,7 +1240,7 @@ function applyBattleEnd(payload) {
     player.battleWins = Number(row.battleWins) || player.battleWins || 0;
   });
   const winner = players.find((p) => p.id === String(payload.winnerId)) || getStandings()[0];
-  showResults(winner, payload.reason || "本戰結束", payload.standings, battleNumber >= SERIES_BATTLES);
+  if(battleNumber<SERIES_BATTLES)showResults(winner, payload.reason || "本戰結束", payload.standings, false);
 }
 
 function applySeriesEnd(payload) {
@@ -1263,47 +1282,25 @@ function showResults(winner, reason, rows = [], final = false) {
       <span class="result-name">${escapeHtml(row.name || "玩家")}${String(row.id) === String(localPlayer?.id) ? "（你）" : ""}</span>
       <span class="result-meta">${Number(row.seriesPoints || 0)} 分 · ${Number(row.battleWins || 0)} 勝</span>
     </div>`).join("");
-  $(".result-foot").textContent = final ? "五戰完成 · 正在結算並返回房間" : `下一戰：${getMapForBattle(battleNumber + 1).name} · 3 秒後開始`;
+  $(".result-foot").textContent = final ? "五戰完成 · 挑戰成績不發放銀幣" : `下一戰：${getMapForBattle(battleNumber + 1).name} · 3 秒後開始`;
+  $('#seriesReplay').hidden=!final;
+  $('#seriesExit').hidden=!final||mockMode;
+  $('#seriesReplay').disabled=!isHost();
+  $('#seriesReplay').textContent=isHost()?'再挑戰五戰':'等待房主再開五戰';
   resultNode.classList.add("show");
   renderRoomHud();
   if (winner?.id === localPlayer?.id) { pingSound("pickup", 0.9, 1.18); vibrate([35, 25, 55]); }
 
   if (final) {
-    setTimeout(() => {
-      if (state !== GAME_STATE.RESULT || !seriesFinished) return;
-      if (!gameOverCalled) {
-        gameOverCalled = true;
-        const reward = winner?.id === localPlayer?.id ? 10 : localPlayer?.alive ? 4 : 2;
-        try { sdk.gameOver?.(reward); } catch (error) { console.warn("BoomRoom gameOver failed", error); }
-      }
-      state = GAME_STATE.EXIT;
-      if (!exitSent) {
-        exitSent = true;
-        try {
-          // Web iframe：按照 BoomRoom 規範，必須以 JSON 字串傳給父頁面。
-          // Android WebView：gameOver() 會經由 BoomRoomJS channel 交給 Flutter，
-          // Flutter 收到 game_over 後負責 Navigator.pop() 返回房間；這裡絕不能再
-          // 猜測 ../room.html，否則 WebView 會先導航到不存在的頁面而出現 404。
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage(
-              JSON.stringify({
-                action: "leaveGame",
-                gameId: "floor_brawl",
-                roomId,
-                reason: "SERIES_COMPLETE"
-              }),
-              "*"
-            );
-          }
-        } catch (error) {
-          console.warn("BoomRoom leaveGame message failed", error);
-        }
-      }
-      resultNode.classList.remove("show");
-      showCallout("五戰結束 · 返回房間");
-    }, 3000);
+    if(!gameOverCalled){
+      gameOverCalled=true;
+      try{sdk.completeRound?.(Number(localPlayer?.seriesPoints)||0);}catch(error){console.warn('BoomRoom round completion failed',error);}
+    }
   }
 }
+
+$('#seriesReplay').addEventListener('click',()=>{if(seriesFinished&&isHost()){resultNode.classList.remove('show');startSeries();}});
+$('#seriesExit').addEventListener('click',()=>{state=GAME_STATE.EXIT;sdk.leaveGame?.();});
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (character) => ({
@@ -1349,8 +1346,9 @@ function spawnBurst(x, y, color, count = 10) {
   if (particles.length > 230) particles.splice(0, particles.length - 230);
 }
 
-function updateBot(player, time) {
+function updateBot(player, time, dt = 1/60) {
   if (!isHost()) return;
+  if(now()<player.hitUntil||now()<player.dashUntil)return;
   if (time > player.botThinkAt) {
     player.botThinkAt = time + 0.2 + Math.random() * 0.13;
     let target = orb ? { x: orb.x, y: orb.y } : null;
@@ -1360,9 +1358,9 @@ function updateBot(player, time) {
       const nearest = rivals[0];
       if (nearest) {
         const distance = length(nearest.x - player.x, nearest.y - player.y);
-        if (distance < 0.52 && time - player.lastDashAt > 2.8) {
-          beginDash(player, nearest.x - player.x, nearest.y - player.y, time);
-          hostResolveBotHit(player);
+        const practiceSeconds = battleNumber === 1 ? 6 : 3;
+        if (distance < 0.38 && time - matchStartedAt/1000 > practiceSeconds && time - player.lastDashAt > 3.6) {
+          hostResolveShove({playerId:player.id,dx:nearest.x-player.x,dy:nearest.y-player.y});
         }
         target = { x: nearest.x + (Math.random() - 0.5) * 0.3, y: nearest.y + (Math.random() - 0.5) * 0.3 };
       }
@@ -1383,35 +1381,33 @@ function updateBot(player, time) {
       target.x *= (safeRadius * 0.72) / targetLength;
       target.y *= (safeRadius * 0.72) / targetLength;
     }
+    // Move through safe neighboring tiles rather than blindly crossing holes.
+    const step=2/gridSize;
+    const current=tileAt(player.x,player.y);
+    const routes=tiles.filter(candidate=>{
+      if(candidate.level>=2||length(candidate.x,candidate.y)>safeRadius*.86)return false;
+      if(current?.level>=1&&candidate.key===current.key)return false;
+      if(length(candidate.x-player.x,candidate.y-player.y)>step*1.9)return false;
+      for(const progress of [.35,.7,1]){
+        const crossed=tileAt(player.x+(candidate.x-player.x)*progress,player.y+(candidate.y-player.y)*progress);
+        if(!crossed||crossed.level>=2&&crossed.key!==current?.key)return false;
+      }
+      return true;
+    });
+    routes.sort((a,b)=>(length(a.x-target.x,a.y-target.y)+a.level*.2)-(length(b.x-target.x,b.y-target.y)+b.level*.2));
+    if(routes[0])target={x:routes[0].x,y:routes[0].y};
+    else target={x:player.x,y:player.y};
     player.botTargetX = target.x;
     player.botTargetY = target.y;
   }
   const dx = player.botTargetX - player.x;
   const dy = player.botTargetY - player.y;
   const dist = length(dx, dy);
-  if (dist > 0.03) {
-    player.vx += (dx / dist * 0.62 - player.vx) * 0.075;
-    player.vy += (dy / dist * 0.62 - player.vy) * 0.075;
-  }
+  const blend = 1-Math.exp(-Math.max(0,dt)*9);
+  const speed = dist > 0.025 ? Math.min(0.62,dist/Math.max(dt,0.001)) : 0;
+  player.vx += ((dist ? dx/dist*speed : 0)-player.vx)*blend;
+  player.vy += ((dist ? dy/dist*speed : 0)-player.vy)*blend;
   if (orb) collectOrb(player);
-}
-
-function hostResolveBotHit(attacker) {
-  if (!isHost()) return;
-  const dx = attacker.dashX;
-  const dy = attacker.dashY;
-  const victim = players.filter((player) => player.alive && player.id !== attacker.id)
-    .map((player) => ({ player, d: length(player.x - attacker.x, player.y - attacker.y), facing: (player.x - attacker.x) * dx + (player.y - attacker.y) * dy }))
-    .filter((item) => item.d < 0.37 && item.facing > -0.03)
-    .sort((a, b) => a.d - b.d)[0]?.player;
-  if (!victim) return;
-  const vx = victim.x - attacker.x;
-  const vy = victim.y - attacker.y;
-  const d = length(vx, vy) || 1;
-  const event = { attackerId: attacker.id, targetId: victim.id, dx: vx / d, dy: vy / d, force: 1.03, charged: false };
-  applyHit(event);
-  attacker.dashHitIds?.add(victim.id);
-  if (!mockMode) sendEvent("PLAYER_HIT", event);
 }
 
 function update(dt, timestamp) {
@@ -1453,7 +1449,7 @@ function update(dt, timestamp) {
         player.vy += (input.y * 0.72 - player.vy) * Math.min(1, dt * 8);
       }
     } else if (player.isBot) {
-      if (host) updateBot(player, timestamp / 1000);
+      if (host) updateBot(player, timestamp / 1000, dt);
     } else if (player.targetX != null) {
       player.x += (player.targetX - player.x) * 0.18;
       player.y += (player.targetY - player.y) * 0.18;
@@ -1564,11 +1560,11 @@ function updateUi(timestamp) {
   renderRoomHud();
   const alive = players.filter((player) => player.alive);
   aliveNode.textContent = String(alive.length);
-  timerNode.textContent = overtimeAt
+  timerNode.textContent = state===GAME_STATE.RESULT ? '0' : overtimeAt
     ? `+${Math.max(0, OVERTIME_SECONDS - Math.floor((timestamp - overtimeAt) / 1000))}`
     : String(Math.max(0, Math.ceil(cachedTimeLeft)));
   timerNode.parentElement.classList.toggle("urgent", cachedTimeLeft <= 8 || Boolean(overtimeAt));
-  if (state === GAME_STATE.LOADING) placeNode.textContent = mockMode ? "開發單機" : "連線中";
+  if (state === GAME_STATE.LOADING) placeNode.textContent = mockMode ? "單人挑戰" : "連線中";
   else if (state === GAME_STATE.COUNTDOWN) placeNode.textContent = `第 ${battleNumber} 戰 · 進場`;
   else if (state === GAME_STATE.PLAYING) {
     const position = getStandings().findIndex((player) => player.id === localPlayer?.id);
@@ -1578,6 +1574,10 @@ function updateUi(timestamp) {
   }
   chargeNode.classList.toggle("ready", Boolean(localPlayer?.charged));
   chargeNode.textContent = localPlayer?.charged ? "✦ 強撞已充能" : "✦ 強撞未充能";
+  const spectating=state===GAME_STATE.PLAYING&&localPlayer&&!localPlayer.alive;
+  $('#spectateNotice').hidden=!spectating;
+  $('.controls').classList.toggle('spectating',Boolean(spectating));
+  dashButton.disabled=state!==GAME_STATE.PLAYING||!localPlayer?.alive;
   const remaining = Math.max(0, 2.55 - (timestamp / 1000 - (localPlayer?.lastDashAt ?? -99)));
   dashButton.classList.toggle("cooling", remaining > 0);
   cooldownNode.style.borderTopColor = remaining > 0 ? "rgba(112, 72, 69, .9)" : "transparent";
@@ -1850,7 +1850,7 @@ function drawPlayer(player, timestamp) {
   ctx.font = `700 ${Math.max(9, Math.min(12, board.side * 0.024))}px "Noto Sans TC", Outfit, system-ui, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const label = player.isLocal ? `${player.name} · 你` : player.name;
+  const label = player.isLocal && player.name!=='你' ? `${player.name} · 你` : player.name;
   const labelY = point.y + radius * 1.18;
   const width = ctx.measureText(label).width + 13;
   roundedRect(ctx, point.x - width / 2, labelY - 8, width, 16, 7);

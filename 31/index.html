@@ -55,17 +55,17 @@
     </div>
     <div class="controls">
       <div class="dpad">
-        <button id="btnUp" class="ctrl up" type="button">▲</button>
-        <button id="btnLeft" class="ctrl left" type="button">◀</button>
-        <button id="btnRight" class="ctrl right" type="button">▶</button>
-        <button id="btnDown" class="ctrl down" type="button">▼</button>
+        <button id="btnUp" class="ctrl up" type="button" aria-label="向上轉向">▲</button>
+        <button id="btnLeft" class="ctrl left" type="button" aria-label="向左轉向">◀</button>
+        <button id="btnRight" class="ctrl right" type="button" aria-label="向右轉向">▶</button>
+        <button id="btnDown" class="ctrl down" type="button" aria-label="向下轉向">▼</button>
       </div>
-      <button id="boostBtn" class="boost-btn" type="button">
+      <button id="boostBtn" class="boost-btn" type="button" aria-label="按住加速">
         <span>⚡</span><small>BOOST</small>
       </button>
     </div>
     <div class="roster" id="rosterList"></div>
-    <div class="notice" id="autoCloseHint">自動開局・不用 Ready・不用按開始</div>
+    <div class="notice" id="autoCloseHint">滑動或方向鍵轉向・按住空白鍵／加速按鈕追擊</div>
   </section>
 
   <div id="resultOverlay" class="overlay hidden">
@@ -74,9 +74,11 @@
       <div class="result-kicker">ROUND COMPLETE</div>
       <div id="resultTitle" class="result-title">🏆 你是蛇王！</div>
       <div id="resultSubtitle" class="result-subtitle">本局 0 分 · 第一名 0 分</div>
-      <div id="resultReward" class="result-reward">+100 銀幣</div>
+      <div id="resultReward" class="result-reward">本局成績</div>
       <div class="result-line"></div>
-      <div class="result-countdown">3 秒後自動返回房間</div>
+      <div class="result-countdown">成績供本局挑戰比較，不發放銀幣</div>
+      <button id="resultReplay" class="result-action" type="button">再挑戰一次</button>
+      <button id="resultExit" class="result-action secondary" type="button">返回房間</button>
     </div>
   </div>
 
@@ -94,6 +96,7 @@
     </div>
   </div>
 </main>
-<script src="./app.js"></script>
+<script type="application/boomroom-game" data-boomroom-src="./app.js"></script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

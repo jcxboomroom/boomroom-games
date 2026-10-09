@@ -754,7 +754,7 @@
 
 <div id="toast"></div>
 
-<script>
+<script type="application/boomroom-game">
   (() => {
 
   'use strict';
@@ -1174,10 +1174,6 @@
       });
     }
   };
-
-  if (window.BoomRoomSDK) {
-    window.onBoomRoomSDKReady();
-  }
 
   /*
    * 沒 SDK → 開發模式
@@ -6515,8 +6511,11 @@
   el.lobby.style.display =
     'grid';
 
+  if (window.BoomRoomSDK) window.onBoomRoomSDKReady();
+
   })();
 </script>
 
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

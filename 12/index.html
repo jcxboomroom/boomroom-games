@@ -320,7 +320,7 @@
   </div>
 </div>
 
-<script>
+<script type="application/boomroom-game">
   "use strict";
 
   const GAME_INFO = Object.freeze({
@@ -708,8 +708,8 @@
     selectedEntry = CONFIG.ENTRY_FEE; isPurchasing = true;
     purchaseRequest = { itemId: "crash_lift_entry_100", amount: CONFIG.ENTRY_FEE, roundId };
     gameState = STATES.PURCHASING; renderAll();
-    if (SDK && typeof SDK.requestPurchase === "function") {
-      try { SDK.requestPurchase(purchaseRequest.itemId, purchaseRequest.amount); }
+    if (SDK && typeof SDK.requestAdmission === "function") {
+      try { SDK.requestAdmission(purchaseRequest.itemId, purchaseRequest.amount); }
       catch (error) { isPurchasing = false; purchaseRequest = null; gameState = STATES.LOBBY; toast("無法發起 Entry"); renderAll(); }
       return;
     }
@@ -1290,5 +1290,6 @@
 
   boot();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

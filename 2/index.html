@@ -234,7 +234,7 @@
   </div>
 </div>
 
-<script>
+<script type="application/boomroom-game">
   'use strict';
 
   const DEBUG = false;
@@ -1392,9 +1392,6 @@
         : gameRoomId;
 
     let rList = nested.roomPlayers || nested.players || roomPlayersList;
-    if (!Array.isArray(rList) || rList.length < 2) {
-      rList = [...(rList || []), { id: 'bot-1', username: '🤖 體驗玩家-1' }, { id: 'bot-2', username: '🤖 體驗玩家-2' }];
-    }
 
     if(Array.isArray(rList)){
       updateRoomPlayers(rList,'sdk');
@@ -1417,7 +1414,7 @@
     waitingForHost=false;
     setTimeout(() => {
       if (state.game === 'LOBBY') {
-        forceStart();
+        scheduleAutoStart();
       }
     }, 600);
   }
@@ -2257,7 +2254,7 @@
 
     if(event==='SYNC_START_GAME' || event==='NEON_ROUND_START' || event==='ROUND_START'){
       if(state.game==='LOBBY'||state.game==='MENU'){
-        forceStart();
+        applyRemoteRoomSync({...payload,phase:'PLAYING'});
       }
       return;
     }
@@ -2429,5 +2426,6 @@
   requestAnimationFrame(loop);
 
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

@@ -1807,7 +1807,7 @@ body.playing #playUI{
     <div id="betArea">
 
         <div class="bet-title">
-            下注銀幣
+            預測挑戰點數
         </div>
 
         <div id="betButtons">
@@ -1866,7 +1866,7 @@ body.playing #playUI{
 
 
     <button id="joinButton">
-        支付 50 銀幣加入
+        確認入場 · 挑戰 50 點
     </button>
 
 </section>
@@ -2024,7 +2024,7 @@ body.playing #playUI{
 <div id="toast"></div>
 
 
-<script>
+<script type="application/boomroom-game">
 (() => {
 
 "use strict";
@@ -2552,7 +2552,7 @@ let selectedBet =
     50;
 
 let controlMode =
-    "tilt";
+    "buttons";
 
 let state =
     "LOBBY";
@@ -2728,6 +2728,7 @@ function isHost(){
 
 
 function electHost(){
+    if(SDK){hostId=String(SDK.getSession()?.hostId||'');return;}
 
     const list =
         Array.from(
@@ -2793,34 +2794,25 @@ function sendEvent(eventName, payload={}){
 
 function setupSDK(data){
   if(data && data.user){
+    const oldId=user.id;
     user.id = String(data.user.id);
     user.username = String(data.user.username || "玩家");
     user.avatar = String(data.user.avatar || "");
-    ME = user.id;
-  }
-  if(data && data.isHost){
-    hostId = ME;
-  } else if(data && data.isHost === false) {
-    if(hostId === ME) hostId = "";
+    if(oldId!==user.id){players.delete(oldId);hostCandidates.delete(oldId);}
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {
       if(rp && rp.id != null){
-        addOrUpdateRoster({
-          id: String(rp.id),
-          username: String(rp.username || "玩家"),
-          avatar: String(rp.avatar || "")
-        });
+        const id=String(rp.id);
+        const player=players.get(id)||createPlayer(id,rp.username,rp.avatar,Date.now());
+        player.username=String(rp.username||'玩家');player.avatar=String(rp.avatar||'');
+        player.lastSeen=Date.now();players.set(id,player);
       }
     });
   }
-  SDK_READY = true;
-
-  setTimeout(() => {
-    if (!currentPaid && state === "LOBBY") {
-      if (typeof requestEntry === "function") requestEntry();
-    }
-  }, 300);
+  electHost();
+  broadcastHello();
+  updateRoomCount();
 }
 
 window.initBoomRoomSDK = function(data) {
@@ -3283,7 +3275,7 @@ function updateRocketChoice(){
                 : "選擇";
 
     joinButton.textContent =
-        `支付 ${selectedBet} 銀幣加入`;
+        `確認入場 · 挑戰 ${selectedBet} 點`;
 
 }
 
@@ -3440,7 +3432,7 @@ document
                 );
 
                 joinButton.textContent =
-                    `支付 ${selectedBet} 銀幣加入`;
+                    `確認入場 · 挑戰 ${selectedBet} 點`;
 
             }
         );
@@ -3503,14 +3495,15 @@ joinButton.addEventListener(
 
 function beginPurchase(){
     const itemId = `neon_escape_bet_${selectedBet}`;
+    if(pendingAdmission)return;
+    pendingAdmission=itemId;
     joinButton.disabled = true;
     joinButton.textContent = "準備開局中…";
-
-    setTimeout(
-        () => handlePurchaseSuccess(itemId),
-        150
-    );
+    if(!SDK){handlePurchaseSuccess(itemId);return;}
+    const result=SDK.requestAdmission(itemId);
+    if(result&&result.ok===false)window.onPurchaseFailed(itemId);
 }
+let pendingAdmission=null;
 
 
 window.onPurchaseSuccess =
@@ -3525,6 +3518,8 @@ function(itemId){
 
 window.onPurchaseFailed =
 function(itemId){
+    if(itemId!==pendingAdmission)return;
+    pendingAdmission=null;
 
     if(
         String(itemId)
@@ -3537,10 +3532,10 @@ function(itemId){
             false;
 
         joinButton.textContent =
-            `支付 ${selectedBet} 銀幣加入`;
+            `確認入場 · 挑戰 ${selectedBet} 點`;
 
         showToast(
-            "銀幣不足或取消加入"
+            "入場確認失敗，請重試"
         );
 
     }
@@ -3555,6 +3550,8 @@ function(itemId){
 function handlePurchaseSuccess(
     itemId
 ){
+    if(itemId!==pendingAdmission)return;
+    pendingAdmission=null;
 
     const match =
         /^neon_escape_bet_(\d+)$/
@@ -4514,7 +4511,7 @@ function updateHUD(){
             `獲得 <strong>${me.reward.toLocaleString()}</strong> 🪙`;
 
         aliveText.textContent =
-            `✅ +${me.reward.toLocaleString()} 銀幣`;
+            `✅ +${me.reward.toLocaleString()} 挑戰點數`;
 
         return;
 
@@ -7750,7 +7747,7 @@ function applyCashout(
         `獲得 <strong>${reward.toLocaleString()}</strong> 🪙`;
 
     aliveText.textContent =
-        `✅ +${reward.toLocaleString()} 銀幣`;
+        `✅ +${reward.toLocaleString()} 挑戰點數`;
 
 
     soundCashout();
@@ -7758,7 +7755,7 @@ function applyCashout(
 
     try{
         const sdkObj = window.BoomRoomSDK;
-        const finalReward = Math.max(0, Math.floor(reward));
+        const finalReward = 0;
         const finalScore = me ? getPlayerScore(me) : 0;
         if(sdkObj && typeof sdkObj.gameOver === "function"){
             sdkObj.gameOver(finalReward, finalScore);
@@ -8247,7 +8244,7 @@ function resetRound(){
         false;
 
     joinButton.textContent =
-        `支付 ${selectedBet} 銀幣加入`;
+        `確認入場 · 挑戰 ${selectedBet} 點`;
 
     body.classList.remove(
         "playing"
@@ -10960,5 +10957,6 @@ requestAnimationFrame(
 })();
 </script>
 
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

@@ -46,14 +46,16 @@
         </div>
         <div class="result-ranking" id="result-ranking"></div>
         <div class="result-exit" id="result-next">下一戰準備中</div>
+        <button id="match-replay" class="match-action" type="button" hidden>再挑戰五戰</button>
+        <button id="match-exit" class="match-action secondary" type="button" hidden>返回房間</button>
       </div>
     </div>
 
-    <div class="touch-controls" aria-hidden="true">
-      <div class="joystick" id="joystick">
+    <div class="touch-controls">
+      <div class="joystick" id="joystick" role="group" aria-label="移動搖桿">
         <div class="joystick-ring"><div class="joystick-knob" id="joystick-knob"></div></div>
       </div>
-      <div class="jump-control" id="jump-control">
+      <div class="jump-control" id="jump-control" role="button" tabindex="0" aria-label="蓄力跳躍">
         <div class="jump-meter"><i id="jump-meter-fill"></i></div>
         <span class="jump-icon">↟</span>
         <span class="jump-label">按住蓄力<br>放開跳躍</span>
@@ -63,6 +65,7 @@
     <div class="desktop-hint">方向鍵移動 <b>·</b> 按住空白鍵蓄力，放開跳躍</div>
     <div class="round-banner" id="round-banner">最後衝刺！</div>
   </main>
-  <script type="module" src="./game.js"></script>
+  <script type="application/boomroom-game" data-boomroom-type="module" data-boomroom-src="./game.js"></script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

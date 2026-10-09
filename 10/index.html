@@ -189,13 +189,13 @@ header{height:58px;flex:none;display:flex;align-items:center;justify-content:spa
     </div>
     <div id="lobbyInfo" class="lobbyInfo">
       <div class="lobbyTitle">霓虹骰子戰</div>
-      <div class="lobbySub">賽博派對骰戰｜房主統一開骰｜押中取得銀幣獎勵</div>
+      <div class="lobbySub">賽博派對骰戰｜房主統一開骰｜押中取得挑戰點數獎勵</div>
       <div class="lobbyGrid">
         <div class="infoChip"><b>2 / 24 倍</b><span>小・大 / 豹子</span></div>
-        <div class="infoChip"><b>10 秒</b><span>下注時間</span></div>
+        <div class="infoChip"><b>10 秒</b><span>預測時間</span></div>
         <div class="infoChip"><b>Touch</b><span>手機操作</span></div>
       </div>
-      <div class="playGuide">Entry：<strong>100～5000 銀幣</strong>｜一局約 20～30 秒</div>
+      <div class="playGuide">Entry：<strong>100～5000 挑戰點數</strong>｜一局約 20～30 秒</div>
     </div>
     <div id="status">等待開局</div>
     <div id="substatus">第一位已知玩家會成為房主</div>
@@ -218,13 +218,13 @@ header{height:58px;flex:none;display:flex;align-items:center;justify-content:spa
       <div class="resultTag">本局結果</div>
       <div class="resultValue" id="resultType">—</div>
       <div class="resultDice" id="resultDice">—</div>
-      <div class="resultReward" id="resultReward">+0 銀幣</div>
+      <div class="resultReward" id="resultReward">+0 挑戰點數</div>
       <div class="resultReason" id="resultReason">等待結算</div>
     </div>
   </main>
 
   <section id="bottom">
-    <div id="timerRow"><div class="timerText" id="timerText">下注 10 秒</div><div class="timerBar"><div class="timerFill" id="timerFill"></div></div></div>
+    <div id="timerRow"><div class="timerText" id="timerText">預測 10 秒</div><div class="timerBar"><div class="timerFill" id="timerFill"></div></div></div>
     <div id="betRow">
       <button class="betBtn" data-type="small">押 小<small>4～10｜2倍</small></button>
       <button class="betBtn triple" data-type="triple">任意豹子<small>三顆相同｜24倍</small></button>
@@ -240,7 +240,7 @@ header{height:58px;flex:none;display:flex;align-items:center;justify-content:spa
   </section>
 </div>
 
-<script>
+<script type="application/boomroom-game">
 'use strict';
 
 // ============================================================
@@ -250,7 +250,7 @@ const GAME_INFO = {
   id: 'neon_dice_battle',
   category: '派對競技',
   name: '霓虹骰子戰',
-  description: '10 秒下注，房主統一開骰，押中類型取得銀幣獎勵。',
+  description: '10 秒預測，房主統一開骰，押中類型取得挑戰點數獎勵。',
   version: '1.1.0',
   entryCost: 0,
   maxPlayers: 20,
@@ -317,6 +317,13 @@ let lastTime = 0;
 let lastSecondTick = -1;
 
 const players = new Map();
+function addOrUpdatePlayer(user){
+  const prior=players.get(user.id);
+  const player=prior||{id:user.id,status:'READY',score:0,reward:0,joinedAt:Date.now()};
+  Object.assign(player,{username:user.username,avatar:user.avatar,lastSeen:Date.now()});
+  players.set(user.id,player);
+  return player;
+}
 players.set(localUser.id, {
   id: localUser.id,
   username: localUser.username,
@@ -380,19 +387,9 @@ function sendEvent(eventName, payload){
   }
 }
 
-function requestPurchase(itemId, cost){
-  if (DEV_MODE) {
-    window.setTimeout(() => {
-      addFeed('開發測試：模擬購買成功');
-      if (typeof window.onPurchaseSuccess === 'function') window.onPurchaseSuccess(itemId);
-    }, 250);
-    return;
-  }
-  if (typeof SDK?.requestPurchase === 'function') {
-    try { SDK.requestPurchase(itemId, cost); } catch (_) { window.onPurchaseFailed?.(itemId); }
-  } else {
-    window.onPurchaseFailed?.(itemId);
-  }
+function confirmPrediction(itemId, cost){
+  // Predictions use round points; they never purchase or spend wallet currency.
+  window.onPurchaseSuccess(itemId);
 }
 
 function callGameOver(amount){
@@ -400,8 +397,8 @@ function callGameOver(amount){
   gameOverCalled = true;
   const safe = safeReward(amount);
   players.get(localUser.id).reward = safe;
-  if (!DEV_MODE && typeof SDK?.gameOver === 'function') {
-    try { SDK.gameOver(safe); } catch (_) {}
+  if (!DEV_MODE && typeof SDK?.completeRound === 'function') {
+    try { SDK.completeRound(players.get(localUser.id).score); } catch (_) {}
   }
 }
 
@@ -413,16 +410,16 @@ window.onPurchaseSuccess = function(itemId){
   players.get(localUser.id).status = 'BET';
   setState(STATES.BETTING);
   sendEvent('PLAYER_BET', { roundId:currentRoundId, username:localUser.username, type:p.type, amount:p.amount });
-  addFeed(`你已下注 ${p.amount} 銀幣`, 'win');
+  addFeed(`你已預測 ${p.amount} 挑戰點數`, 'win');
 };
 window.onPurchaseFailed = function(itemId){
   if (!pendingPurchase || pendingPurchase.itemId !== itemId) return;
   pendingPurchase = null;
   myCurrentBet = null;
   setState(STATES.BETTING);
-  refs.status.textContent = '下注失敗';
+  refs.status.textContent = '預測失敗';
   refs.status.style.color = 'var(--red)';
-  refs.substatus.textContent = DEV_MODE ? '開發測試模式' : '請確認銀幣餘額';
+  refs.substatus.textContent = DEV_MODE ? '開發測試模式' : '請重新選擇預測';
   updateAction();
 };
 
@@ -431,6 +428,7 @@ window.onPurchaseFailed = function(itemId){
 // ============================================================
 function playerSortKey(p){ return String(p.joinedAt).padStart(16,'0') + ':' + p.id; }
 function getHostPlayer(){
+  if(SDK)return players.get(String(SDK.getSession()?.hostId||''));
   const list = [...players.values()].sort((a,b)=>playerSortKey(a).localeCompare(playerSortKey(b)));
   return list[0] || players.get(localUser.id);
 }
@@ -487,17 +485,17 @@ function setState(next){
   if (next === STATES.LOBBY || next === STATES.READY || next === STATES.WAITING_HOST) {
     refs.status.textContent = isHost() ? '房主可開新局' : '等待房主開局';
     refs.status.style.color = 'var(--cyan)';
-    refs.substatus.textContent = isHost() ? '所有人都在同一回合後再開始' : '第一位已知玩家自動成為房主';
+    refs.substatus.textContent = isHost() ? '所有人都在同一回合後再開始' : '由正式對局房主開局';
   }
   if (next === STATES.BETTING) {
-    refs.status.textContent = '請下注'; refs.status.style.color='var(--yellow)';
-    refs.substatus.textContent = myCurrentBet ? '下注完成，等待開獎' : '選擇玩法與銀幣數量';
+    refs.status.textContent = '請預測'; refs.status.style.color='var(--yellow)';
+    refs.substatus.textContent = myCurrentBet ? '預測完成，等待開獎' : '選擇玩法與挑戰點數數量';
   }
   if (next === STATES.PURCHASING) {
-    refs.status.textContent='確認下注…'; refs.status.style.color='var(--cyan)'; refs.substatus.textContent='先完成購買才算正式下注';
+    refs.status.textContent='確認預測…'; refs.status.style.color='var(--cyan)'; refs.substatus.textContent='選擇後確認本局預測；不會扣款';
   }
   if (next === STATES.ROLLING) {
-    refs.status.textContent='停止下注！'; refs.status.style.color='var(--pink)'; refs.substatus.textContent='房主正在統一開骰';
+    refs.status.textContent='停止預測！'; refs.status.style.color='var(--pink)'; refs.substatus.textContent='房主正在統一開骰';
   }
   if (next === STATES.RESULT) {
     refs.status.textContent='本局結束'; refs.status.style.color='var(--green)'; refs.substatus.textContent='結果已鎖定，等待房主重新開局';
@@ -510,9 +508,9 @@ function updateAction(){
   refs.action.className='';
   if (gameState === STATES.BETTING) {
     if (pendingPurchase) { refs.action.textContent='處理中…'; refs.action.disabled=true; }
-    else if (myCurrentBet) { refs.action.textContent='已下注，等待開獎'; refs.action.disabled=true; }
-    else if (selectedBetType) { refs.action.textContent=`確認下注 ${currentBetAmount} 銀幣 · ${betTypeName(selectedBetType)}`; refs.action.disabled=false; }
-    else { refs.action.textContent='請選擇下注項目'; refs.action.disabled=true; }
+    else if (myCurrentBet) { refs.action.textContent='已預測，等待開獎'; refs.action.disabled=true; }
+    else if (selectedBetType) { refs.action.textContent=`確認預測 ${currentBetAmount} 挑戰點數 · ${betTypeName(selectedBetType)}`; refs.action.disabled=false; }
+    else { refs.action.textContent='請選擇預測項目'; refs.action.disabled=true; }
     return;
   }
   refs.action.disabled=false;
@@ -546,7 +544,7 @@ refs.action.addEventListener('pointerup',()=>{
   if (gameState === STATES.BETTING && selectedBetType && !myCurrentBet && !pendingPurchase) {
     pendingPurchase = { type:selectedBetType, amount:currentBetAmount, itemId:`bet_${currentRoundId}_${currentBetAmount}_${selectedBetType}` };
     setState(STATES.PURCHASING);
-    requestPurchase(pendingPurchase.itemId, currentBetAmount);
+    confirmPrediction(pendingPurchase.itemId, currentBetAmount);
     return;
   }
   if ((gameState===STATES.LOBBY || gameState===STATES.READY || gameState===STATES.WAITING_HOST) && isHost()) {
@@ -636,8 +634,8 @@ function calculateResult(dice){
   refs.resultType.textContent = result.triple ? '豹子！' : (result.type==='small'?'小':'大');
   refs.resultDice.textContent = `骰子 ${dice.join(' · ')}　總和 ${result.total}`;
   const reward=calculateReward(myCurrentBet,result);
-  const reason=myCurrentBet ? (reward>0 ? `押中「${betTypeName(myCurrentBet.type)}」` : `未押中本局結果「${betTypeName(result.type)}」`) : '本局未下注';
-  refs.resultReward.textContent=`+${reward} 銀幣`;
+  const reason=myCurrentBet ? (reward>0 ? `押中「${betTypeName(myCurrentBet.type)}」` : `未押中本局結果「${betTypeName(result.type)}」`) : '本局未預測';
+  refs.resultReward.textContent=`${reward} 挑戰分數`;
   refs.resultReward.style.color=reward>0?'var(--green)':'var(--red)';
   refs.resultReason.textContent=reason;
   players.get(localUser.id).score=safeScore(result.total);
@@ -650,7 +648,7 @@ function calculateResult(dice){
   setState(STATES.RESULT);
   resultTimer=RESULT_HOLD;
   refs.main.classList.add('shake'); setTimeout(()=>refs.main.classList.remove('shake'),360);
-  if (reward>0) { spawnWinParticles(); addFeed(`你贏得 ${reward} 銀幣`,'win'); playTone('win'); } else { addFeed(`本局結果：${betTypeName(result.type)}`,'lose'); playTone('lose'); }
+  if (reward>0) { spawnWinParticles(); addFeed(`你贏得 ${reward} 挑戰點數`,'win'); playTone('win'); } else { addFeed(`本局結果：${betTypeName(result.type)}`,'lose'); playTone('lose'); }
 }
 
 // ============================================================
@@ -757,7 +755,7 @@ function gameLoop(ts){
   if(!lastTime)lastTime=ts; let dt=(ts-lastTime)/1000; if(dt>0.033)dt=0.033; lastTime=ts;
   if(gameState===STATES.BETTING){
     setRollingVisual(false);
-    betTimer=Math.max(0,betTimer-dt); const pct=BET_DURATION?betTimer/BET_DURATION:0; refs.timerFill.style.width=`${pct*100}%`; refs.timerText.textContent=`下注 ${Math.ceil(betTimer)} 秒`; refs.timerFill.classList.toggle('danger',betTimer<=3);
+    betTimer=Math.max(0,betTimer-dt); const pct=BET_DURATION?betTimer/BET_DURATION:0; refs.timerFill.style.width=`${pct*100}%`; refs.timerText.textContent=`預測 ${Math.ceil(betTimer)} 秒`; refs.timerFill.classList.toggle('danger',betTimer<=3);
     const sec=Math.ceil(betTimer);if(sec!==lastSecondTick&&sec>0&&sec<=3){tone(950,'sine',.045,.035);lastSecondTick=sec}
     if(betTimer<=0&&isHost())executeRollAsHost();
   } else if(gameState===STATES.ROLLING){
@@ -776,11 +774,6 @@ function gameLoop(ts){
     if(gameState===STATES.RESULT){
       resultTimer=Math.max(0,resultTimer-dt);
       if(resultTimer<=0){
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ action: 'leaveGame' }, '*');
-        } else {
-          try { window.close(); } catch(_){}
-        }
         setState(STATES.WAITING_HOST);
       }
     }
@@ -807,7 +800,7 @@ function dispatchGameEvent(userId,eventName,payload){
   switch(eventName){
     case 'PLAYER_HEARTBEAT': if(p)p.status=String(payload.status||p.status); updatePlayerUI(); break;
     case 'ROUND_START': handleRoundStart(payload); break;
-    case 'PLAYER_BET': if(p)p.status='BET'; addFeed(remoteId===localUser.id?`你下注 ${payload.amount} 銀幣`:`${payload.username||p?.username||'玩家'} 已下注`);updatePlayerUI();break;
+    case 'PLAYER_BET': if(p)p.status='BET'; addFeed(remoteId===localUser.id?`你預測 ${payload.amount} 挑戰點數`:`${payload.username||p?.username||'玩家'} 已預測`);updatePlayerUI();break;
     case 'ROLL_START': handleRollStart(payload);break;
     case 'ROLL_RESULT': handleRollResult(payload);break;
     case 'PLAYER_END': if(p){p.status=String(payload.status||'END');p.score=safeScore(payload.score);p.reward=safeReward(payload.reward)} updatePlayerUI();break;
@@ -822,11 +815,6 @@ function setupSDK(data){
     localUser.username = sanitized.username;
     localUser.avatar = sanitized.avatar;
     addOrUpdatePlayer(sanitized);
-  }
-  if(data && data.isHost){
-    sdkIsHost = true;
-  } else if(data && data.isHost === false) {
-    sdkIsHost = false;
   }
   if(data && Array.isArray(data.roomPlayers)){
     data.roomPlayers.forEach(rp => {
@@ -890,5 +878,6 @@ window.addEventListener('keydown',(e)=>{
   if(e.key==='Enter') refs.action.click();
 });
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

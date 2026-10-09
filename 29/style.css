@@ -29,7 +29,7 @@ body {
   margin: 0 auto;
   padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   display: grid;
-  grid-template-rows: 46px minmax(0, 1fr) 58px;
+  grid-template-rows: 46px minmax(0, 1fr) 112px 42px;
   gap: 10px;
 }
 
@@ -63,6 +63,10 @@ body {
 
 .arena-wrap {
   position: relative;
+  width: min(100%, calc(100dvh - 250px));
+  aspect-ratio: 1;
+  align-self: center;
+  justify-self: center;
   min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(192, 164, 245, .24);
@@ -92,7 +96,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .round-callout.small { font-size: clamp(27px, 7vw, 52px); }
 .event-toast {
   position: absolute;
-  top: 15px;
+  top: 49px;
   left: 50%;
   transform: translate(-50%, -10px);
   border-radius: 99px;
@@ -104,14 +108,20 @@ canvas { display: block; width: 100%; height: 100%; }
   font-weight: 900;
   opacity: 0;
   pointer-events: none;
-  white-space: nowrap;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  text-align: center;
+  overflow-wrap: anywhere;
 }
+.bomb-status { position:absolute;z-index:2;top:8px;left:8px;right:8px;padding:7px 8px;border-radius:12px;background:rgba(23,13,43,.88);color:#ffedb5;font-size:13px;font-weight:800;text-align:center;pointer-events:none; }
+.bomb-status.urgent { color:#ff729e;box-shadow:0 0 14px rgba(255,93,158,.4); }
+.controls { display:grid;grid-template-columns:112px minmax(0,1fr) 85px;align-items:center;gap:10px; }
+.controls-help { min-width:0;text-align:center;font-size:12px;line-height:1.8;color:#c6b8dc; }
+.controls-help span { display:block;font-size:12px;color:#a89fbd; }
 .event-toast.show { animation: toast-in 2s ease both; }
 
 .joystick {
-  position: absolute;
-  left: 17px;
-  bottom: 17px;
+  position: relative;
   width: 112px;
   height: 112px;
   display: grid;
@@ -137,10 +147,9 @@ canvas { display: block; width: 100%; height: 100%; }
   box-shadow: 0 5px 18px rgba(8,3,20,.4), inset 0 1px 2px rgba(255,255,255,.35);
   transform: translate(0,0);
 }
+.joystick.inactive { opacity:.4;pointer-events:none; }
 .pass-button {
-  position: absolute;
-  right: 17px;
-  bottom: 17px;
+  position: relative;
   width: 85px;
   height: 85px;
   border: 2px solid rgba(255,255,255,.62);
@@ -159,6 +168,7 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 .pass-button:active { transform: translateY(5px) scale(.96); box-shadow: 0 2px 0 #c96b4b, 0 5px 16px rgba(10,4,20,.4); }
 .pass-button.is-carrier { animation: button-glow .72s infinite alternate; }
+.pass-button:disabled { opacity:.4;filter:grayscale(.5);animation:none; }
 .pass-icon { position: relative; display: block; width: 23px; height: 22px; }
 .pass-icon::before { content: ""; position: absolute; left: 2px; top: 10px; width: 17px; height: 0; border-top: 3px solid currentColor; border-radius: 3px; }
 .pass-icon::after { content: ""; position: absolute; right: 2px; top: 5px; width: 10px; height: 10px; border-top: 3px solid currentColor; border-right: 3px solid currentColor; transform: rotate(45deg); border-radius: 1px; }
@@ -173,7 +183,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .life-strip { display: flex; gap: 4px; align-items: center; }
 .life-pip { width: 10px; height: 10px; border-radius: 4px 50% 50%; background: #ff729e; transform: rotate(-45deg); box-shadow: 0 0 9px rgba(255,91,143,.55); }
 .life-pip.lost { opacity: .22; box-shadow: none; }
-.hint { color: var(--muted); font-size: 11px; text-align: center; white-space: nowrap; }
+.hint { color: var(--muted); font-size: 12px; text-align: center;line-height:1.5;overflow-wrap:anywhere; }
 .mini-score { text-align: right; color: #ffdb75; font: 600 13px "DM Mono", monospace; white-space: nowrap; }
 
 @keyframes callout-pop { 0% { opacity: 0; transform: scale(.52) rotate(-7deg); } 25% { opacity: 1; transform: scale(1.13) rotate(2deg); } 65% { opacity: 1; transform: scale(1) rotate(0); } 100% { opacity: 0; transform: scale(1.2); } }
@@ -182,21 +192,44 @@ canvas { display: block; width: 100%; height: 100%; }
 @keyframes clock-pulse { to { transform: scale(1.07); } }
 
 @media (max-width: 560px) {
-  .game-shell { grid-template-rows: 39px minmax(0, 1fr) 50px; gap: 7px; padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  .game-shell { grid-template-rows: 39px minmax(0, 1fr) 98px 48px; gap: 7px; padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  .arena-wrap { width:min(100%,calc(100dvh - 227px)); }
   .arena-wrap { border-radius: 21px; }
   .brand { font-size: 11px; gap: 4px; letter-spacing: .07em; }
   .brand-mark { font-size: 18px; }
   .round-clock { min-width: 62px; padding: 5px 9px; font-size: 15px; }
-  .leader { font-size: 10px; }
-  .joystick { left: 11px; bottom: 12px; width: 98px; height: 98px; }
+  .leader { font-size: 12px; }
+  .controls { grid-template-columns:98px minmax(0,1fr) 76px;gap:8px; }
+  .controls-help { font-size:12px; }
+  .controls-help span { font-size:12px; }
+  .joystick { width: 98px; height: 98px; }
   .stick-knob { width: 47px; height: 47px; }
-  .pass-button { right: 12px; bottom: 12px; width: 76px; height: 76px; font-size: 12px; }
+  .pass-button { width: 76px; height: 76px; font-size: 12px; }
   .pass-icon { transform: scale(.92); }
-  .hint { font-size: 9px; }
+  .hint { font-size:12px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {
-  .game-shell { max-width: 1100px; grid-template-rows: 34px minmax(0, 1fr) 38px; gap: 5px; padding-top: max(5px, env(safe-area-inset-top)); padding-bottom: max(5px, env(safe-area-inset-bottom)); }
-  .joystick { width: 82px; height: 82px; bottom: 9px; left: 12px; }
+  .game-shell { max-width: 1100px;grid-template-columns:90px minmax(0,1fr) 90px;grid-template-rows:34px minmax(0,1fr) 38px;gap:5px;padding-top:max(5px,env(safe-area-inset-top));padding-bottom:max(5px,env(safe-area-inset-bottom)); }
+  .hud,.footer { grid-column:1 / -1; }
+  .hud { grid-row:1; }
+  .footer { grid-row:3; }
+  .arena-wrap { grid-column:2;grid-row:2;width:min(100%,calc(100dvh - 92px)); }
+  .controls { display:contents; }
+  .controls-help { display:none; }
+  .joystick { grid-column:1;grid-row:2;align-self:center;justify-self:center;width:82px;height:82px; }
   .stick-knob { width: 42px; height: 42px; }
-  .pass-button { width: 67px; height: 67px; bottom: 9px; right: 12px; }
+  .pass-button { grid-column:3;grid-row:2;align-self:center;justify-self:center;width:67px;height:67px; }
 }
+
+#result-actions { position:fixed;z-index:30;top:50%;left:50%;transform:translate(-50%,-50%);width:min(460px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;padding:18px;border:1px solid #705198;border-radius:20px;background:#201135;box-shadow:0 18px 80px #090512cc;text-align:center; }
+#result-actions[hidden] { display:none; }
+#result-actions h1 { margin:0 0 10px;color:#ffe27d;font-size:24px;overflow-wrap:anywhere; }
+#result-actions p { font-size:12px;color:#ceb6ed;line-height:1.6; }
+#result-list { list-style:none;margin:14px 0;padding:0; }
+#result-list li { display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 8px;border-radius:10px;background:#ffffff08;text-align:left;font-size:13px;margin:5px 0; }
+#result-list strong { color:#ffdb75; }
+.result-name { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.result-score { color:#ecdbff;white-space:nowrap;font-size:12px; }
+.result-buttons { position:sticky;bottom:-18px;padding:8px 0;background:#201135; }
+#result-actions button { min-height:44px;padding:10px 18px;margin:4px;border:0;border-radius:12px;background:#ffcb57;color:#241433;font:700 15px system-ui; }
+#result-actions button:disabled { opacity:.5; }

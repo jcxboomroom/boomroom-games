@@ -76,7 +76,7 @@ body{touch-action:none}button{font:inherit;color:inherit;border:0;outline:0}
 <div id="centerMsg"></div>
 <div id="result" class="modal-layer"><div class="modal"><div class="result-rank" id="resultRank">VICTORY!</div><div class="reward" id="resultReward">+0 銀幣</div><div class="reason" id="resultReason">—</div><div class="result-list" id="resultList"></div><div class="auto-status"><b id="resultAutoTitle">3 秒後自動返回房間</b><span id="resultAutoText">本局已完成結算，請稍候…</span></div><div class="wait-note">自然結束才會發放本局結算；中途離開不會呼叫 gameOver。</div></div></div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -234,8 +234,8 @@ function requestAutoEntry(){
   if(paidRoundByMe.has(state.roundId))return;
   requestedEntryRounds.add(state.roundId);currentPurchaseRound=state.roundId;
   if(IS_DEV){onEntrySuccess(GAME.itemId);return}
-  if(SDK&&typeof SDK.requestPurchase==='function'){try{SDK.requestPurchase(GAME.itemId,GAME.entryCost);return}catch(e){}}
-  if(window.parent&&window.parent!==window){try{window.parent.postMessage({action:'requestPurchase',itemId:GAME.itemId,cost:GAME.entryCost},'*');return}catch(e){}}
+  if(SDK&&typeof SDK.requestAdmission==='function'){try{SDK.requestAdmission(GAME.itemId,GAME.entryCost);return}catch(e){}}
+  if(window.parent&&window.parent!==window){try{window.parent.postMessage({action:'requestAdmission',itemId:GAME.itemId,cost:GAME.entryCost},'*');return}catch(e){}}
   onEntrySuccess(GAME.itemId);
 }
 function onEntrySuccess(itemId){
@@ -568,5 +568,6 @@ function loop(ts){const dt=lastFrame?Math.min((ts-lastFrame)/1000,.033):0;lastFr
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

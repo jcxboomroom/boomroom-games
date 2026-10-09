@@ -29,7 +29,7 @@ button{font:inherit;border:0;cursor:pointer;color:var(--ink)}
   <div class="top"><div><div class="title">❄️ 爆爆打雪仗</div><div class="sub">經典街機重製 · 雪地對決</div></div><div id="coinBox" class="coins">💰 100</div></div>
   <main id="main" class="screen"></main>
 </div></div>
-<script>
+<script type="application/boomroom-game">
 'use strict';
 
 const CONFIG=Object.freeze({ENTRY_FEE:100,MAX_PLAYERS:8,ROUND_TIME:35,ARENA_W:1200,ARENA_H:680,GRAVITY:720,MAX_SNOW:6,PLAYER_SPEED:330,NET_HZ:15,MAX_PARTICLES:260});
@@ -163,5 +163,6 @@ function render(){document.getElementById('coinBox').textContent='💰 100';if(s
 
 addPlayer(ME.id,ME.username,ME.avatar);assignRoles();render();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

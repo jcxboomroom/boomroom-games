@@ -13,7 +13,7 @@ body{overscroll-behavior:none}
 button{font:inherit;border:0;color:var(--text);cursor:pointer}button:disabled{opacity:.42;cursor:default}
 #app{width:100%;height:100dvh;display:flex;justify-content:center}
 .shell{width:min(100%,1180px);height:100%;padding:calc(7px + var(--t)) 9px calc(7px + var(--b));display:flex;flex-direction:column}
-.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-y:auto;overscroll-behavior:contain}
 .panel{background:linear-gradient(180deg,rgba(23,33,58,.97),rgba(11,16,28,.97));border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 12px 30px var(--shadow)}
 .sectionTitle{font-size:14px;font-weight:1000;margin-bottom:9px}.sub{font-size:10px;color:var(--muted);line-height:1.5}.center{text-align:center}.muted{color:var(--muted)}
 .cta{width:100%;min-height:48px;border-radius:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#07101a;font-weight:1000;font-size:15px;box-shadow:0 8px 20px rgba(99,229,255,.12)}
@@ -25,7 +25,7 @@ button{font:inherit;border:0;color:var(--text);cursor:pointer}button:disabled{op
 .infoGrid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:8px}.stat{padding:8px 7px;background:#0a0f1a;border:1px solid var(--line);border-radius:11px;text-align:center}.stat b{display:block;font-size:13px}.stat span{font-size:8px;color:var(--muted)}
 .playerList{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.playerChip{padding:8px;border:1px solid var(--line);border-radius:12px;background:#0d1524;font-size:10px}.playerChip b{display:block;font-size:11px}.tag{display:inline-block;padding:2px 6px;border-radius:8px;background:#1a2741;color:#cdd8ec;border:1px solid #2b3b5e;font-size:8px;margin-top:4px}
 #gameRoot{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0}.topHud{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:7px 9px;background:linear-gradient(180deg,rgba(11,17,29,.92),rgba(5,8,14,.88));border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,.18)}
-.hudPlayer{min-width:0}.hudName{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar{height:11px;margin-top:3px;background:#111725;border:1px solid rgba(255,255,255,.1);border-radius:7px;overflow:hidden}.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#4de08a,#a7ff86)}.bar.mp i{background:linear-gradient(90deg,#54d7ff,#9573ff)}.hudCenter{text-align:center;min-width:86px}.hudCenter b{display:block;font-size:20px}.hudCenter span{font-size:8px;color:var(--muted)}.hudMeta{display:flex;justify-content:center;gap:5px;margin-top:2px}.hudPill{font-size:8px;padding:2px 5px;border-radius:7px;background:#101a2b;border:1px solid #263957;color:#bcd0ea}.pauseBtn{position:absolute;right:9px;top:9px;z-index:30;width:34px;height:34px;border-radius:10px;background:rgba(9,15,26,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(5px);font-size:14px}.screenFx{position:absolute;inset:0;pointer-events:none;background:rgba(255,255,255,0);mix-blend-mode:screen;opacity:0;z-index:25}.screenFx.flash{animation:fxflash .16s ease-out}@keyframes fxflash{0%{opacity:.42}100%{opacity:0}}
+.hudPlayer{min-width:0}.hudName{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar{height:11px;margin-top:3px;background:#111725;border:1px solid rgba(255,255,255,.1);border-radius:7px;overflow:hidden}.bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#4de08a,#a7ff86)}.bar.mp i{background:linear-gradient(90deg,#54d7ff,#9573ff)}.hudCenter{text-align:center;min-width:86px}.hudCenter b{display:block;font-size:20px}.hudCenter span{font-size:8px;color:var(--muted)}.hudMeta{display:flex;justify-content:center;gap:5px;margin-top:2px}.hudPill{font-size:8px;padding:2px 5px;border-radius:7px;background:#101a2b;border:1px solid #263957;color:#bcd0ea}.pauseBtn{position:absolute;right:9px;top:9px;z-index:30;width:44px;height:44px;border-radius:10px;background:rgba(9,15,26,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(5px);font-size:14px}.screenFx{position:absolute;inset:0;pointer-events:none;background:rgba(255,255,255,0);mix-blend-mode:screen;opacity:0;z-index:25}.screenFx.flash{animation:fxflash .16s ease-out}@keyframes fxflash{0%{opacity:.42}100%{opacity:0}}
 #canvasWrap{position:relative;flex:1;min-height:360px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#06090f;box-shadow:inset 0 0 80px rgba(0,0,0,.45)}#gameCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #overlay{position:absolute;inset:0;pointer-events:none}.battleMsg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.65);font-size:40px;font-weight:1000;letter-spacing:1px;text-shadow:0 5px 18px #000,0 0 22px rgba(255,255,255,.16);opacity:0}.battleMsg.show{animation:bm .85s ease both}@keyframes bm{0%{opacity:0;transform:translate(-50%,-50%) scale(.65)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.32)}}
 .comboHud{position:absolute;right:12px;top:76px;text-align:right;text-shadow:0 2px 8px #000;opacity:0;transition:.12s}.comboHud.show{opacity:1}.comboNum{font-size:35px;font-weight:1000;color:var(--gold);line-height:1}.comboLabel{font-size:10px;font-weight:900;color:#fff}.scorePop{position:absolute;left:50%;top:24%;transform:translateX(-50%);font-size:18px;font-weight:1000;color:#fff;text-shadow:0 3px 10px #000}
@@ -41,7 +41,7 @@ button{font:inherit;border:0;color:var(--text);cursor:pointer}button:disabled{op
 </head>
 <body>
 <div id="app"><div class="shell"><main id="main" class="screen"></main></div></div>
-<script>
+<script type="application/boomroom-game">
 "use strict";
 
 const CONFIG={MAX_PLAYERS:8,STAGE_MAX:8,ROUND_TIME:120,WORLD_W:3000,GROUND:470,DEPTH_MIN:330,DEPTH_MAX:445,GRAVITY:.46,FRAME:1/60,LOGICAL_W:960,LOGICAL_H:540,MAX_PARTICLES:380,MAX_TEXTS:80};
@@ -69,6 +69,19 @@ let stageLevel=1,wave=0,roundClock=CONFIG.ROUND_TIME,world=null,player=null,enem
 let camera={x:0,z:0},shake=0,lastTime=0,raf=0,stageState="READY",stageTransition=0,gameEnded=false;
 let combo={count:0,timer:0,max:0,damage:0},score=0,kills=0,damageTotal=0;
 let feed=[],audioCtx=null,musicOn=true,sfxOn=true;
+let ctx=null,stageGround=CONFIG.GROUND;
+let roundNumber=0,resultWin=false,lastStateSent=0,lastInputSent=0,inputSequence=0,stateSequence=0,lastStateSequence=0,roundEndsAt=0;
+function authoritative(){return !window.BoomRoomSDK||isHost()}
+function fighters(){return [player,...remotes].filter(Boolean)}
+function opponents(f){return [...fighters(),...enemies].filter(t=>t.id!==f.id&&t.team!==f.team)}
+function syncOwnStats(){if(!player)return;score=player.score||0;kills=player.kills||0;damageTotal=player.damage||0;combo.count=player.comboCount||0;combo.max=player.comboMax||0}
+const actorFields='id playerId username kind ai charId x z y vx vy vz dir team hp maxHp mp maxMp baseSpeed atk def skillPower stamina dead state stateTime hitstun invuln guard attackFrame attackType attackHitDone comboStep comboWindow dashTime anim hitFlash knockTimer score kills damage comboCount comboMax boss bossPhase enemyType color accent weapon'.split(' ');
+function actorSnapshot(f){return Object.fromEntries(actorFields.map(k=>[k,f[k]]).filter(([,v])=>v!==undefined))}
+function battleSnapshot(){return {sequence:++stateSequence,mode:gameMode,difficulty,stage:stageLevel,wave,clock:roundClock,stageState,fighters:fighters().map(actorSnapshot),enemies:enemies.map(actorSnapshot),projectiles:projectiles.map(p=>({...p,ownerId:p.owner?.id,owner:undefined})),pickups:pickups.map(p=>({...p})),feed:feed.slice(-8)}}
+function sendBattleState(force=false){if(!window.BoomRoomSDK||!isHost()||!player)return;const now=Date.now();if(!force&&now-lastStateSent<100)return;lastStateSent=now;sendEvent('LF2_STATE',battleSnapshot())}
+function applyBattleState(p){if(authoritative()||!Array.isArray(p.fighters)||p.sequence<=lastStateSequence)return;lastStateSequence=p.sequence;
+ const all=p.fighters.filter(f=>players.has(String(f.id))).slice(0,CONFIG.MAX_PLAYERS).map(f=>({...f}));const own=all.find(f=>String(f.id)===ME.id);if(!own)return;player=own;remotes=all.filter(f=>f!==own);enemies=(p.enemies||[]).slice(0,16).map(f=>({...f}));projectiles=(p.projectiles||[]).slice(0,64).map(f=>({...f,owner:[...all,...enemies].find(a=>a.id===f.ownerId)})).filter(f=>f.owner);pickups=(p.pickups||[]).slice(0,32);stageLevel=p.stage;wave=p.wave;roundClock=p.clock;stageState=p.stageState;feed=(p.feed||[]).slice(-8);syncOwnStats();renderLiveHud();}
+function winnerIds(win){if(!win)return [];return gameMode==='PVP'?fighters().filter(isAlive).map(f=>f.id):fighters().map(f=>f.id)}
 const input={left:false,right:false,up:false,down:false,attack:false,guard:false,skill:false,dash:false};
 const just={jump:false,attack:false,skill:false,dash:false,grab:false};
 let joystick={active:false,pointerId:null,cx:0,cy:0,x:0,y:0};
@@ -79,7 +92,7 @@ function safeString(v,fallback,maxLen){if(v===null||v===undefined)return fallbac
 function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
 function dist2(a,b){const dx=a.x-b.x,dz=(a.z||0)-(b.z||0);return dx*dx+dz*dz}
 function isAlive(f){return f&&f.hp>0&&!f.dead}
-function isHost(){return sdkIsHost||players.size<=1}
+function isHost(){return window.BoomRoomSDK ? sdkIsHost : players.size<=1}
 function addPlayer(id,username,avatar){if(id==null)return null;id=String(id);let p=players.get(id);if(!p){p={id,username:safeString(username,"玩家",14),avatar:safeString(avatar,"",300),char:"DAVIS"};players.set(id,p)}else p.username=safeString(username,p.username,14);return p}
 
 function setupSDK(data){
@@ -88,27 +101,30 @@ function setupSDK(data){
   if(Array.isArray(data&&data.roomPlayers))data.roomPlayers.forEach(r=>r&&r.id!=null&&addPlayer(r.id,r.username,r.avatar));
   render();
 
-  setTimeout(() => {
-    if(state==="LOBBY"){
-      startGame();
-    }
-  }, 300);
 }
-window.addEventListener("message",e=>{
-  try{const d=typeof e.data==="string"?JSON.parse(e.data):e.data;if(!d)return;if(d.action==="initSDK")setupSDK(d);else if(d.action==="gameEventReceived")handleGameEvent(d.eventName,d.payload||{},d.userId)}catch(_){}}
-);
+window.BoomRoomSDK?.onGameEvent?.((eventName,payload,userId) => handleGameEvent(eventName,payload||{},userId));
 window.initBoomRoomSDK=function(data){setupSDK(data)};
 window.onBoomRoomSDKReady=function(){if(window.BoomRoomSDK)setupSDK({user:typeof window.BoomRoomSDK.getUser==="function"?window.BoomRoomSDK.getUser():{},isHost:window.BoomRoomSDK.isHost,roomId:window.BoomRoomSDK.roomId,roomPlayers:window.BoomRoomSDK.roomPlayers||[]})};
 if(window.BoomRoomSDK){window.onBoomRoomSDKReady()}
-function sendEvent(eventName,payload){try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")window.BoomRoomSDK.sendGameEvent(eventName,payload);else if(window.parent!==window)window.parent.postMessage({action:"sendGameEvent",eventName,payload},"*")}catch(_){} }
+function sendEvent(eventName,payload){payload={...payload,roundNumber};try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.sendGameEvent==="function")window.BoomRoomSDK.sendGameEvent(eventName,payload);else if(window.parent!==window)window.parent.postMessage({action:"sendGameEvent",eventName,payload},"*")}catch(_){} }
 function handleGameEvent(name,payload,senderId){
   if(!payload)payload={};
-  if(name==="LF2_START") startGameFromEvent(payload);
-  else if(name==="LF2_INPUT"&&state==="PLAYING"&&senderId){const r=remotes.find(x=>x.playerId===String(senderId));if(r)r.remoteInput=payload}
-  else if(name==="LF2_SELECT"&&senderId){const p=addPlayer(senderId,payload.username||"玩家",payload.avatar||"");if(p)p.char=payload.char||p.char;render()}
-  else if(name==="LF2_END"){}
+  if(window.BoomRoomSDK){
+    if(!players.has(String(senderId)))return;
+    const session=window.BoomRoomSDK.getSession?.();
+    if(["LF2_START","LF2_END","LF2_STATE"].includes(name)&&String(senderId)!==String(session?.hostId??session?.hostUserId))return;
+  }
+  if(name==="LF2_START"&&String(senderId)===ME.id)return;
+  if(!Number.isSafeInteger(payload.roundNumber)||payload.roundNumber<0||payload.roundNumber<roundNumber)return;
+  if(name==="LF2_START") {if(Number(payload.roundNumber)<=roundNumber)return;roundNumber=Number(payload.roundNumber);startGameFromEvent(payload)}
+  else if(Number(payload.roundNumber)!==roundNumber)return;
+  else if(name==='LF2_INPUT'&&state==='PLAYING'&&authoritative()&&senderId){const r=remotes.find(x=>x.playerId===String(senderId));if(r&&Number.isSafeInteger(payload.sequence)&&payload.sequence>(r.inputSequence||0)){r.inputSequence=payload.sequence;r.remoteInput=Object.fromEntries(['left','right','up','down','attack','guard','skill','dash','jump','grab'].map(k=>[k,payload[k]===true]));r.inputAt=Date.now()}}
+  else if(name==='LF2_STATE'&&state==='PLAYING')applyBattleState(payload);
+  else if(name==="LF2_SELECT"&&senderId&&state==="LOBBY"){const p=players.get(String(senderId));if(p&&CHARS[payload.char])p.char=payload.char;render()}
+  else if(name==='LF2_END'&&String(senderId)!==ME.id){if(payload.snapshot)applyBattleState(payload.snapshot);endGame(Array.isArray(payload.winnerIds)&&payload.winnerIds.includes(ME.id),safeString(payload.msg,'本局結束',80),false);}
 }
-function startGameFromEvent(p){selectedChar=p.char||selectedChar;gameMode=p.mode||gameMode;difficulty=p.difficulty||difficulty;stageLevel=p.stage||1;startGame()}
+function startGameFromEvent(p){if(!['STAGE','PVP','TEAM'].includes(p.mode)||!['NORMAL','HARD','NIGHTMARE'].includes(p.difficulty))return;gameMode=p.mode;difficulty=p.difficulty;stageLevel=1;for(const pick of p.selections||[]){const member=players.get(String(pick.id));if(member&&CHARS[pick.char])member.char=pick.char}selectedChar=players.get(ME.id)?.char||selectedChar;startGame()}
+function startHostRound(){if(!isHost())return;roundNumber++;stageLevel=1;finalizeStartSelection();sendEvent("LF2_START",{mode:gameMode,difficulty,stage:1,selections:[...players.values()].map(p=>({id:p.id,char:p.char}))});startGame()}
 
 let musicTimer=0,musicStep=0,lastHudPaint=0;
 function initAudio(){try{if(!audioCtx){audioCtx=new(window.AudioContext||window.webkitAudioContext)()}if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){} }
@@ -126,135 +142,126 @@ function addShock(x,z,color="#fff"){sparks.push({x,z,life:.18,max:.18,r:12,color
 
 function createFighter({id,username,charId,x,z,team=0,kind="fighter",ai=false}){
   const c=CHARS[charId]||CHARS.DAVIS;
-  return {id,playerId:id,username,kind,ai,charId,x,z,y:0,vx:0,vy:0,vz:0,dir:1,team,hp:c.hp,maxHp:c.hp,mp:c.mp,maxMp:c.mp,baseSpeed:c.speed,atk:c.atk,def:c.def,skillPower:c.skill,stamina:100,dead:false,state:"idle",stateTime:0,hitstun:0,invuln:0,guard:false,attackFrame:0,attackType:0,attackHitDone:false,comboStep:0,comboWindow:0,dashTime:0,grabTarget:null,grabTime:0,weapon:null,aiThink:0,remoteInput:{},anim:Math.random()*10,hitFlash:0,knockTimer:0,score:0,kills:0,damage:0};
+  return {id,playerId:id,username,kind,ai,charId,x,z,y:0,vx:0,vy:0,vz:0,dir:1,team,hp:c.hp,maxHp:c.hp,mp:c.mp,maxMp:c.mp,baseSpeed:c.speed,atk:c.atk,def:c.def,skillPower:c.skill,stamina:100,dead:false,state:"idle",stateTime:0,hitstun:0,invuln:0,guard:false,attackFrame:0,attackType:0,attackHitDone:false,comboStep:0,comboWindow:0,dashTime:0,grabTarget:null,grabTime:0,weapon:null,aiThink:0,remoteInput:{},anim:Math.random()*10,hitFlash:0,knockTimer:0,score:0,kills:0,damage:0,comboCount:0,comboMax:0,grabHitTimer:0,aiAttackCooldown:.8};
 }
 
 function makeWorld(){world={width:CONFIG.WORLD_W,ground:CONFIG.GROUND,depthMin:CONFIG.DEPTH_MIN,depthMax:CONFIG.DEPTH_MAX};}
 function startGame(){
-  stopLoop(); state="PLAYING";gameEnded=false;stageState="READY";stageTransition=0;roundClock=CONFIG.ROUND_TIME;wave=0;stageLevel=stageLevel||1;wave=1;score=0;kills=0;damageTotal=0;feed=[];combo={count:0,timer:0,max:0,damage:0};makeWorld();
+  stopLoop(); state="PLAYING";gameEnded=false;stageState="READY";stageTransition=0;roundClock=CONFIG.ROUND_TIME;wave=0;stageLevel=stageLevel||1;wave=1;score=0;kills=0;damageTotal=0;feed=[];for(const key of Object.keys(input))input[key]=false;resetInputFlags();combo={count:0,timer:0,max:0,damage:0};makeWorld();
   projectiles=[];pickups=[];particles=[];texts=[];sparks=[];remotes=[];enemies=[];
-  player=createFighter({id:ME.id,username:ME.username,charId:selectedChar,x:360,z:395,team:1});
-  for(const p of players.values()){
-    if(String(p.id)===String(ME.id))continue;
-    if(gameMode==="TEAM"||gameMode==="PVP"){
-      const rp=createFighter({id:String(p.id),username:p.username,charId:p.char||"DAVIS",x:gameMode==="TEAM"?430:760,z:392,team:gameMode==="TEAM"?1:2,kind:"remote"});rp.remote=true;rp.ai=false;remotes.push(rp);
-    }
-  }
-  if(gameMode==="PVP"&&remotes.length===0){
-    const ids=Object.keys(CHARS).filter(x=>x!==selectedChar);
-    const aiChar=ids[(stageLevel+2)%ids.length]||"DEEP";
-    const rp=createFighter({id:"ai_opponent",username:"AI 對手",charId:aiChar,x:760,z:392,team:2,kind:"remote",ai:true});
-    rp.remote=true;remotes.push(rp);
-  }
+  const roster=[...players.values()].sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  const combatants=roster.map((p,i)=>createFighter({id:String(p.id),username:p.username,charId:p.char||'DAVIS',x:360+i*155,z:395,team:gameMode==='PVP'?10+i:1,kind:String(p.id)===ME.id?'fighter':'remote'}));
+  player=combatants.find(p=>p.id===ME.id);remotes=combatants.filter(p=>p!==player);
+  if(gameMode==='PVP'&&remotes.length===0){const ids=Object.keys(CHARS).filter(x=>x!==selectedChar);remotes.push(createFighter({id:'ai_opponent',username:'AI 對手',charId:ids[(stageLevel+2)%ids.length],x:760,z:395,team:20,kind:'remote',ai:true}))}
+  lastStateSent=0;lastInputSent=0;inputSequence=0;stateSequence=0;lastStateSequence=0;roundEndsAt=Date.now()+CONFIG.ROUND_TIME*1000;camera={x:0,z:0};
   initAudio();startMusic();showMessage("READY!");pushFeed(`🎮 ${CHARS[selectedChar].name} 進入戰場`);stageState="WAVE";spawnWave();render();resizeCanvas();draw();setTimeout(()=>showMessage("FIGHT!"),550);lastTime=performance.now();startLoop();
 }
 function stopLoop(){if(raf){cancelAnimationFrame(raf);raf=0}stopMusic()}
-function startLoop(){stopLoop();lastTime=performance.now();raf=requestAnimationFrame(loop)}
+function startLoop(){stopLoop();startMusic();lastTime=performance.now();raf=requestAnimationFrame(loop)}
 function loop(now){if(state!=="PLAYING")return;const dt=clamp((now-lastTime)/1000,0,.034);lastTime=now;update(dt);draw();raf=requestAnimationFrame(loop)}
 
 function resetInputFlags(){just.jump=false;just.attack=false;just.skill=false;just.dash=false;just.grab=false}
 function spawnWave(){
-  if(gameMode==="PVP")return;
+  if(gameMode==="PVP"||!authoritative())return;
   enemies=[];const base=2+Math.min(4,Math.floor((stageLevel-1)/2));const extra=wave>1?1:0;let count=base+extra;
   const pool=stageLevel<=2?["HENCHMAN","BANDIT"]:stageLevel<=4?["HENCHMAN","BANDIT","SOLDIER"]:stageLevel<=6?["BANDIT","SOLDIER","ARCHER","MAGE"]:["SOLDIER","ARCHER","MAGE","ELITE"];
   for(let i=0;i<count;i++){const type=pool[(i+stageLevel+wave)%pool.length];const t=ENEMY_TYPES[type];let x=i%2===0?world.width-220-i*30:world.width/2+180+i*40;const e=createEnemy(type,x,CONFIG.DEPTH_MIN+Math.random()*(CONFIG.DEPTH_MAX-CONFIG.DEPTH_MIN-25));enemies.push(e)}
   if(wave>=3&&stageLevel%2===0){const b=createBoss();enemies.push(b);pushFeed(`👹 Boss「${b.username}」登場！`)}
-  stageState="FIGHT";roundClock=CONFIG.ROUND_TIME;pushFeed(`⚔️ 第 ${stageLevel} 關 Wave ${wave}：敵人 ${enemies.length}`);showMessage(`WAVE ${wave}`);
+  stageState="FIGHT";roundClock=CONFIG.ROUND_TIME;roundEndsAt=Date.now()+CONFIG.ROUND_TIME*1000;pushFeed(`⚔️ 第 ${stageLevel} 關 Wave ${wave}：敵人 ${enemies.length}`);showMessage(`WAVE ${wave}`);
 }
 function createEnemy(type,x,z){const t=ENEMY_TYPES[type];const scale=1+(stageLevel-1)*.08+(difficulty==="HARD"?.15:difficulty==="NIGHTMARE"?.28:0);return {id:`enemy_${Math.random().toString(36).slice(2,9)}`,playerId:null,username:t.name,kind:"enemy",enemyType:type,ai:true,charId:"ENEMY",x,z,y:0,vx:0,vy:0,vz:0,dir:-1,team:2,hp:t.hp*scale,maxHp:t.hp*scale,mp:50,maxMp:50,baseSpeed:t.speed*(difficulty==="HARD"?1.08:difficulty==="NIGHTMARE"?1.18:1),atk:t.atk*scale,def:t.def,state:"idle",stateTime:0,hitstun:0,invuln:0,guard:false,attackFrame:0,attackType:0,attackHitDone:false,comboStep:0,comboWindow:0,dashTime:0,grabTarget:null,grabTime:0,weapon:null,aiThink:0,attackCooldown:.3+Math.random(),anim:Math.random()*10,hitFlash:0,knockTimer:0,dead:false,kills:0,damage:0,boss:false}}
 function createBoss(){const names=["暗影巨人","焰王","冰獄騎士","裂地霸王"];const i=(stageLevel/2-1)%names.length;const e=createEnemy("ELITE",world.width-260,395);e.username=names[i];e.boss=true;e.maxHp=700+(stageLevel-2)*120;e.hp=e.maxHp;e.baseSpeed=1.65;e.atk=32+(stageLevel-2)*4;e.color=["#6b5cff","#ff4c56","#72dfff","#ffb451"][i];e.accent="#fff4d6";e.bossPhase=1;return e}
 
 function findClosestEnemy(max=9999){let best=null,d=max*max;for(const e of enemies){if(!isAlive(e))continue;const dd=dist2(player,e);if(dd<d){d=dd;best=e}}return best}
-function nearestTarget(o,range=9999){let candidates=[];if(o.team===1)candidates=[...enemies,...remotes.filter(x=>x.team!==o.team)];else candidates=[player,...remotes.filter(x=>x.team!==o.team)];let best=null,d=range*range;for(const c of candidates){if(!isAlive(c))continue;const dd=dist2(o,c);if(dd<d){d=dd;best=c}}return best}
-
+function nearestTarget(o,range=9999){let best=null,d=range*range;for(const c of opponents(o)){if(!isAlive(c))continue;const dd=dist2(o,c);if(dd<d){d=dd;best=c}}return best}
 function applyGravity(o,dt){if(o.y<0||o.vy!==0){o.vy+=CONFIG.GRAVITY*dt*60;o.y+=o.vy;if(o.y>=0){o.y=0;o.vy=0;if(o.state==="air")o.state="idle";playSfx("land")}}}
 function moveFighter(o,dt,dx,dz){const sp=o.baseSpeed*(o.guard?.45:1)*(o.dashTime>0?1.7:1);o.vx=lerp(o.vx,dx*sp,0.25);o.vz=lerp(o.vz,dz*sp*.72,0.25);o.x=clamp(o.x+o.vx*dt*60,40,world.width-40);o.z=clamp(o.z+o.vz*dt*60,world.depthMin,world.depthMax);if(Math.abs(dx)>.05)o.dir=dx>0?1:-1}
-function updateCommon(o,dt){o.anim+=dt*8;if(o.hitFlash>0)o.hitFlash-=dt;if(o.invuln>0)o.invuln-=dt;o.stateTime+=dt;o.comboWindow=Math.max(0,o.comboWindow-dt);if(o.hitstun>0){o.hitstun-=dt;o.vx*=.93;o.vz*=.93;applyGravity(o,dt);return true}if(o.knockTimer>0){o.knockTimer-=dt;o.vx*=.96;o.vz*=.96;applyGravity(o,dt);if(o.knockTimer<=0&&!o.dead)o.state="idle";return true}applyGravity(o,dt);return false}
+function updateCommon(o,dt){if(o.grabbedBy)return true;o.anim+=dt*8;if(o.hitFlash>0)o.hitFlash-=dt;if(o.invuln>0)o.invuln-=dt;o.stateTime+=dt;o.comboWindow=Math.max(0,o.comboWindow-dt);if(o.hitstun>0){o.hitstun-=dt;o.x=clamp(o.x+o.vx*dt*60,40,world.width-40);o.z=clamp(o.z+o.vz*dt*60,world.depthMin,world.depthMax);o.vx*=.93;o.vz*=.93;applyGravity(o,dt);return true}if(o.knockTimer>0){o.knockTimer-=dt;o.x=clamp(o.x+o.vx*dt*60,40,world.width-40);o.z=clamp(o.z+o.vz*dt*60,world.depthMin,world.depthMax);o.vx*=.96;o.vz*=.96;applyGravity(o,dt);if(o.knockTimer<=0&&!o.dead)o.state="idle";return true}applyGravity(o,dt);return false}
 
-function updatePlayer(dt){
-  if(!player||player.dead)return;
-  const locked=updateCommon(player,dt);
+function updatePlayer(dt,actor=player,controls=input,pressed=just){
+  if(!actor||actor.dead)return;
+  const locked=updateCommon(actor,dt);
   if(locked)return;
 
-  if(player.grabTarget){
-    updateGrab(player,dt);
+  if(actor.grabTarget){
+    updateGrab(actor,dt);
     return;
   }
 
-  if(player.attackFrame>0){
-    player.attackFrame=Math.max(0,player.attackFrame-dt);
-    if(!player.attackHitDone&&player.attackFrame<=.17){
-      const target=nearestTarget(player,86);
-      if(target&&Math.abs(target.z-player.z)<48){
-        if(player.comboStep===3&&target.hitstun>0&&Math.abs(target.x-player.x)<52){
-          player.grabTarget=target;
-          player.grabTime=.52;
-          target.grabbedBy=player;
-          player.state="grab";
-          pushFeed(`🤜 ${player.username} 抓住 ${target.username}`);
+  if(actor.attackFrame>0){
+    if(!actor.attackHitDone&&actor.attackFrame<=.17){
+      const target=nearestTarget(actor,86);
+      if(target&&Math.abs(target.z-actor.z)<48){
+        if(actor.comboStep===3&&target.hitstun>0&&Math.abs(target.x-actor.x)<52){
+          actor.grabTarget=target;
+          actor.grabTime=.52;
+          target.grabbedBy=actor;
+          actor.state="grab";
+          pushFeed(`🤜 ${actor.username} 抓住 ${target.username}`);
         }else{
-          dealMelee(player,target);
+          dealMelee(actor,target);
         }
       }else{
-        addShock(player.x+player.dir*34,player.z,CHARS[player.charId].accent);
+        addShock(actor.x+actor.dir*34,actor.z,CHARS[actor.charId].accent);
       }
-      player.attackHitDone=true;
+      actor.attackHitDone=true;
     }
-    if(player.attackFrame<=0&&player.state==="attack")player.state="idle";
+    if(actor.attackFrame<=0&&actor.state==="attack")actor.state="idle";
     return;
   }
 
-  player.guard=input.guard&&!player.attackFrame&&player.y===0;
-  if(player.guard){
-    player.vx*=.75;
-    player.vz*=.75;
-    player.state="guard";
+  actor.guard=controls.guard&&!actor.attackFrame&&actor.y===0;
+  if(actor.guard){
+    actor.vx*=.75;
+    actor.vz*=.75;
+    actor.state="guard";
     return;
   }
 
-  if(just.dash)startDash(player);
+  if(pressed.dash)startDash(actor);
 
-  if(player.dashTime>0){
-    player.dashTime-=dt;
-    moveFighter(player,dt,player.dir,0);
-    if(player.dashTime<=0)player.state="idle";
+  if(actor.dashTime>0){
+    actor.dashTime-=dt;
+    moveFighter(actor,dt,actor.dir,0);
+    if(actor.dashTime<=0)actor.state="idle";
   }else{
-    const dx=(input.right?1:0)-(input.left?1:0);
-    const dz=(input.down?1:0)-(input.up?1:0);
-    if(just.jump&&player.y===0){
-      player.vy=-CHARS[player.charId].jump;
-      player.y=-.01;
-      player.state="air";
+    const dx=(controls.right?1:0)-(controls.left?1:0);
+    const dz=(controls.down?1:0)-(controls.up?1:0);
+    if(pressed.jump&&actor.y===0){
+      actor.vy=-CHARS[actor.charId].jump;
+      actor.y=-.01;
+      actor.state="air";
       playSfx("jump");
-    }else if(just.grab&&!tryGrab(player)){
-      performAttack(player);
-    }else if(just.attack){
-      performAttack(player);
-    }else if(just.skill){
-      performSkill(player);
+    }else if(pressed.grab&&!tryGrab(actor)){
+      performAttack(actor,controls);
+    }else if(pressed.attack){
+      performAttack(actor,controls);
+    }else if(pressed.skill){
+      performSkill(actor);
     }else{
-      moveFighter(player,dt,dx,dz);
+      moveFighter(actor,dt,dx,dz);
     }
   }
 
-  if(player.mp<player.maxMp)player.mp=Math.min(player.maxMp,player.mp+dt*2.2);
-  if(player.comboWindow<=0&&combo.count>0)combo.count=0;
-  if(player.y<0.01&&Math.abs(player.vx)<.1&&Math.abs(player.vz)<.1&&player.state!=="attack"&&player.state!=="skill"&&player.state!=="dash")player.state="idle";
-  broadcastInput();
-  tryPickup();
+  if(actor.mp<actor.maxMp)actor.mp=Math.min(actor.maxMp,actor.mp+dt*2.2);
+  if(actor.comboWindow<=0)actor.comboCount=0;
+  if(actor.y<0.01&&Math.abs(actor.vx)<.1&&Math.abs(actor.vz)<.1&&actor.state!=="attack"&&actor.state!=="skill"&&actor.state!=="dash")actor.state="idle";
+
 }
 function startDash(o){if(o.stamina<18)return;o.stamina-=18;o.dashTime=.18;o.invuln=.08;o.state="dash";playSfx("dash");addParticles(o.x,o.z,o.y-35,o.color,7,2.5)}
 function tryGrab(o){const t=nearestTarget(o,58);if(t&&t.hitstun>0&&Math.abs(t.x-o.x)<52){o.grabTarget=t;o.grabTime=.55;o.state="grab";t.grabbedBy=o;pushFeed(`🤜 ${o.username} 抓住 ${t.username}`);return true}return false}
-function performAttack(o){if(o.attackFrame>0||o.state==="skill"||o.state==="dash")return;const c=CHARS[o.charId]||CHARS.DAVIS;const dir=input.up?"up":input.down?"down":"mid";if(o.comboWindow>0)o.comboStep=(o.comboStep%3)+1;else o.comboStep=1;o.comboWindow=.5;o.attackFrame=.28;o.attackType=dir;o.attackHitDone=false;o.state="attack";o.stateTime=0;playSfx(o.comboStep===3?"heavy":"hit");addParticles(o.x+o.dir*28,o.z,o.y-44,c.accent,5,1.4)}
+function performAttack(o,controls=input){if(o.attackFrame>0||o.state==="skill"||o.state==="dash")return;const c=CHARS[o.charId]||CHARS.DAVIS;const dir=controls.up?"up":controls.down?"down":"mid";if(o.comboWindow>0)o.comboStep=(o.comboStep%3)+1;else o.comboStep=1;o.comboWindow=.5;o.attackFrame=.28;o.attackType=dir;o.attackHitDone=false;o.state="attack";o.stateTime=0;playSfx(o.comboStep===3?"heavy":"hit");addParticles(o.x+o.dir*28,o.z,o.y-44,c.accent,5,1.4)}
+function recordDamage(o,dmg){o.damage=(o.damage||0)+dmg;o.score=(o.score||0)+Math.round(dmg);if(o.id===player?.id){damageTotal=o.damage;score=o.score}}
 function dealMelee(o,t){if(!isAlive(t)||t.invuln>0)return;const c=CHARS[o.charId]||null;let dmg=o.atk*(o.comboStep===3?1.35:1)*(o.attackType==="up"?0.9:o.attackType==="down"?1.1:1);if(o.weapon)dmg*=o.weapon.damageMul;let blocked=t.guard&&!t.grabbedBy; if(blocked){dmg*=.15;addShock(t.x,t.z,"#8bb8ff");addText(t.x,t.z,-70,"GUARD","#9cc8ff",13);playSfx("guard");}else{t.hitstun=.22+(o.comboStep===3?.16:0);t.vx=o.dir*(o.comboStep===3?7:4.5);t.vz=(t.z-o.z)*.15;t.vy=o.comboStep===3?-5.2:o.attackType==="up"?-6.5:0;if(o.attackType==="up")t.vz*=.6;if(t.vy<0)t.state="air";else t.state="hit";addShock(t.x,t.z,o.color||"#fff");addParticles(t.x,t.z,t.y-35,o.accent,10,o.comboStep===3?3.4:2.3);addText(t.x,t.z,-70,`-${Math.round(dmg)}`,o.color||"#fff",o.comboStep===3?22:17);playSfx(o.comboStep===3?"heavy":"hit");shake=Math.max(shake,o.comboStep===3?9:4);}
-  t.hp-=dmg;haptic(o.comboStep===3?"heavy":"light");screenFlash(o.comboStep===3?"strong":"hit");if(o.weapon&&t.hp>0){o.weapon.durability=Math.max(0,o.weapon.durability-1)}o.damage=(o.damage||0)+dmg;damageTotal+=dmg;score+=Math.round(dmg);combo.count++;combo.max=Math.max(combo.max,combo.count);combo.timer=.8;combo.damage+=dmg;t.hitFlash=.09;if(t.hp<=0)knockOut(t,o)
+  t.hp-=dmg;haptic(o.comboStep===3?"heavy":"light");screenFlash(o.comboStep===3?"strong":"hit");if(o.weapon&&t.hp>0){o.weapon.durability=Math.max(0,o.weapon.durability-1)}recordDamage(o,dmg);o.comboCount=(o.comboCount||0)+1;o.comboMax=Math.max(o.comboMax||0,o.comboCount);if(o.id===player?.id){combo.count=o.comboCount;combo.max=o.comboMax;combo.timer=.8;combo.damage+=dmg;}t.hitFlash=.09;if(t.hp<=0)knockOut(t,o)
 }
-function performSkill(o){const c=CHARS[o.charId]||CHARS.DAVIS;if(o.mp<c.cost||o.attackFrame>0||o.state==="skill")return;o.mp-=c.cost;o.state="skill";o.stateTime=0;o.attackFrame=.52;playSfx("skill");addParticles(o.x,o.z,o.y-50,c.color,14,2.8);if(o.charId==="FREEZE")spawnProjectile(o,"ice",8.5,c.skill,125,0);else if(o.charId==="FIREN")spawnProjectile(o,"fire",8,c.skill,130,0);else if(o.charId==="RAVEN"){o.invuln=.28;o.dashTime=.3;o.x=clamp(o.x+o.dir*130,40,world.width-40);addParticles(o.x,o.z,o.y-40,"#a679ff",20,3.6);const t=nearestTarget(o,85);if(t)dealSkillHit(o,t,c.skill*1.35,"影襲") }else if(o.charId==="DEEP")spawnShockwave(o,c.skill*1.15,95,"#e9e7ff");else if(o.charId==="TITAN")spawnShockwave(o,c.skill*1.25,110,"#ffb451");else spawnProjectile(o,"energy",9,c.skill,130,0);}
+function performSkill(o){const c=CHARS[o.charId]||CHARS.DAVIS;if(o.mp<c.cost||o.attackFrame>0||o.state==="skill")return;o.mp-=c.cost;o.state="skill";o.stateTime=0;o.attackFrame=.52;o.attackHitDone=true;playSfx("skill");addParticles(o.x,o.z,o.y-50,c.color,14,2.8);if(o.charId==="FREEZE")spawnProjectile(o,"ice",8.5,c.skill,125,0);else if(o.charId==="FIREN")spawnProjectile(o,"fire",8,c.skill,130,0);else if(o.charId==="RAVEN"){o.invuln=.28;o.dashTime=.3;o.x=clamp(o.x+o.dir*130,40,world.width-40);addParticles(o.x,o.z,o.y-40,"#a679ff",20,3.6);const t=nearestTarget(o,85);if(t)dealSkillHit(o,t,c.skill*1.35,"影襲") }else if(o.charId==="DEEP")spawnShockwave(o,c.skill*1.15,95,"#e9e7ff");else if(o.charId==="TITAN")spawnShockwave(o,c.skill*1.25,110,"#ffb451");else spawnProjectile(o,"energy",9,c.skill,130,0);}
 function spawnProjectile(owner,type,speed,damage,range,lane){projectiles.push({id:Math.random(),owner,type,x:owner.x+owner.dir*34,z:owner.z,y:owner.y-48,vx:owner.dir*speed,vz:0,damage,rangeLeft:range,life:2,color:type==="fire"?"#ff7a4d":type==="ice"?"#b6f6ff":"#86eaff",ownerTeam:owner.team,r:10});}
-function spawnShockwave(owner,damage,radius,color){sparks.push({x:owner.x,z:owner.z,life:.22,max:.22,r:8,rMax:radius,color,shock:true,damage,team:owner.team,hit:new Set()});}
-function dealSkillHit(o,t,dmg,label){if(!isAlive(t)||t.invuln>0)return;dmg*=t.guard?.2:1;t.hp-=dmg;t.hitstun=.45;t.vx=o.dir*8;t.vy=-6;t.knockTimer=.55;t.hitFlash=.12;addShock(t.x,t.z,o.color);addParticles(t.x,t.z,t.y-35,o.accent,18,3.2);addText(t.x,t.z,-82,label,"#fff",13);addText(t.x,t.z,-62,`-${Math.round(dmg)}`,o.color,22);damageTotal+=dmg;score+=Math.round(dmg);o.damage=(o.damage||0)+dmg;shake=Math.max(shake,11);if(t.hp<=0)knockOut(t,o)}
-function updateGrab(o,dt){const t=o.grabTarget;if(!t||!isAlive(t)){o.grabTarget=null;o.state="idle";return}o.grabTime-=dt;t.x=o.x+o.dir*34;t.z=o.z;t.y=o.y;if(o.grabTime>0.28){if(Math.random()<dt*12){t.hp-=o.atk*.35;addText(t.x,t.z,-70,`-${Math.round(o.atk*.35)}`,"#fff",13);addParticles(t.x,t.z,t.y-35,"#fff",3,1.4)}}else{t.vx=o.dir*10;t.vy=-7;t.knockTimer=.65;t.hitstun=.4;o.grabTarget=null;o.state="attack";addText(t.x,t.z,-80,"THROW","#ffd36b",18);playSfx("heavy");shake=12}}
-
+function spawnShockwave(owner,damage,radius,color){sparks.push({x:owner.x,z:owner.z,life:.22,max:.22,r:8,rMax:radius,color,shock:true,damage,team:owner.team,owner,hit:new Set()});}
+function dealSkillHit(o,t,dmg,label){if(!isAlive(t)||t.invuln>0)return;dmg*=t.guard?.2:1;t.hp-=dmg;t.hitstun=.45;t.vx=o.dir*8;t.vy=-6;t.knockTimer=.55;t.hitFlash=.12;addShock(t.x,t.z,o.color);addParticles(t.x,t.z,t.y-35,o.accent,18,3.2);addText(t.x,t.z,-82,label,"#fff",13);addText(t.x,t.z,-62,`-${Math.round(dmg)}`,o.color,22);recordDamage(o,dmg);shake=Math.max(shake,11);if(t.hp<=0)knockOut(t,o)}
+function updateGrab(o,dt){const t=o.grabTarget;if(!isAlive(t)){if(t)t.grabbedBy=null;o.grabTarget=null;o.state='idle';return}o.grabTime-=dt;t.x=o.x+o.dir*34;t.z=o.z;t.y=o.y;o.grabHitTimer=(o.grabHitTimer||0)-dt;
+ if(o.grabTime>.28&&o.grabHitTimer<=0){o.grabHitTimer=.15;const damage=o.atk*.35;t.hp-=damage;recordDamage(o,damage);addText(t.x,t.z,-70,'-'+Math.round(damage),'#fff',13);if(t.hp<=0){knockOut(t,o);t.grabbedBy=null;o.grabTarget=null;o.state='idle'}}
+ else if(o.grabTime<=.28){t.grabbedBy=null;o.grabTarget=null;o.state='attack';dealSkillHit(o,t,o.atk*.6,'THROW');playSfx('heavy');shake=12}}
 function updateEnemies(dt){for(const e of enemies){if(!isAlive(e))continue;const locked=updateCommon(e,dt);if(locked)continue;e.aiThink-=dt;e.attackCooldown-=dt;e.guard=false;const target=nearestTarget(e,520);if(!target)continue;const dx=target.x-e.x,dz=target.z-e.z,ad=Math.abs(dx),zd=Math.abs(dz);if(e.boss){if(e.hp<e.maxHp*.65)e.bossPhase=2;if(e.hp<e.maxHp*.3)e.bossPhase=3}
     if(e.enemyType==="ARCHER"||e.enemyType==="MAGE"){if(ad<190)moveFighter(e,dt,dx>0?-1:1,dz>5?-1:dz<-5?1:0);else if(ad>260)moveFighter(e,dt,Math.sign(dx),Math.sign(dz));else moveFighter(e,dt,0,Math.sign(dz)*.3);if(e.attackCooldown<=0&&ad<600&&zd<55){spawnProjectile(e,e.enemyType==="MAGE"?"fire":"arrow",5.5,e.atk,200,0);e.attackCooldown=e.boss?1.3:2.2;e.state="skill"} }
     else {if(ad<68&&zd<42){if(e.attackCooldown<=0){performEnemyAttack(e,target);e.attackCooldown=e.boss?(.55-(e.bossPhase-1)*.08):.85+Math.random()*.35}}else{const side=dx>0?1:-1;const zdir=zd>18?(dz>0?1:-1):0;moveFighter(e,dt,Math.abs(dx)>54?side:0,zdir)}}
@@ -263,39 +270,48 @@ function updateEnemies(dt){for(const e of enemies){if(!isAlive(e))continue;const
 }
 function performEnemyAttack(e,t){e.attackFrame=.28;e.attackType=Math.random()<.2?"up":"mid";e.state="attack";dealMelee(e,t)}
 
-function updateRemotes(dt){for(const r of remotes){if(!isAlive(r))continue;const locked=updateCommon(r,dt);if(locked)continue;let ri=r.remoteInput||{};if(r.ai){const t=nearestTarget(r,700);ri={left:false,right:false,up:false,down:false,guard:false,attack:false,skill:false,dash:false,jump:false};if(t){const dx=t.x-r.x,dz=t.z-r.z,ad=Math.abs(dx),zd=Math.abs(dz);ri.left=dx<-55;ri.right=dx>55;ri.up=dz<-22;ri.down=dz>22;if(ad<74&&zd<40&&Math.random()<dt*6)ri.attack=true;else if(ad>170&&Math.random()<dt*1.3)ri.skill=true;else if(ad>260&&Math.random()<dt*.7)ri.dash=true;else if(ad<100&&Math.random()<dt*2)ri.guard=true}}r.guard=!!ri.guard;if(ri.jump&&r.y===0){r.vy=-CHARS[r.charId].jump;r.y=-.01;playSfx("jump")}if(ri.dash&&!r.dashTime)startDash(r);if(ri.attack)performAttackRemote(r);if(ri.skill)performSkillRemote(r);if(r.dashTime<=0)moveFighter(r,dt,(ri.right?1:0)-(ri.left?1:0),(ri.down?1:0)-(ri.up?1:0));r.remoteInput={};}}
+function updateRemotes(dt){for(const r of remotes){if(!isAlive(r))continue;let ri=Date.now()-(r.inputAt||0)>350?{}:r.remoteInput||{};
+ if(r.ai){r.aiAttackCooldown=Math.max(0,(r.aiAttackCooldown||0)-dt);const t=nearestTarget(r,900);ri={};if(t){const dx=t.x-r.x,dz=t.z-r.z;ri.left=dx<-60;ri.right=dx>60;ri.up=dz<-20;ri.down=dz>20;if(r.aiAttackCooldown<=0&&Math.abs(dx)<75&&Math.abs(dz)<40){ri.attack=true;r.aiAttackCooldown=.65+Math.random()*.4;}else if(r.aiAttackCooldown<=0&&Math.abs(dx)>150&&Math.abs(dx)<290){ri.skill=true;r.aiAttackCooldown=2;}}}
+ updatePlayer(dt,r,ri,ri);r.remoteInput={left:!!ri.left,right:!!ri.right,up:!!ri.up,down:!!ri.down,guard:!!ri.guard};}}
 function performAttackRemote(r){if(r.attackFrame>0)return;r.attackFrame=.28;r.attackType="mid";r.state="attack";const t=nearestTarget(r,78);if(t)dealMelee(r,t)}
 function performSkillRemote(r){const c=CHARS[r.charId]||CHARS.DAVIS;if(r.mp<c.cost)return;r.mp-=c.cost;r.state="skill";r.attackFrame=.5;spawnProjectile(r,"energy",9,c.skill,125,0)}
 
-function updateProjectiles(dt){for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.x+=p.vx*dt*8;p.z+=p.vz*dt*8;p.rangeLeft-=Math.abs(p.vx*dt*8);p.life-=dt;if(p.life<=0||p.rangeLeft<=0){projectiles.splice(i,1);continue}let hit=null;const targets=p.ownerTeam===1?[...enemies,...remotes.filter(r=>r.team!==1)]:[player,...remotes.filter(r=>r.team!==p.ownerTeam)];for(const t of targets){if(!isAlive(t))continue;if(Math.abs(t.x-p.x)<26&&Math.abs(t.z-p.z)<34){hit=t;break}}if(hit){dealSkillHit({dir:Math.sign(p.vx)||1,color:p.color,damage: p.damage},hit,p.damage,p.type.toUpperCase());projectiles.splice(i,1)}}}
-function updateSparks(dt){for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.life-=dt;if(s.shock){s.r=lerp(s.r,s.rMax,0.55);if(!s.hit){s.hit=new Set()}const targets=s.team===1?[...enemies]:[player,...remotes.filter(r=>r.team!==s.team)];for(const t of targets){if(s.hit.has(t.id)||!isAlive(t))continue;if(Math.abs(t.x-s.x)<s.r&&Math.abs(t.z-s.z)<s.r*.55){s.hit.add(t.id);dealSkillHit({dir:Math.sign(t.x-s.x)||1,color:s.color},t,s.damage,"AOE")}}}if(s.life<=0)sparks.splice(i,1)}}
+function updateProjectiles(dt){for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.x+=p.vx*dt*8;p.z+=p.vz*dt*8;p.rangeLeft-=Math.abs(p.vx*dt*8);p.life-=dt;if(p.life<=0||p.rangeLeft<=0){projectiles.splice(i,1);continue}let hit=null;const targets=opponents(p.owner);for(const t of targets){if(!isAlive(t))continue;if(Math.abs(t.x-p.x)<26&&Math.abs(t.z-p.z)<34){hit=t;break}}if(hit){dealSkillHit(p.owner,hit,p.damage,p.type.toUpperCase());projectiles.splice(i,1)}}}
+function updateSparks(dt){for(let i=sparks.length-1;i>=0;i--){const s=sparks[i];s.life-=dt;if(s.shock){s.r=lerp(s.r,s.rMax,0.55);if(!s.hit){s.hit=new Set()}const targets=opponents(s.owner);for(const t of targets){if(s.hit.has(t.id)||!isAlive(t))continue;if(Math.abs(t.x-s.x)<s.r&&Math.abs(t.z-s.z)<s.r*.55){s.hit.add(t.id);dealSkillHit(s.owner,t,s.damage,"AOE")}}}if(s.life<=0)sparks.splice(i,1)}}
 function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;p.x+=p.vx*dt*30;p.z+=p.vz*dt*30;p.y+=p.vy*dt*30;p.vy+=.25;if(p.life<=0)particles.splice(i,1)}for(let i= texts.length-1;i>=0;i--){const t=texts[i];t.life+=dt;t.y-=20*dt;if(t.life>=t.max)texts.splice(i,1)}}
 function updatePickups(dt){for(const p of pickups){p.t=(p.t||0)+dt;if(p.life)p.life-=dt}for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];if(p.life!==undefined&&p.life<=0){pickups.splice(i,1);continue}const targets=[player,...remotes].filter(isAlive);for(const f of targets){if(Math.abs(f.x-p.x)<28&&Math.abs(f.z-p.z)<24){pickupUse(f,p);pickups.splice(i,1);break}}}}
-function pickupUse(f,p){playSfx("pickup");addParticles(p.x,p.z,-20,"#fff",10,2.4);if(p.type==="hp")f.hp=Math.min(f.maxHp,f.hp+Math.max(25,f.maxHp*.22));else if(p.type==="mp")f.mp=Math.min(f.maxMp,f.mp+Math.max(25,f.maxMp*.3));else if(p.type==="weapon")f.weapon={name:p.name,damageMul:p.damageMul,durability:p.durability};else if(p.type==="bomb"){const targets=f.team===1?enemies:[player,...remotes.filter(r=>r.team!==f.team)];for(const t of targets)if(isAlive(t)&&Math.abs(t.x-f.x)<120&&Math.abs(t.z-f.z)<65)dealSkillHit(f,t,65,"BOMB");addShock(f.x,f.z,"#ffd36b");shake=14}}
+function pickupUse(f,p){playSfx("pickup");addParticles(p.x,p.z,-20,"#fff",10,2.4);if(p.type==="hp")f.hp=Math.min(f.maxHp,f.hp+Math.max(25,f.maxHp*.22));else if(p.type==="mp")f.mp=Math.min(f.maxMp,f.mp+Math.max(25,f.maxMp*.3));else if(p.type==="weapon")f.weapon={name:p.name,damageMul:p.damageMul,durability:p.durability};else if(p.type==="bomb"){const targets=opponents(f);for(const t of targets)if(isAlive(t)&&Math.abs(t.x-f.x)<120&&Math.abs(t.z-f.z)<65)dealSkillHit(f,t,65,"BOMB");addShock(f.x,f.z,"#ffd36b");shake=14}}
 function tryPickup(){if(!player)return;for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];if(Math.abs(player.x-p.x)<32&&Math.abs(player.z-p.z)<24&&p.type==="weapon"){pickupUse(player,p);pickups.splice(i,1);return}}}
 function maybeDrop(x,z){if(Math.random()<.25)pickups.push({type:Math.random()<.5?"hp":"mp",x,z,t:0,life:15});else if(Math.random()<.15)pickups.push({type:"weapon",name:"鐵棍",damageMul:1.45,durability:10,x,z,t:0,life:18});else if(Math.random()<.08)pickups.push({type:"bomb",x,z,t:0,life:18})}
-function knockOut(t,source){if(t.dead)return;t.hp=0;t.dead=true;t.state="dead";t.knockTimer=.9;t.vx=source&&source.dir?source.dir*7:0;t.vy=-7;t.invuln=.2;addParticles(t.x,t.z,t.y-30,t.color||"#fff",24,4);addText(t.x,t.z,-90,"KO","#ffd36b",28);playSfx("ko");score+=150;if(source&&source.team===1){kills++;source.kills=(source.kills||0)+1;}maybeDrop(t.x,t.z);if(t.boss)pushFeed(`🏆 Boss ${t.username} 被擊敗！`)}
+function knockOut(t,source){if(t.dead)return;t.hp=0;t.dead=true;t.state="dead";t.knockTimer=.9;t.vx=source&&source.dir?source.dir*7:0;t.vy=-7;t.invuln=.2;addParticles(t.x,t.z,t.y-30,t.color||"#fff",24,4);addText(t.x,t.z,-90,"KO","#ffd36b",28);playSfx("ko");if(source){source.score=(source.score||0)+150;source.kills=(source.kills||0)+1;if(source.id===player?.id){score=source.score;kills=source.kills;}}maybeDrop(t.x,t.z);if(t.boss)pushFeed(`🏆 Boss ${t.username} 被擊敗！`)}
 
-function endGame(win,msg){if(gameEnded)return;gameEnded=true;state="RESULT";stopLoop();pushFeed(`${win?"🏆":"💀"} ${msg}`);try{if(window.BoomRoomSDK&&typeof window.BoomRoomSDK.gameOver==="function")window.BoomRoomSDK.gameOver(win?200:50)}catch(_){}sendEvent("LF2_END",{win,msg,stage:stageLevel,score,kills,damage:Math.round(damageTotal)});render();setTimeout(()=>{if(window.parent&&window.parent!==window)window.parent.postMessage({action:"leaveGame"},"*");else try{window.close()}catch(_){}},3000)}
-function updateStage(dt){if(gameMode==="PVP"||stageState!=="FIGHT")return;roundClock-=dt;if(roundClock<=0){stageState="FAIL";endGame(false,"時間到，挑戰失敗");return}if(enemies.filter(isAlive).length===0){if(wave<3){wave++;stageTransition=.9;stageState="TRANSITION";showMessage("WAVE CLEAR");setTimeout(()=>{if(state==="PLAYING"){spawnWave()}},850)}else{stageTransition=1.1;stageState="CLEAR";showMessage(`STAGE ${stageLevel} CLEAR`);setTimeout(()=>{if(state!=="PLAYING")return;if(stageLevel>=CONFIG.STAGE_MAX){endGame(true,"完成所有關卡！");}else{stageLevel++;wave=0;stageState="TRANSITION";spawnWave()}},1200)}}}
-function updatePVP(dt){if(gameMode!=="PVP")return;const aliveOpp=remotes.filter(isAlive);if(aliveOpp.length===0&&remotes.length){endGame(true,"擊敗所有對手！");}if(player&&player.hp<=0)endGame(false,"你被擊倒了");}
+function endGame(win,msg,announce=true){if(gameEnded)return;gameEnded=true;resultWin=win===true;state="RESULT";stopLoop();pushFeed(`${win?"🏆":"💀"} ${msg}`);try{window.BoomRoomSDK?.completeRound?.(score)}catch(_){}if(announce&&isHost())sendEvent('LF2_END',{win,msg,stage:stageLevel,winnerIds:winnerIds(win),snapshot:battleSnapshot()});render()}
+function updateStage(dt){if(gameMode==="PVP"||stageState!=="FIGHT")return;roundClock=window.BoomRoomSDK?Math.max(0,(roundEndsAt-Date.now())/1000):roundClock-dt;if(roundClock<=0){stageState="FAIL";endGame(false,"時間到，挑戰失敗");return}if(enemies.filter(isAlive).length===0){if(wave<3){wave++;stageTransition=.9;stageState="TRANSITION";showMessage("WAVE CLEAR");setTimeout(()=>{if(state==="PLAYING"){spawnWave()}},850)}else{stageTransition=1.1;stageState="CLEAR";showMessage(`STAGE ${stageLevel} CLEAR`);setTimeout(()=>{if(state!=="PLAYING")return;if(stageLevel>=CONFIG.STAGE_MAX){endGame(true,"完成所有關卡！");}else{stageLevel++;wave=0;stageState="TRANSITION";spawnWave()}},1200)}}}
+function updatePVP(dt){if(gameMode!=='PVP')return;roundClock=window.BoomRoomSDK?Math.max(0,(roundEndsAt-Date.now())/1000):Math.max(0,roundClock-dt);const alive=fighters().filter(isAlive);
+ if(alive.length<=1){const winner=alive[0];const ids=winner?[winner.id]:[];finishBattle(ids,winner?winner.username+' 贏得對決':'平手，所有戰士倒下');}
+ else if(roundClock<=0){const sorted=alive.slice().sort((a,b)=>b.hp/b.maxHp-a.hp/a.maxHp||b.score-a.score);const top=sorted[0];const ids=sorted.filter(f=>Math.abs(f.hp/f.maxHp-top.hp/top.maxHp)<.0001&&f.score===top.score).map(f=>f.id);finishBattle(ids,'時間到，依剩餘生命比例與分數決定勝負');}}
+function finishBattle(ids,msg){if(gameEnded)return;syncOwnStats();sendBattleState(true);endGame(ids.includes(ME.id),msg,false);if(window.BoomRoomSDK&&isHost())sendEvent('LF2_END',{winnerIds:ids,msg,snapshot:battleSnapshot()});}
 function update(dt){
-  if(!world||!player)return;if(player.dead){endGame(false,"你已被擊倒");return}updatePlayer(dt);updateRemotes(dt);updateEnemies(dt);updateProjectiles(dt);updateSparks(dt);updateParticles(dt);updatePickups(dt);recoverStates(dt);updateStage(dt);updatePVP(dt);updateCamera(dt);renderLiveHud();resetInputFlags();if(shake>0)shake=Math.max(0,shake-dt*22);
+ if(!world||!player)return;
+ if(!authoritative()){broadcastInput();updateCamera(dt);renderLiveHud();resetInputFlags();return;}
+ if(gameMode!=='PVP'&&!fighters().some(isAlive)){finishBattle([],'隊伍全員被擊倒');return;}
+ updatePlayer(dt);updateRemotes(dt);updateEnemies(dt);updateProjectiles(dt);updateSparks(dt);updateParticles(dt);updatePickups(dt);resolveFighterSpacing();recoverStates(dt);syncOwnStats();updateStage(dt);updatePVP(dt);updateCamera(dt);renderLiveHud();sendBattleState();resetInputFlags();if(shake>0)shake=Math.max(0,shake-dt*22);
 }
+function resolveFighterSpacing(){const all=[...fighters(),...enemies].filter(isAlive);for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){const a=all[i],b=all[j];if(a.grabTarget===b||b.grabTarget===a||Math.abs(a.z-b.z)>24||a.y<-25||b.y<-25)continue;const distance=b.x-a.x;if(Math.abs(distance)>=38)continue;const sign=distance===0?(String(a.id)<String(b.id)?1:-1):Math.sign(distance),push=(38-Math.abs(distance))/2;a.x=clamp(a.x-sign*push,40,world.width-40);b.x=clamp(b.x+sign*push,40,world.width-40);}}
 function recoverStates(dt){for(const f of [player,...enemies,...remotes]){if(!f)continue;if(f.attackFrame>0){f.attackFrame-=dt;if(f.attackFrame<=0&&f.state==="attack"){f.state="idle"}}if(f.state==="skill"&&f.stateTime>.52){f.state="idle"}if(f.weapon&&f.weapon.durability<=0)f.weapon=null;if(f.hitFlash>0)f.hitFlash-=dt;if(f.stamina<100)f.stamina=Math.min(100,f.stamina+dt*10);if(f.state==="dead"&&f.y===0)f.vx*=.9}}
-function updateCamera(dt){const s=viewScale();const viewWorld=Math.max(520,960/s);const targetX=player.x-viewWorld*.44;camera.x=lerp(camera.x,clamp(targetX,0,world.width-viewWorld),.11);camera.z=lerp(camera.z,player.z-375,.10)}
+function updateCamera(dt){const s=viewScale();const canvas=document.getElementById("gameCanvas");const viewWorld=Math.max(280,(canvas?.clientWidth||960)/s);const focus=isAlive(player)?player:fighters().find(isAlive)||player;const targetX=focus.x-viewWorld*.44;camera.x=lerp(camera.x,clamp(targetX,0,world.width-viewWorld),.11);camera.z=lerp(camera.z,focus.z-375,.10)}
 function screenFlash(kind="hit"){const fx=document.getElementById("screenFx");if(!fx)return;fx.classList.remove("flash");void fx.offsetWidth;fx.style.background=kind==="strong"?"rgba(255,190,80,.9)":"rgba(255,255,255,.9)";fx.classList.add("flash")}
-function togglePause(){if(state!=="PLAYING")return;const p=document.getElementById("pauseOverlay");if(p){p.remove();lastTime=performance.now();startLoop();startMusic();return}stopLoop();stopMusic();const wrap=document.getElementById("canvasWrap");if(!wrap)return;const d=document.createElement("div");d.id="pauseOverlay";d.className="pauseOverlay";d.innerHTML='<div class="pauseCard"><h3>⏸ 暫停</h3><p>遊戲已暫停，音效與震動暫停。</p><button class="cta" id="resumeBtn">繼續戰鬥</button><button class="cta secondary" id="quitBtn" style="margin-top:7px">退出本局</button></div>';wrap.appendChild(d);document.getElementById("resumeBtn").onclick=togglePause;document.getElementById("quitBtn").onclick=()=>{state="LOBBY";render()}}
-function broadcastInput(){if(state!=="PLAYING"||!gameRoomId&&players.size<=1)return;if(!window.BoomRoomSDK&&window.parent===window)return;sendEvent("LF2_INPUT",{left:input.left,right:input.right,up:input.up,down:input.down,attack:just.attack,guard:input.guard,skill:just.skill,dash:just.dash,jump:just.jump})}
-
-function resizeCanvas(){const c=document.getElementById("gameCanvas");if(!c)return;const r=c.getBoundingClientRect();const dpr=Math.min(window.devicePixelRatio||1,2);c.width=Math.max(1,Math.floor(r.width*dpr));c.height=Math.max(1,Math.floor(r.height*dpr));ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true}
+function togglePause(){if(state!=="PLAYING")return;if(window.BoomRoomSDK){showMessage("線上對局持續進行");return;}const p=document.getElementById("pauseOverlay");if(p){p.remove();lastTime=performance.now();startLoop();startMusic();return}stopLoop();stopMusic();const wrap=document.getElementById("canvasWrap");if(!wrap)return;const d=document.createElement("div");d.id="pauseOverlay";d.className="pauseOverlay";d.innerHTML='<div class="pauseCard"><h3>⏸ 暫停</h3><p>遊戲已暫停，音效與震動暫停。</p><button class="cta" id="resumeBtn">繼續戰鬥</button><button class="cta secondary" id="quitBtn" style="margin-top:7px">退出本局</button></div>';wrap.appendChild(d);document.getElementById("resumeBtn").onclick=togglePause;document.getElementById("quitBtn").onclick=()=>{state="LOBBY";render()}}
+function broadcastInput(){if(state!=='PLAYING'||authoritative())return;const now=Date.now();const pressed=Object.values(just).some(Boolean);if(!pressed&&now-lastInputSent<100)return;lastInputSent=now;sendEvent('LF2_INPUT',{sequence:++inputSequence,left:input.left,right:input.right,up:input.up,down:input.down,attack:just.attack,guard:input.guard,skill:just.skill,dash:just.dash,jump:just.jump,grab:just.grab})}
+function resizeCanvas(){const c=document.getElementById("gameCanvas");if(!c)return;const r=c.getBoundingClientRect();stageGround=CONFIG.GROUND-(r.height>r.width?Math.min(145,r.height*.25)/viewScale():0);const dpr=Math.min(window.devicePixelRatio||1,2);c.width=Math.max(1,Math.floor(r.width*dpr));c.height=Math.max(1,Math.floor(r.height*dpr));ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true}
 window.addEventListener("resize",()=>{if(state==="PLAYING"){resizeCanvas();draw()}});
 
 
 function viewScale(){
   const c=document.getElementById("gameCanvas");
   const w=Math.max(1,c?.clientWidth||960),h=Math.max(1,c?.clientHeight||540);
-  return clamp(Math.min(w/CONFIG.LOGICAL_W,h/CONFIG.LOGICAL_H),.38,1.35);
+  // Fit the stage height; narrow screens show a moving slice of the arena.
+  return clamp(h/CONFIG.LOGICAL_H,.38,1.35);
 }
 function stagePalette(){
   const palettes=[
@@ -345,11 +361,12 @@ function drawBackground(c,vw,vh,pal){
   }
   c.restore();
   // distant lights
-  c.globalAlpha=.22;c.fillStyle=pal.accent;
+  c.save();c.globalAlpha=.22;c.fillStyle=pal.accent;
   for(let x=18;x<vw;x+=48){c.fillRect(x,horizon+4+((x*7)%28),3,3)}
+  c.restore();
 }
 function drawGround(c,vw,vh,camX,pal){
-  const ground=CONFIG.GROUND;
+  const ground=stageGround;
   const floor=c.createLinearGradient(0,ground-30,0,vh);floor.addColorStop(0,pal.ground1);floor.addColorStop(1,pal.ground2);c.fillStyle=floor;c.fillRect(0,ground-15,vw,vh-ground+15);
   // back rail / stage depth
   c.strokeStyle="rgba(255,255,255,.08)";c.lineWidth=2;c.beginPath();c.moveTo(0,ground-26);c.lineTo(vw,ground-26);c.stroke();
@@ -364,7 +381,7 @@ function drawGround(c,vw,vh,camX,pal){
   }
 }
 function projectObject(o,s,ox,oy){
-  return {x:(o.x-camera.x),y:CONFIG.GROUND-(o.z-CONFIG.DEPTH_MIN)*.48+o.y};
+  return {x:(o.x-camera.x),y:stageGround-(o.z-CONFIG.DEPTH_MIN)*.48+o.y};
 }
 function fighterColors(f){
   if(f.enemyType){return {color:f.color||ENEMY_TYPES[f.enemyType]?.color||"#d07cff",accent:f.accent||"#fff",hair:"#22182f"}}
@@ -417,12 +434,13 @@ function drawFighter(c,f,s,ox,oy,isPlayer=false){
   if(f.guard){c.strokeStyle="rgba(150,210,255,.9)";c.lineWidth=3;c.beginPath();c.arc(17,-28,24,-1.25,1.25);c.stroke()}
   if(f.state==="skill"){c.globalAlpha=.3;c.fillStyle=cs.color;c.beginPath();c.arc(f.dir*31,-35,20+Math.sin(f.stateTime*18)*3,0,Math.PI*2);c.fill();c.globalAlpha=1}
   if(f.weapon){drawWeapon(c,f,cs.scale||1)}
-  c.restore();
-  if(f.hp<f.maxHp||f.boss||isPlayer){
+  c.restore(); // facing transform
+  c.restore(); // fighter translation
+  if(f.hp<f.maxHp||f.boss||f.playerId||isPlayer){
     const bw=(f.boss?110:70)*1, bx=p.x-bw/2, by=baseY-(f.boss?126:94);
     c.fillStyle="rgba(0,0,0,.62)";rr(c,bx,by,bw,7,4);c.fill();
-    c.fillStyle=f.team===1?"#4de08a":"#ff5e77";rr(c,bx+1,by+1,(bw-2)*clamp(f.hp/f.maxHp,0,1),5,3);c.fill();
-    c.fillStyle="rgba(255,255,255,.9)";c.font=`10px system-ui`;c.textAlign="center";c.fillText(f.username||"",p.x,by-3);
+    c.fillStyle=isPlayer||f.team===player?.team?"#4de08a":"#ff5e77";rr(c,bx+1,by+1,(bw-2)*clamp(f.hp/f.maxHp,0,1),5,3);c.fill();
+    c.fillStyle="rgba(255,255,255,.9)";c.font=`10px system-ui`;c.textAlign="center";c.fillText(isPlayer?`你 · ${CHARS[f.charId]?.name||"玩家"}`:f.username||"",p.x,by-3);
   }
 }
 function palColor(hex,a){return hex}
@@ -436,11 +454,11 @@ function drawWeapon(c,f,scale){
 }
 function drawProjectile(c,p,s,ox,oy){const q=projectObject(p,s,ox,oy);c.save();c.translate(q.x,q.y);const col=p.color||"#7cf";c.globalCompositeOperation="lighter";const g=c.createRadialGradient(0,0,2,0,0,22);g.addColorStop(0,"#fff");g.addColorStop(.2,col);g.addColorStop(1,"rgba(0,0,0,0)");c.fillStyle=g;c.beginPath();c.arc(0,0,22,0,Math.PI*2);c.fill();c.fillStyle=col; c.beginPath();c.arc(0,0,8,0,Math.PI*2);c.fill();c.restore()}
 function drawPickup(c,p,s,ox,oy){const q=projectObject(p,s,ox,oy),b=8+Math.sin((p.t||0)*6)*2;c.save();c.translate(q.x,q.y-b);let col=p.type==="hp"?"#ff5e77":p.type==="mp"?"#55d9ff":p.type==="bomb"?"#ffd36b":"#c8a15e";c.globalAlpha=.25;c.fillStyle=col;c.beginPath();c.arc(0,0,18,0,Math.PI*2);c.fill();c.globalAlpha=1; if(p.type==="weapon"){c.strokeStyle="#d0a25b";c.lineWidth=5;c.beginPath();c.moveTo(-14,-8);c.lineTo(14,8);c.stroke()} else {c.fillStyle=col;rr(c,-12,-12,24,24,7);c.fill();c.fillStyle="#fff";c.font=`bold ${15}px system-ui`;c.textAlign="center";c.textBaseline="middle";c.fillText(p.type==="hp"?"+":p.type==="mp"?"M":p.type==="bomb"?"B":"W",0,0)} c.restore()}
-function drawSpark(c,sp,s,ox,oy){if(sp.shock){const x=(sp.x-camera.x),y=CONFIG.GROUND-(sp.z-CONFIG.DEPTH_MIN)*.48;c.save();c.globalAlpha=clamp(sp.life/sp.max,0,1);c.strokeStyle=sp.color;c.lineWidth=Math.max(2,5);c.beginPath();c.arc(x,y,sp.r*(1-(sp.life/sp.max)*.25),0,Math.PI*2);c.stroke();c.restore();return}const q=projectObject(sp,s,ox,oy);}
+function drawSpark(c,sp,s,ox,oy){if(sp.shock){const x=(sp.x-camera.x),y=stageGround-(sp.z-CONFIG.DEPTH_MIN)*.48;c.save();c.globalAlpha=clamp(sp.life/sp.max,0,1);c.strokeStyle=sp.color;c.lineWidth=Math.max(2,5);c.beginPath();c.arc(x,y,sp.r*(1-(sp.life/sp.max)*.25),0,Math.PI*2);c.stroke();c.restore();return}const q=projectObject(sp,s,ox,oy);}
 function draw(){
   const canvas=document.getElementById("gameCanvas");if(!canvas||!ctx)return;
-  const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),s=viewScale(),vw=CONFIG.LOGICAL_W,vh=CONFIG.LOGICAL_H;
-  const ox=(w-vw*s)/2,oy=(h-vh*s)/2,pal=stagePalette();
+  const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),s=viewScale(),vw=w/s,vh=h/s;
+  const ox=0,oy=0,pal=stagePalette();
   ctx.clearRect(0,0,w,h);ctx.save();
   ctx.fillStyle="#05080d";ctx.fillRect(0,0,w,h);ctx.translate(ox,oy);ctx.scale(s,s);
   drawBackground(ctx,vw,vh,pal);
@@ -450,7 +468,7 @@ function draw(){
   // stage signage
   ctx.save();ctx.globalAlpha=.65;ctx.fillStyle=pal.accent;ctx.font="900 14px system-ui";ctx.fillText(`STAGE ${stageLevel}  ·  WAVE ${wave}`,18,28);ctx.restore();
   // objects sorted by depth so nearer fighters render later
-  const actors=[player,...remotes,...enemies].filter(Boolean).sort((a,b)=>a.z-b.z);
+  const actors=[player,...remotes,...enemies].filter(Boolean).sort((a,b)=>a.z-b.z||String(a.id).localeCompare(String(b.id)));
   for(const p of pickups)drawPickup(ctx,p,s,ox,oy);
   for(const pr of projectiles)drawProjectile(ctx,pr,s,ox,oy);
   for(const a of actors)drawFighter(ctx,a,s,ox,oy,a===player);
@@ -463,22 +481,23 @@ function draw(){
   ctx.restore();
 }
 
-function renderLiveHud(){if(performance.now()-lastHudPaint<60)return;lastHudPaint=performance.now();const h=document.getElementById("hpBar"),m=document.getElementById("mpBar"),t=document.getElementById("timer");if(player){if(h)h.style.width=`${clamp(player.hp/player.maxHp,0,1)*100}%`;if(m)m.style.width=`${clamp(player.mp/player.maxMp,0,1)*100}%`;const hp=document.getElementById("hpLabel"),mp=document.getElementById("mpLabel");if(hp)hp.textContent=`HP ${Math.ceil(player.hp)} / ${player.maxHp}`;if(mp)mp.textContent=`MP ${Math.floor(player.mp)} / ${player.maxMp}`}if(t)t.textContent=Math.max(0,Math.ceil(roundClock));const c=document.getElementById("comboHud");if(c){if(combo.count>1){c.classList.add("show");const n=document.getElementById("comboNum");if(n)n.textContent=combo.count}else c.classList.remove("show")}}
+function renderLiveHud(){if(performance.now()-lastHudPaint<60)return;lastHudPaint=performance.now();const h=document.getElementById("hpBar"),m=document.getElementById("mpBar"),t=document.getElementById("timer");syncOwnStats();if(player){if(h)h.style.width=`${clamp(player.hp/player.maxHp,0,1)*100}%`;if(m)m.style.width=`${clamp(player.mp/player.maxMp,0,1)*100}%`;const hp=document.getElementById("hpLabel"),mp=document.getElementById("mpLabel");if(hp)hp.textContent=`HP ${Math.ceil(player.hp)} / ${player.maxHp}`;if(mp)mp.textContent=`MP ${Math.floor(player.mp)} / ${player.maxMp}`}if(t)t.textContent=Math.max(0,Math.ceil(roundClock));for(const [id,text] of [["scoreLabel",`SCORE ${score}`],["killsLabel",`K.O. ${kills} · ${difficulty}`],["stageLabel",`STAGE ${stageLevel} · WAVE ${wave}`]]){const label=document.getElementById(id);if(label)label.textContent=text;}const c=document.getElementById("comboHud");if(c){if(combo.count>1){c.classList.add("show");const n=document.getElementById("comboNum");if(n)n.textContent=combo.count}else c.classList.remove("show")}}
 
 function drawPreview(canvas,id){const c=CHARS[id],x=canvas.getContext("2d");x.clearRect(0,0,canvas.width,canvas.height);x.save();x.translate(42,88);x.scale(.72,.72);x.fillStyle="rgba(0,0,0,.28)";x.beginPath();x.ellipse(0,0,24,7,0,0,Math.PI*2);x.fill();x.strokeStyle="#111722";x.lineWidth=7;x.beginPath();x.moveTo(-7,-4);x.lineTo(-12,-34);x.moveTo(7,-4);x.lineTo(12,-34);x.stroke();x.strokeStyle=c.color;x.lineWidth=10;x.beginPath();x.moveTo(-12,-35);x.lineTo(-15,-55);x.moveTo(12,-35);x.lineTo(15,-55);x.stroke();x.fillStyle=c.color;x.beginPath();x.roundRect(-17,-88,34,42,9);x.fill();x.fillStyle="#f0c8a6";x.beginPath();x.arc(0,-104,15,0,Math.PI*2);x.fill();x.fillStyle=c.hair;x.beginPath();x.arc(0,-109,16,Math.PI,Math.PI*2);x.fill();x.restore()}
 function render(){const main=document.getElementById("main");if(!main)return;
  if(state==="LOBBY")renderLobby(main);else if(state==="PLAYING")renderGame(main);else renderResult(main);}
-function renderLobby(main){main.innerHTML=`<section class="panel"><div class="sectionTitle">🥋 BoomRoom Classic Fighter V3</div><div class="sub">原創 2D 橫向快打：連段、抓取、投擲、防禦、武器、敵人 AI、Boss 與手機操作。</div></section><section class="panel"><div class="sectionTitle">選擇戰士</div><div class="charGrid">${Object.keys(CHARS).map(id=>`<div class="charCard ${selectedChar===id?"selected":""}" data-char="${id}"><div class="charAvatar"><canvas width="84" height="96" data-preview="${id}"></canvas></div><b>${CHARS[id].name}</b><span>${CHARS[id].role}</span><span>${CHARS[id].desc}</span></div>`).join("")}</div></section><section class="panel"><div class="sectionTitle">遊戲模式</div><div class="modeGrid"><button class="modeBtn ${gameMode==="STAGE"?"active":""}" data-mode="STAGE"><b>🏯 經典闖關</b><span>8 關、Wave、精英與 Boss。</span></button><button class="modeBtn ${gameMode==="PVP"?"active":""}" data-mode="PVP"><b>⚔️ 玩家對決</b><span>本地 AI 對手＋BoomRoom 房間同步接口。</span></button><button class="modeBtn ${gameMode==="TEAM"?"active":""}" data-mode="TEAM"><b>🤝 團隊亂鬥</b><span>隊友與敵人混戰，支援最多 8 人房間。</span></button></div></section><section class="panel"><div class="sectionTitle">難度</div><div style="display:flex;gap:7px"><button class="modeBtn ${difficulty==="NORMAL"?"active":""}" data-diff="NORMAL"><b>普通</b><span>標準敵人 AI</span></button><button class="modeBtn ${difficulty==="HARD"?"active":""}" data-diff="HARD"><b>困難</b><span>更快、更 aggressive</span></button><button class="modeBtn ${difficulty==="NIGHTMARE"?"active":""}" data-diff="NIGHTMARE"><b>地獄</b><span>高速圍攻與高傷害</span></button></div></section><section class="panel"><div class="infoGrid"><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>8</b><span>Stage</span></div><div class="stat"><b>60 FPS</b><span>目標</span></div><div class="stat"><b>${gameRoomId?"ONLINE":"LOCAL"}</b><span>連線</span></div></div></section><section class="panel"><div class="sectionTitle">房內玩家</div><div class="playerList">${[...players.values()].map(p=>`<div class="playerChip"><b>👤 ${esc(p.username)}</b><span class="muted">${String(p.id)===String(ME.id)?"你":"玩家"}</span><span class="tag">${CHARS[p.char||"DAVIS"]?.name||"Davis"}</span></div>`).join("")}</div></section>${isHost()?`<button id="startBtn" class="cta">👑 開始 ${gameMode==="STAGE"?"經典闖關":"戰鬥"}</button>`:`<div class="panel center sub">等待室長開始遊戲……</div>`}<button id="localBtn" class="cta secondary">🧪 本地直接測試</button>`;
- document.querySelectorAll("[data-char]").forEach(el=>el.addEventListener("click",()=>{selectedChar=el.dataset.char;const me=addPlayer(ME.id,ME.username,ME.avatar);me.char=selectedChar;sendEvent("LF2_SELECT",{char:selectedChar,username:ME.username,avatar:ME.avatar});render()}));
- document.querySelectorAll("[data-mode]").forEach(el=>el.addEventListener("click",()=>{gameMode=el.dataset.mode;render()}));document.querySelectorAll("[data-diff]").forEach(el=>el.addEventListener("click",()=>{difficulty=el.dataset.diff;render()}));
+function renderLobby(main){main.innerHTML=`<section class="panel"><div class="sectionTitle">🥋 BoomRoom Classic Fighter V3</div><div class="sub">連段、抓取、投擲與必殺技。單人闖關或與朋友合作、對決；手機搖桿與按鍵操作。</div></section><section class="panel"><div class="sectionTitle">選擇戰士</div><div class="charGrid">${Object.keys(CHARS).map(id=>`<div class="charCard ${selectedChar===id?"selected":""}" data-char="${id}" role="button" tabindex="0" aria-label="選擇戰士 ${CHARS[id].name}" aria-pressed="${selectedChar===id}"><div class="charAvatar"><canvas width="84" height="96" data-preview="${id}"></canvas></div><b>${CHARS[id].name}</b><span>${CHARS[id].role}</span><span>${CHARS[id].desc}</span></div>`).join("")}</div></section><section class="panel"><div class="sectionTitle">遊戲模式</div><div class="modeGrid"><button class="modeBtn ${gameMode==="STAGE"?"active":""}" data-mode="STAGE"><b>🏯 經典闖關</b><span>8 關、Wave、精英與 Boss。</span></button><button class="modeBtn ${gameMode==="PVP"?"active":""}" data-mode="PVP"><b>⚔️ 玩家對決</b><span>單人挑戰 AI；房內玩家同場自由對決。</span></button><button class="modeBtn ${gameMode==="TEAM"?"active":""}" data-mode="TEAM"><b>🤝 團隊亂鬥</b><span>隊友與敵人混戰，支援最多 8 人房間。</span></button></div></section><section class="panel"><div class="sectionTitle">難度</div><div style="display:flex;gap:7px"><button class="modeBtn ${difficulty==="NORMAL"?"active":""}" data-diff="NORMAL"><b>普通</b><span>標準敵人 AI</span></button><button class="modeBtn ${difficulty==="HARD"?"active":""}" data-diff="HARD"><b>困難</b><span>更快、更強的敵人</span></button><button class="modeBtn ${difficulty==="NIGHTMARE"?"active":""}" data-diff="NIGHTMARE"><b>地獄</b><span>高速圍攻與高傷害</span></button></div></section><section class="panel"><div class="infoGrid"><div class="stat"><b>${players.size}</b><span>房內玩家</span></div><div class="stat"><b>8</b><span>Stage</span></div><div class="stat"><b>60 FPS</b><span>目標</span></div><div class="stat"><b>${gameRoomId?"ONLINE":"LOCAL"}</b><span>連線</span></div></div></section><section class="panel"><div class="sectionTitle">房內玩家</div><div class="playerList">${[...players.values()].map(p=>`<div class="playerChip"><b>👤 ${esc(p.username)}</b><span class="muted">${String(p.id)===String(ME.id)?"你":"玩家"}</span><span class="tag">${CHARS[p.char||"DAVIS"]?.name||"Davis"}</span></div>`).join("")}</div></section>${isHost()?`<button id="startBtn" class="cta">👑 開始 ${gameMode==="STAGE"?"經典闖關":"戰鬥"}</button>`:`<div class="panel center sub">等待室長開始遊戲……</div>`}<button id="localBtn" class="cta secondary">🧪 本地直接測試</button>`;
+ document.querySelectorAll("[data-char]").forEach(el=>{el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click()}});el.addEventListener("click",()=>{selectedChar=el.dataset.char;const me=addPlayer(ME.id,ME.username,ME.avatar);me.char=selectedChar;sendEvent("LF2_SELECT",{char:selectedChar,username:ME.username,avatar:ME.avatar});render()})});
+ document.querySelectorAll("[data-mode],[data-diff]").forEach(el=>{el.disabled=!isHost();el.addEventListener("click",()=>{if(!isHost())return;if(el.dataset.mode)gameMode=el.dataset.mode;if(el.dataset.diff)difficulty=el.dataset.diff;render()})});
  document.querySelectorAll("canvas[data-preview]").forEach(c=>drawPreview(c,c.dataset.preview));
- document.getElementById("startBtn")?.addEventListener("click",()=>{stageLevel=1;sendEvent("LF2_START",{mode:gameMode,char:selectedChar,difficulty,stage:1});startGame()});
+ document.getElementById("startBtn")?.addEventListener("click",startHostRound);
+ if(window.BoomRoomSDK) document.getElementById("localBtn")?.remove();
  document.getElementById("localBtn")?.addEventListener("click",()=>{stageLevel=1;startGame()});
 }
-function renderGame(main){main.innerHTML=`<div id="gameRoot"><div class="topHud"><div class="hudPlayer"><div class="hudName">${esc(ME.username)} · ${CHARS[selectedChar].name}</div><div id="hpLabel" class="sub">HP</div><div class="bar"><i id="hpBar"></i></div><div id="mpLabel" class="sub" style="margin-top:2px">MP</div><div class="bar mp"><i id="mpBar"></i></div></div><div class="hudCenter"><b id="timer">${Math.ceil(roundClock)}</b><span>STAGE ${stageLevel} · WAVE ${wave}</span><div class="hudMeta"><span class="hudPill">${musicOn?"♪ ON":"♪ OFF"}</span><span class="hudPill">60 FPS</span></div></div><div class="hudPlayer" style="text-align:right"><div class="hudName">SCORE ${score}</div><div class="sub">K.O. ${kills} · ${difficulty}</div></div></div><div id="canvasWrap"><canvas id="gameCanvas"></canvas><div class="screenFx" id="screenFx"></div><button class="pauseBtn" id="pauseBtn">Ⅱ</button><div id="overlay"><div class="battleMsg" id="battleMsg"></div><div class="comboHud" id="comboHud"><div class="comboNum" id="comboNum">0</div><div class="comboLabel">HIT COMBO</div></div></div><div class="touchLayer"><div class="joy" id="joy"><div class="joyBase"></div><div class="joyStick" id="joyStick"></div></div><div class="actPad"><button class="ctrl jump" id="jumpBtn">🦘</button><button class="ctrl guard" id="guardBtn">🛡</button><button class="ctrl attack" id="attackBtn">👊</button><button class="ctrl dash" id="dashBtn">⚡</button><button class="ctrl skill" id="skillBtn">氣</button><button class="ctrl" id="grabBtn">🤜</button></div></div></div><div class="gameFooter"><div class="feedBox">${feed.map(x=>`<div>${esc(x)}</div>`).join("")}</div><div class="weaponInfo"><b>操作</b><div>搖桿：移動／上下走位　👊：連段　🛡：防禦　🦘：跳躍　⚡：衝刺　氣：必殺　🤜：抓取／互動</div>${player?.weapon?`<div style="color:#ffd36b;margin-top:3px">武器：${esc(player.weapon.name)} × ${player.weapon.durability}</div>`:`<div class="muted" style="margin-top:3px">靠近武器／道具自動拾取</div>`}</div></div></div>`;
+function renderGame(main){main.innerHTML=`<div id="gameRoot"><div class="topHud"><div class="hudPlayer"><div class="hudName">${esc(ME.username)} · ${CHARS[selectedChar].name}</div><div id="hpLabel" class="sub">HP</div><div class="bar"><i id="hpBar"></i></div><div id="mpLabel" class="sub" style="margin-top:2px">MP</div><div class="bar mp"><i id="mpBar"></i></div></div><div class="hudCenter"><b id="timer">${Math.ceil(roundClock)}</b><span id="stageLabel">STAGE ${stageLevel} · WAVE ${wave}</span><div class="hudMeta"><span class="hudPill">${musicOn?"♪ ON":"♪ OFF"}</span><span class="hudPill">${window.BoomRoomSDK?"房內同步":"單人挑戰"}</span></div></div><div class="hudPlayer" style="text-align:right"><div class="hudName" id="scoreLabel">SCORE ${score}</div><div class="sub" id="killsLabel">K.O. ${kills} · ${difficulty}</div></div></div><div id="canvasWrap"><canvas id="gameCanvas"></canvas><div class="screenFx" id="screenFx"></div><button class="pauseBtn" id="pauseBtn" aria-label="暫停選單">Ⅱ</button><div id="overlay"><div class="battleMsg" id="battleMsg"></div><div class="comboHud" id="comboHud"><div class="comboNum" id="comboNum">0</div><div class="comboLabel">HIT COMBO</div></div></div><div class="touchLayer"><div class="joy" id="joy"><div class="joyBase"></div><div class="joyStick" id="joyStick"></div></div><div class="actPad"><button class="ctrl jump" id="jumpBtn" aria-label="跳躍">🦘</button><button class="ctrl guard" id="guardBtn" aria-label="防禦">🛡</button><button class="ctrl attack" id="attackBtn" aria-label="攻擊">👊</button><button class="ctrl dash" id="dashBtn" aria-label="衝刺">⚡</button><button class="ctrl skill" id="skillBtn" aria-label="必殺技">氣</button><button class="ctrl" id="grabBtn" aria-label="抓取">🤜</button></div></div></div><div class="gameFooter"><div class="feedBox">${feed.map(x=>`<div>${esc(x)}</div>`).join("")}</div><div class="weaponInfo"><b>操作</b><div>搖桿：移動／上下走位。電腦 A/D 左右、I/S 上下、W 跳躍、J 攻擊、K 必殺、L 衝刺、Shift 防禦、G 抓取。　👊：連段　🛡：防禦　🦘：跳躍　⚡：衝刺　氣：必殺　🤜：抓取／互動</div>${player?.weapon?`<div style="color:#ffd36b;margin-top:3px">武器：${esc(player.weapon.name)} × ${player.weapon.durability}</div>`:`<div class="muted" style="margin-top:3px">靠近武器／道具自動拾取</div>`}</div></div></div>`;
  const c=document.getElementById("gameCanvas");ctx=c.getContext("2d");resizeCanvas();setupTouch();document.getElementById("pauseBtn")?.addEventListener("click",togglePause);renderLiveHud();
 }
-function renderResult(main){const win=player&&player.hp>0&&!gameEnded?true:gameEnded&&player&&player.hp>0;main.innerHTML=`<div class="result"><section class="resultBox"><div class="resultTitle">${win?"🏆 VICTORY":"💀 GAME OVER"}</div><div class="sub center" style="margin-top:5px">${win?"你完成了這次戰鬥。":"戰鬥結束，重新挑戰吧。"}</div><div class="resultGrid"><div class="resultStat"><b>${score}</b><span>Score</span></div><div class="resultStat"><b>${combo.max}</b><span>最高 Combo</span></div><div class="resultStat"><b>${Math.round(damageTotal)}</b><span>總傷害</span></div><div class="resultStat"><b>Stage ${stageLevel}</b><span>最終關卡</span></div></div><div class="panel"><div class="sectionTitle">戰鬥紀錄</div><div class="feedBox" style="max-height:180px">${feed.map(x=>`<div>${esc(x)}</div>`).join("")}</div></div><button id="againBtn" class="cta">⚔️ 再戰一次</button><button id="backBtn" class="cta secondary" style="margin-top:7px">返回大廳</button></section></div>`;document.getElementById("againBtn").addEventListener("click",()=>startGame());document.getElementById("backBtn").addEventListener("click",()=>{state="LOBBY";render()})}
+function renderResult(main){const win=resultWin;main.innerHTML=`<div class="result"><section class="resultBox"><div class="resultTitle">${win?"🏆 VICTORY":"💀 GAME OVER"}</div><div class="sub center" style="margin-top:5px">${win?"你完成了這次戰鬥。":"戰鬥結束，重新挑戰吧。"}</div><div class="resultGrid"><div class="resultStat"><b>${score}</b><span>Score</span></div><div class="resultStat"><b>${combo.max}</b><span>最高 Combo</span></div><div class="resultStat"><b>${Math.round(damageTotal)}</b><span>總傷害</span></div><div class="resultStat"><b>Stage ${stageLevel}</b><span>最終關卡</span></div></div><div class="panel"><div class="sectionTitle">戰鬥紀錄</div><div class="feedBox" style="max-height:180px">${feed.map(x=>`<div>${esc(x)}</div>`).join("")}</div></div><button id="againBtn" class="cta" ${isHost()?"":"disabled"}>${isHost()?"⚔️ 再戰一次":"等待房主再戰"}</button><button id="backBtn" class="cta secondary" style="margin-top:7px">返回房間</button><p class="sub center">挑戰成績不發放銀幣</p></section></div>`;document.getElementById("againBtn").addEventListener("click",startHostRound);document.getElementById("backBtn").addEventListener("click",()=>{if(window.BoomRoomSDK)window.BoomRoomSDK.leaveGame?.();else{state="LOBBY";render()}})}
 
 function setupTouch(){
   const joy=document.getElementById("joy"),stick=document.getElementById("joyStick");if(joy){joy.addEventListener("pointerdown",e=>{e.preventDefault();joystick.active=true;joystick.pointerId=e.pointerId;const r=joy.getBoundingClientRect();joystick.cx=r.left+r.width/2;joystick.cy=r.top+r.height/2;joystick.x=e.clientX;joystick.y=e.clientY;joy.setPointerCapture(e.pointerId);updateJoy(e.clientX,e.clientY)});joy.addEventListener("pointermove",e=>{if(joystick.active&&e.pointerId===joystick.pointerId){e.preventDefault();updateJoy(e.clientX,e.clientY)}});const end=e=>{if(e.pointerId===joystick.pointerId){joystick.active=false;input.left=input.right=input.up=input.down=false;stick.style.transform="translate(0,0)"}};joy.addEventListener("pointerup",end);joy.addEventListener("pointercancel",end)}
@@ -486,12 +505,13 @@ function setupTouch(){
 }
 function updateJoy(x,y){const dx=x-joystick.cx,dy=y-joystick.cy,max=48,len=Math.hypot(dx,dy)||1,n=Math.min(max,len),sx=dx/len*n,sy=dy/len*n;const stick=document.getElementById("joyStick");if(stick)stick.style.transform=`translate(${sx}px,${sy}px)`;input.left=sx<-12;input.right=sx>12;input.up=sy<-12;input.down=sy>12}
 function hold(id,handler){const b=document.getElementById(id);if(!b)return;let down=false;b.addEventListener("pointerdown",e=>{e.preventDefault();initAudio();down=true;handler(typeof handler==="function"&&handler.length?true:undefined)});const off=e=>{if(!down)return;down=false;e.preventDefault();if(id==="guardBtn")handler(false)};b.addEventListener("pointerup",off);b.addEventListener("pointercancel",off);b.addEventListener("pointerleave",off)}
-window.addEventListener("keydown",e=>{if(state!=="PLAYING")return;initAudio();const k=e.key.toLowerCase();if(["a","d","w","s","j","k","l","g"," ","arrowleft","arrowright","arrowup","arrowdown"].includes(k))e.preventDefault();if(k==="a"||k==="arrowleft")input.left=true;if(k==="d"||k==="arrowright")input.right=true;if(k==="w"||k==="arrowup")just.jump=true;if(k==="s"||k==="arrowdown")input.down=true;if(k==="j"||k===" ")just.attack=true;if(k==="k")just.skill=true;if(k==="l")just.dash=true;if(k==="g")just.grab=true});
-window.addEventListener("keyup",e=>{const k=e.key.toLowerCase();if(k==="a"||k==="arrowleft")input.left=false;if(k==="d"||k==="arrowright")input.right=false;if(k==="s"||k==="arrowdown")input.down=false});
+window.addEventListener("keydown",e=>{if(state!=="PLAYING")return;initAudio();const k=e.key.toLowerCase();if(["a","d","w","s","i","j","k","l","g"," ","arrowleft","arrowright","arrowup","arrowdown"].includes(k))e.preventDefault();if(k==="a"||k==="arrowleft")input.left=true;if(k==="d"||k==="arrowright")input.right=true;if(k==="w")just.jump=true;if(k==="i"||k==="arrowup")input.up=true;if(k==="s"||k==="arrowdown")input.down=true;if(k==="j"||k===" ")just.attack=true;if(k==="k")just.skill=true;if(k==="l")just.dash=true;if(k==="g")just.grab=true;if(k==="shift")input.guard=true});
+window.addEventListener("keyup",e=>{const k=e.key.toLowerCase();if(k==="a"||k==="arrowleft")input.left=false;if(k==="d"||k==="arrowright")input.right=false;if(k==="s"||k==="arrowdown")input.down=false;if(k==="i"||k==="arrowup")input.up=false;if(k==="shift")input.guard=false});
 function keyboardGuard(v){input.guard=v}window.addEventListener("blur",()=>{input.left=input.right=input.up=input.down=input.guard=false;for(const k of Object.keys(just))just[k]=false});
 
 function finalizeStartSelection(){const me=addPlayer(ME.id,ME.username,ME.avatar);me.char=selectedChar}
 finalizeStartSelection();render();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

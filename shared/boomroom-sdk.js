@@ -6,6 +6,7 @@
   'use strict';
   if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2) return;
   const previous = root.BoomRoomSDK;
+  const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const hooks = new Map(), pendingPurchases = new Map();
@@ -99,6 +100,7 @@
       } else if (native && previous && typeof previous[action] === 'function') {
         if (action === 'sendGameEvent') previous.sendGameEvent(fields.eventName, fields.payload);
         else if (action === 'requestPurchase') previous.requestPurchase(fields.itemId, fields.cost);
+        else if (action === 'requestAdmission') previous.requestAdmission(fields.itemId);
         else if (action === 'gameOver') previous.gameOver(fields.winAmount, fields.score, fields.poolSettlement);
         else return failure('TRANSPORT_UNAVAILABLE');
       } else if (root.parent !== root && parentOrigin) {
@@ -144,6 +146,13 @@
       if (packet.requestId !== pending.requestId) return;
       root.clearTimeout(pending.timer); pendingPurchases.delete(packet.itemId);
       notify(packet.action, packet.itemId, packet.silverCoins);
+      if (legacyCallbacks) {
+        const callback = packet.action === 'purchaseSuccess' ? root.onPurchaseSuccess : root.onPurchaseFailed;
+        if (typeof callback === 'function') {
+          try { callback(packet.itemId, packet.silverCoins); }
+          catch (error) { root.console.error('BoomRoom admission callback failed:', error); }
+        }
+      }
     }
     if (packet.action === 'sessionEnd' && packet.session?.sessionId === data.gameSessionId &&
         ['ENDED', 'ABORTED'].includes(packet.session.status) && packet.session.version >= data.session.version) {
@@ -186,9 +195,30 @@
       if (!sent) { root.clearTimeout(timer); pendingPurchases.delete(itemId); }
       return sent;
     },
+    requestAdmission(itemId) {
+      if (typeof itemId !== 'string' || !itemId || itemId.length > 128) return failure('ADMISSION_INVALID');
+      if (pendingPurchases.has(itemId)) return failure('PURCHASE_PENDING');
+      if (pendingPurchases.size >= 16) return failure('PURCHASE_RATE_LIMITED');
+      const requestId = data ? data.gameSessionId + ':' + (++requestSequence) : '';
+      const timer = root.setTimeout(() => {
+        if (pendingPurchases.get(itemId)?.requestId !== requestId) return;
+        pendingPurchases.delete(itemId); notify('purchaseFailed', itemId, null); failure('ADMISSION_TIMEOUT');
+      }, 10000);
+      pendingPurchases.set(itemId, { timer, requestId });
+      const sent = send('requestAdmission', { itemId, requestId });
+      if (!sent) { root.clearTimeout(timer); pendingPurchases.delete(itemId); }
+      return sent;
+    },
     gameOver(winAmount = 0, score = null, poolSettlement = null) {
       return send('gameOver', { winAmount, score, poolSettlement });
     },
+    // A replayable round keeps the canonical room session open. These local
+    // challenge scores never request settlement or claim wallet rewards.
+    completeRound(score = 0) {
+      if(!Number.isFinite(score)||score<0)return failure('SCORE_INVALID');
+      return send('roundComplete',{score});
+    },
+    leaveGame() { return send('leaveGame',{}); },
     onGameEvent: callback => subscribe('gameEvent', callback),
     onPurchaseSuccess: callback => subscribe('purchaseSuccess', callback),
     onPurchaseFailed: callback => subscribe('purchaseFailed', callback),

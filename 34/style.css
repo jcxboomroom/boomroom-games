@@ -392,3 +392,4 @@ body { min-height: 100svh; }
   .hint { top: calc(max(6px, env(safe-area-inset-top)) + 48px); }
   .topbar { top: max(6px, env(safe-area-inset-top)); height: 41px; }
 }
+.chicken-action{display:block;min-height:44px;width:100%;margin-top:12px;border:0;border-radius:12px;background:#ffca66;color:#282039;font:800 15px system-ui}.chicken-action.secondary{background:#30354c;color:#e4e9ff}.chicken-action:disabled{opacity:.5}

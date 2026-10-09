@@ -16,12 +16,16 @@
       </header>
 
       <section class="arena-wrap" aria-label="炸彈競技場">
+        <div id="bomb-status" class="bomb-status">準備開始</div>
         <canvas id="arena" aria-label="遊戲場景"></canvas>
         <div class="round-callout" id="callout" aria-live="assertive"></div>
         <div class="event-toast" id="toast"></div>
+      </section>
+      <section class="controls" aria-label="遊戲操作">
         <div class="joystick" id="joystick" aria-label="移動搖桿">
           <span class="stick-ring"></span><span class="stick-knob" id="knob"></span>
         </div>
+        <div class="controls-help"><div id="roster"></div><span>拖曳搖桿移動 · 點按傳球<br>鍵盤方向鍵／WASD · 空白鍵傳球</span></div>
         <button class="pass-button" id="pass" aria-label="把炸彈傳出去">
           <span class="pass-icon" aria-hidden="true"></span><span>傳球</span>
         </button>
@@ -32,7 +36,9 @@
         <div class="hint" id="hint">移動躲開　·　拿到炸彈就傳給別人</div>
         <div class="mini-score" id="mini-score">0 分</div>
       </footer>
+      <section id="result-actions" hidden aria-label="本局結束操作"><h1 id="result-title"></h1><p id="result-summary"></p><ol id="result-list" aria-label="完整排名"></ol><p>挑戰成績供本局比較，不發放銀幣</p><div class="result-buttons"><button id="replay" type="button">再挑戰一次</button><button id="exit" type="button">返回房間</button></div></section>
     </main>
-    <script type="module" src="./app.js"></script>
-  </body>
+    <script type="application/boomroom-game" data-boomroom-type="module" data-boomroom-src="./app.js"></script>
+  <script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+</body>
 </html>

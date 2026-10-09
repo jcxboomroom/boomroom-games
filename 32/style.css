@@ -384,13 +384,20 @@ body {
 
 .keyboard-hint {
   position: absolute;
-  right: 18px;
-  bottom: calc(var(--safe-bottom) + 17px);
-  color: rgba(207, 217, 255, .36);
-  font-size: 10px;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--safe-bottom) + 146px);
+  text-align: center;
+  color: rgba(207, 217, 255, .75);
+  font-size: 11px;
   font-weight: 600;
   pointer-events: none;
 }
+.desktop-hint{display:none}
+.spectate-notice{position:absolute;top:calc(var(--safe-top) + 138px);left:12px;right:12px;z-index:3;padding:9px 12px;border:1px solid #ff628d77;border-radius:12px;background:#18162fe8;text-align:center;color:#ffe0e8;font-size:12px;line-height:18px;pointer-events:none}
+.spectate-notice[hidden]{display:none}
+.dash-button:disabled{filter:grayscale(1);opacity:.38;cursor:default}
+.controls.spectating .stick-wrap{opacity:.4;pointer-events:none}
 
 .round-result {
   position: absolute;
@@ -406,9 +413,12 @@ body {
   transition: opacity .25s;
 }
 
-.round-result.show { opacity: 1; }
+.round-result { visibility: hidden; }
+.round-result.show { opacity: 1; visibility: visible; pointer-events: auto; }
 
 .result-card {
+  max-height: 86vh;
+  overflow-y: auto;
   width: min(390px, 100%);
   padding: 25px 24px 19px;
   border: 1px solid rgba(202, 214, 255, .18);
@@ -444,6 +454,7 @@ body {
   .status-row { top: 72px; left: max(22px, calc((100vw - 1150px) / 2)); right: max(22px, calc((100vw - 1150px) / 2)); }
   .controls { width: min(600px, 70vw); left: 50%; right: auto; transform: translateX(-50%); bottom: 20px; }
   .keyboard-hint { display: block; }
+  .desktop-hint{display:inline}.mobile-hint{display:none}
 }
 
 @media (pointer: fine) and (min-width: 761px) {
@@ -468,3 +479,4 @@ body {
   .room-pill { display: inline-flex; }
   .map-pill { max-width: 58vw; }
 }
+#result .series-action{display:block;width:100%;min-height:44px;margin-top:12px;border:0;border-radius:12px;background:#75efbf;color:#152034;font:800 15px system-ui}#result .series-action[hidden]{display:none}#result .series-action.secondary{background:#30354c;color:#e4e9ff}#result .series-action:disabled{opacity:.5}

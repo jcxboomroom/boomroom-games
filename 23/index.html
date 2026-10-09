@@ -478,7 +478,7 @@ button:disabled{
 
 </div>
 
-<script>
+<script type="application/boomroom-game">
 "use strict";
 
 /* =========================================================
@@ -1560,10 +1560,6 @@ function finishMatch(){
       window.parent.postMessage(JSON.stringify({ action: "game_over", winAmount: winCoins, score: myScore }), "*");
     }
   } catch(_) {}
-
-    }
-
-  }catch(_){}
 
   render();
 
@@ -4247,5 +4243,6 @@ render();
 
 </script>
 
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

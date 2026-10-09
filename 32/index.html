@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
     <meta name="theme-color" content="#10132d">
-    <title>Floor Brawl</title>
+    <title>爆爆最後一塊地板</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="./style.css">
   </head>
@@ -36,6 +36,7 @@
       </div>
 
       <div class="center-callout" id="callout" aria-live="polite"></div>
+      <div class="spectate-notice" id="spectateNotice" role="status" hidden>你已出局，正在觀戰；下一戰會重新加入。</div>
 
       <div class="controls">
         <div class="stick-wrap">
@@ -51,16 +52,19 @@
           <span class="dash-cooldown" id="cooldown"></span>
         </button>
       </div>
-      <div class="keyboard-hint">方向鍵移動　空白鍵撞擊</div>
+      <div class="keyboard-hint"><span class="mobile-hint">拖曳搖桿移動・點按「撞！」</span><span class="desktop-hint">方向鍵／WASD 移動・空白鍵撞擊</span></div>
       <div class="round-result" id="result" aria-live="polite">
         <div class="result-card">
           <div class="result-kicker" id="resultKicker">本局結果</div>
           <div class="result-title" id="resultTitle">最後站著的人</div>
           <div class="result-list" id="resultList"></div>
           <div class="result-foot">下一戰即將開始…</div>
+          <button id="seriesReplay" class="series-action" hidden type="button">再挑戰五戰</button>
+          <button id="seriesExit" class="series-action secondary" hidden type="button">返回房間</button>
         </div>
       </div>
     </main>
-    <script defer src="./app.js"></script>
-  </body>
+    <script type="application/boomroom-game" data-boomroom-src="./app.js"></script>
+  <script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+</body>
 </html>

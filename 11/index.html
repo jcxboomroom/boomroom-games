@@ -255,7 +255,7 @@ button{font:inherit;outline:none;}
   </div>
 </div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -497,7 +497,7 @@ function requestEntry() {
     return;
   }
   try {
-    window.BoomRoomSDK.requestPurchase('hotpotato_entry', ENTRY_FEE);
+    window.BoomRoomSDK.requestAdmission('hotpotato_entry', ENTRY_FEE);
   } catch(e) {
     purchasePending = false; render(); showToast('入場請求失敗');
   }
@@ -1088,5 +1088,6 @@ window.addEventListener('visibilitychange', () => {
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

@@ -287,7 +287,7 @@ html, body {
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -707,10 +707,10 @@ function requestEntry(){
     }
 
     try{
-        if(typeof window.BoomRoomSDK?.requestPurchase==='function'){
-            window.BoomRoomSDK.requestPurchase('roulette_entry',ENTRY_FEE);
+        if(typeof window.BoomRoomSDK?.requestAdmission==='function'){
+            window.BoomRoomSDK.requestAdmission('roulette_entry',ENTRY_FEE);
         }else{
-            throw new Error('requestPurchase unavailable');
+            throw new Error('requestAdmission unavailable');
         }
     }catch(e){
         purchasePending=false;
@@ -1600,5 +1600,6 @@ render();
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

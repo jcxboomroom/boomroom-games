@@ -405,7 +405,7 @@ html, body {
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -651,7 +651,7 @@ function requestEntry() {
     purchasePending = true; render();
     
     if(DEMO) { setTimeout(() => window.onPurchaseSuccess('piggy_entry'), 300); return; }
-    try { window.BoomRoomSDK.requestPurchase('piggy_entry', ENTRY_FEE); } 
+    try { window.BoomRoomSDK.requestAdmission('piggy_entry', ENTRY_FEE); } 
     catch(e) { purchasePending = false; render(); showToast('入場請求失敗'); }
 }
 
@@ -1157,5 +1157,6 @@ window.addEventListener('visibilitychange', () => {
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

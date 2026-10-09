@@ -50,7 +50,7 @@ html, body {
     box-shadow: 0 0 15px rgba(255, 64, 129, 0.1); flex-shrink: 0;
 }
 .icon-btn {
-    width: 36px; height: 36px; border-radius: 10px;
+    width: 44px; height: 44px; border-radius: 10px;
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
     color: #fff; display: grid; place-items: center;
     font-size: 18px; cursor: pointer; transition: transform 0.1s;
@@ -186,7 +186,7 @@ html, body {
         </div>
         <div class="stat-box">
             <b id="prize-pool">0 🪙</b>
-            <span>實際獎池 (扣10%)</span>
+            <span>挑戰成績</span>
         </div>
     </div>
 
@@ -202,7 +202,7 @@ html, body {
     <div class="control-panel">
         <button class="tap-btn" id="tap-btn" disabled>TAP!</button>
         <button class="main-btn btn-entry" id="main-btn">支付 100 🪙 入場</button>
-        <div style="text-align:center; font-size:9px; color:var(--muted); font-family:sans-serif;">本遊戲為單局決戰，結束後需由市長重新開房</div>
+        <div style="text-align:center; font-size:12px; color:var(--muted); font-family:sans-serif;">10 秒挑戰 · 點擊或按空白鍵 · 結果可再挑戰</div>
     </div>
 </div>
 
@@ -211,11 +211,11 @@ html, body {
     <div class="modal-card">
         <h2>玩法規則</h2>
         <ul class="rules-list">
-            <li><b>入場：</b>每人支付 100 銀幣，形成總獎池 (平台收取 10% 手續費)。</li>
+            <li><b>入場：</b>正式對局入場費 100 銀幣。同一對局內可重玩，不會重複扣費。</li>
             <li><b>準備：</b>市長點擊開始後，進入 3 秒倒數。</li>
             <li><b>狂飆：</b>倒數結束後，擁有 10 秒鐘的時間，請瘋狂點擊畫面中央的 TAP 按鈕！</li>
-            <li><b>獲勝：</b>時間到時，點擊數最高的玩家獲勝，獨得實際獎池！(平手則平分)</li>
-            <li><b>單局制：</b>遊戲結束後即鎖定，需由市長重新建立新房間。</li>
+            <li><b>獲勝：</b>時間到時比較點擊次數，最高者獲勝；平手共同第一。挑戰不發放銀幣。</li>
+            <li><b>重玩：</b>結果保留，由房主開啟下一局；單人可挑戰自己的最佳紀錄。</li>
         </ul>
         <button class="main-btn btn-entry" id="btn-close-rules" style="padding:15px; font-size:16px;">我知道了</button>
     </div>
@@ -234,14 +234,15 @@ html, body {
             <div id="winners-list" style="font-size:12px; color:#fff; max-height:120px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
-        <button class="main-btn" id="btn-close-result" style="background:#333; padding:15px; font-size:16px; box-shadow:none;">關閉面板</button>
-        <p style="font-size:10px; color:var(--gold); margin-top:15px;">本局已永久結束，請等待市長關閉遊戲並重新開啟新局。</p>
+        <button class="main-btn btn-entry" id="btn-close-result">再挑戰</button>
+        <button class="main-btn" id="btn-exit-result" style="background:#333; margin-top:10px;">返回房間</button>
+        <p style="font-size:12px; color:var(--muted); margin-top:15px;">挑戰成績不發放銀幣。</p>
     </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="application/boomroom-game">
 (()=>{
 'use strict';
 
@@ -265,7 +266,7 @@ const DEMO = !SDK;
 /* ==============================
    Constants & Config
    ============================== */
-const ENTRY_FEE = 100;
+const ENTRY_FEE = DEMO ? 0 : 100;
 const PLATFORM_FEE_RATE = 0.1;
 const HOST_TIMEOUT_MS = 5000;
 const ROUND_TIME_MS = 10000; // 10 seconds race
@@ -348,7 +349,8 @@ const state = {
     matchId: 'M_' + Math.random().toString(36).slice(2,10),
     phase: 'LOBBY', // LOBBY -> COUNTDOWN -> PLAYING -> RESULT -> CLOSED
     phaseEndsAt: 0,
-    result: []
+    result: [],
+    roundNumber: 0
 };
 
 let hasPaid = false;
@@ -360,6 +362,7 @@ let lastStateBroadcast = 0;
 let localScore = 0;
 let lastSyncedScore = 0;
 let lastTapTime = 0;
+function esc(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function rankKey(p) { return Number(p.joinedAt) || 0; }
 function isHost() { return hostId === ME.id; }
@@ -374,6 +377,7 @@ function electInitialHost() {
     render();
 }
 function maybeTakeoverHost() {
+    if(SDK) return; // A formal room keeps the server's canonical host.
     if(!initialElectionDone || currentHostOnline()) return;
     const a = onlinePlayers(); if(!a.length) return;
     const next = a[0].id;
@@ -404,7 +408,7 @@ function broadcast(name, payload) {
 }
 function snapshotState() {
     return {
-        hostId, matchId: state.matchId, phase: state.phase, phaseEndsAt: state.phaseEndsAt,
+        hostId, matchId: state.matchId, phase: state.phase, phaseEndsAt: state.phaseEndsAt, roundNumber: state.roundNumber,
         result: state.result.slice(),
         players: [...players.values()].map(p => ({id: p.id, username: p.username, joinedAt: p.joinedAt, hasPaid: p.hasPaid, score: p.score, online: p.online}))
     };
@@ -418,6 +422,14 @@ function broadcastState(force=false) {
 }
 function applySnapshot(s) {
     if(!s || typeof s !== 'object') return;
+    const incomingRound = Number(s.roundNumber) || 0;
+    if(incomingRound < state.roundNumber) return;
+    if(incomingRound > state.roundNumber) {
+        state.roundNumber = incomingRound;
+        localScore = 0; lastSyncedScore = 0; lastTapTime = 0;
+        gameOverCalled = false; lastTickSec = -1;
+        els.modalResult.classList.remove('show');
+    }
     if(s.hostId != null) { hostId = String(s.hostId); initialElectionDone = true; }
     if(Array.isArray(s.players)) for(const raw of s.players) addOrUpdatePlayer(raw, false);
     
@@ -447,7 +459,7 @@ function requestEntry() {
     purchasePending = true; render();
     
     if(DEMO) { setTimeout(() => window.onPurchaseSuccess('taprace_entry'), 300); return; }
-    try { window.BoomRoomSDK.requestPurchase('taprace_entry', ENTRY_FEE); } 
+    try { window.BoomRoomSDK.requestAdmission('taprace_entry', ENTRY_FEE); } 
     catch(e) { purchasePending = false; render(); showToast('入場請求失敗'); }
 }
 
@@ -490,6 +502,9 @@ function handleTap(e) {
 }
 
 els.tapBtn.addEventListener('pointerdown', handleTap);
+document.addEventListener('keydown', e => {
+    if((e.code === 'Space' || (e.code === 'Enter' && e.target === els.tapBtn)) && !e.repeat && state.phase === 'PLAYING' && !els.modalRules.classList.contains('show')) handleTap(e);
+});
 
 function spawnParticle(e) {
     const rect = els.tapBtn.getBoundingClientRect();
@@ -514,11 +529,16 @@ function spawnParticle(e) {
    Host Logic
    ============================== */
 function hostStartGame() {
-    if(!isHost() || state.phase !== 'LOBBY') return;
+    if(!isHost() || !['LOBBY','RESULT','CLOSED'].includes(state.phase)) return;
     const paidPlayers = [...players.values()].filter(p => p.online && p.hasPaid);
     if(paidPlayers.length < 1) { showToast('沒有玩家入場'); return; }
     
     paidPlayers.forEach(p => p.score = 0);
+    state.roundNumber++;
+    state.matchId = 'M_' + Date.now().toString(36) + '_' + state.roundNumber;
+    state.result = []; localScore = 0; lastSyncedScore = 0; lastTapTime = 0;
+    gameOverCalled = false; lastTickSec = -1;
+    els.modalResult.classList.remove('show');
     
     state.phase = 'COUNTDOWN';
     state.phaseEndsAt = Date.now() + 3000;
@@ -531,30 +551,20 @@ function hostResolveGame() {
     state.phase = 'RESULT';
     
     const paidPlayers = [...players.values()].filter(p => p.hasPaid);
-    const prizePool = Math.floor(paidPlayers.length * ENTRY_FEE * (1 - PLATFORM_FEE_RATE));
-    
     let maxScore = -1;
     paidPlayers.forEach(p => { if(p.score > maxScore) maxScore = p.score; });
     
-    const winners = paidPlayers.filter(p => p.score === maxScore);
-    const rewardPerWinner = winners.length > 0 ? Math.floor(prizePool / winners.length) : 0;
-
     state.result = paidPlayers.map(p => ({
         id: p.id,
         username: p.username,
         score: p.score,
         isWinner: p.score === maxScore,
-        winAmount: (p.score === maxScore) ? rewardPerWinner : 0
-    })).sort((a,b) => b.score - a.score);
+        winAmount: 0
+    })).sort((a,b) => b.score - a.score || a.id.localeCompare(b.id));
 
     broadcastState(true);
     
-    setTimeout(() => {
-        if(isHost() && state.phase === 'RESULT') {
-            state.phase = 'CLOSED';
-            broadcastState(true);
-        }
-    }, 5000);
+    maybeCallGameOver();
 }
 
 /* ==============================
@@ -568,11 +578,10 @@ function setupSDK(data){
         addOrUpdatePlayer({ id: ME.id, username: ME.username, joinedAt: ME.joinedAt }, true);
     }
     initialElectionDone = true;
-    if(data && data.isHost){
-        hostId = ME.id;
-    } else if(data && data.isHost === false) {
-        if(hostId === ME.id) hostId = null;
-    }
+    const canonicalSession = SDK?.getSession?.();
+    const canonicalHost = canonicalSession?.hostId ?? canonicalSession?.hostUserId;
+    if(canonicalHost != null) hostId = String(canonicalHost);
+    else if(data && data.isHost) hostId = ME.id;
     if(data && Array.isArray(data.roomPlayers)){
         data.roomPlayers.forEach(rp => {
             if(rp && rp.id != null){
@@ -608,13 +617,19 @@ window.onBoomRoomSDKReady = function(){
 if (window.BoomRoomSDK) {
     window.onBoomRoomSDKReady();
 }
-};
 
 function handleIncoming(data) {
     if(!data) return;
     if(data.action === 'initSDK') { setupSDK(data); return; }
     if(data.action !== 'gameEventReceived') return;
     const eventName = data.eventName, payload = data.payload || {};
+    if(SDK) {
+        const sender = String(data.userId || '');
+        if(!players.has(sender)) return;
+        if(['NDB_STATE','NDB_HOST'].includes(eventName) && sender !== hostId) return;
+        if(['NDB_HELLO','NDB_PING'].includes(eventName) && String(payload.player?.id) !== sender) return;
+        if(['NDB_PAID','NDB_SCORE'].includes(eventName) && String(payload.playerId) !== sender) return;
+    }
     
     if(payload.matchId && payload.matchId !== state.matchId && eventName !== 'NDB_STATE') return;
 
@@ -635,7 +650,7 @@ function handleIncoming(data) {
     if(eventName === 'NDB_STATE') { applySnapshot(payload); return; }
     if(eventName === 'NDB_HOST') { if(payload.hostId != null) { hostId = String(payload.hostId); initialElectionDone = true; render(); } return; }
 }
-window.addEventListener('message', e => { try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; handleIncoming(d); } catch(err){} });
+if(SDK?.onGameEvent) SDK.onGameEvent((eventName,payload,userId) => handleIncoming({action:'gameEventReceived',eventName,payload,userId}));
 
 /* ==============================
    UI & Rendering
@@ -649,7 +664,7 @@ function render() {
     const totalPool = paidCount * ENTRY_FEE;
     const prizePool = totalPool - Math.floor(totalPool * PLATFORM_FEE_RATE);
     els.totalPool.textContent = totalPool.toLocaleString() + ' 🪙';
-    els.prizePool.textContent = prizePool.toLocaleString() + ' 🪙';
+    els.prizePool.textContent = '不發銀幣';
 
     // Race Track
     els.raceTrack.innerHTML = '';
@@ -663,7 +678,7 @@ function render() {
         const pct = Math.min(100, (p.score / maxScore) * 100);
         r.innerHTML = `
             <div class="racer-info">
-                <span class="racer-name">${p.username}</span>
+                <span class="racer-name">${esc(p.username)}</span>
                 <span class="racer-score">${p.score}</span>
             </div>
             <div class="progress-bg"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -694,7 +709,7 @@ function render() {
         els.mainBtn.style.display = 'block';
         els.mainBtn.className = 'main-btn btn-entry';
         if(!hasPaid) {
-            els.mainBtn.textContent = '支付 100 🪙 入場';
+            els.mainBtn.textContent = DEMO ? '開始單人練習' : '確認已繳入場費';
             els.mainBtn.disabled = purchasePending;
             els.mainBtn.onclick = requestEntry;
         } else if(isHost()) {
@@ -732,13 +747,16 @@ function maybeCallGameOver() {
     if(!myResult || !hasPaid) return;
 
     gameOverCalled = true;
-    const reward = Math.max(0, Math.floor(Number(myResult.winAmount) || 0));
+    const reward = 0;
     
-    try { if(SDK && typeof SDK.gameOver === 'function') window.BoomRoomSDK.gameOver(reward); } catch(e){}
+    try { SDK?.completeRound?.(myResult.score); } catch(e){}
 
     // Show Result UI
     const winners = state.result.filter(r => r.isWinner);
-    if(winners.length > 1) {
+    if(state.result.length === 1) {
+        els.resultWinnerText.textContent = '你的十秒挑戰紀錄';
+        els.resultWinnerText.style.color = 'var(--cyan)';
+    } else if(winners.length > 1) {
         els.resultWinnerText.textContent = `⚖️ 平手！`;
         els.resultWinnerText.style.color = 'var(--gold)';
     } else if(winners.length === 1) {
@@ -746,27 +764,26 @@ function maybeCallGameOver() {
         els.resultWinnerText.style.color = 'var(--cyan)';
     }
     
-    els.resultAmount.textContent = '+' + reward.toLocaleString() + ' 🪙';
+    let best=0;
+    try { best=Number(localStorage.getItem('boomroom_taprace_best'))||0; localStorage.setItem('boomroom_taprace_best',String(Math.max(best,myResult.score))); } catch(_){}
+    els.resultAmount.textContent = myResult.score.toLocaleString() + ' 下';
     els.resultAmount.className = 'result-big ' + (myResult.isWinner ? 'win' : 'lose');
-    els.resultDesc.textContent = myResult.isWinner ? '恭喜！你獲得最高分，贏得獎池！' : '很遺憾，未能奪冠。';
+    els.resultDesc.textContent = state.result.length===1 ? (myResult.score>best?'刷新本機最佳紀錄！':'本機最佳 '+best+' 下，繼續挑戰！') : (myResult.isWinner?'本局點擊次數最高！':'下次挑戰更高排名！');
     
     els.winnersList.innerHTML = '';
+    let rank = 1;
     state.result.forEach((r, i) => {
+        if(i === 0 || r.score !== state.result[i-1].score) rank = i+1;
         const d = document.createElement('div');
-        d.innerHTML = `<span>#${i+1} ${r.username}</span> <span style="color:var(--gold)">${r.score}下</span>`;
+        d.innerHTML = `<span>#${rank} ${esc(r.username)}</span> <span style="color:var(--gold)">${r.score}下</span>`;
         els.winnersList.appendChild(d);
     });
     
     els.modalResult.classList.add('show');
+    els.btnCloseResult.disabled = !isHost();
+    els.btnCloseResult.textContent = isHost() ? '再挑戰' : '等待房主再挑戰';
     if(myResult.isWinner) sfx.win(); else sfx.lose();
 
-    setTimeout(() => {
-        if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ action: 'leaveGame' }, '*');
-        } else {
-            try { window.close(); } catch(e){}
-        }
-    }, 3000);
 }
 
 /* ==============================
@@ -817,7 +834,8 @@ function showToast(msg) {
    ============================== */
 els.btnHelp.onclick = () => { initAudio(); els.modalRules.classList.add('show'); };
 els.btnCloseRules.onclick = () => { initAudio(); els.modalRules.classList.remove('show'); };
-els.btnCloseResult.onclick = () => { initAudio(); els.modalResult.classList.remove('show'); };
+els.btnCloseResult.onclick = () => { initAudio(); hostStartGame(); };
+document.getElementById('btn-exit-result').onclick = () => SDK?.leaveGame?.();
 document.addEventListener('pointerdown', initAudio, {once:true, passive:true});
 
 function announceHello() {
@@ -854,5 +872,6 @@ window.addEventListener('visibilitychange', () => {
 
 })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

@@ -47,7 +47,7 @@ button:disabled{opacity:.4;cursor:default}
   <main id="main" class="screen"></main>
 </div></div>
 
-<script>
+<script type="application/boomroom-game">
 "use strict";
 
 const CONFIG = Object.freeze({
@@ -413,5 +413,6 @@ function render() {
 addPlayer(ME.id, ME.username, ME.avatar);
 render();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

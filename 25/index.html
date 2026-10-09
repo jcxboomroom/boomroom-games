@@ -437,7 +437,7 @@
 
 </div>
 
-<script>
+<script type="application/boomroom-game">
 
   "use strict";
 
@@ -1010,9 +1010,6 @@ window.onBoomRoomSDKReady = function(){
 if (window.BoomRoomSDK) {
   window.onBoomRoomSDKReady();
 }
-
-  };
-
 
   function sendEvent(
     eventName,
@@ -1802,7 +1799,7 @@ if (window.BoomRoomSDK) {
       window.BoomRoomSDK&&
       typeof
       window.BoomRoomSDK
-        .requestPurchase
+        .requestAdmission
       ==="function"
     )){
 
@@ -1830,7 +1827,7 @@ if (window.BoomRoomSDK) {
     try{
 
       window.BoomRoomSDK
-        .requestPurchase(
+        .requestAdmission(
           "circus_fire_hoop_entry",
           GAME_INFO.entryCost
         );
@@ -5308,5 +5305,6 @@ if (window.BoomRoomSDK) {
 
 </script>
 
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

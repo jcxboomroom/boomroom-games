@@ -161,11 +161,15 @@ function sendGameEvent(eventName,payload={}){
 function bindTransport(){
   if(messageBound) return;
   messageBound=true;
+  if(sdk?.onGameEvent){
+    sdk.onGameEvent((name,payload,sender)=>receiveEvent(name,payload||{},String(sender||'')));
+    return;
+  }
   window.addEventListener('message', e=>{
     let data=e.data;
     if(typeof data==='string') data=safeJSON(data);
     if(!data || typeof data!=='object') return;
-    if(data.action==='initSDK' || data.action==='boomroomInit' || data.user || data.roomPlayers || data.roomId){
+    if(data.action==='initSDK' || data.action==='boomroomInit'){
       setupSDK(data);
       return;
     }
@@ -186,6 +190,13 @@ function bindTransport(){
 function receiveEvent(eventName,payload,senderId){
   if(!eventName) return;
   const sender = String(senderId || payload?.userId || '');
+  const session=sdk?.getSession?.();
+  if(session){
+    if(!session.players.some(p=>String(p.userId)===sender)) return;
+    if(['AUTHORITY_ANNOUNCE','ROUND_START','SNAPSHOT','ROUND_RESULT'].includes(eventName) && sender!==String(session.hostId)) return;
+    if(payload.userId && String(payload.userId)!==sender) return;
+    if(eventName==='PLAYER_HELLO' && String(payload.user?.id)!==sender) return;
+  }
   if(sender) touchPlayer(sender);
   if(eventName==='PLAYER_HELLO') onHello(payload,sender);
   else if(eventName==='PLAYER_HEARTBEAT') onHeartbeat(payload,sender);
@@ -220,7 +231,7 @@ function setupSDK(data={}){
   if(players.size===0) players.set(me.id,me);
   initialized=true;
   if(state==='LOADING') state='AUTO_START';
-  $('devBadge').textContent = sdk ? 'SDK 已連線' : '開發測試模式';
+  $('devBadge').textContent = sdk ? '房間對戰' : '單人挑戰';
   $('devBadge').classList.toggle('online',!!sdk);
   updateRosterUI();
   bindTransport();
@@ -232,7 +243,6 @@ function setupSDK(data={}){
 function bootstrap(){
   muted=localStorage.getItem(localStorageKey)==='1';
   updateMuteUI();
-  bindTransport();
   if(window.BoomRoomSDK && typeof window.BoomRoomSDK.getUser==='function'){
     sdk=window.BoomRoomSDK;
     setupSDK({
@@ -303,6 +313,13 @@ function activeIds(){
   return [...players.keys()].filter(id=>lastSeen.get(id)>=cutoff || id===me.id);
 }
 function electAuthority(force=false){
+  const host=sdk?.getSession?.()?.hostId;
+  if(host){
+    authorityId=String(host);
+    authorityHeartbeatAt=Date.now();
+    updateAuthorityUI();
+    return;
+  }
   const active=activeIds();
   if(!active.length) return;
   const old=authorityId;
@@ -363,6 +380,7 @@ function onRoundStart(payload,sender){
   applyRoundStart(payload,false);
 }
 function applyRoundStart(packet,localAuthority){
+  $('resultOverlay').classList.add('hidden');
   roundId=String(packet.roundId);
   roundSeed=Number(packet.seed)>>>0;
   roundStartAt=Number(packet.startAt);
@@ -456,20 +474,7 @@ function onInput(payload,sender){
   applyInput(payload);
 }
 
-function simulationTick(){
-  if(!isAuthority() || state!=='PLAYING') return;
-  const nowMs=Date.now();
-  if(nowMs>=roundEndAt){finishAsAuthority();return;}
-  for(const s of snakes.values()){
-    if(!s.alive){
-      if(s.respawnAt && nowMs>=s.respawnAt) respawnSnake(s);
-      continue;
-    }
-    if(s.isBot) updateBot(s);
-    s.dir=s.nextDir;
-    const step = (s.boostHeld && s.boost>0);
-    if(step) s.boost=Math.max(0,s.boost-GAME.BOOST_COST);
-    else s.boost=Math.min(GAME.BOOST_MAX,s.boost+GAME.BOOST_GAIN*.15);
+function moveSnakeStep(s){
     const d=DIRS[s.dir];
     const head=s.body[0];
     const next={x:wrap(head.x+d.x),y:wrap(head.y+d.y)};
@@ -505,6 +510,8 @@ function simulationTick(){
       else s.body.pop();
     }else s.body.pop();
 
+    if(!s.alive) return false;
+
     // Snake collision: head into any other body.
     const victim=collisionTarget(s,next);
     if(victim){
@@ -514,9 +521,32 @@ function simulationTick(){
       if(s.id===me.id) sfx('hit');
       if(s.hp<=0) eliminateSnake(s,'crash');
       else respawnSnake(s,true);
+      return false;
+    }
+    return true;
+}
+function simulationTick(){
+  if(!isAuthority() || state!=='PLAYING') return;
+  const nowMs=Date.now();
+  if(nowMs>=roundEndAt){finishAsAuthority();return;}
+  for(const s of snakes.values()){
+    if(!s.alive){
+      if(s.respawnAt && nowMs>=s.respawnAt) respawnSnake(s);
+      continue;
+    }
+    if(s.isBot) updateBot(s);
+    s.dir=s.nextDir;
+    const boosting = s.boostHeld && s.boost>=GAME.BOOST_COST;
+    if(boosting) s.boost-=GAME.BOOST_COST;
+    else s.boost=Math.min(GAME.BOOST_MAX,s.boost+GAME.BOOST_GAIN*.15);
+    // Both cells are simulated, so a burst cannot tunnel through food or bodies.
+    for(let step=0;step<(boosting?2:1);step++){
+      if(!moveSnakeStep(s)) break;
     }
   }
-  while(foods.length<GAME.MAX_FOOD) spawnFood();
+  for(let refill=0;refill<GAME.MAX_FOOD&&foods.length<GAME.MAX_FOOD;refill++)spawnFood();
+  const humans=[...snakes.values()].filter(s=>!s.isBot);
+  if(humans.length===1&&!humans[0].alive){finishAsAuthority();return;}
   updateAuthorityFX();
   if(nowMs-lastSnapshotAt>=GAME.SNAPSHOT_MS){
     lastSnapshotAt=nowMs;
@@ -535,6 +565,7 @@ function collisionTarget(s,head){
 }
 function eliminateSnake(s,reason){
   s.alive=false; s.respawnAt=0; s.boostHeld=false;
+  if(s.id===me.id)toast('本局已淘汰；可在結果頁再挑戰',3000);
   spawnFx(s.body[0]?.x||0,s.body[0]?.y||0,'eliminate');
 }
 function respawnSnake(s,instant=false){
@@ -608,8 +639,9 @@ function applySnapshot(p,localAuthority){
 function finishAsAuthority(){
   if(state!=='PLAYING' || !isAuthority()) return;
   state='RESULT';
-  const standings=[...snakes.values()].filter(s=>!s.isBot).sort((a,b)=>b.score-a.score);
-  const result={roundId,standings:standings.map((s,i)=>({id:s.id,score:s.score,hp:s.hp,rank:i+1})),finishedAt:Date.now()};
+  const solo=[...snakes.values()].filter(s=>!s.isBot).length===1;
+  const standings=[...snakes.values()].filter(s=>solo||!s.isBot).sort((a,b)=>b.score-a.score||b.hp-a.hp);
+  const result={roundId,standings:standings.map((s,i)=>({id:s.id,username:s.username,score:s.score,hp:s.hp,rank:i+1})),finishedAt:Date.now()};
   sendGameEvent('ROUND_RESULT',result);
   applyResult(result);
 }
@@ -626,28 +658,42 @@ function applyResult(result){
   const score=mine?.score||0;
   const winner=result.standings?.[0];
   const won=winner?.id===me.id;
+  for(const row of result.standings||[]){
+    const snake=snakes.get(row.id);
+    if(snake){snake.score=row.score;snake.hp=row.hp;}
+  }
+  updateHUD(true);
   $('resultTitle').textContent=won?'🏆 你是蛇王！':`第 ${rank} 名`;
   $('resultSubtitle').textContent=`本局 ${score} 分 · 第一名 ${winner?.score||0} 分`;
-  $('resultReward').textContent=won?'+100 銀幣':(rank<=3?'+30 銀幣':'+0 銀幣');
+  $('resultReward').textContent=`挑戰成績 ${score} 分`;
+  $('resultReplay').disabled=!isAuthority();
+  $('resultReplay').textContent=isAuthority()?'再挑戰一次':'等待房主再開一局';
+  $('resultExit').hidden=!sdk && window.parent===window;
   $('resultOverlay').classList.remove('hidden');
   if(won) sfx('win'); else tone(220,.16,'triangle',.05);
   if(!gameOverCalled){
     gameOverCalled=true;
-    const reward=won?100:(rank<=3?30:0);
+    const reward=0;
     try{
-      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.gameOver==='function') {
-        window.BoomRoomSDK.gameOver(reward, score);
+      if(window.BoomRoomSDK && typeof window.BoomRoomSDK.completeRound==='function') {
+        window.BoomRoomSDK.completeRound(score);
       } else if (window.parent && window.parent !== window) {
         window.parent.postMessage(JSON.stringify({action:'game_over', winAmount:reward, score:score}), '*');
       }
     }catch(_){}
   }
   clearTimeout(resultTimer);
-  resultTimer=setTimeout(returnToRoom,3000);
+}
+function replayRound(){
+  if(state!=='RESULT'||!isAuthority()) return;
+  $('resultOverlay').classList.add('hidden');
+  roundId='';
+  startNewRoundAsAuthority(false);
 }
 function returnToRoom(){
   if(state==='EXIT') return;
   state='EXIT';
+  if(sdk?.leaveGame){sdk.leaveGame();return;}
   try{
     if(window.parent && window.parent!==window){
       window.parent.postMessage(JSON.stringify({action:'leaveGame'}),'*');
@@ -686,16 +732,17 @@ function spawnParticleFromFx(f){
 
 /* ---------------- HUD / UI ---------------- */
 function updateAuthorityUI(){
-  $('authorityBadge').textContent=isAuthority()?'● 本機權威':'● 同步中';
+  $('authorityBadge').textContent=!sdk?'● 單人挑戰':isAuthority()?'● 房主同步':'● 已同步';
   $('authorityBadge').classList.toggle('host',isAuthority());
 }
 function updateRosterUI(){
-  const arr=[...players.values()].slice(0,GAME.MAX_PLAYERS);
+  const humans=[...players.values()].slice(0,GAME.MAX_PLAYERS);
+  const arr=[...humans,...[...snakes.values()].filter(s=>s.isBot).map(s=>({id:s.id,username:s.username}))];
   const sig=arr.map(p=>`${p.id}:${p.username}:${snakes.get(p.id)?.score??''}:${snakes.get(p.id)?.alive?'1':'0'}`).join('|');
   if(sig===lastRosterSignature) return;
   lastRosterSignature=sig;
   const list=$('rosterList'); list.innerHTML='';
-  $('playerCounter').textContent=`${arr.length}/10`;
+  $('playerCounter').textContent=`${humans.length}/10 真人${arr.length>humans.length?` · ${arr.length-humans.length} AI`:''}`;
   arr.forEach((p,idx)=>{
     const ss=snakes.get(p.id);
     const el=document.createElement('div');
@@ -715,7 +762,8 @@ function updateHUD(force=false){
   const remain=Math.max(0,(roundEndAt-Date.now())/1000);
   $('timerValue').textContent=state==='COUNTDOWN'?Math.max(0,Math.ceil((roundStartAt-Date.now())/1000)):Math.ceil(remain);
   $('timerWrap').classList.toggle('danger',remain<=10&&state==='PLAYING');
-  const sorted=[...snakes.values()].filter(x=>!x.isBot).sort((a,b)=>b.score-a.score);
+  const solo=[...snakes.values()].filter(x=>!x.isBot).length===1;
+  const sorted=[...snakes.values()].filter(x=>solo||!x.isBot).sort((a,b)=>b.score-a.score||b.hp-a.hp);
   const idx=sorted.findIndex(x=>x.id===me.id);
   $('rankValue').textContent=`#${idx<0?1:idx+1}`;
   updateRosterUI();
@@ -809,13 +857,13 @@ function draw(){
   // snakes
   const list=[...snakes.values()].filter(s=>s.alive);
   list.forEach(s=>{
-    const color=COLORS[[...players.keys()].indexOf(s.id)%COLORS.length]||'#43e7ff';
+    const color=s.id===me.id?'#75ffc8':(COLORS[[...snakes.keys()].indexOf(s.id)%COLORS.length]||'#ffce68');
     s.body.forEach((b,i)=>{
       const x=ox+b.x*cell+cell*.5,y=oy+b.y*cell+cell*.5;
       const r=i===0?cell*.40:cell*.34*(1-i/(s.body.length*3));
       ctx.save();
       ctx.shadowBlur=0;
-      ctx.fillStyle=i===0?'#ffffff':color;
+      ctx.fillStyle=color;
       roundRect(ctx,x-r,y-r,r*2,r*2,Math.max(3,r*.55));ctx.fill();
       if(i===0){
         ctx.fillStyle='#101428';
@@ -830,6 +878,7 @@ function draw(){
     const head=s.body[0];
     if(head){
       const x=ox+(head.x+.5)*cell,y=oy+(head.y-.22)*cell;
+      if(s.id===me.id){ctx.fillStyle='#fff';ctx.font='800 12px system-ui';ctx.textAlign='center';ctx.fillText('你',x,y<16?y+cell*1.7:y-4);}
       for(let i=0;i<GAME.START_HP;i++){
         ctx.fillStyle=i<s.hp?'#ff5b83':'rgba(255,255,255,.14)';
         roundRect(ctx,x-cell*.35+i*cell*.24,y-cell*.06,cell*.18,cell*.07,3);ctx.fill();
@@ -858,7 +907,7 @@ function draw(){
   if(state==='PLAYING' && !snakes.get(me.id)?.alive){
     ctx.fillStyle='rgba(5,7,15,.62)';ctx.fillRect(0,0,w,h);
     ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='900 24px system-ui';ctx.fillText('爆掉了！',w/2,h*.44);
-    ctx.font='700 14px system-ui';ctx.fillStyle='#b9bfd8';ctx.fillText('下一個重生點很快出現',w/2,h*.51);
+    ctx.font='700 14px system-ui';ctx.fillStyle='#b9bfd8';ctx.fillText('已淘汰 · 正在觀看其他玩家',w/2,h*.51);
   }
   if(localNoticeUntil>performance.now()){
     ctx.fillStyle='rgba(5,7,15,.75)';
@@ -954,6 +1003,8 @@ function startTimers(){
 $('helpBtn').addEventListener('click',showHelp);
 $('helpClose').addEventListener('click',hideHelp);
 bindControls();
+$('resultReplay').addEventListener('click',replayRound);
+$('resultExit').addEventListener('click',returnToRoom);
 window.addEventListener('resize',resizeCanvas);
 if(window.ResizeObserver){const canvasRO=new ResizeObserver(()=>resizeCanvas());canvasRO.observe(canvas);}
 window.addEventListener('pagehide',()=>sendGameEvent('PLAYER_LEAVE',{userId:me.id,roundId}));

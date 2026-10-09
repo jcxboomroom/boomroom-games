@@ -292,17 +292,24 @@ function setupSDK(data = {}) {
       const index = playerList().length;
       const bot = normalizePlayer({ id: `mock-bot-${index}`, username: ["Clucky", "豆豆", "阿毛", "小麥", "Pip", "蛋黃", "啾啾", "栗子", "花生"][index % 9] }, index);
       bot.bot = true;
+      bot.name=`🤖 ${bot.name} AI`;
       players.set(bot.id, bot);
     }
     for (const player of playerList()) player.bot = player.id !== localId;
   } else {
-    for (const player of playerList()) player.bot = false;
+    for(const player of playerList()){
+      if(player.id.startsWith('cpu-')){
+        player.bot=true;
+        if(desiredCount>1){players.delete(player.id);}
+      }else player.bot=false;
+    }
     if (desiredCount === 1 && isHost) {
       for (let i = 0; i < 3; i++) {
         const id = `cpu-${roomId}-${i}`;
         if (!players.has(id)) {
           const bot = normalizePlayer({ id, username: ["小麥", "Pip", "豆豆"][i] }, playerList().length);
           bot.bot = true;
+          bot.name=`🤖 ${bot.name} AI`;
           players.set(id, bot);
         }
       }
@@ -342,6 +349,7 @@ function arrangePlayers() {
 
 function beginAutomaticRound() {
   if (GAME_STATE !== "LOADING") return;
+  if(!mockMode&&!isHost){sendEvent('PLAYER_READY',{userId:localId});return;}
   GAME_STATE = "COUNTDOWN";
   roundStartAt = Date.now() + 3500;
   roundEndAt = roundStartAt + DURATION * 1000;
@@ -349,7 +357,9 @@ function beginAutomaticRound() {
 }
 
 function startCountdown(startAt = Date.now() + 3500) {
-  if (GAME_STATE === "PLAYING" || GAME_STATE === "RESULT" || GAME_STATE === "EXIT") return;
+  if(startAt===roundStartAt)return;
+  if(GAME_STATE==='RESULT')resetRoundForReplay();
+  if (GAME_STATE === "PLAYING" || GAME_STATE === "EXIT") return;
   GAME_STATE = "COUNTDOWN";
   roundStartAt = startAt;
   roundEndAt = roundStartAt + DURATION * 1000;
@@ -357,7 +367,9 @@ function startCountdown(startAt = Date.now() + 3500) {
 
 function handleGameEvent(eventName, payload = {}, senderId = "") {
   const data = payload && typeof payload === "object" ? payload : {};
-  if (eventName === "ROUND_START") {
+  if(eventName==='PLAYER_READY'){
+    if(isHost&&['COUNTDOWN','PLAYING'].includes(GAME_STATE))sendEvent('ROUND_START',{roomId,startAt:roundStartAt,duration:DURATION});
+  }else if (eventName === "ROUND_START") {
     if (!isHost || GAME_STATE === "LOADING") startCountdown(Number(data.startAt) || Date.now() + 2500);
   } else if (eventName === "PLAYER_STATE") {
     const id = String(data.userId || senderId || "");
@@ -506,9 +518,10 @@ window.onBoomRoomSDKReady = function () {
 };
 
 window.addEventListener("message", (event) => {
+  if(sdk?.onGameEvent)return;
   const data = safeParse(event.data);
   if (!data || typeof data !== "object") return;
-  if (data.action === "initSDK" || data.user || data.roomPlayers || data.roomId) setupSDK(data);
+  if (data.action === "initSDK") setupSDK(data);
   else if (data.action === "gameEventReceived" || data.eventName || data.name) {
     const eventName = data.eventName || data.name;
     const payload = data.payload || {};
@@ -517,10 +530,22 @@ window.addEventListener("message", (event) => {
   }
 });
 window.addEventListener("gameEventReceived", (event) => {
+  if(sdk?.onGameEvent)return;
   const data = event.detail || {};
   handleGameEvent(data.eventName || data.name, data.payload || {}, data.userId || data.senderId || "");
 });
 
+if(sdk?.onGameEvent){
+  const controls=new Set(['ROUND_START','CHICKEN_STATE','CHICKEN_FRENZY','CORN_STATE','PLAYER_POWERUP','PLAYER_SCORED','CHICKEN_STOLEN','GAME_RESULT']);
+  sdk.onGameEvent((eventName,payload,senderId)=>{
+    const session=sdk.getSession(),sender=String(senderId||'');
+    if(!session?.players.some(p=>String(p.userId)===sender))return;
+    if(controls.has(eventName)&&sender!==String(session.hostId))return;
+    if(['PLAYER_STATE','PLAYER_DASH','PLAYER_LEFT','PLAYER_READY'].includes(eventName)&&String(payload?.userId)!==sender)return;
+    if(payload?.userId&&String(payload.userId)!==sender&&sender!==String(session.hostId))return;
+    handleGameEvent(eventName,payload,sender);
+  });
+}
 if (window.BoomRoomSDK) window.onBoomRoomSDKReady();
 else setupSDK({});
 
@@ -1111,23 +1136,35 @@ function applyResult(winnerId, scores = null) {
   if (!gameOverCalled) {
     gameOverCalled = true;
     if (sdk && typeof sdk.gameOver === "function") {
-      try { sdk.gameOver(localWon ? 1 : 0); } catch (_) {}
+      try { sdk.completeRound?.(mine?.score||0); } catch (_) {}
     } else {
       mockSDK.gameOver(localWon ? 1 : 0);
     }
   }
-  window.setTimeout(returnToRoom, 3000);
+  $('#chickenReplay').disabled=!isHost;
+  $('#chickenReplay').textContent=isHost?'再挑戰一次':'等待房主再開一局';
 }
+
+function resetRoundForReplay(){
+  resultEl.classList.remove('show');GAME_STATE='LOADING';gameOverCalled=false;returning=false;stopReason='';matchWinnerId=null;
+  keys.clear();joyVector={x:0,y:0};particles.length=0;floatingTexts.length=0;
+  for(const p of playerList()){p.score=0;p.x=0;p.y=0;p.stunnedUntil=0;p.powerUntil=0;p.carrying=false;}
+  chicken.holderId=null;chicken.x=500;chicken.y=STAGE.y+STAGE.h*.5;chicken.vx=0;chicken.vy=0;chicken.frenzyUntil=0;chicken.nextFrenzyAt=0;
+  corn.active=false;corn.nextSpawnAt=0;arrangePlayers();updateStandings();
+}
+$('#chickenReplay').addEventListener('click',()=>{if(GAME_STATE==='RESULT'&&isHost){resetRoundForReplay();beginAutomaticRound();}});
+$('#chickenExit').addEventListener('click',returnToRoom);
 
 function returnToRoom() {
   if (returning) return;
   returning = true;
   GAME_STATE = "EXIT";
   if (musicTimer) window.clearInterval(musicTimer);
+  if(sdk?.leaveGame){sdk.leaveGame();return;}
   if (window.parent && window.parent !== window) {
     window.parent.postMessage({ action: "leaveGame" }, "*");
   } else {
-    window.location.href = "../room.html";
+    resultEl.classList.add('show');
   }
 }
 

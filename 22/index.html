@@ -102,7 +102,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 <body>
 <div id="app"><div class="shell"><main id="main"></main></div></div>
 
-<script>
+<script type="application/boomroom-game">
 "use strict";
 
 /* =========================================================
@@ -410,7 +410,6 @@ function scheduleAutoStart(){
     if(isHost()) startRound();
     else {
       renderLoading("等待房間同步…");
-      setTimeout(()=>{ if(GAME_STATE==="LOADING") startRound(); },1600);
     }
   },500);
 }
@@ -1986,5 +1985,6 @@ function boot(){
 }
 boot();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

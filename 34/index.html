@@ -37,10 +37,14 @@
         <h1 id="resultTitle">雞王誕生！</h1>
         <div class="podium" id="podium"></div>
         <p class="result-note" id="resultNote"></p>
+        <p>本局挑戰成績不發放銀幣</p>
+        <button id="chickenReplay" class="chicken-action" type="button">再挑戰一次</button>
+        <button id="chickenExit" class="chicken-action secondary" type="button">返回房間</button>
         <div class="return-track"><span></span></div>
       </div>
     </section>
   </main>
-  <script type="module" src="game.js"></script>
+  <script type="application/boomroom-game" data-boomroom-type="module" data-boomroom-src="game.js"></script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>

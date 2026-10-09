@@ -218,7 +218,7 @@
     </div>
 </div>
 
-<script>
+<script type="application/boomroom-game">
     (()=>{
     'use strict';
 
@@ -661,7 +661,7 @@
       }
       try{
         const sdk=getSDK();
-        if(sdk && typeof sdk.requestPurchase==='function')sdk.requestPurchase('neon_redlight',cfg.entryFee);
+        if(sdk && typeof sdk.requestAdmission==='function')sdk.requestAdmission('neon_redlight',cfg.entryFee);
         else window.onPurchaseSuccess?.('neon_redlight');
       }catch(_){
         purchasePending=false;renderHUD();showToast('入場請求失敗');
@@ -1531,5 +1531,6 @@
 
     })();
 </script>
+<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
 </body>
 </html>
