@@ -1,18 +1,18 @@
-/* BoomRoom SDK v2 / additive API revision 3.
+/* BoomRoom SDK v2 / additive API revision 4.
  * No local players, purchases or rewards are fabricated.
  * Games must wait for onBoomRoomSDKReady/onSessionStart before playing.
  * This SDK transports intents; only the authenticated server can award coins.
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 3) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 4) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR']);
   const hooks = new Map(), pendingPurchases = new Map();
-  let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0;
+  let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0, lastHapticAt = -Infinity;
   const monotonic = () => root.performance ? root.performance.now() : Date.now();
   const copy = value => value == null ? value : JSON.parse(JSON.stringify(value));
   function httpOrigin(value) {
@@ -134,6 +134,7 @@
         else if (action === 'requestPurchase') previous.requestPurchase(fields.itemId, fields.cost);
         else if (action === 'requestAdmission') previous.requestAdmission(fields.itemId);
         else if (action === 'gameOver') previous.gameOver(fields.winAmount, fields.score, fields.poolSettlement);
+        else if (action === 'haptic') previous.haptic(fields.style);
         else return failure('TRANSPORT_UNAVAILABLE');
       } else if (root.parent !== root && parentOrigin) {
         if (action === 'gameOver') packet.action = 'game_over';
@@ -204,7 +205,7 @@
   }
   const sdk = {
     version: 2,
-    apiRevision: 3,
+    apiRevision: 4,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
@@ -220,12 +221,13 @@
       sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
     getCapabilities: () => ({
       protocolVersion: 2,
-      apiRevision: 3,
+      apiRevision: 4,
       readiness: true,
       sessionSnapshots: true,
       roomRoster: true,
       gameEventRelay: true,
       versionedCommands: true,
+      hapticRequests: true,
       verifiedScoring: false,
       serverAuthoritativeRules: false,
     }),
@@ -296,6 +298,20 @@
     completeRound(score = 0) {
       if(!Number.isFinite(score)||score<0)return failure('SCORE_INVALID');
       return send('roundComplete',{score});
+    },
+    haptic(style = 'light') {
+      if (!['selection','light','medium','heavy'].includes(style)) return failure('HAPTIC_INVALID');
+      if (!data || closed || data.session.status !== 'PLAYING') return false;
+      const time = monotonic();
+      if (time - lastHapticAt < 50) return false;
+      lastHapticAt = time;
+      // Browser vibration is best effort; native WebViews use the APP bridge
+      // so iOS can use UIKit feedback even without navigator.vibrate.
+      if (!native && typeof root.navigator?.vibrate === 'function') {
+        try { if (root.navigator.vibrate({selection:8,light:12,medium:25,heavy:[35,25,35]}[style])) return true; }
+        catch (_) {}
+      }
+      return send('haptic',{style});
     },
     leaveGame() { return send('leaveGame',{}); },
     onGameEvent: callback => subscribe('gameEvent', callback),

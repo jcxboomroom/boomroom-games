@@ -1,5 +1,7 @@
 # BoomRoom SDK v2
 
+目前 additive API revision 為 4；第36款 Tetris Battle 直接使用共用 SDK 的正式握手、房間事件、Session 生命週期、completeRound 與 leaveGame。新增 `haptic('selection'|'light'|'medium'|'heavy')`：優先使用瀏覽器震動，原生 WebView 交由新版 APP 的 Flutter HapticFeedback；每50ms最多一次，實機能力不由返回值保證。傳輸版本仍為2，既有遊戲 API 相容。
+
 完整 API、同步/權限模型與接入範例見 [`SDK_API.md`](SDK_API.md)。未來逐款遊戲檢查與修正時可使用遊戲倉庫根目錄的 [`CODEX_遊戲檢查與修正提示.md`](../CODEX_遊戲檢查與修正提示.md)。
 
 共用程式位於 `boomroom-sdk.js`。目前五子棋（30）已載入；其他遊戲仍待逐一遷移。Flutter 原有橋接保留相容入口，並支援 v2 初始化與事件生命週期。這不代表所有遊戲或所有裝置已驗收。

@@ -1,13 +1,13 @@
 # BoomRoom HTML5 Game SDK API
 
-This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 3`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
+This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 4`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
 
 ## Load and wait for the real room session
 
 Load the shared SDK before the game code. Do not construct an online player, room, opponent, purchase receipt, or reward while the host session is still loading.
 
 ```html
-<script src="../shared/boomroom-sdk.js?v=3"></script>
+<script src="../shared/boomroom-sdk.js?v=4"></script>
 <script src="./game.js" defer></script>
 ```
 
@@ -36,7 +36,7 @@ try {
 
 | API | Contract |
 | --- | --- |
-| `version`, `apiRevision` | `2` transport and additive API revision `3`. |
+| `version`, `apiRevision` | `2` transport and additive API revision `4`. |
 | `isReady`, `status`, `getStatus()` | Session-handshake and lifecycle state. States are `WAITING_FOR_SESSION`, `PLAYING`, `ENDED`, `ABORTED`, and `DISPOSED`. This is not a network-connectivity indicator. |
 | `roomId`, `sessionId`, `gameSessionId`, `isHost` | Values from the authenticated host initialization. `sessionId` and `gameSessionId` are aliases. |
 | `getUser()`, `getRoomPlayers()`, `roomPlayers` | Defensive copies of the signed-in game user and current room roster. No placeholder players are created. |
@@ -57,6 +57,7 @@ try {
 | `requestPurchase(itemId, cost)` | Legacy purchase request. `cost` is a request hint only; the server must price from its own catalog and return a correlated receipt. |
 | `onPurchaseSuccess(fn)`, `onPurchaseFailed(fn)` | Observe only a matching response for a pending request ID. A timeout is failure, never success. The APP must implement the v2 response bridge. |
 | `completeRound(score)` | Reports a replayable round intent without ending the room session or claiming a reward. |
+| `haptic(style = 'light')` | Best-effort local feedback: `selection`, `light`, `medium`, `heavy`. Requires a live session; requests are limited to one per 50 ms. Uses browser vibration where available, otherwise sends a session-bound request to the updated APP's Flutter `HapticFeedback` bridge for Android/iOS. `true` means accepted locally, not that hardware vibrated. Older APP hosts ignore this additive request. |
 | `gameOver(...)`, `leaveGame()` | Legacy game-over intent and explicit exit request. Neither grants rewards. |
 | `submitScore()`, `requestSettlement()` | Explicitly unsupported until a trusted scoring/settlement protocol is implemented; return `false` and emit an error. |
 | `onError(fn)`, `dispose()` | Observe local SDK/transport errors and release subscriptions/timers. `pagehide` also disposes non-persisted pages. |
@@ -95,7 +96,7 @@ An APP host event such as `GOMOKU_STATE` or the seat-private `BLUFF_PRIVATE` may
 
 ## Compatibility and current limits
 
-- Keep `version === 2` for the existing APP transport. `apiRevision === 3` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
+- Keep `version === 2` for the existing APP transport. `apiRevision === 4` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
 - Web messages are scoped to the parent frame and verified HTTP(S) origin. Native WebViews use the APP's current bridge. These checks protect the bridge boundary but are not a complete sandbox for untrusted HTML.
 - The SDK has no `connected`/`reconnecting` signal because the current host contract does not forward a generic socket lifecycle event to HTML. `status` only describes session lifecycle.
 - Generic relay events do not create canonical game snapshots. Only host-forwarded, explicitly recognized reserved events update the session today.

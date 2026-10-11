@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <title>Tetris Battle · BoomRoom</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Tetris Battle"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>TETRIS <b>BATTLE</b><small>BOOMROOM · 36</small></span></a>
+      <div class="session-tag" id="sessionTag">單人練習</div>
+      <nav class="toolbar" aria-label="遊戲設定">
+        <button id="soundBtn" class="tool" aria-label="音效" aria-pressed="true" title="音效">♪<span>音效</span></button>
+        <button id="musicBtn" class="tool" aria-label="音樂" aria-pressed="true" title="音樂">♫<span>音樂</span></button>
+        <button id="hapticBtn" class="tool" aria-label="震動" aria-pressed="true" title="震動">⌁<span>震動</span></button>
+        <button id="helpBtn" class="tool" aria-label="操作說明" title="操作說明">?<span>說明</span></button>
+        <button id="pauseBtn" class="tool" aria-label="暫停" title="暫停" disabled>Ⅱ<span>暫停</span></button>
+        <button id="exitBtn" class="tool" aria-label="返回房間或選單" title="返回">↗<span>返回</span></button>
+      </nav>
+    </header>
+
+    <section class="arena" aria-label="方塊競技場">
+      <aside class="left-rail">
+        <section class="tile hold-tile"><h2>HOLD <small>保留 <kbd>C</kbd></small></h2><canvas id="holdCanvas" width="120" height="82" aria-label="保留方塊"></canvas></section>
+        <section class="tile score-tile"><h2>SCORE <small>分數</small></h2><strong id="score">0</strong><div class="stat-pair"><span>消行</span><b id="lines">0 / 150</b></div><div class="stat-pair"><span>等級</span><b id="level">01</b></div><div class="stat-pair"><span>時間</span><b id="elapsed">00:00</b></div><div class="stat-pair"><span>送出攻擊</span><b id="attack">0</b></div></section>
+        <section class="tile strategy"><span class="spark">✦</span><p id="strategy">四行一起消除，<br>打出 TETRIS！</p><small>消行 · 連擊 · 完美清空</small></section>
+      </aside>
+
+      <section class="board-area">
+        <div class="board-caption"><span><i class="status-dot"></i><b id="playerName">你的棋盤</b></span><span id="modeLabel">MARATHON</span></div>
+        <div class="board-wrap" id="boardWrap">
+          <div class="garbage-meter" id="garbageMeter" aria-label="待接收垃圾行"><span id="garbageFill"></span><b id="garbageCount">0</b></div>
+          <canvas id="board" width="300" height="600" aria-label="10 欄 20 行方塊棋盤"></canvas>
+          <div class="board-overlay" id="boardOverlay" hidden><strong id="overlayTitle"></strong><p id="overlayNote"></p><button id="resumeBtn" class="primary" hidden>繼續遊戲</button><button id="reconnectBtn" class="primary" hidden>重試同步</button></div>
+          <div class="clear-feedback" id="clearFeedback" aria-live="polite"></div>
+        </div>
+        <div class="board-footer"><span id="roundLabel">7-BAG · SRS</span><span id="liveStatus">準備好就開始</span></div>
+      </section>
+
+      <aside class="right-rail">
+        <section class="tile next-tile"><h2>NEXT <small>下一個</small></h2><canvas id="nextCanvas" width="120" height="260" aria-label="接下來五個方塊"></canvas></section>
+        <section class="tile rivals-tile" id="rivalsTile"><h2>RIVALS <small id="aliveCount">對手</small></h2><p id="targetHint">消行送垃圾，最後存活者勝出</p><div id="rivals" class="rivals"></div></section>
+      </aside>
+    </section>
+
+    <section class="controls" aria-label="觸控操作">
+      <div class="direction-pad"><button data-action="left" aria-label="向左移動">◀<small>左移</small></button><button data-action="soft" aria-label="加速下降">▼<small>下降</small></button><button data-action="right" aria-label="向右移動">▶<small>右移</small></button></div>
+      <div class="action-pad"><button data-action="hold" class="hold-control" aria-label="保留方塊">⇄<small>保留</small></button><button data-action="ccw" aria-label="逆時針旋轉">↶<small>左轉</small></button><button data-action="cw" class="rotate-control" aria-label="順時針旋轉">↻<small>右轉</small></button><button data-action="hard" class="drop-control" aria-label="立即落下">⤓<small>落下</small></button></div>
+    </section>
+    <p class="keyboard-hint">← → 移動 <span>↓ 下降</span><span>↑ / X 右轉</span><span>Z 左轉</span><span>C 保留</span><span>SPACE 落下</span></p>
+
+    <section class="modal-backdrop" id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+      <div class="menu-card">
+        <div class="hero-blocks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <p class="eyebrow" id="menuEyebrow">STACK. CLEAR. BATTLE.</p>
+        <h1 id="menuTitle">每一塊，都能翻盤。</h1>
+        <p class="menu-intro" id="menuIntro">堆疊你的節奏，消除你的極限。</p>
+        <div class="mode-options" id="modeOptions">
+          <button class="mode-card selected" data-mode="marathon" aria-pressed="true"><span>01 · MARATHON</span><b>馬拉松</b><small>150 行挑戰 · 速度漸進</small></button>
+          <button class="mode-card" data-mode="sprint" aria-pressed="false"><span>02 · SPRINT</span><b>40 行衝刺</b><small>快一點，再快一點</small></button>
+        </div>
+        <div class="lobby-players" id="lobbyPlayers" hidden></div>
+        <div class="mini-rules" id="miniRules"><span>⇄ 保留關鍵方塊</span><span>⤓ 空白鍵立即落下</span><span>✦ 透明輪廓是落點</span></div>
+        <button class="primary start-button" id="startBtn">開始挑戰 <span>→</span></button>
+        <button class="secondary" id="syncBtn" hidden>重試同步</button>
+        <p class="menu-note" id="menuNote">本機挑戰 · 成績只儲存在此裝置</p>
+      </div>
+    </section>
+
+    <section class="modal-backdrop" id="result" role="dialog" aria-modal="true" aria-labelledby="resultTitle" hidden>
+      <div class="menu-card result-card"><p class="eyebrow" id="resultEyebrow">ROUND COMPLETE</p><div class="result-mark" id="resultMark">✦</div><h1 id="resultTitle">本局完成</h1><p id="resultIntro"></p><div id="resultStats" class="result-stats"></div><div id="rankings" class="rankings"></div><p id="bestResult" class="best-result"></p><button id="replayBtn" class="primary">再挑戰一次 →</button><button id="resultExit" class="secondary">返回選單</button><p class="menu-note">本局挑戰成績不發放銀幣</p></div>
+    </section>
+
+    <section class="modal-backdrop" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+      <div class="menu-card help-card"><p class="eyebrow">HOW TO PLAY</p><h1 id="helpTitle">把空隙，變成機會。</h1><p>排滿一整行就會消除。堆到頂部即淘汰。每七塊包含七種不同方塊，可保留一塊，落地後才可再換。</p><dl><dt>移動 / 加速下降</dt><dd>← → / ↓ 或畫面方向按鈕</dd><dt>旋轉 / 立即落下</dt><dd>↑ 或 X 右轉 · Z 左轉 · 空白鍵落下</dd><dt>保留 / 暫停</dt><dd>C 或 Shift 保留 · P 暫停（單人）</dd><dt>多人攻擊</dt><dd>雙行送 1、三行送 2、四行送 4；T-spin、連擊、連續特殊消行與全清追加攻擊。先抵消待收垃圾，再送到選定對手。</dd><dt>勝負與離線</dt><dd>最後存活者勝出。3 分鐘到時依存活、攻擊、分數、消行排序；淘汰者依存活時間排序。25 秒無回應視為離線淘汰。多人無法暫停。</dd><dt>觸控</dt><dd>可使用下方按鈕，也可輕點棋盤旋轉、左右滑動、向下長滑立即落下。</dd></dl><p class="help-note">房間娛樂對戰由房主協調；不提供可信排行或銀幣獎勵。震動依裝置支援程度生效。</p><button id="closeHelp" class="primary">知道了，來玩！</button></div>
+    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="../shared/boomroom-sdk.js?v=4" defer></script>
+  <script src="engine.js?v=1" defer></script>
+  <script src="room.js?v=1" defer></script>
+  <script src="game.js?v=1" defer></script>
+</body>
+</html>
