@@ -1,6 +1,8 @@
 # BoomRoom SDK v2
 
-目前 additive API revision 為 4；第36款 Tetris Battle 直接使用共用 SDK 的正式握手、房間事件、Session 生命週期、completeRound 與 leaveGame。新增 `haptic('selection'|'light'|'medium'|'heavy')`：優先使用瀏覽器震動，原生 WebView 交由新版 APP 的 Flutter HapticFeedback；每50ms最多一次，實機能力不由返回值保證。傳輸版本仍為2，既有遊戲 API 相容。
+> **所有遊戲開發／修正的第一份產品必讀文件：[`WAGERING_RULES.md`](WAGERING_RULES.md)。** 即使遊戲不支援加碼也必須先讀，並在設計方案標示「不支援加碼」。其中規定 100 銀幣固定入場費與額外加碼分開、自願投票與全員確認、動態金額上限、伺服器原子扣款、依排名規則分池，以及 AI 僅能用於零加碼練習。完整 SDK 合約見 [`SDK_API.md`](SDK_API.md)；SDK 本身目前沒有通用下注／結算 API。
+
+目前 additive API revision 為 5；第36款 Tetris Battle 直接使用共用 SDK 的正式握手、房間事件、Session 生命週期、completeRound 與 leaveGame。新增 `haptic('selection'|'light'|'medium'|'heavy')`：優先使用瀏覽器震動，原生 WebView 交由新版 APP 的 Flutter HapticFeedback；每50ms最多一次，實機能力不由返回值保證。傳輸版本仍為2，既有遊戲 API 相容。
 
 完整 API、同步/權限模型與接入範例見 [`SDK_API.md`](SDK_API.md)。未來逐款遊戲檢查與修正時可使用遊戲倉庫根目錄的 [`CODEX_遊戲檢查與修正提示.md`](../CODEX_遊戲檢查與修正提示.md)。
 
@@ -56,3 +58,8 @@ GOMOKU_STATE與GOMOKU_ERROR為伺服器保留事件。畫面只採用SYSTEM來�
 支援54／108張含大小王牌組、最多10位真人與AI、依序回應及全員先質疑模式。AI和真人呼叫同一規則狀態機。行動逾時由服務端推進；不可信客戶端 `gameOver` 不參與勝負或獎勵。若遊戲已有完整勝負結果，玩家按 `leaveGame()` 退出自己的遊戲頁，房主可選擇結束全房 Session 或開啟新局。
 
 SDK13項與五子棋6項受控來源回歸共19項通過。後端另有規則、實際PostgreSQL及三Socket操作／自然勝負／返回／再玩案例；仍需真實APP棋盤操作、斷線恢復與原生裝置驗收。
+
+
+## Tetris Battle 權威擴充（revision 5）
+
+第 36 款可加碼，依 WAGERING_RULES 與其 README 完成伺服器投票、全員確認、錢包原子交易及排名分池。TETRIS_PRIVATE 僅由 SYSTEM 送至本人座位，包含同一 Session 的個人棋盤、ack、本人餘額、投票與派彩收據；SDK 會核對本人 userId 及非倒退版本。TETRIS_PRIVATE／TETRIS_ERROR／TETRIS_STATE／TETRIS_QUEUED 均為保留事件。TETRIS_COMMAND 的操作意圖由後端專屬引擎驗證；通用 SDK 的 verifiedScoring／serverAuthoritativeRules 能力仍為 false，不能將此特定遊戲的權威能力套用到其他 UGC。新版後端與 APP 必須先就緒，才可發布第 36 款加碼入口。

@@ -1,15 +1,15 @@
 {
   "name": "Tetris Battle：爆爆方塊攻防",
   "category": "競技對戰",
-  "description": "經典方塊，全新攻防！單人挑戰150行馬拉松或40行衝刺，2–10人同場消行送垃圾、連擊抵消，最後存活者勝出。支援保留方塊、落點預覽、鍵盤與觸控、音效及裝置震動。",
+  "description": "單人150行馬拉松、40行衝刺，自選1–9級AI練習，2–10人消行攻防與手動攻擊目標。真人可拖動或輸入加碼提案，全員確認、伺服器驗證錢包與排名，獎池按名次分配。支援音效、音樂、震動、鍵盤與觸控。",
   "developerUsername": "ZNYA",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minPlayers": 1,
   "maxPlayers": 10,
   "soloMode": "marathon / sprint40",
   "multiplayerMode": "battle",
-  "authority": "relay",
+  "authority": "server",
   "inputs": ["keyboard", "touch", "pointer"],
-  "coverUrl": "cover.png",
+  "coverUrl": "cover.jpg",
   "status": "TESTING"
 }

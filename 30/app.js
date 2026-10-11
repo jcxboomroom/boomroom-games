@@ -178,7 +178,10 @@ function applyServerState(packet) {
       ? `🏆 ${winner.username} 奪得三勝總冠軍！` : `🎉 本局由 ${winner.username} 獲勝！`;
     ui.resultSubtitle.textContent = `伺服器比分：${playerBlack.username} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite.username}`;
     if (state.phase === 'MATCH_RESULT') ui.resultReward.textContent = packet.resultVerified
-      ? '結果已由伺服器驗證 · 本遊戲尚未設定銀幣獎勵' : '結果等待伺服器驗證';
+      ? (packet.session?.results?.rankingScore != null
+          ? `伺服器驗證結算 · ${String(state.aiDifficulty).toUpperCase()} 難度 · 排行分數 ${packet.session.results.rankingScore}（非銀幣獎勵）`
+          : '結果已由伺服器驗證 · 本遊戲尚未設定銀幣獎勵')
+      : '結果等待伺服器驗證';
     ui.resultOverlay.classList.remove('hidden');
   }
   const pending = state.pending;

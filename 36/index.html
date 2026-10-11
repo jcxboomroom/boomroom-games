@@ -7,6 +7,7 @@
   <title>Tetris Battle · BoomRoom</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="settings.css?v=1">
 </head>
 <body>
   <main class="app">
@@ -62,27 +63,34 @@
         <div class="mode-options" id="modeOptions">
           <button class="mode-card selected" data-mode="marathon" aria-pressed="true"><span>01 · MARATHON</span><b>馬拉松</b><small>150 行挑戰 · 速度漸進</small></button>
           <button class="mode-card" data-mode="sprint" aria-pressed="false"><span>02 · SPRINT</span><b>40 行衝刺</b><small>快一點，再快一點</small></button>
+          <button class="mode-card" data-mode="ai" aria-pressed="false"><span>03 · AI BATTLE</span><b>AI 攻防</b><small>1–9 級 · 自選對手</small></button>
         </div>
         <div class="lobby-players" id="lobbyPlayers" hidden></div>
+        <section id="aiSettings" class="match-settings" hidden aria-label="AI 練習設定"><div class="setting-heading"><b>AI 練習</b><label>數量 <select id="aiCount" aria-label="AI 數量"></select></label></div><div id="aiLevels" class="ai-levels"></div><p class="menu-note">每位 AI 可選 1–9 級。AI 局不加碼，真人加 AI 最多 10 位。</p></section>
+        <section id="wagerSettings" class="match-settings" hidden aria-label="加碼投票"><div class="setting-heading"><b>本局加碼</b><span id="stakeLabel">0 銀幣</span></div><label class="stake-input">你的提案 <input id="stakeAmount" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="加碼提案金額"> 銀幣</label><input id="stakeRange" type="range" min="0" max="0" step="1" value="0" aria-label="拖動加碼金額"><button id="voteBtn" class="secondary">送出我的提案</button><p id="stakeLimit" class="menu-note"></p><p id="stakeRules" class="menu-note">多數票決定，同票取低；全員確認才扣款；60 秒未開局需重新確認。2 人冠軍全拿，3 人以上 70%／20%／10%，同名次平分。</p></section>
         <div class="mini-rules" id="miniRules"><span>⇄ 保留關鍵方塊</span><span>⤓ 空白鍵立即落下</span><span>✦ 透明輪廓是落點</span></div>
         <button class="primary start-button" id="startBtn">開始挑戰 <span>→</span></button>
         <button class="secondary" id="syncBtn" hidden>重試同步</button>
+        <button class="secondary" id="soloBtn" hidden>單人馬拉松／衝刺</button>
         <p class="menu-note" id="menuNote">本機挑戰 · 成績只儲存在此裝置</p>
       </div>
     </section>
 
     <section class="modal-backdrop" id="result" role="dialog" aria-modal="true" aria-labelledby="resultTitle" hidden>
-      <div class="menu-card result-card"><p class="eyebrow" id="resultEyebrow">ROUND COMPLETE</p><div class="result-mark" id="resultMark">✦</div><h1 id="resultTitle">本局完成</h1><p id="resultIntro"></p><div id="resultStats" class="result-stats"></div><div id="rankings" class="rankings"></div><p id="bestResult" class="best-result"></p><button id="replayBtn" class="primary">再挑戰一次 →</button><button id="resultExit" class="secondary">返回選單</button><p class="menu-note">本局挑戰成績不發放銀幣</p></div>
+      <div class="menu-card result-card"><p class="eyebrow" id="resultEyebrow">ROUND COMPLETE</p><div class="result-mark" id="resultMark">✦</div><h1 id="resultTitle">本局完成</h1><p id="resultIntro"></p><div id="resultStats" class="result-stats"></div><div id="rankings" class="rankings"></div><p id="bestResult" class="best-result"></p><button id="replayBtn" class="primary">再挑戰一次 →</button><button id="resultExit" class="secondary">返回選單</button><p id="resultNote" class="menu-note">本局挑戰成績不發放銀幣</p></div>
     </section>
 
     <section class="modal-backdrop" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
-      <div class="menu-card help-card"><p class="eyebrow">HOW TO PLAY</p><h1 id="helpTitle">把空隙，變成機會。</h1><p>排滿一整行就會消除。堆到頂部即淘汰。每七塊包含七種不同方塊，可保留一塊，落地後才可再換。</p><dl><dt>移動 / 加速下降</dt><dd>← → / ↓ 或畫面方向按鈕</dd><dt>旋轉 / 立即落下</dt><dd>↑ 或 X 右轉 · Z 左轉 · 空白鍵落下</dd><dt>保留 / 暫停</dt><dd>C 或 Shift 保留 · P 暫停（單人）</dd><dt>多人攻擊</dt><dd>雙行送 1、三行送 2、四行送 4；T-spin、連擊、連續特殊消行與全清追加攻擊。先抵消待收垃圾，再送到選定對手。</dd><dt>勝負與離線</dt><dd>最後存活者勝出。3 分鐘到時依存活、攻擊、分數、消行排序；淘汰者依存活時間排序。25 秒無回應視為離線淘汰。多人無法暫停。</dd><dt>觸控</dt><dd>可使用下方按鈕，也可輕點棋盤旋轉、左右滑動、向下長滑立即落下。</dd></dl><p class="help-note">房間娛樂對戰由房主協調；不提供可信排行或銀幣獎勵。震動依裝置支援程度生效。</p><button id="closeHelp" class="primary">知道了，來玩！</button></div>
+      <div class="menu-card help-card"><p class="eyebrow">HOW TO PLAY</p><h1 id="helpTitle">把空隙，變成機會。</h1><p>排滿一整行就會消除。堆到頂部即淘汰。每七塊包含七種不同方塊，可保留一塊，落地後才可再換。</p><dl><dt>移動 / 加速下降</dt><dd>← → / ↓ 或畫面方向按鈕</dd><dt>旋轉 / 立即落下</dt><dd>↑ 或 X 右轉 · Z 左轉 · 空白鍵落下</dd><dt>保留 / 暫停</dt><dd>C 或 Shift 保留 · P 暫停（單人）</dd><dt>多人攻擊</dt><dd>雙行送 1、三行送 2、四行送 4；T-spin、連擊、連續特殊消行與全清追加攻擊。先抵消待收垃圾，再送到選定對手。</dd><dt>勝負與離線</dt><dd>最後存活者勝出。3 分鐘到時依存活、攻擊、分數、消行排序；淘汰者依存活時間排序。25 秒無回應視為離線淘汰。多人無法暫停。</dd><dt>觸控</dt><dd>可使用下方按鈕，也可輕點棋盤旋轉、左右滑動、向下長滑立即落下。</dd></dl><p class="help-note">正式房間由伺服器計算攻擊與排名。入場費 100 與自願加碼分開；全員投票、確認後才扣款。2 人冠軍全拿，3 人以上 70%／20%／10%，並列平分；AI 1–9 級練習只接受 0 加碼。震動依裝置能力生效。</p><button id="closeHelp" class="primary">知道了，來玩！</button></div>
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
-  <script src="../shared/boomroom-sdk.js?v=4" defer></script>
+  <script src="../shared/boomroom-sdk.js?v=5" defer></script>
   <script src="engine.js?v=1" defer></script>
+  <script src="ai.js?v=1" defer></script>
+  <script src="battle.js?v=1" defer></script>
   <script src="room.js?v=1" defer></script>
-  <script src="game.js?v=1" defer></script>
+  <script src="authority-room.js?v=1" defer></script>
+  <script src="game.js?v=2" defer></script>
 </body>
 </html>

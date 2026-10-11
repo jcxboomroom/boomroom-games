@@ -1,13 +1,15 @@
 # BoomRoom HTML5 Game SDK API
 
-This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 4`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
+This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 5`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
+
+> **Game-development prerequisite:** Read [`WAGERING_RULES.md`](WAGERING_RULES.md) before designing, integrating, or repairing any BoomRoom game, even when the game will not support wagers. It is the required product and safety contract for the 100-silver admission fee, voluntary extra wagers, voting/consent, server-side wallet transactions, rank-based pool payout, and AI practice. State explicitly in the game plan whether wagering is supported. This SDK currently has no generic wager or settlement API; follow the document's limits.
 
 ## Load and wait for the real room session
 
 Load the shared SDK before the game code. Do not construct an online player, room, opponent, purchase receipt, or reward while the host session is still loading.
 
 ```html
-<script src="../shared/boomroom-sdk.js?v=4"></script>
+<script src="../shared/boomroom-sdk.js?v=5"></script>
 <script src="./game.js" defer></script>
 ```
 
@@ -92,11 +94,11 @@ The SDK is a shared connection and lifecycle layer, not a generic game server. I
 3. **Hybrid prediction with a trusted referee.** Render movement and input immediately on the client; validate important transitions, hidden state, ranked outcomes, and rewards in a shared official engine. Return compact versioned snapshots and reconcile predictions. Implement this only where the game's trust or fairness needs justify it.
 4. **Full real-time authority.** For games where collision, economy, hidden information, or competitive fairness must be protected, the server owns the rules and canonical state. A particular official game may need an engine, but this does not make a per-game engine a prerequisite for all creator HTML.
 
-An APP host event such as `GOMOKU_STATE` or the seat-private `BLUFF_PRIVATE` may update the SDK's canonical session only when it arrives from the trusted host as a reserved `SYSTEM` event. Ordinary player events cannot refresh it. Adding another authoritative engine also requires the backend allowlist, authenticated command handler, durable state/transaction strategy where required, host forwarding rules, privacy checks, and server tests; adding JavaScript alone does not establish authority. Reserved events currently blocked from game-originated sends are `GOMOKU_STATE`, `GOMOKU_ERROR`, `BLUFF_PUBLIC`, `BLUFF_PRIVATE`, and `BLUFF_ERROR`.
+An APP host event such as `GOMOKU_STATE` or the seat-private `BLUFF_PRIVATE` may update the SDK's canonical session only when it arrives from the trusted host as a reserved `SYSTEM` event. Ordinary player events cannot refresh it. Adding another authoritative engine also requires the backend allowlist, authenticated command handler, durable state/transaction strategy where required, host forwarding rules, privacy checks, and server tests; adding JavaScript alone does not establish authority. Reserved events blocked from game-originated sends are `GOMOKU_STATE`, `GOMOKU_ERROR`, `BLUFF_PUBLIC`, `BLUFF_PRIVATE`, `BLUFF_ERROR`, `TETRIS_PRIVATE`, `TETRIS_ERROR`, `TETRIS_STATE`, and `TETRIS_QUEUED`.
 
 ## Compatibility and current limits
 
-- Keep `version === 2` for the existing APP transport. `apiRevision === 4` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
+- Keep `version === 2` for the existing APP transport. `apiRevision === 5` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
 - Web messages are scoped to the parent frame and verified HTTP(S) origin. Native WebViews use the APP's current bridge. These checks protect the bridge boundary but are not a complete sandbox for untrusted HTML.
 - The SDK has no `connected`/`reconnecting` signal because the current host contract does not forward a generic socket lifecycle event to HTML. `status` only describes session lifecycle.
 - Generic relay events do not create canonical game snapshots. Only host-forwarded, explicitly recognized reserved events update the session today.
@@ -112,3 +114,8 @@ node --test test/*.test.cjs
 ```
 
 This controlled message/clock suite checks SDK contracts but does not replace real-browser, native WebView, multi-device, network-loss, or actual human-play testing.
+
+
+## Tetris Battle 權威擴充（revision 5）
+
+第 36 款可加碼，依 WAGERING_RULES 與其 README 完成伺服器投票、全員確認、錢包原子交易及排名分池。TETRIS_PRIVATE 僅由 SYSTEM 送至本人座位，包含同一 Session 的個人棋盤、ack、本人餘額、投票與派彩收據；SDK 會核對本人 userId 及非倒退版本。TETRIS_PRIVATE／TETRIS_ERROR／TETRIS_STATE／TETRIS_QUEUED 均為保留事件。TETRIS_COMMAND 的操作意圖由後端專屬引擎驗證；通用 SDK 的 verifiedScoring／serverAuthoritativeRules 能力仍為 false，不能將此特定遊戲的權威能力套用到其他 UGC。新版後端與 APP 必須先就緒，才可發布第 36 款加碼入口。

@@ -123,9 +123,11 @@
       (!session || sdk.status==='PLAYING') &&
       (!room || room.phase==='playing' && !room.recovering && room.players.get(room.self)?.alive);
   }
-  function clearInputs() { inputs.clear();for(const b of document.querySelectorAll('[data-action]'))b.classList.remove('pressed'); }
+  function releaseInput(source) { const soft=inputs.get(source)?.kind==='soft';inputs.delete(source);if(soft&&![...inputs.values()].some(p=>p.kind==='soft'))room?.input?.('softOff'); }
+  function clearInputs() { const soft=[...inputs.values()].some(p=>p.kind==='soft');inputs.clear();if(soft)room?.input?.('softOff');for(const b of document.querySelectorAll('[data-action]'))b.classList.remove('pressed'); }
   function action(kind) {
     if(!canPlay())return;
+    room?.input?.(kind,engine.pieces);
     let success=false;
     if(kind==='left'||kind==='right'){success=engine.move(kind==='left'?-1:1);if(success)sound('move');}
     else if(kind==='cw'||kind==='ccw')success=engine.rotate(kind==='cw'?1:-1);
@@ -139,6 +141,7 @@
   function press(kind,source) {
     if(inputs.has(source))return;
     action(kind);inputs.set(source,{kind,start:performance.now(),last:performance.now()});
+    if(kind==='soft'&&canPlay())room?.input?.('softOn');
   }
   function repeat(time) {
     const horizontal=[...inputs.values()].filter(input=>input.kind==='left'||input.kind==='right').at(-1);
@@ -180,6 +183,7 @@
     if(engine.status!=='playing')soloResult();else sound('go');render();persist();
   }
   function persist() {
+    if(room?.verified||room?.local)return;
     if(!engine && !room)return;
     write(storageKey(),{ version:1,savedAt:Date.now(),round:activeRound,engine:engine?.save()||null,
       room:room?.snapshot()||null,received:room?[...room.received]:[],stateSeq:room?.stateSeq||0,attackSeq:room?.attackSeq||0 });
@@ -204,6 +208,7 @@
     const newTime=mode==='sprint'&&engine.status==='complete'&&(!best.time||engine.elapsed<best.time);
     write(key,{score:Math.max(best.score||0,engine.score),time:newTime?engine.elapsed:best.time||null});
     $('bestResult').textContent=newTime?'新紀錄！40 行最佳時間 '+formatTime(engine.elapsed):newScore?'新紀錄！本機最高分 '+decimal(engine.score):'本機最高分 '+decimal(Math.max(best.score||0,engine.score));
+    $('resultNote').textContent='單人挑戰 · 不發放銀幣';
     $('replayBtn').textContent='再挑戰一次 →';$('replayBtn').disabled=false;$('resultExit').textContent=session?'返回房間':'返回選單';
     show($('result'),true);$('replayBtn').focus();$('pauseBtn').disabled=true;persist();
   }
@@ -215,8 +220,11 @@
     $('resultIntro').textContent=self?`本局第 ${self.rank} 名 · ${room.results.length} 人攻防`:'本局觀戰結束';
     $('resultStats').replaceChildren();stat($('resultStats'),'分數',decimal(self?.score||0));stat($('resultStats'),'消行',self?.lines||0);stat($('resultStats'),'送出攻擊',self?.attack||0);
     $('rankings').replaceChildren();
-    for(const r of room.results){const row=document.createElement('div'),rank=document.createElement('b'),name=document.createElement('span'),summary=document.createElement('small');row.className='ranking'+(r.id===room.self?' self':'');rank.textContent=String(r.rank).padStart(2,'0');name.textContent=room.players.get(r.id).name+(r.id===room.self?' · 你':'');summary.textContent=`${r.attack} 攻擊 / ${decimal(r.score)} 分`;row.append(rank,name,summary);$('rankings').append(row);}
-    $('bestResult').textContent='房間娛樂對戰 · 成績未經規則伺服器驗證';$('replayBtn').textContent='準備再戰 →';$('replayBtn').disabled=false;$('resultExit').textContent='返回房間';
+    for(const r of room.results){const row=document.createElement('div'),rank=document.createElement('b'),name=document.createElement('span'),summary=document.createElement('small');row.className='ranking'+(r.id===room.self?' self':'');rank.textContent=String(r.rank).padStart(2,'0');name.textContent=room.players.get(r.id).name+(r.id===room.self?' · 你':'');const paid=room.settlement?.awards?.find(a=>a.id===r.id);summary.textContent=paid?`+${decimal(paid.payout)} 銀幣 · ${r.attack} 攻擊`:`${r.attack} 攻擊 / ${decimal(r.score)} 分`;row.append(rank,name,summary);$('rankings').append(row);}
+    const settlement=room.settlement,award=settlement?.awards?.find(a=>a.id===room.self);
+    $('bestResult').textContent=room.verified?(settlement?.status==='PAID'?`已入帳 +${decimal(award?.payout||0)} 銀幣 · 本局加碼 ${decimal(room.stake)}`:room.aiLevels?.length?'AI 練習 · 伺服器計算結果':'伺服器已驗證排名'):'AI 本機練習 · 不發放銀幣';
+    $('resultNote').textContent=settlement?.status==='PAID'?`獎池 ${decimal(settlement.pot)} 銀幣 · 無抽成 · 同名次平分` :settlement?.status==='REFUNDED'?settlement.reason:'本局加碼 0 · 不發放銀幣';
+    $('replayBtn').textContent='設定下一局 →';$('replayBtn').disabled=false;$('resultExit').textContent=room.local?'返回選單':'返回房間';
     show($('result'),true);show($('menu'),false);clearInputs();sound(win?'win':'over');vibrate('heavy');$('replayBtn').focus();persist();
   }
   function updateLobby() {
@@ -224,12 +232,27 @@
     $('lobbyPlayers').replaceChildren();
     for(const p of room.players.values()){
       const row=document.createElement('div'),name=document.createElement('span'),state=document.createElement('b');
-      row.className='lobby-player'+(room.ready.has(p.id)?' ready':'');name.textContent=p.name+(p.id===room.self?' · 你':'')+(p.id===room.host?' · 房主':'');state.textContent=!p.connected?'等待連線':room.ready.has(p.id)?'✓ 已準備':'尚未準備';row.append(name,state);$('lobbyPlayers').append(row);
+      row.className='lobby-player'+(room.ready.has(p.id)||p.bot?' ready':'');name.textContent=p.name+(p.id===room.self?' · 你':'')+(p.id===room.host?' · 房主':'');state.textContent=p.bot?'AI 練習':!p.connected?'等待連線':room.ready.has(p.id)?'✓ 已確認':Object.hasOwn(room.proposals||{},p.id)?`提案 ${decimal(room.proposals[p.id])}`:'尚未確認';row.append(name,state);$('lobbyPlayers').append(row);
     }
-    const available=[...room.players.values()].filter(p=>p.connected),allReady=available.length>=2&&available.every(p=>room.ready.has(p.id));
-    $('startBtn').textContent=room.isHost&&allReady?'開始攻防 →':room.ready.has(room.self)?'已準備，等待其他玩家':'我準備好了 →';
+    const available=[...room.players.values()].filter(p=>p.connected),allReady=room.allReady??(available.length>=2&&available.every(p=>room.ready.has(p.id)));
+    $('startBtn').textContent=room.isHost&&allReady?'開始攻防 →':room.ready.has(room.self)?'已確認，等待其他玩家':room.stake?`確認加碼 ${decimal(room.stake)} 銀幣 →`:'確認 0 加碼 →';
     $('startBtn').disabled=room.recovering||(room.ready.has(room.self)&&!(room.isHost&&allReady));
-    $('menuNote').textContent=room.recovering?'正在等待房主同步；可按重試同步':`${available.length}/${room.players.size} 位參賽者 · 全員準備後由房主開始`;
+    if(room.verified&&![...room.players.values()].filter(p=>!p.bot).every(p=>Object.hasOwn(room.proposals,p.id))){$('startBtn').disabled=true;$('startBtn').textContent='先由全員送出加碼提案（可選 0）';}
+    $('menuNote').textContent=room.recovering?'正在等待房主同步；可按重試同步':`${available.length} 位參賽者 · 全員確認後由房主開始`;
+    setupControls();
+  }
+  let settingsKey='';
+  const aiSelection=()=>[...$('aiLevels').querySelectorAll('select')].map(el=>Number(el.value));
+  function aiRows(levels){
+    $('aiLevels').replaceChildren();levels.forEach((level,i)=>{const label=document.createElement('label'),select=document.createElement('select');label.textContent=`AI ${i+1} `;select.setAttribute('aria-label',`AI ${i+1} 等級`);for(let n=1;n<=9;n++){const option=document.createElement('option');option.value=n;option.textContent=`Lv.${n}`;select.append(option);}select.value=level;select.disabled=!!room&&!room.isHost;select.addEventListener('change',()=>room?.configure?.(aiSelection()));label.append(select);$('aiLevels').append(label);});
+  }
+  function setupControls(){
+    const supports=room?.verified||room?.local,offline=!room&&mode==='ai';show($('aiSettings'),!!supports||offline);show($('wagerSettings'),!!room?.verified);
+    if(supports||offline){const max=room?10-[...room.players.values()].filter(p=>!p.bot).length:9,levels=room?.aiLevels||[5],key=(room?.local?'local':room?.verified?'server':'offline')+'|'+max+'|'+levels.join(',');
+      if(key!==settingsKey){settingsKey=key;$('aiCount').replaceChildren();for(let n=offline?1:0;n<=max;n++){const option=document.createElement('option');option.value=n;option.textContent=n+' 位';$('aiCount').append(option);}$('aiCount').value=levels.length;aiRows(levels);}$('aiCount').disabled=!!room&&!room.isHost;
+    }
+    if(room?.verified){const cap=room.aiLevels.length||room.players.size<2?0:room.limit,humans=[...room.players.values()].filter(p=>!p.bot).length;$('stakeAmount').max=cap;$('stakeRange').max=cap;const amount=Math.min(cap,Math.max(0,Number($('stakeAmount').value)||0));$('stakeAmount').value=amount;$('stakeRange').value=amount;$('voteBtn').disabled=room.recovering;$('voteBtn').textContent=room.aiLevels.length?'送出 0 加碼提案':'送出我的提案';$('stakeAmount').disabled=$('stakeRange').disabled=!!room.aiLevels.length;$('stakeLabel').textContent=`每人 ${decimal(room.stake)} · 獎池 ${decimal(room.stake*humans)}`;$('stakeLimit').textContent=`入場費 100 已另行收取 · 目前錢包 ${room.ownBalance==null?'讀取中':decimal(room.ownBalance)} 銀幣 · ${room.aiLevels.length?'AI 練習，只能選 0 加碼':`全房可加碼 0–${decimal(cap)} 銀幣`}`;}
+    show($('soloBtn'),!!room?.verified&&[...room.players.values()].filter(p=>!p.bot).length===1);
   }
   function roomChanged() {
     if(!room)return;
@@ -237,15 +260,16 @@
       if(activeRound!==room.round || !engine){
         activeRound=room.round;resultRound=-1;completionSent=false;paused=false;clearInputs();
         countPlayed = -1;
-        const resume=saved?.round===room.round?Engine.restore(saved.engine):null;
+        const resume=room.ownEngine||(saved?.round===room.round?Engine.restore(saved.engine):null);
         const hasAlreadyPlayed=room.players.get(room.self)?.seq>0;
         engine=resume||new Engine({seed:room.seedForRound,mode:'battle'});
         if(!resume&&hasAlreadyPlayed){engine.finish('restore-missing');room.forfeit();toast('本局存檔無法恢復，已轉為觀戰');}
-        if(resume && Array.isArray(saved.received))room.received=new Set(saved.received.filter(k=>typeof k==='string').slice(-20000));
+        if(resume && Array.isArray(saved?.received))room.received=new Set(saved.received.filter(k=>typeof k==='string').slice(-20000));
         room.stateSeq=Math.max(room.stateSeq,saved?.round===room.round?saved.stateSeq||0:0);
         room.attackSeq=Math.max(room.attackSeq,saved?.round===room.round?saved.attackSeq||0:0);
         saved=null;musicStep=0;lastFrame=performance.now();
       }
+      if(room.ownEngine){const before=engine?.pendingGarbage||0;engine=room.local?room.ownEngine:room.predicted();if(engine.pendingGarbage>before){sound('incoming');vibrate('medium');}lastFrame=performance.now();}
       show($('menu'),false);show($('result'),false);$('pauseBtn').disabled=true;
       $('modeLabel').textContent='BATTLE';$('roundLabel').textContent=`ROUND ${room.round} · 3 MIN`;
       const self=room.players.get(room.self);
@@ -257,7 +281,7 @@
     }
     else if(['interrupted','ended'].includes(room.phase)){
       clearInputs();show($('menu'),true);show($('result'),false);show($('modeOptions'),false);show($('lobbyPlayers'),false);show($('miniRules'),false);
-      $('menuTitle').textContent=room.phase==='ended'?'對局已結束':'房主已離開對局';$('menuIntro').textContent='這場攻防已中斷，請返回房間重新開局。';$('startBtn').disabled=true;$('startBtn').textContent='本局無法繼續';$('menuNote').textContent='可使用右上方返回按鈕離開';
+      $('menuTitle').textContent=room.phase==='ended'?'對局已結束':'對局同步中斷';$('menuIntro').textContent=room.settlement?.reason||'這場攻防已中斷，請返回房間重新開局。';$('startBtn').disabled=true;$('startBtn').textContent='本局無法繼續';$('menuNote').textContent='可使用右上方返回按鈕離開';
     }else updateLobby();
     render();
   }
@@ -271,7 +295,7 @@
         const button=document.createElement('button'),name=document.createElement('span'),canvas=document.createElement('canvas'),info=document.createElement('small'),label=document.createElement('span');
         button.className='rival';button.dataset.player=p.id;button.title='攻擊 '+p.name;button.setAttribute('aria-label','選擇攻擊對手 '+p.name);
         canvas.width=60;canvas.height=120;name.textContent=p.name;label.className='target-label';button.append(name,canvas,info,label);
-        button.addEventListener('click',()=>{if(!p.alive)return;target=p.id;vibrate('selection');renderRivals();});$('rivals').append(button);
+        button.addEventListener('click',()=>{if(!room.players.get(p.id)?.alive)return;target=p.id;room.selectTarget?.(target);vibrate('selection');renderRivals();});$('rivals').append(button);
       }
     }
     if(!room.players.get(target)?.alive||target===room.self)target=opponents.find(p=>p.alive)?.id||null;
@@ -317,11 +341,12 @@
       room?.forfeit();persist();exiting=true;clearInputs();
       if(!sdk.leaveGame()){exiting=false;toast('返回失敗，請用 APP 返回按鈕重試');}
       else toast('正在返回房間…');
-    }else{persist();returnMenu();}
+    }else{persist();room?.dispose();room=null;builtRivals='';returnMenu();show($('modeOptions'),true);show($('lobbyPlayers'),false);show($('miniRules'),true);setupControls();}
   }
   function newGame() {
     unlockAudio();
-    if(room){if(room.isHost&&[...room.players.values()].filter(p=>p.connected).every(p=>room.ready.has(p.id)))room.start();else room.setReady();updateLobby();}
+    if(room){if(room.isHost&&(room.allReady??[...room.players.values()].filter(p=>p.connected).every(p=>room.ready.has(p.id))))room.start();else room.setReady();updateLobby();}
+    else if(mode==='ai'){room=new window.TetrisAuthority.PracticeRoom(aiSelection(),{changed:roomChanged,notice:toast});$('sessionTag').textContent='AI 本機練習';room.setReady();room.start();show($('modeOptions'),false);show($('lobbyPlayers'),true);}
     else startSolo();
   }
   async function initializeOnline() {
@@ -336,8 +361,8 @@
       saved=read(storageKey());if(saved?.version!==1||Date.now()-saved.savedAt>86400000)saved=null;
       $('playerName').textContent=sdk.getUser().username||'你';$('sessionTag').textContent='房間 '+sdk.roomId;
       cleanups.push(sdk.onError(error=>toast('SDK：'+({TRANSPORT_UNAVAILABLE:'連線無法送出',SESSION_UNAVAILABLE:'對局已停止'}[error.code]||error.code))));
-      if(session.players.length>=2){
-        room=new window.TetrisBattleRoom.Room(sdk,{changed:roomChanged,notice:toast,garbage:(lines,hole)=>{engine?.receiveGarbage(lines,hole);processEvents();persist();render();}});
+      if(session.engine==='TETRIS'||session.players.length>=2){
+        room=session.engine==='TETRIS'?new window.TetrisAuthority.AuthorityRoom(sdk,{changed:roomChanged,notice:toast}):new window.TetrisBattleRoom.Room(sdk,{changed:roomChanged,notice:toast,garbage:(lines,hole)=>{engine?.receiveGarbage(lines,hole);processEvents();persist();render();}});
         if(saved?.room)room.restore(saved.room);
         $('modeLabel').textContent='BATTLE';$('menuEyebrow').textContent='STACK. CLEAR. ATTACK.';$('menuTitle').textContent='把消行，變成攻擊。';$('menuIntro').textContent='2–10 人方塊攻防。先抵消垃圾，再擊破對手；最後存活者勝出。';
         show($('lobbyPlayers'),true);$('miniRules').textContent='每局 3 分鐘 · 點選對手指定攻擊 · 淘汰後觀戰';show($('miniRules'),true);
@@ -355,6 +380,7 @@
     }
   }
   function advance(time) {
+    room?.pump?.();
     const delta=Math.max(0,time-lastFrame);lastFrame=time;
     if(canPlay()){engine.advance(delta,[...inputs.values()].some(input=>input.kind==='soft'));repeat(time);processEvents();music(time);}
     if(room&&engine&&time-lastPublish>=300&&room.phase==='playing'&&!room.recovering)publish();
@@ -371,13 +397,13 @@
     }
     const kind=keymap[event.code];if(!kind||!canPlay())return;event.preventDefault();if(event.repeat)return;press(kind,event.code);
   });
-  on(window,'keyup',event=>inputs.delete(event.code));
+  on(window,'keyup',event=>releaseInput(event.code));
   on(window,'blur',()=>{clearInputs();if(!room&&canPlay())pause(true);});
   on(document,'visibilitychange',()=>{clearInputs();if(document.hidden){if(!room&&canPlay())pause(true);persist();}else{room?.sync();lastFrame=performance.now();}});
   on(document,'pointerdown',unlockAudio,{passive:true});
   for(const button of document.querySelectorAll('[data-action]')){
     on(button,'pointerdown',event=>{if(button.disabled)return;event.preventDefault();button.setPointerCapture(event.pointerId);button.classList.add('pressed');press(button.dataset.action,'pointer:'+event.pointerId);});
-    const release=event=>{inputs.delete('pointer:'+event.pointerId);button.classList.remove('pressed');};
+    const release=event=>{releaseInput('pointer:'+event.pointerId);button.classList.remove('pressed');};
     on(button,'pointerup',release);on(button,'pointercancel',release);on(button,'lostpointercapture',release);
     on(button,'click',event=>{if(event.detail===0)action(button.dataset.action);});
   }
@@ -386,18 +412,23 @@
   on($('board'),'pointerup',event=>{if(!gesture||gesture.id!==event.pointerId)return;const dy=event.clientY-gesture.y;if(dy>=70)action('hard');else if(dy>=20)action('soft');else if(!gesture.moved&&Math.hypot(event.clientX-gesture.x,dy)<15)action('cw');gesture=null;});
   on($('board'),'pointercancel',()=>gesture=null);
   on($('startBtn'),'click',newGame);
-  on($('replayBtn'),'click',()=>{if(room){room.setReady();show($('result'),false);show($('menu'),true);updateLobby();}else startSolo();});
+  on($('soloBtn'),'click',()=>{room?.dispose();room=null;engine=null;mode='marathon';builtRivals='';returnMenu();show($('modeOptions'),true);show($('lobbyPlayers'),false);$('menuIntro').textContent='單人挑戰或本機 AI 練習，不建立加碼獎池。';setupControls();});
+  on($('aiCount'),'change',()=>{const old=aiSelection(),levels=Array.from({length:Number($('aiCount').value)},(_,i)=>old[i]||5);aiRows(levels);room?.configure?.(levels);});
+  on($('stakeRange'),'input',()=>{$('stakeAmount').value=$('stakeRange').value;});
+  on($('stakeAmount'),'input',()=>{$('stakeRange').value=$('stakeAmount').value;});
+  on($('voteBtn'),'click',()=>{const amount=Number($('stakeAmount').value);if(!Number.isSafeInteger(amount)||amount<0||amount>room.limit){toast('請輸入全員可負擔的整數金額');return;}room.vote(amount);});
+  on($('replayBtn'),'click',()=>{if(room){if(!room.verified&&!room.local)room.setReady();show($('result'),false);show($('menu'),true);$('menuTitle').textContent='下一局，再翻盤。';updateLobby();}else startSolo();});
   on($('exitBtn'),'click',leave);on($('resultExit'),'click',leave);on($('syncBtn'),'click',()=>{if(room)room.sync();else if(embedded)initializeOnline();});
   on($('pauseBtn'),'click',()=>pause(!paused));on($('resumeBtn'),'click',()=>pause(false));
   on($('reconnectBtn'),'click',()=>room?.sync());
   on($('helpBtn'),'click',()=>{helpPaused=!room&&canPlay();if(helpPaused)pause(true);show($('help'),true);$('closeHelp').focus();});
   on($('closeHelp'),'click',()=>{show($('help'),false);if(helpPaused)pause(false);helpPaused=false;});
   for(const key of ['sound','music','haptic'])on($(key+'Btn'),'click',()=>togglePreference(key));
-  for(const button of document.querySelectorAll('[data-mode]'))on(button,'click',()=>{mode=button.dataset.mode;for(const item of document.querySelectorAll('[data-mode]')){item.classList.toggle('selected',item===button);item.setAttribute('aria-pressed',String(item===button));}});
+  for(const button of document.querySelectorAll('[data-mode]'))on(button,'click',()=>{mode=button.dataset.mode;for(const item of document.querySelectorAll('[data-mode]')){item.classList.toggle('selected',item===button);item.setAttribute('aria-pressed',String(item===button));}setupControls();});
   on(document,'keydown',event=>{
     if(event.key!=='Tab')return;
     const modal=[$('help'),$('result'),$('menu')].find(el=>!el.hidden);if(!modal)return;
-    const focusable=[...modal.querySelectorAll('button:not(:disabled)')].filter(el=>!el.hidden);
+    const focusable=[...modal.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled)')].filter(el=>el.getClientRects().length);
     if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}

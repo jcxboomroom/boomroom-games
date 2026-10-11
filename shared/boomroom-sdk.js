@@ -5,12 +5,12 @@
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 4) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 5) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR']);
+  const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR','TETRIS_PRIVATE','TETRIS_ERROR','TETRIS_STATE','TETRIS_QUEUED']);
   const hooks = new Map(), pendingPurchases = new Map();
   let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0, lastHapticAt = -Infinity;
   const monotonic = () => root.performance ? root.performance.now() : Date.now();
@@ -171,7 +171,8 @@
         // Peer payloads are still untrusted and cannot update the SDK session.
         if (!initialize({ ...data, session: packet.payload.session })) return;
       }
-      if (packet.eventName === 'BLUFF_PRIVATE' && packet.userId === 'SYSTEM' && packet.payload?.session) {
+      if ((packet.eventName === 'BLUFF_PRIVATE' || packet.eventName === 'TETRIS_PRIVATE') && packet.userId === 'SYSTEM' && packet.payload?.session) {
+        if (packet.eventName === 'TETRIS_PRIVATE' && String(packet.payload.userId) !== String(data.user.id)) return;
         // The authenticated app forwards this reserved event only to its seat.
         if (!initialize({ ...data, session: packet.payload.session })) return;
       }
@@ -205,7 +206,7 @@
   }
   const sdk = {
     version: 2,
-    apiRevision: 4,
+    apiRevision: 5,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
@@ -221,7 +222,7 @@
       sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
     getCapabilities: () => ({
       protocolVersion: 2,
-      apiRevision: 4,
+      apiRevision: 5,
       readiness: true,
       sessionSnapshots: true,
       roomRoster: true,
