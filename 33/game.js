@@ -147,7 +147,7 @@ function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-function makePlayer({ id, name, color, local = false, bot = false }, index) {
+function makePlayer({ id, name, color, local = false, bot = false, level = 5 }, index) {
   const angle = index * Math.PI * 2 / Math.max(4, 8);
   const radius = index === 0 ? 0 : 0.43;
   return {
@@ -155,7 +155,7 @@ function makePlayer({ id, name, color, local = false, bot = false }, index) {
     name: bot?`🤖 ${name||`跳球 ${index+1}`} AI`:(name || `Player ${index + 1}`),
     color: color || COLORS[index % COLORS.length],
     local,
-    bot,
+    bot, level,
     disconnected: false,
     x: Math.cos(angle) * radius,
     y: Math.sin(angle) * radius * 0.8,
@@ -336,7 +336,8 @@ function syncRoomRoster() {
   }
 
   const humanCount = activeIds.size;
-  const wantedBots = humanCount === 1 ? 4 : 0;
+  const roomAi=sdk?.getAiSeats?.();
+  const wantedBots = roomAi ? roomAi.length : humanCount === 1 ? 4 : 0;
   const bots = entities.filter(player => player.bot);
   while (bots.length > wantedBots) {
     const bot = bots.pop();
@@ -344,13 +345,13 @@ function syncRoomRoster() {
     if (index >= 0) entities.splice(index, 1);
   }
   for (let i = bots.length; i < wantedBots; i++) {
-    const id = `cpu-fill-${i}`;
+    const id = roomAi?.[i]?.id || `cpu-fill-${i}`;
     if (findPlayer(id)) continue;
     entities.push(makePlayer({
       id,
-      name: NAMES[i + 1] || `跳球 ${i + 1}`,
+      name: roomAi?.[i]?.name || NAMES[i + 1] || `跳球 ${i + 1}`,
       color: COLORS[(i + 1) % COLORS.length],
-      bot: true
+      bot: true, level:roomAi?.[i]?.level || 5
     }, entities.length));
   }
   if (!localPlayer) localPlayer = findPlayer(localId) || entities[0] || null;
@@ -985,7 +986,7 @@ function updateBot(bot, dt, elapsed) {
     bot.botTargetX = target.x;
     bot.botTargetY = target.y;
     bot.botTarget = target;
-    bot.botThinkAt = performance.now() + 270 + random() * 300;
+    bot.botThinkAt = performance.now() + (bot.level===1 ? 900 : bot.level===9 ? 120 : 270) + random() * 300;
   }
   const dx = bot.botTargetX - bot.x;
   const dy = bot.botTargetY - bot.y;

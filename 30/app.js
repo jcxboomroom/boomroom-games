@@ -99,7 +99,7 @@ function syncAiDifficultyControls() {
   for (const difficulty of ['easy', 'normal', 'master']) {
     const button = document.getElementById(`diff${difficulty[0].toUpperCase()}${difficulty.slice(1)}`);
     button?.classList.toggle('active', selected === difficulty);
-    if (button) button.disabled = serverState.phase !== 'PLAYING' || serverState.moves.length > 0 ||
+    if (button) button.disabled = !!serverState.roomAiLocked || serverState.phase !== 'PLAYING' || serverState.moves.length > 0 ||
       serverCommandPending || optimisticMove !== null;
   }
 }

@@ -45,3 +45,8 @@ node --import tsx/esm --test test/tetris_postgres.test.ts
 實際 Socket／瀏覽器案例需隔離測試後端 13000（BOOMROOM_LOCAL_TEST=1，禁用 dotenv／外部通知），不能指向正式帳戶或資料庫。截圖、測試與診斷只留本機。
 
 尚未發布至雲端，也未完成 Android／iOS 實機音訊與震動、正式多裝置及大量同時房間壓力驗收。人工延遲測試只證明該環境的本機回應，不能保證任意網路無卡頓。
+
+
+畫面配合 SDK revision 6 使用遊戲內銀幣與共用選單，APP 無固定頂部列；硬降及落地有撞擊音色，加速下降有節流回饋。選單可分別開關音效／音樂／震動，總音量另控制全部遊戲音訊。
+
+房間 Battle 至少真人＋AI 2 位；AI 數量與 1–9 級由室長在房間設定，遊戲內僅展示已確認座位。Standalone 單人 Marathon／Sprint／AI 練習保留本機設定。

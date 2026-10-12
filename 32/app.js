@@ -171,6 +171,7 @@ function makePlayer(raw, index, isLocal = false, isBot = false) {
     color: PLAYER_COLORS[index % PLAYER_COLORS.length],
     isLocal,
     isBot,
+    aiLevel: Number(raw.aiLevel ?? raw.level) || 5,
     x: Math.cos(angle) * radius,
     y: Math.sin(angle) * radius,
     vx: 0,
@@ -224,6 +225,7 @@ function normalizeRawPlayers(rawPlayers) {
       username: String(raw.username ?? raw.name ?? raw.displayName ?? raw.nickname ?? `玩家 ${normalized.length + 1}`).slice(0, 14),
       avatar: raw.avatar ?? raw.avatar_url ?? raw.avatarStyle ?? null,
       isBot: Boolean(raw.isBot ?? raw.bot ?? false),
+      aiLevel: Number(raw.aiLevel ?? raw.level) || 5,
     });
   });
   if (user && currentId && !seen.has(currentId)) {
@@ -248,7 +250,8 @@ function makeBotRoster() {
 
 function buildParticipants(humans) {
   const realHumans = normalizeRawPlayers(humans).filter((p) => !p.isBot).slice(0, MAX_PLAYERS);
-  // 只有房內真的只有 1 位真人時才補 AI。2～10 位真人完全不補假玩家。
+  const configured=window.BoomRoomSDK?.getAiSeats?.();
+  if (configured) return [...realHumans,...configured.map(seat=>({id:seat.id,username:seat.name,isBot:true,aiLevel:seat.level}))].slice(0,MAX_PLAYERS);
   if (realHumans.length === 1) return [...realHumans, ...makeBotRoster()];
   return realHumans;
 }
@@ -1350,7 +1353,7 @@ function updateBot(player, time, dt = 1/60) {
   if (!isHost()) return;
   if(now()<player.hitUntil||now()<player.dashUntil)return;
   if (time > player.botThinkAt) {
-    player.botThinkAt = time + 0.2 + Math.random() * 0.13;
+    player.botThinkAt = time + (player.aiLevel===1?.65:player.aiLevel===9?.08:.2) + Math.random() * 0.13;
     let target = orb ? { x: orb.x, y: orb.y } : null;
     if (!target) {
       const rivals = players.filter((candidate) => candidate.alive && candidate.id !== player.id);
@@ -1359,7 +1362,7 @@ function updateBot(player, time, dt = 1/60) {
       if (nearest) {
         const distance = length(nearest.x - player.x, nearest.y - player.y);
         const practiceSeconds = battleNumber === 1 ? 6 : 3;
-        if (distance < 0.38 && time - matchStartedAt/1000 > practiceSeconds && time - player.lastDashAt > 3.6) {
+        if (distance < 0.38 && time - matchStartedAt/1000 > practiceSeconds && time - player.lastDashAt > (player.aiLevel===1?6:player.aiLevel===9?2.2:3.6)) {
           hostResolveShove({playerId:player.id,dx:nearest.x-player.x,dy:nearest.y-player.y});
         }
         target = { x: nearest.x + (Math.random() - 0.5) * 0.3, y: nearest.y + (Math.random() - 0.5) * 0.3 };

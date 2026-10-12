@@ -130,8 +130,8 @@
     const hostControls = isHost ? `
       <section class="panel"><div class="sectionTitle">🤖 AI 對手</div>
         <div class="setupSummary"><span>真人玩家／上限</span><b>${humans().length}／10</b></div>
-        <div class="aiStepper"><button class="cta secondary" id="aiLess" ${busy||n<=0?'disabled':''}>−</button><div class="setupSummary"><span>AI 數量</span><b>${n}</b></div><button class="cta secondary" id="aiMore" ${busy||n>=limit?'disabled':''}>＋</button></div>
-        <div class="compactNote">可選 0～${limit} 位 AI・目前共 ${humans().length+n}／10 人。AI 由伺服器操控，會清楚標示，不占用真人座位。</div>
+        <div class="aiStepper"><button class="cta secondary" id="aiLess" ${busy||server.roomAiLocked||n<=0?'disabled':''}>−</button><div class="setupSummary"><span>AI 數量</span><b>${n}</b></div><button class="cta secondary" id="aiMore" ${busy||server.roomAiLocked||n>=limit?'disabled':''}>＋</button></div>
+        <div class="compactNote">可選 0～${limit} 位 AI・目前共 ${humans().length+n}／10 人。AI 由伺服器操控；數量與難度先在房間的虛擬座位設定。</div>
       </section>
       <section class="panel"><div class="sectionTitle">🃏 牌組</div><div class="selectRow">${[1,2].map(count=>`<button class="choice ${server.settings.deckCount===count?'active':''}" data-deck="${count}" ${busy?'disabled':''}><b>${count===1?'54 張':'108 張'}</b><span>${count===1?'一副牌':'兩副牌'}</span></button>`).join('')}</div></section>
       <section class="panel"><div class="sectionTitle">🔥 質疑回應方式</div><div class="selectRow"><button class="choice ${server.settings.challengeMode==='SEQUENTIAL'?'active':''}" data-mode="SEQUENTIAL" ${busy?'disabled':''}><b>依序回應</b><span>輪到者可質疑、跟牌或跳過</span></button><button class="choice ${server.settings.challengeMode==='VOTE_FIRST'?'active':''}" data-mode="VOTE_FIRST" ${busy?'disabled':''}><b>全員先質疑</b><span>先表態，再依序跟牌</span></button></div></section>

@@ -129,6 +129,7 @@ function setupSDK(data) {
       if (rp && rp.id != null) addPlayer(rp.id, rp.username, rp.avatar);
     });
   }
+  for(const seat of window.BoomRoomSDK?.getAiSeats?.()||[]){addPlayer(seat.id,seat.name,"");const p=players.get(seat.id);p.isBot=true;p.aiLevel=seat.level;}
   render();
 }
 
@@ -221,10 +222,11 @@ function handleGameEvent(eventName, payload, senderId) {
       initialLives = 3; useWildcardOne = true; modeTimerSeconds = 15;
     }
 
-    if (players.size <= 1) {
-      addPlayer("bot_1", "🤖 阿強", "");
-      addPlayer("bot_2", "🤖 莉莉", "");
-      addPlayer("bot_3", "🤖 爆哥", "");
+    if (players.size <= 1 || window.BoomRoomSDK?.getAiSeats) {
+      const configured=window.BoomRoomSDK?.getAiSeats?.();
+      for(const seat of configured ?? [{seatIndex:1,name:"🤖 阿強",level:5},{seatIndex:2,name:"🤖 莉莉",level:5},{seatIndex:3,name:"🤖 爆哥",level:5}]){
+        const id=seat.id||"bot_"+seat.seatIndex;addPlayer(id,seat.name,"");players.get(id).isBot=true;players.get(id).aiLevel=seat.level;
+      }
     }
 
     players.forEach(p => { p.lives = initialLives; p.successfulBluffs = 0; p.successfulChallenges = 0; });
@@ -383,7 +385,7 @@ function triggerAiBotTurn(botP) {
   if (lastBid) {
     const expectedQty = Math.floor(totalDiceInGame / 3);
     const isHighBid = lastBid.quantity > expectedQty + 1;
-    if (isHighBid || Math.random() < 0.25) {
+    if (isHighBid || Math.random() < (botP.aiLevel===1 ? .12 : botP.aiLevel===9 ? .4 : .25)) {
       const payload = { challengerUserId: botP.id };
       sendEvent("CALL_CHALLENGE_TRIGGER", payload);
       handleGameEvent("CALL_CHALLENGE_TRIGGER", payload, botP.id);
@@ -461,8 +463,8 @@ function render() {
 
     // AI Bot 自動思考出牌/指認
     const currentP = players.get(currentTurnUserId);
-    if (currentP && currentP.id.startsWith("bot_") && currentP.lives > 0) {
-      setTimeout(() => triggerAiBotTurn(currentP), 1200);
+    if (currentP && currentP.isBot && currentP.lives > 0) {
+      setTimeout(() => triggerAiBotTurn(currentP), currentP.aiLevel===1 ? 1800 : currentP.aiLevel===9 ? 450 : 1200);
     }
 
     main.innerHTML = `
@@ -584,6 +586,6 @@ function render() {
 addPlayer(ME.id, ME.username, ME.avatar);
 render();
 </script>
-<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+<script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body>
 </html>

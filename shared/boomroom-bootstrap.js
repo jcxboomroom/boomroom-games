@@ -28,7 +28,7 @@
     root.console.error('BoomRoom game startup failed:', error);
     const panel = root.document.createElement('div');
     panel.setAttribute('role','alert');
-    panel.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;text-align:center;padding:24px;background:#101728;color:#fff;font:16px system-ui';
+    panel.style.cssText = 'position:fixed;inset:0;z-index:2147482500;display:grid;place-content:center;text-align:center;padding:24px;background:#101728;color:#fff;font:16px system-ui';
     panel.textContent = '遊戲載入失敗，請返回房間後重新開始。';
     root.document.body.appendChild(panel);
   }
@@ -37,7 +37,7 @@
   sdkScript.src = new URL(script.getAttribute('data-sdk'),script.src).href;
   sdkScript.setAttribute('data-legacy-callbacks',script.getAttribute('data-legacy-callbacks') || 'false');
   sdkScript.onload = () => {
-    root.BoomRoomSDK.onSessionStart(() => start().catch(failed));
+    root.BoomRoomSDK.onSessionStart(() => Promise.resolve(root.BoomRoomSDK.whenGameUiReady?.()).then(() => start()).catch(failed));
     root.dispatchEvent(new Event('BoomRoomSDKTransportReady'));
   };
   sdkScript.onerror = () => failed(new Error('SDK 載入失敗'));

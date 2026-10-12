@@ -62,7 +62,7 @@
     const RANKS=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
     const ROLE={1:"👑 國王",2:"💎 貴族",3:"🧑‍🌾 平民",4:"🥀 貧民"};
     const ENTRY=100;
-    const MAX_PLAYERS=4; // 原作固定四人；不足時由室長自動補 AI。
+    const MAX_PLAYERS=4; // 原作固定四人；AI 必須先在房間加入。
 
     // 不再建立任何假玩家；只接受 BoomRoom SDK 提供的真實玩家。
     // AI 由室長端建立，並透過 BIG2_STATE 同步到其他裝置。
@@ -155,6 +155,12 @@
       if(!isHost()||matchLocked||state!=="LOBBY")return;
       const humans=humanPlayers();
       if(!ME.id||!humans.length)return;
+      const configured=window.BoomRoomSDK?.getAiSeats?.();
+      if(configured){
+        for(const player of aiPlayers())if(!configured.some(seat=>seat.id===player.id))players.delete(player.id);
+        for(const seat of configured){addPlayer(seat.id,seat.name,"",true);players.get(seat.id).aiLevel=seat.level;}
+        return;
+      }
       const target=Math.max(0,MAX_PLAYERS-humans.length);
       while(aiPlayers().length>target){
         const last=aiPlayers().at(-1);
@@ -296,6 +302,7 @@
           const c=cards.find(x=>x.rank==="3"&&x.suit==="♣");
           return c?{type:"play",cards:[c]}:{type:"pass"};
         }
+        if(p.aiLevel===9){const options=aiCandidates(p).filter(arr=>combo(arr)).sort((a,b)=>b.length-a.length);if(options.length)return {type:"play",cards:options[0]};}
         return cards.length?{type:"play",cards:[cards[0]]}:{type:"pass"};
       }
       const base=combo(lastPlay.cards);
@@ -308,7 +315,7 @@
           if(a.key!==b.key)return a.key-b.key;
           return x.length-y.length;
         });
-      return candidates.length?{type:"play",cards:candidates[0]}:{type:"pass"};
+      return candidates.length?{type:"play",cards:candidates[p.aiLevel===1?Math.floor(Math.random()*candidates.length):0]}:{type:"pass"};
     }
     function scheduleAI(){
       clearTimeout(aiTimer);
@@ -326,7 +333,7 @@
         }else{
           hostPass(cur.id,{nonce,sessionId,ai:true});
         }
-      },420);
+      },p.aiLevel===1 ? 1200 : p.aiLevel===9 ? 220 : 420);
     }
     function chooseAIExchange(pair){
       const from=players.get(pair.from),to=players.get(pair.to);
@@ -502,11 +509,11 @@
     /* -------------------- UI -------------------- */
     function cardHtml(c,idx=-1){const red=c.suit==="♥"||c.suit==="♦";const sel=idx>=0&&selected.has(idx)?" sel":"";return `<div class="card ${red?"red":""}${sel}" ${idx>=0?`data-i="${idx}"`:""}><div>${c.rank}</div><div style="font-size:18px;text-align:center">${c.suit}</div><div style="text-align:right">${c.rank}</div></div>`}
     function playerHtml(){return [...players.values()].map(p=>`<div class="player ${p.id===ME.id?"me":""} ${p.id===turn?"turn":""}"><b>${isAIPlayer(p)?"🤖 ":""}${esc(p.username)}${p.id===ME.id?"（你）":""}</b><em>${p.finished?`第 ${p.rank} 名 · ${ROLE[p.rank]||""}`:`剩 ${p.cardCount} 張`}</em></div>`).join("")}
-    function rules(){return `<div class="rules"><b>🩸 原作血腥大老二</b><br>① 先玩一局普通大老二，依出完牌順序決定：國王、貴族、平民、貧民。<br>② 第二局起，國王分別與貴族、平民、貧民各換 1 張；貴族與平民、貧民各換 1 張；平民與貧民換 1 張。<br>③ 換牌採隱密處理：上位者指定想要的牌；若對方沒有該牌，本版本依常見原作變體由對方交出最大牌。上位者同時交出 1 張自己的牌。<br>④ 每局 3♣ 持有者先出，第一手必須包含 3♣。<br>⑤ 本作牌型：單張、對子、三條、順子、同花、葫蘆、鐵支、同花順；同牌型比較大小，炸彈可壓非炸彈。<br>⑥ 全部其他仍在場玩家 PASS 後，上一位出牌者重新取得自由牌權。<br>⑦ 每局結束重新依出完牌順序排列階級；第一局建立階級後，第二局重新發牌，再依上一局階級進行血腥換牌。<br>⑧ 原作為四人階級玩法，本版本固定 4 人；真人不足 4 人時由室長自動補 AI，1 真人=3 AI、2 真人=2 AI、3 真人=1 AI、4 真人=0 AI。AI 不扣入場銀幣。</div>`}
+    function rules(){return `<div class="rules"><b>🩸 原作血腥大老二</b><br>① 先玩一局普通大老二，依出完牌順序決定：國王、貴族、平民、貧民。<br>② 第二局起，國王分別與貴族、平民、貧民各換 1 張；貴族與平民、貧民各換 1 張；平民與貧民換 1 張。<br>③ 換牌採隱密處理：上位者指定想要的牌；若對方沒有該牌，本版本依常見原作變體由對方交出最大牌。上位者同時交出 1 張自己的牌。<br>④ 每局 3♣ 持有者先出，第一手必須包含 3♣。<br>⑤ 本作牌型：單張、對子、三條、順子、同花、葫蘆、鐵支、同花順；同牌型比較大小，炸彈可壓非炸彈。<br>⑥ 全部其他仍在場玩家 PASS 後，上一位出牌者重新取得自由牌權。<br>⑦ 每局結束重新依出完牌順序排列階級；第一局建立階級後，第二局重新發牌，再依上一局階級進行血腥換牌。<br>⑧ 原作為四人階級玩法，本版本固定 4 人；真人不足時須先由室長在房間加入 AI，AI 數量與難度由室長在房間設定，滿 4 位才可開始。AI 不扣入場銀幣。</div>`}
     function showRules(){const d=document.createElement("div");d.className="modal";d.innerHTML=`<div><div class="top"><b>📖 規則</b><button id="rx" class="smallbtn" style="width:44px">✕</button></div><hr style="border-color:#30374a">${rules()}</div>`;document.body.appendChild(d);d.querySelector("#rx").onclick=()=>d.remove()}
     function lobby(){
       const h=humanPlayers().length,a=aiPlayers().length;
-      return `<section class="panel"><div class="top"><div class="brand">🩸 爆爆血腥大老二 <span class="badge">ORIGINAL · SDK</span></div><button id="rules" class="smallbtn" style="width:44px">?</button></div><div class="stats" style="margin-top:8px"><div class="stat"><b>${ENTRY}</b><span>真人入場銀幣</span></div><div class="stat"><b>${players.size}/4</b><span>參賽者</span></div><div class="stat"><b>${ENTRY*h}</b><span>真人獎池</span></div><div class="stat"><b>${isHost()?"室長":"同步"}</b><span>SDK</span></div></div></section><section class="panel"><div class="title">房內玩家</div><div class="players">${playerHtml()}</div><div class="notice" style="margin-top:8px">真人 ${h} 人 · AI ${a} 人 · 原作固定 4 人。${h>0&&!matchLocked?(isHost()?"3.5 秒後自動開始；新真人加入會優先取代 AI。":"等待室長同步開局…"):""}</div></section>${!ME.id?`<div class="notice">正在等待 BoomRoom 真實玩家資料…</div>`:""}${matchLocked?`<div class="notice">🔒 本場已結束。請回到房間後重新啟動遊戲。</div>`:""}<section class="panel">${rules()}</section>`
+      return `<section class="panel"><div class="top"><div class="brand">🩸 爆爆血腥大老二 <span class="badge">ORIGINAL · SDK</span></div><button id="rules" class="smallbtn" style="width:44px">?</button></div><div class="stats" style="margin-top:8px"><div class="stat"><b>${ENTRY}</b><span>真人入場銀幣</span></div><div class="stat"><b>${players.size}/4</b><span>參賽者</span></div><div class="stat"><b>${ENTRY*h}</b><span>真人獎池</span></div><div class="stat"><b>${isHost()?"室長":"同步"}</b><span>SDK</span></div></div></section><section class="panel"><div class="title">房內玩家</div><div class="players">${playerHtml()}</div><div class="notice" style="margin-top:8px">真人 ${h} 人 · AI ${a} 人 · 原作固定 4 人。${h>0&&!matchLocked?(isHost()?"3.5 秒後自動開始；使用房間已確認的 AI 座位。":"等待室長同步開局…"):""}</div></section>${!ME.id?`<div class="notice">正在等待 BoomRoom 真實玩家資料…</div>`:""}${matchLocked?`<div class="notice">🔒 本場已結束。請回到房間後重新啟動遊戲。</div>`:""}<section class="panel">${rules()}</section>`
     }
     function playView(){
       const myTurn=turn===ME.id;
@@ -539,5 +546,5 @@
     }
     if(ME.id)addPlayer(ME.id,ME.username,ME.avatar,false);
     render();
-</script><script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+</script><script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body></html>

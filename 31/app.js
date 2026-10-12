@@ -397,13 +397,9 @@ function applyRoundStart(packet,localAuthority){
     players.set(p.id,p); touchPlayer(p.id);
     snakes.set(p.id,makeSnake(p,idx,false));
   });
-  // Solo or single real player: add 3 AI opponents
-  const realUsers = ids.filter(id => !id.startsWith('bot-'));
-  if(realUsers.length <= 1){
-    snakes.set('bot-a',makeBot('bot-a','🤖 AI 小閃',1));
-    snakes.set('bot-b',makeBot('bot-b','🤖 AI 阿爆',2));
-    snakes.set('bot-c',makeBot('bot-c','🤖 AI 狂蛇',3));
-  }
+  const configured=window.BoomRoomSDK?.getAiSeats?.();
+  const bots=configured ?? (ids.length<=1 ? [{id:'bot-a',name:'🤖 AI 小閃',level:5},{id:'bot-b',name:'🤖 AI 阿爆',level:5},{id:'bot-c',name:'🤖 AI 狂蛇',level:5}] : []);
+  bots.forEach((seat,i)=>{const bot=makeBot(seat.id,seat.name,ids.length+i);bot.aiLevel=seat.level;snakes.set(bot.id,bot);});
   spawnInitialFood();
   toast('3 秒後開始，吃金蘋果、躲炸彈！',2600);
   updateHUD();
@@ -587,7 +583,7 @@ function updateBot(s){
   if(s.body[0].x!==target.x && s.dir!=='RIGHT') choices.push('LEFT');
   if(s.body[0].y!==target.y && s.dir!=='UP') choices.push('DOWN');
   if(s.body[0].y!==target.y && s.dir!=='DOWN') choices.push('UP');
-  if(choices.length && Math.random()<.86) s.nextDir=choices[Math.floor(Math.random()*choices.length)];
+  if(choices.length && Math.random()<(s.aiLevel===1?.4:s.aiLevel===9?.98:.86)) s.nextDir=choices[Math.floor(Math.random()*choices.length)];
 }
 function manhattan(a,b){
   const dx=Math.min(Math.abs(a.x-b.x),GAME.GRID-Math.abs(a.x-b.x));

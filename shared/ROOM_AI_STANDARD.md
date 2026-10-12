@@ -1,0 +1,28 @@
+# BoomRoom 房間 AI 與開局人數標準
+
+開發或修改遊戲須先讀本文件、GAME_UI_STANDARD.md、SDK_API.md 與 WAGERING_RULES.md。
+
+AI 是房間的虛擬座位，由室長在「AI 座位與難度」設定數量與每位難度。其他玩家能看見座位，但不能設定。AI 不是真人帳號，不加入登入、房間語音、錢包或付費參賽者清單；真人入場費仍為每人 100。含 AI 的 Tetris 練習局僅允許 0 加碼，AI 不出資、不領銀幣。
+
+按開始時，APP 先檢查真人與已設定 AI 的總數。五子棋需 2 位、大老二 18／26 需 4 位；不足時詢問是否加入缺少的 AI 並設定難度。取消任一確認／設定視窗就不開局。沒有 AI 接入能力的遊戲需等足夠真人。
+
+伺服器在房間鎖內驗證室長、目錄遊戲、設定版本、空座位、能力與總人數，在任何扣款前再次檢查。每次設定帶 expectedRevision，過期修改拒絕；已加入 AI 的位置禁止真人直接入座。換遊戲清除 AI 設定；開局後禁止修改。正式 Session.aiSeats 保存開局的 AI 清單，重連或重玩不能自行重新抽出 AI。
+
+```js
+const aiSeats = BoomRoomSDK.getAiSeats(); // 副本：id、seatIndex(0–9)、name、level
+const humans = BoomRoomSDK.getRoomPlayers(); // 僅真人
+// 遊戲只建立 aiSeats 中的 AI；即使只有一位真人，也不得自動補電腦玩家。
+```
+
+| 遊戲 | 房間 AI 能力 |
+| --- | --- |
+| 36 Tetris Battle | 每位 1–9 級，真人＋AI 最多 10 位 |
+| 17、18、19、22、23、26、27、30、31、32、33、34 | 簡單 Lv.1／普通 Lv.5／高手 Lv.9；受該款人數上限限制 |
+| 3 核心拔河 | 一位標準 Lv.5 AI，只支援一位真人的對練 |
+| 其他款 | 尚未接入房間 AI，依最低真人人數開局 |
+
+AI 難度必須影響實際決策或反應時間，不能只改顯示文字。關卡敵人與環境 NPC 不占房間 AI 席，僅競賽／合作玩家才使用此清單。27 的單人關卡可獨自遊玩；PVP 開始前另需 2 位，沒有對手會提示返回房間加入 AI。
+
+官方能力以 server/src/room_game_policy.ts 的已接入規則為準，目錄 API 提供 minPlayers、maxPlayers、maxAi、aiLevels、aiSoloOnly；新遊戲必須更新能力政策並驗證實際 SDK 遊玩。未知或外部 UGC 不可借用官方 AI 能力。game.json 的 roomMinPlayers 描述正式房間，minPlayers 可另描述獨立練習模式。
+
+驗收須包含不足人數零扣款、取消不開局、非室長拒絕、座位碰撞、過期設定、開局後鎖定、重連還原、只有預設座位出現及真人錢包隔離。

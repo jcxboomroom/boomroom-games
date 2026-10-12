@@ -1,11 +1,11 @@
-/* BoomRoom SDK v2 / additive API revision 4.
+/* BoomRoom SDK v2 / additive API revision 6.
  * No local players, purchases or rewards are fabricated.
  * Games must wait for onBoomRoomSDKReady/onSessionStart before playing.
  * This SDK transports intents; only the authenticated server can award coins.
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 5) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 6) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
@@ -13,6 +13,8 @@
   const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR','TETRIS_PRIVATE','TETRIS_ERROR','TETRIS_STATE','TETRIS_QUEUED']);
   const hooks = new Map(), pendingPurchases = new Map();
   let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0, lastHapticAt = -Infinity;
+  let hostUi = null;
+  const uiScriptUrl = root.document?.currentScript?.src;
   const monotonic = () => root.performance ? root.performance.now() : Date.now();
   const copy = value => value == null ? value : JSON.parse(JSON.stringify(value));
   function httpOrigin(value) {
@@ -101,6 +103,7 @@
     data = { user: copy(packet.user), roomId, gameSessionId: id, session: copy(session),
       isHost: !!packet.isHost, roomPlayers: beforePlayers };
     timeAtReceive = monotonic();
+    if (packet.hostUi) acceptHostUi(packet.hostUi);
     updatePlayers(roster, !first);
     if (first) {
       notify('ready', data.session);
@@ -117,6 +120,14 @@
       if (session.status === 'PLAYING') notify('sessionStart', session);
       else if (session.status === 'ENDED' || session.status === 'ABORTED') notify('sessionEnd', session);
     }
+    return true;
+  }
+  function acceptHostUi(state) {
+    if (!data || !state || state.protocol !== 1 || !Number.isSafeInteger(state.version) ||
+        state.version < 1 || (hostUi && state.version < hostUi.version)) return false;
+    hostUi = copy(state);
+    if (Number.isSafeInteger(state.silverCoins) && state.silverCoins >= 0) data.user.silverCoins = state.silverCoins;
+    notify('hostUiChange', hostUi);
     return true;
   }
   function send(action, fields) {
@@ -160,6 +171,8 @@
     if (packet.action === 'initSDK') return initialize(packet);
     if (!data || packet.gameSessionId && packet.gameSessionId !== data.gameSessionId ||
         packet.roomId && String(packet.roomId) !== data.roomId) return;
+    if (packet.action === 'hostUiState' && packet.gameSessionId === data.gameSessionId &&
+        String(packet.roomId) === data.roomId) acceptHostUi(packet.state);
     if (packet.action === 'roomPlayersUpdated') updatePlayers(packet.roomPlayers, true);
     if (packet.action === 'gameEventReceived') {
       // Existing native adapters are scoped by the app's current game page and
@@ -206,7 +219,7 @@
   }
   const sdk = {
     version: 2,
-    apiRevision: 5,
+    apiRevision: 6,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
@@ -216,19 +229,33 @@
     get roomPlayers() { return copy(data?.roomPlayers || []); },
     getUser: () => copy(data?.user || null),
     getRoomPlayers: () => copy(data?.roomPlayers || []),
+    getAiSeats: () => copy(data?.session?.aiSeats || []),
     getSession: () => copy(data?.session || null),
+    getHostUiState: () => copy(hostUi),
+    onHostUiChange(callback) {
+      const off = subscribe('hostUiChange', callback);
+      if (hostUi && !closed) root.queueMicrotask(() => { if (hooks.get('hostUiChange')?.has(callback)) callback(copy(hostUi)); });
+      return off;
+    },
+    requestGameUi(kind, fields = {}) {
+      if (!hostUi || !['READY','MUTE','VOLUME','HAPTIC','MIC','PEER_AUDIO','LEAVE','SYNC'].includes(kind)) return failure('UI_ACTION_INVALID');
+      return send('gameUi', { ...fields, kind });
+    },
+    configureGameUi(options) { return root.BoomRoomGameUI?.configure(options) || false; },
+    whenGameUiReady: () => uiReady,
     getServerTime: () => data ? Number(data.session.serverTime) + monotonic() - timeAtReceive : null,
     getStatus: () => ({ state: lifecycleState(), ready: !!data && !closed,
       sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
     getCapabilities: () => ({
       protocolVersion: 2,
-      apiRevision: 5,
+      apiRevision: 6,
       readiness: true,
       sessionSnapshots: true,
       roomRoster: true,
       gameEventRelay: true,
       versionedCommands: true,
       hapticRequests: true,
+      gameUi: true,
       verifiedScoring: false,
       serverAuthoritativeRules: false,
     }),
@@ -303,6 +330,7 @@
     haptic(style = 'light') {
       if (!['selection','light','medium','heavy'].includes(style)) return failure('HAPTIC_INVALID');
       if (!data || closed || data.session.status !== 'PLAYING') return false;
+      if (hostUi?.hapticEnabled === false) return false;
       const time = monotonic();
       if (time - lastHapticAt < 50) return false;
       lastHapticAt = time;
@@ -387,6 +415,7 @@
       hooks.clear();
       for (const pending of pendingPurchases.values()) root.clearTimeout(pending.timer);
       pendingPurchases.clear(); data = null;
+      root.BoomRoomGameUI?.dispose(); hostUi = null;
       root.removeEventListener('message', receive);
       root.removeEventListener('pagehide', pageHidden);
       if (root.__BoomRoomSDKInitializeHost === initializeHost) delete root.__BoomRoomSDKInitializeHost;
@@ -404,6 +433,15 @@
   root.__BoomRoomSDKInitializeHost = initializeHost;
   root.addEventListener('message', receive);
   root.addEventListener('pagehide', pageHidden);
+  const uiReady = new Promise(resolve => {
+    if (root.BoomRoomGameUI) { root.BoomRoomGameUI.attach(sdk); resolve(true); return; }
+    if (!uiScriptUrl || !root.document?.createElement) { resolve(false); return; }
+    const script = root.document.createElement('script');
+    script.src = new URL('./game-ui.js?v=1', uiScriptUrl).href;
+    script.onload = () => { root.BoomRoomGameUI?.attach(sdk); resolve(!!root.BoomRoomGameUI); };
+    script.onerror = () => { failure('GAME_UI_LOAD_FAILED'); resolve(false); };
+    root.document.head.appendChild(script);
+  });
   if (native && typeof previous.getSession === 'function') {
     const session = previous.getSession();
     initialize({ user: previous.getUser(), roomId: previous.roomId, isHost: previous.isHost,

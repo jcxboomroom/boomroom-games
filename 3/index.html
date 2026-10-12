@@ -169,7 +169,7 @@ function lockedOrCurrentRoomCount(){
   if(lockedRoomPlayers.length) return lockedRoomPlayers.length;
   return roomCount();
 }
-function getMatch(n){n=clamp(n,1,GAME.maxPlayers);if(n===1)return{humanCount:1,blueCount:1,redCount:1,label:'1VAI',desc:'目前 1 位玩家：你將對戰 1 名 AI。',ai:true};const blue=Math.floor(n/2),red=Math.ceil(n/2);return{humanCount:n,blueCount:blue,redCount:red,label:`${blue}V${red}`,desc:`目前 ${n} 位玩家：自動編成 ${blue}V${red}。`,ai:false}}
+function getMatch(n){n=clamp(n,1,GAME.maxPlayers);if(n===1)return{humanCount:1,blueCount:1,redCount:1,label:'1VAI',desc:'單人對戰房間已加入的 AI。',ai:!window.BoomRoomSDK?.getAiSeats||window.BoomRoomSDK.getAiSeats().length===1};const blue=Math.floor(n/2),red=Math.ceil(n/2);return{humanCount:n,blueCount:blue,redCount:red,label:`${blue}V${red}`,desc:`目前 ${n} 位玩家：自動編成 ${blue}V${red}。`,ai:false}}
 function applyMatch(n){const m=getMatch(n);state.humanCount=m.humanCount;state.blueCount=m.blueCount;state.redCount=m.redCount;state.aiEnabled=m.ai;AI.team='RED';AI.online=m.ai;return m}
 
 function updateRoomPreview(){
@@ -568,6 +568,6 @@ function loop(ts){const dt=lastFrame?Math.min((ts-lastFrame)/1000,.033):0;lastFr
 
 })();
 </script>
-<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+<script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body>
 </html>

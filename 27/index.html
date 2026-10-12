@@ -124,7 +124,7 @@ function handleGameEvent(name,payload,senderId){
   else if(name==='LF2_END'&&String(senderId)!==ME.id){if(payload.snapshot)applyBattleState(payload.snapshot);endGame(Array.isArray(payload.winnerIds)&&payload.winnerIds.includes(ME.id),safeString(payload.msg,'本局結束',80),false);}
 }
 function startGameFromEvent(p){if(!['STAGE','PVP','TEAM'].includes(p.mode)||!['NORMAL','HARD','NIGHTMARE'].includes(p.difficulty))return;gameMode=p.mode;difficulty=p.difficulty;stageLevel=1;for(const pick of p.selections||[]){const member=players.get(String(pick.id));if(member&&CHARS[pick.char])member.char=pick.char}selectedChar=players.get(ME.id)?.char||selectedChar;startGame()}
-function startHostRound(){if(!isHost())return;roundNumber++;stageLevel=1;finalizeStartSelection();sendEvent("LF2_START",{mode:gameMode,difficulty,stage:1,selections:[...players.values()].map(p=>({id:p.id,char:p.char}))});startGame()}
+function startHostRound(){if(!isHost())return;if(gameMode==='PVP'&&players.size+(window.BoomRoomSDK?.getAiSeats?.().length||0)<2&&window.BoomRoomSDK?.getAiSeats){alert('對戰至少需要 2 位，請返回房間先加入 AI');return;}roundNumber++;stageLevel=1;finalizeStartSelection();sendEvent("LF2_START",{mode:gameMode,difficulty,stage:1,selections:[...players.values()].map(p=>({id:p.id,char:p.char}))});startGame()}
 
 let musicTimer=0,musicStep=0,lastHudPaint=0;
 function initAudio(){try{if(!audioCtx){audioCtx=new(window.AudioContext||window.webkitAudioContext)()}if(audioCtx.state==="suspended")audioCtx.resume()}catch(_){} }
@@ -152,7 +152,9 @@ function startGame(){
   const roster=[...players.values()].sort((a,b)=>String(a.id).localeCompare(String(b.id)));
   const combatants=roster.map((p,i)=>createFighter({id:String(p.id),username:p.username,charId:p.char||'DAVIS',x:360+i*155,z:395,team:gameMode==='PVP'?10+i:1,kind:String(p.id)===ME.id?'fighter':'remote'}));
   player=combatants.find(p=>p.id===ME.id);remotes=combatants.filter(p=>p!==player);
-  if(gameMode==='PVP'&&remotes.length===0){const ids=Object.keys(CHARS).filter(x=>x!==selectedChar);remotes.push(createFighter({id:'ai_opponent',username:'AI 對手',charId:ids[(stageLevel+2)%ids.length],x:760,z:395,team:20,kind:'remote',ai:true}))}
+  const configured=window.BoomRoomSDK?.getAiSeats?.();
+  const aiSeats=configured ?? (gameMode==='PVP'&&remotes.length===0 ? [{id:'ai_opponent',name:'AI 對手',level:5}] : []);
+  aiSeats.forEach((seat,i)=>{const ids=Object.keys(CHARS).filter(x=>x!==selectedChar),cpu=createFighter({id:seat.id,username:seat.name,charId:ids[(stageLevel+i+2)%ids.length],x:760+i*80,z:395,team:gameMode==='PVP'?20+i:1,kind:'remote',ai:true});cpu.aiLevel=seat.level;remotes.push(cpu);});
   lastStateSent=0;lastInputSent=0;inputSequence=0;stateSequence=0;lastStateSequence=0;roundEndsAt=Date.now()+CONFIG.ROUND_TIME*1000;camera={x:0,z:0};
   initAudio();startMusic();showMessage("READY!");pushFeed(`🎮 ${CHARS[selectedChar].name} 進入戰場`);stageState="WAVE";spawnWave();render();resizeCanvas();draw();setTimeout(()=>showMessage("FIGHT!"),550);lastTime=performance.now();startLoop();
 }
@@ -271,7 +273,7 @@ function updateEnemies(dt){for(const e of enemies){if(!isAlive(e))continue;const
 function performEnemyAttack(e,t){e.attackFrame=.28;e.attackType=Math.random()<.2?"up":"mid";e.state="attack";dealMelee(e,t)}
 
 function updateRemotes(dt){for(const r of remotes){if(!isAlive(r))continue;let ri=Date.now()-(r.inputAt||0)>350?{}:r.remoteInput||{};
- if(r.ai){r.aiAttackCooldown=Math.max(0,(r.aiAttackCooldown||0)-dt);const t=nearestTarget(r,900);ri={};if(t){const dx=t.x-r.x,dz=t.z-r.z;ri.left=dx<-60;ri.right=dx>60;ri.up=dz<-20;ri.down=dz>20;if(r.aiAttackCooldown<=0&&Math.abs(dx)<75&&Math.abs(dz)<40){ri.attack=true;r.aiAttackCooldown=.65+Math.random()*.4;}else if(r.aiAttackCooldown<=0&&Math.abs(dx)>150&&Math.abs(dx)<290){ri.skill=true;r.aiAttackCooldown=2;}}}
+ if(r.ai){r.aiAttackCooldown=Math.max(0,(r.aiAttackCooldown||0)-dt);const t=nearestTarget(r,900);ri={};if(t){const dx=t.x-r.x,dz=t.z-r.z;ri.left=dx<-60;ri.right=dx>60;ri.up=dz<-20;ri.down=dz>20;if(r.aiAttackCooldown<=0&&Math.abs(dx)<75&&Math.abs(dz)<40){ri.attack=true;r.aiAttackCooldown=(r.aiLevel===1 ? 1.4 : r.aiLevel===9 ? .3 : .65)+Math.random()*.4;}else if(r.aiAttackCooldown<=0&&Math.abs(dx)>150&&Math.abs(dx)<290){ri.skill=true;r.aiAttackCooldown=2;}}}
  updatePlayer(dt,r,ri,ri);r.remoteInput={left:!!ri.left,right:!!ri.right,up:!!ri.up,down:!!ri.down,guard:!!ri.guard};}}
 function performAttackRemote(r){if(r.attackFrame>0)return;r.attackFrame=.28;r.attackType="mid";r.state="attack";const t=nearestTarget(r,78);if(t)dealMelee(r,t)}
 function performSkillRemote(r){const c=CHARS[r.charId]||CHARS.DAVIS;if(r.mp<c.cost)return;r.mp-=c.cost;r.state="skill";r.attackFrame=.5;spawnProjectile(r,"energy",9,c.skill,125,0)}
@@ -512,6 +514,6 @@ function keyboardGuard(v){input.guard=v}window.addEventListener("blur",()=>{inpu
 function finalizeStartSelection(){const me=addPlayer(ME.id,ME.username,ME.avatar);me.char=selectedChar}
 finalizeStartSelection();render();
 </script>
-<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+<script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body>
 </html>

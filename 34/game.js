@@ -297,23 +297,15 @@ function setupSDK(data = {}) {
     }
     for (const player of playerList()) player.bot = player.id !== localId;
   } else {
-    for(const player of playerList()){
-      if(player.id.startsWith('cpu-')){
-        player.bot=true;
-        if(desiredCount>1){players.delete(player.id);}
-      }else player.bot=false;
-    }
-    if (desiredCount === 1 && isHost) {
-      for (let i = 0; i < 3; i++) {
-        const id = `cpu-${roomId}-${i}`;
-        if (!players.has(id)) {
-          const bot = normalizePlayer({ id, username: ["小麥", "Pip", "豆豆"][i] }, playerList().length);
-          bot.bot = true;
-          bot.name=`🤖 ${bot.name} AI`;
-          players.set(id, bot);
-        }
-      }
-    }
+    const configured=window.BoomRoomSDK?.getAiSeats?.();
+    const bots=configured ?? (desiredCount===1 ? Array.from({length:3},(_,i)=>({id:`cpu-${roomId}-${i}`,name:['小麥','Pip','豆豆'][i],level:5})) : []);
+    const botIds=new Set(bots.map(seat=>seat.id));
+    for(const player of playerList())if(player.bot&&!botIds.has(player.id))players.delete(player.id);
+    bots.forEach(seat=>{
+      let bot=players.get(seat.id);
+      if(!bot){bot=normalizePlayer({id:seat.id,username:seat.name},playerList().length);players.set(bot.id,bot);}
+      bot.bot=true;bot.aiLevel=seat.level;bot.name=seat.name;
+    });
     const liveIDs = new Set(sources.map((entry) => String((entry?.user || entry)?.id ?? entry?.userId ?? entry?.id ?? "")));
     for (const player of playerList()) {
       if (!player.bot && player.id !== localId && liveIDs.size && !liveIDs.has(player.id)) player.disconnected = true;
@@ -819,6 +811,8 @@ function updateChicken(dt) {
 }
 
 function botInput(player) {
+  if(now()<(player.nextAiThinkAt||0))return player.cachedAiInput||{x:0,y:0};
+  player.nextAiThinkAt=now()+(player.aiLevel===1?700:player.aiLevel===9?90:260);
   const currentCarrier = chicken.holderId ? players.get(chicken.holderId) : null;
   let target = chicken;
   if (player.carrying) {
@@ -848,7 +842,7 @@ function botInput(player) {
     (!player.carrying && d < 180 && Math.random() < .012)
   );
   if (shouldDash) activateDash(player, false);
-  return { x: dx / d, y: dy / d };
+  return player.cachedAiInput={ x: dx / d, y: dy / d };
 }
 
 function dropChicken(player, forced = false) {

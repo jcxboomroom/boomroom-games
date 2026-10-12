@@ -1,6 +1,6 @@
 # BoomRoom HTML5 Game SDK API
 
-This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 5`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
+This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 6`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
 
 > **Game-development prerequisite:** Read [`WAGERING_RULES.md`](WAGERING_RULES.md) before designing, integrating, or repairing any BoomRoom game, even when the game will not support wagers. It is the required product and safety contract for the 100-silver admission fee, voluntary extra wagers, voting/consent, server-side wallet transactions, rank-based pool payout, and AI practice. State explicitly in the game plan whether wagering is supported. This SDK currently has no generic wager or settlement API; follow the document's limits.
 
@@ -9,7 +9,7 @@ This document defines the shared browser/WebView contract implemented by `boomro
 Load the shared SDK before the game code. Do not construct an online player, room, opponent, purchase receipt, or reward while the host session is still loading.
 
 ```html
-<script src="../shared/boomroom-sdk.js?v=5"></script>
+<script src="../shared/boomroom-sdk.js?v=6"></script>
 <script src="./game.js" defer></script>
 ```
 
@@ -38,7 +38,7 @@ try {
 
 | API | Contract |
 | --- | --- |
-| `version`, `apiRevision` | `2` transport and additive API revision `4`. |
+| `version`, `apiRevision` | `2` transport and additive API revision `6`. |
 | `isReady`, `status`, `getStatus()` | Session-handshake and lifecycle state. States are `WAITING_FOR_SESSION`, `PLAYING`, `ENDED`, `ABORTED`, and `DISPOSED`. This is not a network-connectivity indicator. |
 | `roomId`, `sessionId`, `gameSessionId`, `isHost` | Values from the authenticated host initialization. `sessionId` and `gameSessionId` are aliases. |
 | `getUser()`, `getRoomPlayers()`, `roomPlayers` | Defensive copies of the signed-in game user and current room roster. No placeholder players are created. |
@@ -119,3 +119,17 @@ This controlled message/clock suite checks SDK contracts but does not replace re
 ## Tetris Battle 權威擴充（revision 5）
 
 第 36 款可加碼，依 WAGERING_RULES 與其 README 完成伺服器投票、全員確認、錢包原子交易及排名分池。TETRIS_PRIVATE 僅由 SYSTEM 送至本人座位，包含同一 Session 的個人棋盤、ack、本人餘額、投票與派彩收據；SDK 會核對本人 userId 及非倒退版本。TETRIS_PRIVATE／TETRIS_ERROR／TETRIS_STATE／TETRIS_QUEUED 均為保留事件。TETRIS_COMMAND 的操作意圖由後端專屬引擎驗證；通用 SDK 的 verifiedScoring／serverAuthoritativeRules 能力仍為 false，不能將此特定遊戲的權威能力套用到其他 UGC。新版後端與 APP 必須先就緒，才可發布第 36 款加碼入口。
+
+
+## 遊戲內共用工具（revision 6）
+
+開發前須讀 [GAME_UI_STANDARD.md](GAME_UI_STANDARD.md)。SDK 自動載入同目錄 game-ui.js；bootstrap 等它載入後才執行遊戲，以接管音訊輸出。只在收到真實 hostUi protocol 1 後顯示工具。APP 不再顯示遊戲 AppBar。
+
+- `whenGameUiReady()`：等待共用工具模組載入；回傳 false 表示載入失敗。
+- `configureGameUi({help,settings})`：登記本遊戲的說明 callback 與 `{label,get,set}` 設定。
+- `getHostUiState()`／`onHostUiChange(callback)`：取得／訂閱經目前橋接來源、房間與 SID 核對的版本化 UI 狀態副本。
+- `requestGameUi(kind,fields)`：送 READY、MUTE、VOLUME、HAPTIC、MIC、PEER_AUDIO、SYNC、LEAVE 本人意圖。APP 再驗證座位與權限；沒有改銀幣操作。
+
+hostUi 包含 protocol、version、gameName、help、silverCoins、muted、volume(0–1)、hapticEnabled、micMuted、speechActive、ending、message 及當前真實房間 players。UI 更新使用 hostUiState 並帶 roomId、gameSessionId。整體音量和靜音不改遊戲個別設定；停用震動時 SDK.haptic 不發送回饋。
+
+房間 AI 與最低開局人數的統一標準見 [ROOM_AI_STANDARD.md](ROOM_AI_STANDARD.md)。正式遊戲只使用 SDK.getAiSeats() 的已確認虛擬座位；不得在遊戲內自動補 AI 或變更房間難度。

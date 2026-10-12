@@ -66,7 +66,7 @@
           <button class="mode-card" data-mode="ai" aria-pressed="false"><span>03 · AI BATTLE</span><b>AI 攻防</b><small>1–9 級 · 自選對手</small></button>
         </div>
         <div class="lobby-players" id="lobbyPlayers" hidden></div>
-        <section id="aiSettings" class="match-settings" hidden aria-label="AI 練習設定"><div class="setting-heading"><b>AI 練習</b><label>數量 <select id="aiCount" aria-label="AI 數量"></select></label></div><div id="aiLevels" class="ai-levels"></div><p class="menu-note">每位 AI 可選 1–9 級。AI 局不加碼，真人加 AI 最多 10 位。</p></section>
+        <section id="aiSettings" class="match-settings" hidden aria-label="AI 練習設定"><div class="setting-heading"><b id="aiHeading">AI 練習</b><label>數量 <select id="aiCount" aria-label="AI 數量"></select></label></div><div id="aiLevels" class="ai-levels"></div><p class="menu-note">每位 AI 可選 1–9 級。AI 局不加碼，真人加 AI 最多 10 位。</p></section>
         <section id="wagerSettings" class="match-settings" hidden aria-label="加碼投票"><div class="setting-heading"><b>本局加碼</b><span id="stakeLabel">0 銀幣</span></div><label class="stake-input">你的提案 <input id="stakeAmount" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="加碼提案金額"> 銀幣</label><input id="stakeRange" type="range" min="0" max="0" step="1" value="0" aria-label="拖動加碼金額"><button id="voteBtn" class="secondary">送出我的提案</button><p id="stakeLimit" class="menu-note"></p><p id="stakeRules" class="menu-note">多數票決定，同票取低；全員確認才扣款；60 秒未開局需重新確認。2 人冠軍全拿，3 人以上 70%／20%／10%，同名次平分。</p></section>
         <div class="mini-rules" id="miniRules"><span>⇄ 保留關鍵方塊</span><span>⤓ 空白鍵立即落下</span><span>✦ 透明輪廓是落點</span></div>
         <button class="primary start-button" id="startBtn">開始挑戰 <span>→</span></button>
@@ -85,12 +85,13 @@
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </main>
-  <script src="../shared/boomroom-sdk.js?v=5" defer></script>
+  <script src="../shared/game-ui.js?v=1" defer></script>
+  <script src="../shared/boomroom-sdk.js?v=6" defer></script>
   <script src="engine.js?v=1" defer></script>
   <script src="ai.js?v=1" defer></script>
   <script src="battle.js?v=1" defer></script>
   <script src="room.js?v=1" defer></script>
   <script src="authority-room.js?v=1" defer></script>
-  <script src="game.js?v=2" defer></script>
+  <script src="game.js?v=3" defer></script>
 </body>
 </html>

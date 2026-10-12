@@ -14,6 +14,7 @@
   let countPlayed = -1;
   let soundBus = null, musicBus = null;
   let raf = 0, heartbeat = 0, audio = null, musicStep = 0, lastMusic = 0, gesture = null;
+  let lastSoftSound = 0;
   const clock = () => room ? room.now() : performance.now();
   const read = key => { try { return JSON.parse(localStorage.getItem(key)); } catch (_) { return null; } };
   const write = (key,value) => { try { localStorage.setItem(key,JSON.stringify(value)); } catch (_) {} };
@@ -56,6 +57,12 @@
       tetris:[392,494,587,784],incoming:[146,138],over:[330,262,196],win:[523,659,784,1047],count:[440],go:[880,1047] };
     const melody=notes[kind]||notes.move;
     melody.forEach((note,i)=>tone(note,count>=4?.14:.07,kind==='drop'?'sine':'triangle',.035,i*.055));
+    if (audio?.state==='running' && (kind==='drop'||kind==='lock')) {
+      const length=kind==='drop'?.10:.055, buffer=audio.createBuffer(1,Math.ceil(audio.sampleRate*length),audio.sampleRate);
+      const samples=buffer.getChannelData(0);for(let i=0;i<samples.length;i++)samples[i]=(Math.random()*2-1)*Math.pow(1-i/samples.length,3);
+      const source=audio.createBufferSource(),gain=audio.createGain(),filter=audio.createBiquadFilter();source.buffer=buffer;filter.type='lowpass';filter.frequency.value=kind==='drop'?1800:1000;gain.gain.value=kind==='drop'?.13:.075;
+      source.connect(filter);filter.connect(gain);gain.connect(soundBus);source.start();source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};
+    }
   }
   function music(time) {
     if (!preferences.music || !engine || !canPlay() || document.hidden || !audio || time-lastMusic<190) return;
@@ -244,14 +251,15 @@
   let settingsKey='';
   const aiSelection=()=>[...$('aiLevels').querySelectorAll('select')].map(el=>Number(el.value));
   function aiRows(levels){
-    $('aiLevels').replaceChildren();levels.forEach((level,i)=>{const label=document.createElement('label'),select=document.createElement('select');label.textContent=`AI ${i+1} `;select.setAttribute('aria-label',`AI ${i+1} 等級`);for(let n=1;n<=9;n++){const option=document.createElement('option');option.value=n;option.textContent=`Lv.${n}`;select.append(option);}select.value=level;select.disabled=!!room&&!room.isHost;select.addEventListener('change',()=>room?.configure?.(aiSelection()));label.append(select);$('aiLevels').append(label);});
+    $('aiLevels').replaceChildren();levels.forEach((level,i)=>{const label=document.createElement('label'),select=document.createElement('select');label.textContent=`AI ${i+1} `;select.setAttribute('aria-label',`AI ${i+1} 等級`);for(let n=1;n<=9;n++){const option=document.createElement('option');option.value=n;option.textContent=`Lv.${n}`;select.append(option);}select.value=level;select.disabled=!!room&&(room.verified||!room.isHost);select.addEventListener('change',()=>room?.configure?.(aiSelection()));label.append(select);$('aiLevels').append(label);});
   }
   function setupControls(){
+    $('aiHeading').textContent=room?.verified?'房間 AI · 返回房間調整':'AI 練習';
     const supports=room?.verified||room?.local,offline=!room&&mode==='ai';show($('aiSettings'),!!supports||offline);show($('wagerSettings'),!!room?.verified);
     if(supports||offline){const max=room?10-[...room.players.values()].filter(p=>!p.bot).length:9,levels=room?.aiLevels||[5],key=(room?.local?'local':room?.verified?'server':'offline')+'|'+max+'|'+levels.join(',');
-      if(key!==settingsKey){settingsKey=key;$('aiCount').replaceChildren();for(let n=offline?1:0;n<=max;n++){const option=document.createElement('option');option.value=n;option.textContent=n+' 位';$('aiCount').append(option);}$('aiCount').value=levels.length;aiRows(levels);}$('aiCount').disabled=!!room&&!room.isHost;
+      if(key!==settingsKey){settingsKey=key;$('aiCount').replaceChildren();for(let n=offline?1:0;n<=max;n++){const option=document.createElement('option');option.value=n;option.textContent=n+' 位';$('aiCount').append(option);}$('aiCount').value=levels.length;aiRows(levels);}$('aiCount').disabled=!!room&&(room.verified||!room.isHost);
     }
-    if(room?.verified){const cap=room.aiLevels.length||room.players.size<2?0:room.limit,humans=[...room.players.values()].filter(p=>!p.bot).length;$('stakeAmount').max=cap;$('stakeRange').max=cap;const amount=Math.min(cap,Math.max(0,Number($('stakeAmount').value)||0));$('stakeAmount').value=amount;$('stakeRange').value=amount;$('voteBtn').disabled=room.recovering;$('voteBtn').textContent=room.aiLevels.length?'送出 0 加碼提案':'送出我的提案';$('stakeAmount').disabled=$('stakeRange').disabled=!!room.aiLevels.length;$('stakeLabel').textContent=`每人 ${decimal(room.stake)} · 獎池 ${decimal(room.stake*humans)}`;$('stakeLimit').textContent=`入場費 100 已另行收取 · 目前錢包 ${room.ownBalance==null?'讀取中':decimal(room.ownBalance)} 銀幣 · ${room.aiLevels.length?'AI 練習，只能選 0 加碼':`全房可加碼 0–${decimal(cap)} 銀幣`}`;}
+    if(room?.verified){const cap=room.aiLevels.length||room.players.size<2?0:room.limit,humans=[...room.players.values()].filter(p=>!p.bot).length;$('stakeAmount').max=cap;$('stakeRange').max=cap;const amount=Math.min(cap,Math.max(0,Number($('stakeAmount').value)||0));$('stakeAmount').value=amount;$('stakeRange').value=amount;$('voteBtn').disabled=room.recovering;$('voteBtn').textContent=room.aiLevels.length?'送出 0 加碼提案':'送出我的提案';$('stakeAmount').disabled=$('stakeRange').disabled=!!room.aiLevels.length;$('stakeLabel').textContent=`每人 ${decimal(room.stake)} · 獎池 ${decimal(room.stake*humans)}`;$('stakeLimit').textContent=`入場費 100 已另行收取 · 目前錢包 ${room.ownBalance==null?'讀取中':decimal(room.ownBalance)} 銀幣 · ${room.aiLevels.length?'房間 AI 練習，只能選 0 加碼':`全房可加碼 0–${decimal(cap)} 銀幣`}`;}
     show($('soloBtn'),!!room?.verified&&[...room.players.values()].filter(p=>!p.bot).length===1);
   }
   function roomChanged() {
@@ -382,7 +390,7 @@
   function advance(time) {
     room?.pump?.();
     const delta=Math.max(0,time-lastFrame);lastFrame=time;
-    if(canPlay()){engine.advance(delta,[...inputs.values()].some(input=>input.kind==='soft'));repeat(time);processEvents();music(time);}
+    if(canPlay()){const soft=[...inputs.values()].some(input=>input.kind==='soft'),y=engine.active?.y;engine.advance(delta,soft);if(soft&&engine.active?.y!==y&&time-lastSoftSound>=110){lastSoftSound=time;sound('move');}repeat(time);processEvents();music(time);}
     if(room&&engine&&time-lastPublish>=300&&room.phase==='playing'&&!room.recovering)publish();
     if(time-lastSave>=1000){lastSave=time;persist();}
   }
@@ -424,6 +432,7 @@
   on($('helpBtn'),'click',()=>{helpPaused=!room&&canPlay();if(helpPaused)pause(true);show($('help'),true);$('closeHelp').focus();});
   on($('closeHelp'),'click',()=>{show($('help'),false);if(helpPaused)pause(false);helpPaused=false;});
   for(const key of ['sound','music','haptic'])on($(key+'Btn'),'click',()=>togglePreference(key));
+  sdk?.configureGameUi({help:()=>{helpPaused=!room&&canPlay();if(helpPaused)pause(true);show($('help'),true);$('closeHelp').focus();},settings:['sound','music','haptic'].map(key=>({label:{sound:'遊戲音效',music:'遊戲音樂',haptic:'遊戲震動'}[key],get:()=>preferences[key],set:value=>{preferences[key]=value;write('tb36:preferences',preferences);preferenceUI();}}))});
   for(const button of document.querySelectorAll('[data-mode]'))on(button,'click',()=>{mode=button.dataset.mode;for(const item of document.querySelectorAll('[data-mode]')){item.classList.toggle('selected',item===button);item.setAttribute('aria-pressed',String(item===button));}setupControls();});
   on(document,'keydown',event=>{
     if(event.key!=='Tab')return;

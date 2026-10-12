@@ -366,6 +366,7 @@
       roomSeatOrder=window.BoomRoomSDK.roomPlayers.filter(rp=>rp?.id!=null).map(rp=>String(rp.id));
       for(const rp of window.BoomRoomSDK.roomPlayers) if(rp?.id!=null) addPlayer(rp.id,rp.username,rp.avatar,{joinedAt:rp.joinedAt||Date.now(),online:true,seat:rp.seat});
     }
+    if(window.BoomRoomSDK?.getAiSeats)makeBotPlayers();
     render();
     setTimeout(()=>sendEvent("BIGTWO_ROOM_HELLO",{user:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:Date.now()}}),150);
     setTimeout(()=>{if(isHost()) hostBroadcastRoster(); else requestGameState();},350);
@@ -421,24 +422,26 @@
      HOST AUTHORITATIVE GAME
   ========================================================= */
   function makeBotPlayers(){
-    const bots=[
-      ["bot_1","🤖 阿強"],["bot_2","🤖 莉莉"],["bot_3","🤖 爆哥"]
+    const configured=window.BoomRoomSDK?.getAiSeats?.();
+    const bots=configured ? configured.map(seat=>[seat.id,seat.name,seat.level]) : [
+      ["bot_1","🤖 阿強",5],["bot_2","🤖 莉莉",5],["bot_3","🤖 爆哥",5]
     ];
     let n=1;
-    for(const [id,name] of bots){if(!players.has(id))addPlayer(id,name,"",{joinedAt:Date.now()+n++,isBot:true,online:true});}
+    for(const [id,name,level] of bots){if(!players.has(id))addPlayer(id,name,"",{joinedAt:Date.now()+n++,isBot:true,online:true});players.get(id).aiLevel=level;}
   }
   function hostStartGame(){
     if(!isHost())return;
     if(hostState.active){notify("牌局已經開始");return;}
     let humans=realRoomPlayerIds();
-    if(humans.length===1){
+    if(window.BoomRoomSDK?.getAiSeats){makeBotPlayers();humans=humans.concat([...players.values()].filter(p=>p.isBot).map(p=>p.id));}
+    if(humans.length===1&&!window.BoomRoomSDK?.getAiSeats){
       makeBotPlayers();
       const bots=[...players.values()].filter(p=>p.isBot).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0)).map(p=>p.id);
       const orderSolo=[...humans,...bots].slice(0,GAME.maxPlayers);
       humans=orderSolo.slice();
       notify("目前只有 1 位真人，已由 AI 補滿 4 位對手");
     }
-    if(humans.length<2){notify("至少需要 2 位玩家");return;}
+    if(humans.length<(window.BoomRoomSDK?.getAiSeats?4:2)){notify("請返回房間加入 AI 或等真人，正式牌局需要 4 位");return;}
     if(humans.length>GAME.maxPlayers){notify("大老二最多 4 人，請先離開多餘玩家");return;}
     let order;
     const seatHumans=roomSeatOrder.filter(id=>humans.includes(id));
@@ -573,10 +576,12 @@
   function scheduleBotTurn(){
     clearTimeout(botTimer); if(!isHost()||!hostState.active||state!=="PLAYING")return;
     const p=players.get(hostState.currentTurnUserId); if(!p?.isBot)return;
-    botTimer=setTimeout(()=>botAct(p.id),GAME.aiDelayMs);
+    botTimer=setTimeout(()=>botAct(p.id),p.aiLevel===1 ? 1800 : p.aiLevel===9 ? 300 : GAME.aiDelayMs);
   }
   function botAct(botId){
     if(!hostState.active||hostState.currentTurnUserId!==botId||!players.get(botId)?.isBot)return;
+    const level=players.get(botId)?.aiLevel ?? 5;
+    if(level===1&&hostState.lastPlay&&Math.random()<.3){hostHandlePassRequest({actionId:`AI_PASS_${Date.now()}_${botId}`,userId:botId},botId);return;}
     const cards=hostState.hands.get(botId)||[]; const play=findPlayable(cards,hostState.lastPlay,hostState.firstPlay);
     if(play)hostHandlePlayRequest({actionId:`AI_${Date.now()}_${botId}`,userId:botId,username:players.get(botId)?.username,cardList:cloneCards(play)},botId);
     else hostHandlePassRequest({actionId:`AI_PASS_${Date.now()}_${botId}`,userId:botId},botId);
@@ -763,7 +768,7 @@
   function renderPlayers(){
     const list=(state==="PLAYING"||state==="RESULT")
       ?(hostState.order.length?hostState.order:playerOrder).map(id=>players.get(id)).filter(Boolean)
-      :[...players.values()].filter(p=>!p.isBot);
+      :[...players.values()].filter(p=>!p.isBot||!!window.BoomRoomSDK?.getAiSeats);
     const max=state==="LOBBY"?GAME.maxPlayers:Math.max(GAME.maxPlayers,list.length);
     let html="";
     list.forEach((p,i)=>{
@@ -780,14 +785,14 @@
     return html;
   }
   function lobbyHtml(){
-    const count=realRoomPlayerIds().length;
-    const canStart=isHost()&&count>=1&&count<=GAME.maxPlayers;
-    const startText=count===1?"室長：單人開局（AI 補位）":"室長：開始多人牌局";
+    const count=realRoomPlayerIds().length+(window.BoomRoomSDK?.getAiSeats?.().length||0);
+    const canStart=isHost()&&count>=(window.BoomRoomSDK?.getAiSeats?4:1)&&count<=GAME.maxPlayers;
+    const startText="室長：開始牌局";
     let body='';
     body+='<div class="lobby">';
     body+='<section class="panel topbar"><div class="brand">♠ 爆爆大老二 <small>極限牌皇 · MULTIPLAYER</small></div><div class="status"><span class="dot '+(sdkConnected?"":"local")+'"></span>'+(sdkConnected?"SDK 已連線":"等待 BoomRoom SDK")+'</div></section>';
-    body+='<section class="panel hero"><h1>多人正式牌桌</h1><p>台灣常見大老二規則。真實房內玩家會直接同步；只有 1 位真人時，才會由 AI 補滿牌桌。</p></section>';
-    body+='<section class="panel" style="padding:9px"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>'+count+'</b><span>真人玩家</span></div><div class="stat"><b>13</b><span>每人牌數</span></div><div class="stat"><b>4</b><span>最多玩家</span></div></div></section>';
+    body+='<section class="panel hero"><h1>多人正式牌桌</h1><p>台灣常見大老二規則。使用房間已加入的真人與 AI，正式牌局需要 4 位。</p></section>';
+    body+='<section class="panel" style="padding:9px"><div class="stats"><div class="stat"><b>100</b><span>Entry 銀幣</span></div><div class="stat"><b>'+count+'</b><span>真人＋AI 參賽者</span></div><div class="stat"><b>13</b><span>每人牌數</span></div><div class="stat"><b>4</b><span>最多玩家</span></div></div></section>';
     body+='<section class="panel" style="padding:10px"><div class="title">房內玩家 <span class="muted">（'+count+'/4）</span></div><div class="players">'+renderPlayers()+'</div></section>';
     if(canStart){
       body+='<button id="startBtn" class="cta">👑 '+startText+'</button>';
@@ -913,6 +918,6 @@
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){sendEvent("BIGTWO_ROOM_HELLO",{user:{id:ME.id,username:ME.username,avatar:ME.avatar,joinedAt:ME.joinedAt}});setTimeout(requestGameState,250);}});
   render();
 </script>
-<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+<script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body>
 </html>

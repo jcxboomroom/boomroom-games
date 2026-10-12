@@ -9,7 +9,12 @@
   "soloMode": "marathon / sprint40",
   "multiplayerMode": "battle",
   "authority": "server",
-  "inputs": ["keyboard", "touch", "pointer"],
+  "inputs": [
+    "keyboard",
+    "touch",
+    "pointer"
+  ],
   "coverUrl": "cover.jpg",
-  "status": "TESTING"
+  "status": "TESTING",
+  "roomMinPlayers": 2
 }

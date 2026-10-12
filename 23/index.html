@@ -1204,7 +1204,9 @@ function assignRoles() {
   if (pList.length >= 2) {
     playerP2 = pList[1];
   } else {
-    playerP2 = { id: 'ai-bot', username: '🤖 柴柴 AI', isBot: true };
+    const configured=window.BoomRoomSDK?.getAiSeats?.();
+    const seat=configured?.[0];
+    playerP2 = configured&&!seat ? null : { id: seat?.id || 'ai-bot', username: seat?.name || '🤖 柴柴 AI', isBot: true, level:seat?.level || 5 };
   }
 }
 
@@ -1892,7 +1894,7 @@ function updateAI(dt){
   */
 
   const aiStep=
-    CONFIG.AI_SPEED*dt;
+    CONFIG.AI_SPEED*(playerP2?.level===1 ? .55 : playerP2?.level===9 ? 1.45 : 1)*dt;
 
   if(Math.abs(diff)>4){
 
@@ -4243,6 +4245,6 @@ render();
 
 </script>
 
-<script src="../shared/boomroom-bootstrap.js?v=1" data-sdk="./boomroom-sdk.js?v=3" data-legacy-callbacks="true"></script>
+<script src="../shared/boomroom-bootstrap.js?v=2" data-sdk="./boomroom-sdk.js?v=6" data-legacy-callbacks="true"></script>
 </body>
 </html>

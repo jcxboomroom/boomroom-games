@@ -6,12 +6,12 @@
 
 完整 API、同步/權限模型與接入範例見 [`SDK_API.md`](SDK_API.md)。未來逐款遊戲檢查與修正時可使用遊戲倉庫根目錄的 [`CODEX_遊戲檢查與修正提示.md`](../CODEX_遊戲檢查與修正提示.md)。
 
-共用程式位於 `boomroom-sdk.js`。目前五子棋（30）已載入；其他遊戲仍待逐一遷移。Flutter 原有橋接保留相容入口，並支援 v2 初始化與事件生命週期。這不代表所有遊戲或所有裝置已驗收。
+共用程式位於 `boomroom-sdk.js`。1–34 與 36 共 35 款 HTML5 遊戲已接入共用啟動器／SDK；第 35 款由原生頁提供對等選單。Flutter 原有橋接保留相容入口，並支援 v2 初始化與事件生命週期。這不代表所有遊戲或所有裝置已驗收。
 
 遊戲先載入 SDK，再載入自己的程式，並等待真正的初始化：
 
 ```html
-<script src="../shared/boomroom-sdk.js?v=2"></script>
+<script src="../shared/boomroom-sdk.js?v=6"></script>
 ```
 
 ```javascript
@@ -63,3 +63,8 @@ SDK13項與五子棋6項受控來源回歸共19項通過。後端另有規則、
 ## Tetris Battle 權威擴充（revision 5）
 
 第 36 款可加碼，依 WAGERING_RULES 與其 README 完成伺服器投票、全員確認、錢包原子交易及排名分池。TETRIS_PRIVATE 僅由 SYSTEM 送至本人座位，包含同一 Session 的個人棋盤、ack、本人餘額、投票與派彩收據；SDK 會核對本人 userId 及非倒退版本。TETRIS_PRIVATE／TETRIS_ERROR／TETRIS_STATE／TETRIS_QUEUED 均為保留事件。TETRIS_COMMAND 的操作意圖由後端專屬引擎驗證；通用 SDK 的 verifiedScoring／serverAuthoritativeRules 能力仍為 false，不能將此特定遊戲的權威能力套用到其他 UGC。新版後端與 APP 必須先就緒，才可發布第 36 款加碼入口。
+
+
+遊戲內工具統一採 [GAME_UI_STANDARD.md](GAME_UI_STANDARD.md)。SDK revision 6 配合新版 APP 移除重複頂部列；實際 Chrome 已檢查 35 款工具、音量與靜音，不代表全部遊戲玩法或實體裝置已驗收。
+
+房間 AI 與最低開局人數的統一標準見 [ROOM_AI_STANDARD.md](ROOM_AI_STANDARD.md)。正式遊戲只使用 SDK.getAiSeats() 的已確認虛擬座位；不得在遊戲內自動補 AI 或變更房間難度。
