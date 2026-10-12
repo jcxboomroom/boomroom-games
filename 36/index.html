@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b1020">
-  <title>Tetris Battle · BoomRoom</title>
+  <title>爆爆方塊攻防 · BoomRoom</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=2">
   <link rel="stylesheet" href="settings.css?v=1">
 </head>
 <body>
   <main class="app">
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Tetris Battle"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>TETRIS <b>BATTLE</b><small>BOOMROOM · 36</small></span></a>
+      <a class="brand" href="#" aria-label="爆爆方塊攻防"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>爆爆方塊 <b>攻防</b><small>BOOMROOM · 36</small></span></a>
       <div class="session-tag" id="sessionTag">單人練習</div>
       <nav class="toolbar" aria-label="遊戲設定">
         <button id="soundBtn" class="tool" aria-label="音效" aria-pressed="true" title="音效">♪<span>音效</span></button>
@@ -67,7 +67,7 @@
         </div>
         <div class="lobby-players" id="lobbyPlayers" hidden></div>
         <section id="aiSettings" class="match-settings" hidden aria-label="AI 練習設定"><div class="setting-heading"><b id="aiHeading">AI 練習</b><label>數量 <select id="aiCount" aria-label="AI 數量"></select></label></div><div id="aiLevels" class="ai-levels"></div><p class="menu-note">每位 AI 可選 1–9 級。AI 局不加碼，真人加 AI 最多 10 位。</p></section>
-        <section id="wagerSettings" class="match-settings" hidden aria-label="加碼投票"><div class="setting-heading"><b>本局加碼</b><span id="stakeLabel">0 銀幣</span></div><label class="stake-input">你的提案 <input id="stakeAmount" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="加碼提案金額"> 銀幣</label><input id="stakeRange" type="range" min="0" max="0" step="1" value="0" aria-label="拖動加碼金額"><button id="voteBtn" class="secondary">送出我的提案</button><p id="stakeLimit" class="menu-note"></p><p id="stakeRules" class="menu-note">多數票決定，同票取低；全員確認才扣款；60 秒未開局需重新確認。2 人冠軍全拿，3 人以上 70%／20%／10%，同名次平分。</p></section>
+        <section id="wagerSettings" class="match-settings" hidden aria-label="加碼投票"><div class="setting-heading"><b>本局加碼</b><span id="stakeLabel">0 銀幣</span></div><label class="stake-input">你的提案 <input id="stakeAmount" type="number" min="0" step="1" value="0" inputmode="numeric" aria-label="加碼提案金額"> 銀幣</label><input id="stakeRange" type="range" min="0" max="0" step="1" value="0" aria-label="拖動加碼金額"><button id="voteBtn" class="secondary">送出提案</button><div id="proposalOptions" class="proposal-options" aria-label="目前可採用的提案"></div><p id="stakeLimit" class="menu-note"></p><p id="stakeRules" class="menu-note">票數最多的提案成為候選，同票取較低金額；每位真人都確認後才扣款。2 人冠軍全拿，3 人以上前 3 名 70%／20%／10%，同名次平分。AI 房為免費練習。</p></section>
         <div class="mini-rules" id="miniRules"><span>⇄ 保留關鍵方塊</span><span>⤓ 空白鍵立即落下</span><span>✦ 透明輪廓是落點</span></div>
         <button class="primary start-button" id="startBtn">開始挑戰 <span>→</span></button>
         <button class="secondary" id="syncBtn" hidden>重試同步</button>
@@ -77,7 +77,7 @@
     </section>
 
     <section class="modal-backdrop" id="result" role="dialog" aria-modal="true" aria-labelledby="resultTitle" hidden>
-      <div class="menu-card result-card"><p class="eyebrow" id="resultEyebrow">ROUND COMPLETE</p><div class="result-mark" id="resultMark">✦</div><h1 id="resultTitle">本局完成</h1><p id="resultIntro"></p><div id="resultStats" class="result-stats"></div><div id="rankings" class="rankings"></div><p id="bestResult" class="best-result"></p><button id="replayBtn" class="primary">再挑戰一次 →</button><button id="resultExit" class="secondary">返回選單</button><p id="resultNote" class="menu-note">本局挑戰成績不發放銀幣</p></div>
+      <div class="menu-card result-card"><p class="eyebrow" id="resultEyebrow">ROUND COMPLETE</p><div class="result-mark" id="resultMark">✦</div><h1 id="resultTitle">本局完成</h1><p id="resultIntro"></p><div id="resultStats" class="result-stats"></div><div id="rankings" class="rankings"></div><p id="bestResult" class="best-result"></p><button id="replayBtn" class="primary">再挑戰一次 →</button><button id="resultExit" class="secondary">返回選單</button><p id="returnCountdown" class="menu-note" role="status" aria-live="polite" hidden></p><p id="resultNote" class="menu-note">本局挑戰成績不發放銀幣</p></div>
     </section>
 
     <section class="modal-backdrop" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
@@ -89,9 +89,9 @@
   <script src="../shared/boomroom-sdk.js?v=6" defer></script>
   <script src="engine.js?v=1" defer></script>
   <script src="ai.js?v=1" defer></script>
-  <script src="battle.js?v=1" defer></script>
+  <script src="battle.js?v=2" defer></script>
   <script src="room.js?v=1" defer></script>
-  <script src="authority-room.js?v=1" defer></script>
-  <script src="game.js?v=3" defer></script>
+  <script src="authority-room.js?v=2" defer></script>
+  <script src="game.js?v=5" defer></script>
 </body>
 </html>

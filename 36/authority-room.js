@@ -5,11 +5,16 @@
   class AuthorityRoom {
     constructor(sdk,callbacks={}){
       this.sdk=sdk;this.callbacks=callbacks;this.self=String(sdk.getUser().id);this.verified=true;this.local=false;
-      this.players=new Map();this.ready=new Set();this.received=new Set();this.pending=[];this.seq=0;this.version=-1;this.round=0;this.lastSeen=performance.now();this.lastPing=0;this.lastSend=0;this.offset=Date.now()-performance.now();
+      this.players=new Map();this.ready=new Set();this.received=new Set();this.pending=[];this.seq=0;this.version=-1;this.round=0;this.lastSeen=performance.now();this.lastPing=0;this.lastSend=0;this.lastPull=-Infinity;this.offset=Date.now()-performance.now();
       this.off=sdk.onGameEvent((name,payload,sender)=>{
         if(String(sender)!=='SYSTEM')return;
         if(name==='TETRIS_PRIVATE'&&String(payload?.userId)===this.self)this.accept(payload.session);
-        if(name==='TETRIS_ERROR')callbacks.notice?.(payload?.message||'操作未確認，請同步');
+        if(name==='TETRIS_ERROR'){
+          if(payload?.code==='TETRIS_INPUT_RESYNC'){
+            this.pending=[];this.seq=this.players.get(this.self)?.ack||0;this.callbacks.changed?.();
+            callbacks.notice?.('操作已與伺服器校準，請繼續');
+          }else callbacks.notice?.(payload?.message||'操作未確認，請同步');
+        }
       });
       this.endOff=sdk.onSessionEnd(()=>{this.phase='ended';callbacks.changed?.();});
       this.accept(sdk.getSession(),false);
@@ -48,8 +53,9 @@
     input(kind,pieces,target){if(this.phase!=='playing'||this.recovering)return;this.pending.push({kind,pieces,target,round:this.round,seq:++this.seq,localAt:this.now(),sentAt:0});this.pump();}
     selectTarget(id){if(id)this.input('target',null,id);}
     pump(){const time=performance.now();if(time-this.lastSend<12)return;const c=this.pending.find(p=>!p.sentAt||time-p.sentAt>=600);if(!c)return;const {localAt,sentAt,...packet}=c;if(this.send(packet)){c.sentAt=time;this.lastSend=time;}}
-    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000&&!this.recovering){this.recovering=true;this.callbacks.changed?.();}if(time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});this.send({kind:'SYNC'});}}
-    sync(){this.control('SYNC');}
+    requestSnapshot(){const time=performance.now();if(time-this.lastPull<2000)return;this.lastPull=time;this.sdk.requestGameUi?.('SYNC');}
+    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000){if(!this.recovering){this.recovering=true;this.callbacks.changed?.();}this.requestSnapshot();}if(time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});this.send({kind:'SYNC'});}}
+    sync(){this.control('SYNC');this.requestSnapshot();}
     publish(){} attack(){}
     forfeit(){this.send({kind:'EXIT'});}
     snapshot(){return null;}

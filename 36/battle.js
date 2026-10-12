@@ -17,7 +17,9 @@
     configure(levels){
       if(!['lobby','results'].includes(this.phase)||!Array.isArray(levels)||levels.length+this.humans.length>10||levels.some(n=>!Number.isInteger(n)||n<1||n>9))throw Error('AI 設定無效');
       this.aiLevels=[...levels];this.members=this.humans.concat(levels.map((level,i)=>({id:'ai:'+i,name:`AI ${i+1} · Lv.${level}`,bot:true,level,alive:true,inRound:false,connected:true,engine:null,ack:0,target:null,soft:false,lastInput:0,lastHard:0,lastSeen:0,eliminatedAt:null,nextAI:0})));
-      if(levels.length){this.proposals={};this.stake=0;}this.invalidate();
+      // AI matches are free. Auto-record zero for every human so they only
+      // confirm the match instead of submitting a redundant wager proposal.
+      this.proposals=levels.length?Object.fromEntries(this.humans.map(m=>[m.id,0])):{};this.stake=0;this.invalidate();
     }
     vote(id,amount){
       if(!['lobby','results'].includes(this.phase)||!this.humans.some(m=>m.id===id)||!Number.isSafeInteger(amount)||amount<0||amount>this.limit||amount>0&&(this.aiLevels.length||this.humans.length<2))throw Error('提案金額超出可用餘額，或 AI／單人練習不能加碼');
@@ -50,13 +52,13 @@
       }
       if(this.phase!=='playing'||!m.alive||c.round!==this.round||!Number.isSafeInteger(c.seq)||c.seq<1||c.seq>1000000)return false;
       if(c.seq<=m.ack)return true;if(c.seq!==m.ack+1)return false;
-      m.ack=c.seq;
-      if(c.kind==='target'){if(this.members.some(p=>p.id===String(c.target)&&p.id!==id&&p.alive))m.target=String(c.target);return true;}
-      if(c.kind==='forfeit'){m.engine.finish('forfeit');this.drain(m,now);return true;}
-      if(c.kind==='softOn'||c.kind==='softOff'){m.soft=c.kind==='softOn';return true;}
+      if(c.kind==='target'){if(!this.members.some(p=>p.id===String(c.target)&&p.id!==id&&p.alive))return false;m.target=String(c.target);m.ack=c.seq;return true;}
+      if(c.kind==='forfeit'){m.engine.finish('forfeit');m.ack=c.seq;this.drain(m,now);return true;}
+      if(c.kind==='softOn'||c.kind==='softOff'){m.soft=c.kind==='softOn';m.ack=c.seq;return true;}
       if(!['left','right','cw','ccw','hold','hard','soft'].includes(c.kind)||c.pieces!==m.engine.pieces)return false;
       if(c.kind==='hard'&&now-m.lastHard<80)return false;
-      m.lastInput=now;if(c.kind==='hard')m.lastHard=now;const accepted=ai.apply(m.engine,c.kind);this.drain(m,now);return accepted;
+      const accepted=ai.apply(m.engine,c.kind);if(!accepted)return false;
+      m.ack=c.seq;m.lastInput=now;if(c.kind==='hard')m.lastHard=now;this.drain(m,now);return true;
     }
     advance(now,exclude=null){
       if(!['countdown','playing'].includes(this.phase))return;
