@@ -11,6 +11,11 @@
   const mediaDescriptor = mediaPrototype && Object.getOwnPropertyDescriptor(mediaPrototype, 'muted');
   const volumeDescriptor = mediaPrototype && Object.getOwnPropertyDescriptor(mediaPrototype, 'volume');
   const originalPlay = mediaPrototype?.play;
+  const originalVibrate = root.navigator?.vibrate;
+  if(originalVibrate)root.navigator.vibrate=function(pattern){
+    if(state?.hapticEnabled===false)return false;
+    return originalVibrate.call(this,pattern);
+  };
   const audioGains = new WeakMap(), routedMedia = new WeakSet();
   const audioPrototype = root.AudioContext?.prototype;
   const originalMediaSource = audioPrototype?.createMediaElementSource;
@@ -202,6 +207,7 @@
       if(mediaDescriptor?.configurable)Object.defineProperty(mediaPrototype,'muted',mediaDescriptor);
       if(volumeDescriptor?.configurable)Object.defineProperty(mediaPrototype,'volume',volumeDescriptor);
       if(originalPlay)mediaPrototype.play=originalPlay;
+      if(originalVibrate)root.navigator.vibrate=originalVibrate;
       if(originalMediaSource)audioPrototype.createMediaElementSource=originalMediaSource;
     },
   };

@@ -1054,6 +1054,7 @@ function setAutoCard(show){
 }
 
 function maybeScheduleAI(){
+  if(!isHost())return;
   clearTimeout(aiTimer);
   aiThinking=false;
   if(GAME_STATE!=="PLAYING" || shotLocked) return;

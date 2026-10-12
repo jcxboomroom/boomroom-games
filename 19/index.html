@@ -68,8 +68,8 @@ button:disabled{opacity:.4;cursor:default}
 
 const CONFIG = Object.freeze({
   ENTRY_FEE: 100,
-  MIN_PLAYERS: 1,
-  MAX_PLAYERS: 8,
+  MIN_PLAYERS: 2,
+  MAX_PLAYERS: 10,
   DICE_FACES: [1, 2, 3, 4, 5, 6]
 });
 
@@ -377,7 +377,7 @@ function runLocalDevTest() {
 }
 
 function triggerAiBotTurn(botP) {
-  if (state !== "PLAYING" || currentTurnUserId !== botP.id) return;
+  if (!isHost() || state !== "PLAYING" || currentTurnUserId !== botP.id) return;
 
   const alivePlayersCount = [...players.values()].filter(p => p.lives > 0).length;
   const totalDiceInGame = alivePlayersCount * 5;
@@ -463,7 +463,7 @@ function render() {
 
     // AI Bot 自動思考出牌/指認
     const currentP = players.get(currentTurnUserId);
-    if (currentP && currentP.isBot && currentP.lives > 0) {
+    if (isHost() && currentP && currentP.isBot && currentP.lives > 0) {
       setTimeout(() => triggerAiBotTurn(currentP), currentP.aiLevel===1 ? 1800 : currentP.aiLevel===9 ? 450 : 1200);
     }
 
