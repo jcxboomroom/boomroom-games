@@ -184,6 +184,8 @@
     root.document.head.append(style);
     const capsule = shadow.querySelector('.capsule');
     resizeObserver = new ResizeObserver(() => root.document.documentElement.style.setProperty('--boomroom-tools-width', `${capsule.getBoundingClientRect().width + 10}px`)); resizeObserver.observe(capsule);
+    const wagerButton=button('本局加碼與獎池',()=>{close();root.BoomRoomWagerUI?.open();},shadow.querySelector('.actions'));
+    wagerButton.id='wager';
     for (const [id, callback] of Object.entries({menu:open,close,scrim:close,help:showHelp,leave,sync:()=>request('SYNC'),mic:()=>request('MIC',{muted:!state.micMuted})})) shadow.getElementById(id).addEventListener('click',callback);
     shadow.getElementById('mute').addEventListener('change',event=>{setAudio(event.target.checked,volume);request('MUTE',{muted:event.target.checked});});
     shadow.getElementById('volume').addEventListener('input',event=>{setAudio(muted,event.target.value/100);request('VOLUME',{volume:event.target.value/100});});

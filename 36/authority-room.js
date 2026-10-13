@@ -5,10 +5,12 @@
   class AuthorityRoom {
     constructor(sdk,callbacks={}){
       this.sdk=sdk;this.callbacks=callbacks;this.self=String(sdk.getUser().id);this.verified=true;this.local=false;
+      this.spectator=sdk.isSpectator===true;
       this.players=new Map();this.ready=new Set();this.received=new Set();this.pending=[];this.seq=0;this.version=-1;this.round=0;this.lastSeen=performance.now();this.lastPing=0;this.lastSend=0;this.lastPull=-Infinity;this.offset=Date.now()-performance.now();
       this.off=sdk.onGameEvent((name,payload,sender)=>{
         if(String(sender)!=='SYSTEM')return;
         if(name==='TETRIS_PRIVATE'&&String(payload?.userId)===this.self)this.accept(payload.session);
+        if(this.spectator&&name==='TETRIS_SPECTATOR')this.accept(payload.session);
         if(name==='TETRIS_ERROR'){
           if(payload?.code==='TETRIS_INPUT_RESYNC'){
             this.pending=[];this.seq=this.players.get(this.self)?.ack||0;this.callbacks.changed?.();
@@ -20,17 +22,22 @@
       this.accept(sdk.getSession(),false);
     }
     now(){return performance.now()+this.offset;}
-    get isHost(){return this.host===this.self;}
+    get isHost(){return !this.spectator&&this.host===this.self;}
     get seedForRound(){return (this.state.seed+Math.imul(this.round,2654435761))>>>0;}
     get allReady(){return this.players.size>=2&&[...this.players.values()].filter(p=>!p.bot).every(p=>p.connected&&this.ready.has(p.id)&&Object.hasOwn(this.proposals,p.id));}
     accept(session,announce=true){
       if(session?.engine!=='TETRIS'||session.sessionId!==this.sdk.getSession()?.sessionId||session.version<this.version)return;
-      const state=session.engineState;if(!state||!Array.isArray(state.members))return;
+      let state=session.engineState;if(!state||!Array.isArray(state.members))return;
+      if(this.spectator&&state.boardEncoding==='digits-v1'){
+        if(state.members.some(m=>m.view&&(!Array.isArray(m.view.board)||m.view.board.length!==22||m.view.board.some(line=>typeof line!=='string'||!/^[0-8]{10}$/.test(line)))))return;
+        state={...state,members:state.members.map(m=>({...m,view:m.view?{...m.view,board:m.view.board.map(line=>[...line].map(Number))}:null}))};
+      }
       this.version=session.version;this.offset=Number(session.serverTime)-performance.now();this.lastSeen=performance.now();this.recovering=false;
       if(this.round!==state.round){this.pending=[];this.seq=0;}
       this.state=state;for(const key of ['host','round','phase','startAt','endAt','epoch','stake','limit','proposals','aiLevels','results','settlement','ownBalance'])this[key]=state[key];
       this.ready=new Set(state.ready);this.players=new Map(state.members.map(p=>[p.id,{...p,seq:p.ack}]));
       const own=state.members.find(p=>p.id===this.self);this.pending=this.pending.filter(c=>c.seq>(own?.ack||0));this.seq=Math.max(this.seq,own?.ack||0);
+      if(!own?.alive)this.pending=[];
       this.ownEngine=own?.engine?Engine.restore(own.engine):null;
       if(announce)this.callbacks.changed?.();
     }
@@ -44,17 +51,17 @@
       }
       if(this.phase==='playing')engine.advance(Math.min(1000,Math.max(0,this.now()-at)),soft);engine.drainEvents();return engine;
     }
-    send(command){return this.sdk.sendGameEvent('TETRIS_COMMAND',{round:this.round,...command});}
-    control(kind,fields={}){this.sdk.sendCommand('TETRIS_COMMAND',kind,{round:this.round,epoch:this.epoch,stake:this.stake,...fields},{expectedVersion:this.version});}
+    send(command){return !this.spectator&&this.sdk.sendGameEvent('TETRIS_COMMAND',{round:this.round,...command});}
+    control(kind,fields={}){if(!this.spectator)this.sdk.sendCommand('TETRIS_COMMAND',kind,{round:this.round,epoch:this.epoch,stake:this.stake,...fields},{expectedVersion:this.version});}
     setReady(){this.control('READY');}
     start(){this.control('START');}
     vote(amount){this.control('VOTE',{amount});}
     configure(levels){this.control('CONFIGURE',{levels});}
-    input(kind,pieces,target){if(this.phase!=='playing'||this.recovering)return;this.pending.push({kind,pieces,target,round:this.round,seq:++this.seq,localAt:this.now(),sentAt:0});this.pump();}
+    input(kind,pieces,target){if(this.spectator||this.phase!=='playing'||this.recovering||!this.players.get(this.self)?.alive)return;this.pending.push({kind,pieces,target,round:this.round,seq:++this.seq,localAt:this.now(),sentAt:0});this.pump();}
     selectTarget(id){if(id)this.input('target',null,id);}
     pump(){const time=performance.now();if(time-this.lastSend<12)return;const c=this.pending.find(p=>!p.sentAt||time-p.sentAt>=600);if(!c)return;const {localAt,sentAt,...packet}=c;if(this.send(packet)){c.sentAt=time;this.lastSend=time;}}
     requestSnapshot(){const time=performance.now();if(time-this.lastPull<2000)return;this.lastPull=time;this.sdk.requestGameUi?.('SYNC');}
-    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000){if(!this.recovering){this.recovering=true;this.callbacks.changed?.();}this.requestSnapshot();}if(time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});this.send({kind:'SYNC'});}}
+    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000){if(!this.recovering){this.recovering=true;this.callbacks.changed?.();}this.requestSnapshot();}if(!this.spectator&&time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});this.send({kind:'SYNC'});}}
     sync(){this.control('SYNC');this.requestSnapshot();}
     publish(){} attack(){}
     forfeit(){this.send({kind:'EXIT'});}

@@ -1,16 +1,18 @@
-/* BoomRoom SDK v2 / additive API revision 6.
+/* BoomRoom SDK v2 / additive API revision 8.
  * No local players, purchases or rewards are fabricated.
  * Games must wait for onBoomRoomSDKReady/onSessionStart before playing.
  * This SDK transports intents; only the authenticated server can award coins.
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 6) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 9) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
+  const previousVoice=root.receiveVoiceText;
+  function nativeVoice(text,isFinal,sessionId){if(native&&data&&!closed&&!data.isSpectator&&typeof text==='string'&&Number.isSafeInteger(sessionId))notify('speechResult',text.slice(0,120),Boolean(isFinal),sessionId);}
   const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR','TETRIS_PRIVATE','TETRIS_ERROR','TETRIS_STATE','TETRIS_QUEUED']);
+  const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR','TETRIS_PRIVATE','TETRIS_ERROR','TETRIS_STATE','TETRIS_QUEUED','TETRIS_SPECTATOR','GAME_SPECTATOR','WAGER_STATE','BOOMGOLD_STATE','STACK_STATE','ARENA_STATE','GAME_ACTION_ERROR']);
   const hooks = new Map(), pendingPurchases = new Map();
   let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0, lastHapticAt = -Infinity;
   let hostUi = null;
@@ -89,19 +91,21 @@
     const userId = Number(packet.user?.id);
     const roster = players(packet.roomPlayers || []);
     const participants = players(session?.players);
+    const isSpectator = packet.isSpectator === true && session?.spectatorSupported === true && session?.viewerRole === 'spectator';
     if (!uuid.test(id || '') || !session || session.sessionId !== id || String(session.roomId) !== roomId ||
         !roomId || !Number.isSafeInteger(userId) || userId <= 0 || !roster || !participants?.length ||
-        !participants.some(player => Number(player.id ?? player.userId) === userId) ||
+        (!isSpectator && !participants.some(player => Number(player.id ?? player.userId) === userId)) ||
         !Number.isFinite(Number(session.serverTime)) || !Number.isSafeInteger(session.version) || session.version < 1 ||
         !['PLAYING', 'ENDED', 'ABORTED'].includes(session.status)) return failure('SESSION_INVALID');
     if (data && data.gameSessionId !== id) return failure('SESSION_MISMATCH');
+    if (data && data.isSpectator !== isSpectator) return failure('SESSION_ROLE_MISMATCH');
     if (data && Number(session.version) < Number(data.session.version)) return failure('SESSION_STALE');
     const first = !data;
     const previousSession = data ? copy(data.session) : null;
     const beforeStatus = previousSession?.status;
     const beforePlayers = data?.roomPlayers || [];
     data = { user: copy(packet.user), roomId, gameSessionId: id, session: copy(session),
-      isHost: !!packet.isHost, roomPlayers: beforePlayers };
+      isHost: !isSpectator && !!packet.isHost, isSpectator, roomPlayers: beforePlayers };
     timeAtReceive = monotonic();
     if (packet.hostUi) acceptHostUi(packet.hostUi);
     updatePlayers(roster, !first);
@@ -132,6 +136,7 @@
   }
   function send(action, fields) {
     if (!data || closed || data.session.status !== 'PLAYING') return failure('SESSION_UNAVAILABLE');
+    if (data.isSpectator && !['gameUi','leaveGame','haptic'].includes(action)) return failure('SPECTATOR_READ_ONLY');
     const packet = { ...fields, action, roomId: data.roomId, gameSessionId: data.gameSessionId };
     try {
       if (native && root.chrome?.webview?.postMessage) {
@@ -174,11 +179,21 @@
     if (packet.action === 'hostUiState' && packet.gameSessionId === data.gameSessionId &&
         String(packet.roomId) === data.roomId) acceptHostUi(packet.state);
     if (packet.action === 'roomPlayersUpdated') updatePlayers(packet.roomPlayers, true);
+    if(packet.action==='flutterSpeechResult'&&!data.isSpectator&&typeof packet.text==='string'&&Number.isSafeInteger(packet.sessionId))notify('speechResult',packet.text.slice(0,120),Boolean(packet.isFinal),packet.sessionId);
     if (packet.action === 'gameEventReceived') {
       // Existing native adapters are scoped by the app's current game page and
       // may synthesize the old envelope without a session field.
       if (packet.gameSessionId !== data.gameSessionId && !(native && !packet.gameSessionId) ||
           typeof packet.eventName !== 'string') return;
+      if (data.isSpectator && (!['TETRIS_SPECTATOR','GAME_SPECTATOR'].includes(packet.eventName) || packet.userId !== 'SYSTEM')) return;
+      if (['TETRIS_SPECTATOR','GAME_SPECTATOR'].includes(packet.eventName)) {
+        if (!data.isSpectator || packet.userId !== 'SYSTEM' || !packet.payload?.session ||
+            !initialize({ ...data, session: packet.payload.session })) return;
+      }
+      if (['WAGER_STATE','BOOMGOLD_STATE','STACK_STATE','ARENA_STATE'].includes(packet.eventName)) {
+        if(packet.userId!=='SYSTEM'||String(packet.payload?.userId)!==String(data.user.id)||!packet.payload?.session||
+          !initialize({...data,session:packet.payload.session}))return;
+      }
       if (packet.eventName === 'GOMOKU_STATE' && packet.userId === 'SYSTEM' && packet.payload?.session) {
         // Only the reserved server envelope refreshes canonical session data.
         // Peer payloads are still untrusted and cannot update the SDK session.
@@ -219,10 +234,11 @@
   }
   const sdk = {
     version: 2,
-    apiRevision: 6,
+    apiRevision: 9,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
+    get isSpectator() { return data?.isSpectator || false; },
     get sessionId() { return data?.gameSessionId || ''; },
     get gameSessionId() { return data?.gameSessionId || ''; },
     get status() { return lifecycleState(); },
@@ -230,7 +246,13 @@
     getUser: () => copy(data?.user || null),
     getRoomPlayers: () => copy(data?.roomPlayers || []),
     getAiSeats: () => copy(data?.session?.aiSeats || []),
+    getSeats: () => copy([...(data?.session?.players||[]).map(p=>({...p,seatIndex:p.seatIndex??null,kind:'human'})),...(data?.session?.aiSeats||[]).map(p=>({...p,kind:'ai'}))]),
+    getOfficialRules: () => copy({rankingRule:data?.session?.wager?.rankingRule||null,distribution:data?.session?.wager?.distribution||null,tournament:data?.session?.engineState?.tournament?{rules:data.session.engineState.tournament.rules,rounds:data.session.engineState.tournament.rounds,byes:data.session.engineState.tournament.byes}:null}),
+    getAuthoritativeRankings: () => copy(data?.session?.resultVerified?data.session.results?.rankings||[]:[]),
+    getSpectatorTargets: () => copy(data?.session?.engineState?.tournament?.tables?.map(t=>({id:t.id,version:t.version,round:t.round,blackId:t.blackId,whiteId:t.whiteId,finished:t.scored}))||data?.session?.engineState?.members?.map(p=>({id:p.id,name:p.name,finished:p.alive===false}))||[]),
     getSession: () => copy(data?.session || null),
+    requestSpeech(kind,sessionId){if(!['START','STOP'].includes(kind)||!Number.isSafeInteger(sessionId)||sessionId<1)return failure('SPEECH_INVALID');return send(kind==='START'?'startVoiceRecognition':'stopVoiceRecognition',{sessionId});},
+    onSpeechResult:callback=>subscribe('speechResult',callback),
     getHostUiState: () => copy(hostUi),
     onHostUiChange(callback) {
       const off = subscribe('hostUiChange', callback);
@@ -238,17 +260,41 @@
       return off;
     },
     requestGameUi(kind, fields = {}) {
-      if (!hostUi || !['READY','MUTE','VOLUME','HAPTIC','MIC','PEER_AUDIO','LEAVE','SYNC'].includes(kind)) return failure('UI_ACTION_INVALID');
+      if (!hostUi || !['READY','MUTE','VOLUME','HAPTIC','MIC','PEER_AUDIO','LEAVE','SYNC','WAGER'].includes(kind)) return failure('UI_ACTION_INVALID');
       return send('gameUi', { ...fields, kind });
     },
     configureGameUi(options) { return root.BoomRoomGameUI?.configure(options) || false; },
     whenGameUiReady: () => uiReady,
+    getWagerState: () => copy(data?.session?.wager || null),
+    requestWager(kind, amount) {
+      const wager=data?.session?.wager;
+      if(data?.isSpectator||!wager?.supported||!['VOTE','CONFIRM','DECLINE','START','SYNC','CONFIGURE'].includes(kind))return failure('WAGER_UNAVAILABLE');
+      if(kind==='CONFIGURE'&&data.session.engine!=='BLUFF')return failure('WAGER_UNAVAILABLE');
+      if(data.session.engine==='TETRIS') {
+        if(kind==='DECLINE')return sdk.sendGameEvent('TETRIS_COMMAND',{kind:'EXIT'});
+        return sdk.sendCommand('TETRIS_COMMAND',kind==='CONFIRM'?'READY':kind,
+          {round:wager.round,epoch:wager.epoch,stake:wager.amount,...(kind==='VOTE'?{amount}:{})});
+      }
+      const command=sdk.createCommand(kind,{epoch:wager.epoch,...(kind==='CONFIGURE'?amount:{amount:kind==='VOTE'?amount:wager.amount})});
+      return command?sdk.requestGameUi('WAGER',{command}):false;
+    },
+    whenPlayable() {
+      const ready=()=>!data?.session?.wager?.supported||!['PROPOSAL'].includes(data.session.wager.phase)||data.isSpectator;
+      if(ready())return Promise.resolve(copy(data?.session));
+      return new Promise((resolve,reject)=>{
+        const off=sdk.onSessionUpdate(()=>{if(ready()){off();endOff();resolve(sdk.getSession());}});
+        const endOff=sdk.onSessionEnd(()=>{off();endOff();reject(new Error('對局已結束'));});
+      });
+    },
     getServerTime: () => data ? Number(data.session.serverTime) + monotonic() - timeAtReceive : null,
     getStatus: () => ({ state: lifecycleState(), ready: !!data && !closed,
       sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
     getCapabilities: () => ({
       protocolVersion: 2,
-      apiRevision: 6,
+      apiRevision: 9,
+      commonWagerUi: true,
+      publicSpectating: true,
+      tetrisSpectating: true,
       readiness: true,
       sessionSnapshots: true,
       roomRoster: true,
@@ -416,9 +462,11 @@
       for (const pending of pendingPurchases.values()) root.clearTimeout(pending.timer);
       pendingPurchases.clear(); data = null;
       root.BoomRoomGameUI?.dispose(); hostUi = null;
+      root.BoomRoomWagerUI?.dispose();
       root.removeEventListener('message', receive);
       root.removeEventListener('pagehide', pageHidden);
       if (root.__BoomRoomSDKInitializeHost === initializeHost) delete root.__BoomRoomSDKInitializeHost;
+      if(root.receiveVoiceText===nativeVoice){if(previousVoice)root.receiveVoiceText=previousVoice;else delete root.receiveVoiceText;}
     },
   };
   function initializeHost(packet) {
@@ -426,10 +474,12 @@
     // through the parent-origin/source-checked message channel above.
     if (root.parent !== root) return false;
     native = true;
+    root.receiveVoiceText=nativeVoice;
     return initialize(packet);
   }
   function pageHidden(event) { if (!event.persisted) sdk.dispose(); }
   root.BoomRoomSDK = sdk;
+  if(native)root.receiveVoiceText=nativeVoice;
   root.__BoomRoomSDKInitializeHost = initializeHost;
   root.addEventListener('message', receive);
   root.addEventListener('pagehide', pageHidden);
@@ -437,14 +487,19 @@
     if (root.BoomRoomGameUI) { root.BoomRoomGameUI.attach(sdk); resolve(true); return; }
     if (!uiScriptUrl || !root.document?.createElement) { resolve(false); return; }
     const script = root.document.createElement('script');
-    script.src = new URL('./game-ui.js?v=1', uiScriptUrl).href;
+    script.src = new URL('./game-ui.js?v=2', uiScriptUrl).href;
     script.onload = () => { root.BoomRoomGameUI?.attach(sdk); resolve(!!root.BoomRoomGameUI); };
     script.onerror = () => { failure('GAME_UI_LOAD_FAILED'); resolve(false); };
     root.document.head.appendChild(script);
   });
+  if(uiScriptUrl&&root.document?.createElement){
+    const script=root.document.createElement('script');script.src=new URL('./wager-ui.js?v=1',uiScriptUrl).href;
+    script.onload=()=>root.BoomRoomWagerUI?.attach(sdk);
+    script.onerror=()=>failure('WAGER_UI_LOAD_FAILED');root.document.head.appendChild(script);
+  }
   if (native && typeof previous.getSession === 'function') {
     const session = previous.getSession();
-    initialize({ user: previous.getUser(), roomId: previous.roomId, isHost: previous.isHost,
+    initialize({ user: previous.getUser(), roomId: previous.roomId, isHost: previous.isHost, isSpectator: previous.isSpectator,
       gameSessionId: previous.gameSessionId, session, roomPlayers: previous.roomPlayers || [] });
   }
 })(window);

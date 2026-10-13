@@ -8,6 +8,21 @@
   async function start() {
     if (started) return;
     started = true;
+    if(embedded)await root.BoomRoomSDK.whenReady();
+    const session=root.BoomRoomSDK?.getSession();
+    if(embedded&&session?.engine?.startsWith('OFFICIAL_')){
+      const game=root.document.createElement('script');game.src=new URL('./official-room.js?v=1',script.src).href;
+      await new Promise((resolve,reject)=>{game.onload=resolve;game.onerror=reject;root.document.head.append(game);});return;
+    }
+    if(embedded&&session?.engine==='BOOMGOLD'&&session.wager?.supported){
+      const game=root.document.createElement('script');game.src=new URL('../1/authority.js?v=1',script.src).href;
+      await new Promise((resolve,reject)=>{game.onload=resolve;game.onerror=reject;root.document.head.append(game);});return;
+    }
+    if(embedded&&session?.engine==='STACK'&&session.wager?.supported){
+      const game=root.document.createElement('script');game.src=new URL('./authority-party.js?v=1',script.src).href;
+      await new Promise((resolve,reject)=>{game.onload=resolve;game.onerror=reject;root.document.head.append(game);});return;
+    }
+    if(embedded)await root.BoomRoomSDK.whenPlayable();
     const pending = [...root.document.querySelectorAll('script[type="application/boomroom-game"]')];
     for (const original of pending) {
       const executable = root.document.createElement('script');

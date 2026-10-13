@@ -1,15 +1,19 @@
 # BoomRoom HTML5 Game SDK API
 
-This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 6`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
+This document defines the shared browser/WebView contract implemented by `boomroom-sdk.js`. The transport stays at protocol version 2; additive JavaScript APIs are at `apiRevision: 8`. Existing v2 games can keep their current calls while new or repaired games use the APIs below.
 
-> **Game-development prerequisite:** Read [`WAGERING_RULES.md`](WAGERING_RULES.md) before designing, integrating, or repairing any BoomRoom game, even when the game will not support wagers. It is the required product and safety contract for the 100-silver admission fee, voluntary extra wagers, voting/consent, server-side wallet transactions, rank-based pool payout, and AI practice. State explicitly in the game plan whether wagering is supported. This SDK currently has no generic wager or settlement API; follow the document's limits.
+> **Game-development prerequisite:** Read [`WAGERING_RULES.md`](WAGERING_RULES.md) before designing, integrating, or repairing any BoomRoom game. Admission and voluntary wagers are separate. Revision 8 exposes common wager proposals and consent; the backend opens this only for registered official rules. Creator uploads remain unverified and cannot enable paid wagering by sending scores or setting their own capabilities.
 
 ## Load and wait for the real room session
+
+Revision 8 uses `sdk.isSpectator` and `session.spectatorSupported`. A host-provided `isSpectator: true` with `viewerRole: 'spectator'` allows a room member to read public official-game state. This page role is immutable. The SDK permits local tools, haptic and leave requests and rejects game intents, purchases, admission and completion with `SPECTATOR_READ_ONLY`. The backend independently authenticates room membership and projects public state.
+
+Only `SYSTEM / TETRIS_SPECTATOR` or `SYSTEM / GAME_SPECTATOR` can refresh a spectator page. Game 36 uses `digits-v1` packed boards. Other games use their official public projection. Private cards, unrevealed dice, answers, crash times and engine randomness are hidden. Eliminated players retain their page and can choose another public viewpoint. A player who returns to the room can open a separate read-only spectator page without another admission charge.
 
 Load the shared SDK before the game code. Do not construct an online player, room, opponent, purchase receipt, or reward while the host session is still loading.
 
 ```html
-<script src="../shared/boomroom-sdk.js?v=6"></script>
+<script src="../shared/boomroom-sdk.js?v=8"></script>
 <script src="./game.js" defer></script>
 ```
 
@@ -38,7 +42,7 @@ try {
 
 | API | Contract |
 | --- | --- |
-| `version`, `apiRevision` | `2` transport and additive API revision `6`. |
+| `version`, `apiRevision` | `2` transport and additive API revision `8`. |
 | `isReady`, `status`, `getStatus()` | Session-handshake and lifecycle state. States are `WAITING_FOR_SESSION`, `PLAYING`, `ENDED`, `ABORTED`, and `DISPOSED`. This is not a network-connectivity indicator. |
 | `roomId`, `sessionId`, `gameSessionId`, `isHost` | Values from the authenticated host initialization. `sessionId` and `gameSessionId` are aliases. |
 | `getUser()`, `getRoomPlayers()`, `roomPlayers` | Defensive copies of the signed-in game user and current room roster. No placeholder players are created. |
@@ -98,7 +102,7 @@ An APP host event such as `GOMOKU_STATE` or the seat-private `BLUFF_PRIVATE` may
 
 ## Compatibility and current limits
 
-- Keep `version === 2` for the existing APP transport. `apiRevision === 5` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
+- Keep `version === 2` for the existing APP transport. `apiRevision === 8` is additive; do not change the transport version unless the Flutter host and all deployed clients are migrated together.
 - Web messages are scoped to the parent frame and verified HTTP(S) origin. Native WebViews use the APP's current bridge. These checks protect the bridge boundary but are not a complete sandbox for untrusted HTML.
 - The SDK has no `connected`/`reconnecting` signal because the current host contract does not forward a generic socket lifecycle event to HTML. `status` only describes session lifecycle.
 - Generic relay events do not create canonical game snapshots. Only host-forwarded, explicitly recognized reserved events update the session today.
@@ -133,3 +137,27 @@ This controlled message/clock suite checks SDK contracts but does not replace re
 hostUi 包含 protocol、version、gameName、help、silverCoins、muted、volume(0–1)、hapticEnabled、micMuted、speechActive、ending、message 及當前真實房間 players。UI 更新使用 hostUiState 並帶 roomId、gameSessionId。整體音量和靜音不改遊戲個別設定；停用震動時 SDK.haptic 不發送回饋。
 
 房間 AI 與最低開局人數的統一標準見 [ROOM_AI_STANDARD.md](ROOM_AI_STANDARD.md)。正式遊戲只使用 SDK.getAiSeats() 的已確認虛擬座位；不得在遊戲內自動補 AI 或變更房間難度。
+
+
+## 官方遊戲共用加碼與觀戰（revision 8）
+
+Revision 9 沿用 v2：`getSeats()` 回傳 kind=human/ai 的公開座位副本；`getAiSeats()` 的 level 由伺服器鎖定。`getOfficialRules()` 回傳 rankingRule、distribution 和五子棋 tournament 的完整 rounds/byes；`getSpectatorTargets()` 回傳公開棋盤 ID／參賽者 ID；`getAuthoritativeRankings()` 只在 resultVerified 時回傳正式排名副本，未驗證時為空陣列。選桌是本機顯示選擇，不授予操作權限。五子棋 MOVE/RESIGN 額外帶 tableId，仍使用 SID、commandId 與 expectedVersion。
+
+五子棋 1 真人＋AI、2 真人保留三勝制；3–10 真人使用單循環多桌積分賽，每對交手一次、奇數輪空一次。規則及所有輪次先公開並隨加碼共同確認；每桌 120 秒、每步 20 秒、輪間倒數 3.5 秒。勝3分平1分負0分，依積分／勝場排列，仍同分並列。退出不派彩；觀戰者與非本桌參賽者不能落子。固定入場費已扣，不再次從可用錢包扣除；HELD 加碼也已扣款，避免重複扣減鎖定金額。
+
+多桌 MOVE／RESIGN 可帶 `tableVersion`：伺服器驗目前該桌版本，且 expectedVersion 不得是未來 session 版本；其他棋盤更新不撤銷此桌尚未變動的落子版本。未提供 tableVersion 的舊 v2 命令沿用嚴格 session 版本檢查。UI 暫存落子只由該桌版本／已接受落子核對，不因其他桌封包提早清除。
+
+`getSeats().seatIndex` 是開局時凍結的房間座位索引（0–9），不把過濾後的真人名單序號誤當座位。舊 session 未保存此欄位時真人回傳 null，不猜造位置。真人與 AI 索引不能重疊；觀眾晚進入語音席位不改此參賽快照。
+
+- `getWagerState()` 取得伺服器的 supported、phase、epoch、round、amount、limit、本人 balance、proposals、consents、rankingRule、distribution 與 settlement。讀不到別人的錢包。
+- `requestWager(kind, amount)` 支援 VOTE、CONFIRM、DECLINE、START、SYNC；BLUFF 的 CONFIGURE 接受 deckCount／challengeMode。Tetris 對接原本 TETRIS_COMMAND，其他官方引擎透過 APP 的 game:wager ACK。
+- 100 入場費先前已收取，0 加碼不再次扣款。提案取最高票、同票低額；全員明確確認同一 epoch 與金額才可由原房主 START。確認超過 60 秒、離線、規則變更失效。任何 AI 參賽時只可加碼 0。
+- 桌面與行動 HTML5 都載入共用工具／加碼面板。面板可以先關閉以選模式或角色，之後從遊戲選單重新打開。正式銀幣加碼沒有客戶端定價或結果入口。
+- `WAGER_STATE`、`BOOMGOLD_STATE`、`STACK_STATE`、`ARENA_STATE` 為 SYSTEM 保留事件，payload 包含本人 userId 與 session；SDK 驗身份、SID 與非倒退 version 後更新 canonical session。
+- `OFFICIAL_3` 等註冊引擎透過 `sdk.sendCommand('ARENA_COMMAND', kind, {round,...fields})`。UUID 去重、身份由 Socket 認證，server.act 驗玩法。PROPOSAL 僅允許 EXIT、READY、本人 SELECT，以及原房主 CONFIGURE；規則／角色變更撤銷舊同意。
+- 官方 adapter 為 `window.BoomRoomOfficialClientAdapters[number]`，draw 使用 canvas.width／height（CSS 邏輯尺寸）；controls 可含 fields 函式、文字 input／field、release 函式／物件、hold:true 每 300ms 重送。pointer 接收 down／move／up／cancel，key 接收 down／up；釋放意圖不可被一般節流吞掉。
+- 1、2、17、30、36 使用其專用引擎；其他官方遊戲使用 registry 與 ARENA transport。35 保留原生操作，伺服器保存官方曲庫譜面與 SHA，等待所有玩家準備同一 SHA；觀戰使用四軌公開 renderer。逐次判定使用伺服器收到時間與固定 100ms 補償，客戶端 timestamp 不能選擇命中等級。
+- TOP3：兩人冠軍全拿，三人以上前三名 70／20／10 並列分配。退出者不派彩，有效名額不足時按剩餘權重分完整池。WINNERS：rank 1 真人平分；無有效真人勝者整池退款。27 依已鎖定模式在 server state 決定分配。中斷或未完成對局退還未結算加碼。
+- game:watch 以房間 instance／SID 訂閱公開快照，30 秒租約、APP 每 10 秒續租。選擇玩家在本機切換，伺服器不为每位觀戰者要求玩家多傳一份資料。一般進行中觀戰上限 5Hz，終局另送一次收據；沒有有效訂閱時不建立或發送額外公開觀戰封包。正常對局／語音仍有流量。
+- 後端、APP 與遊戲資源要一起發布。source 編譯／語法檢查不代表已完成多人實玩、錢包故障演練或 100 人負載驗收。
+- 語音猜題使用 requestSpeech('START'／'STOP', 整數工作階段ID) 及 onSpeechResult。Flutter 管理房間麥克風切換，結果回綁工作階段；15 adapter 再綁 turnIndex 發 GUESS，由伺服器核對私有答案。文字猜測仍可使用。共用 shell 支援 adapter.attach(sdk,{send,showMessage})／local() 處理本機辨識意圖與清理。

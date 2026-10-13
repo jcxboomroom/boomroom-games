@@ -214,6 +214,7 @@
       room:room?.snapshot()||null,received:room?[...room.received]:[],stateSeq:room?.stateSeq||0,attackSeq:room?.attackSeq||0 });
   }
   function completeRound() {
+    if(room?.spectator)return;
     if(completionSent)return;completionSent=true;
     if(session && sdk.status==='PLAYING')sdk.completeRound(engine?.score||0);
   }
@@ -242,13 +243,15 @@
     if(!room||resultRound===room.round)return;resultRound=room.round;completeRound();
     const self=room.results.find(r=>r.id===room.self),winners=room.results.filter(r=>r.rank===1),win=self?.rank===1;
     $('resultEyebrow').textContent=`BATTLE · ROUND ${room.round}`;$('resultMark').textContent=win?'✦':'↻';
-    $('resultTitle').textContent=win?(winners.length>1?'勢均力敵，並列第一！':'最後一塊，由你決勝。'):'下一局，換你翻盤。';
+    $('resultTitle').textContent=room.spectator?'本局觀戰結束':win?(winners.length>1?'勢均力敵，並列第一！':'最後一塊，由你決勝。'):'下一局，換你翻盤。';
     $('resultIntro').textContent=self?`本局第 ${self.rank} 名 · ${room.results.length} 人攻防`:'本局觀戰結束';
     $('resultStats').replaceChildren();stat($('resultStats'),'分數',decimal(self?.score||0));stat($('resultStats'),'消行',self?.lines||0);stat($('resultStats'),'送出攻擊',self?.attack||0);
+    show($('resultStats'),!room.spectator);
     $('rankings').replaceChildren();
     for(const r of room.results){const row=document.createElement('div'),rank=document.createElement('b'),name=document.createElement('span'),summary=document.createElement('small');row.className='ranking'+(r.id===room.self?' self':'');rank.textContent=String(r.rank).padStart(2,'0');name.textContent=room.players.get(r.id).name+(r.id===room.self?' · 你':'');const paid=room.settlement?.awards?.find(a=>a.id===r.id);summary.textContent=paid?`+${decimal(paid.payout)} 銀幣 · ${r.attack} 攻擊`:`${r.attack} 攻擊 / ${decimal(r.score)} 分`;row.append(rank,name,summary);$('rankings').append(row);}
     const settlement=room.settlement,award=settlement?.awards?.find(a=>a.id===room.self);
     $('bestResult').textContent=room.verified?(settlement?.status==='PAID'?`已入帳 +${decimal(award?.payout||0)} 銀幣 · 本局加碼 ${decimal(room.stake)}`:room.aiLevels?.length?'AI 練習 · 伺服器計算結果':'伺服器已驗證排名'):'AI 本機練習 · 不發放銀幣';
+    if(room.spectator)$('bestResult').textContent='免費觀戰 · 不參與加碼與獎勵';
     $('resultNote').textContent=settlement?.status==='PAID'?`獎池 ${decimal(settlement.pot)} 銀幣 · 無抽成 · 同名次平分` :settlement?.status==='REFUNDED'?settlement.reason:'本局加碼 0 · 不發放銀幣';
     const autoReturn=embedded&&!room.local;
     show($('replayBtn'),!autoReturn);$('replayBtn').textContent=room.local?'再練一次 →':'再戰一次 →';$('replayBtn').disabled=false;
@@ -271,6 +274,7 @@
     $('menuNote').textContent=room.recovering?'正在向伺服器自動重試同步；也可手動重試':`${available.length} 位參賽者 · ${room.aiLevels?.length?'AI 練習免費，不開放加碼 · 真人確認後開始':'全員確認後由房主開始'}`;
     renderProposalOptions();
     setupControls();
+    if(room.spectator){$('menuTitle').textContent='觀戰爆爆方塊攻防';$('menuIntro').textContent='等待參賽者準備，開局後可選擇玩家視角。';$('startBtn').disabled=true;$('startBtn').textContent='等待玩家開局';$('menuNote').textContent='免費觀戰 · 點選玩家切換棋盤';show($('proposalOptions'),false);}
   }
   function renderProposalOptions(){
     const list=$('proposalOptions');if(!list)return;list.replaceChildren();
@@ -295,6 +299,7 @@
     $('aiLevels').replaceChildren();levels.forEach((level,i)=>{const label=document.createElement('label'),select=document.createElement('select');label.textContent=`AI ${i+1} `;select.setAttribute('aria-label',`AI ${i+1} 等級`);for(let n=1;n<=9;n++){const option=document.createElement('option');option.value=n;option.textContent=`Lv.${n}`;select.append(option);}select.value=level;select.disabled=!!room&&(room.verified||!room.isHost);select.addEventListener('change',()=>room?.configure?.(aiSelection()));label.append(select);$('aiLevels').append(label);});
   }
   function setupControls(){
+    if(room?.spectator){for(const id of ['aiSettings','wagerSettings','soloBtn'])show($(id),false);return;}
     $('aiHeading').textContent=room?.verified?'房間 AI · 返回房間調整':'AI 練習';
     const supports=room?.verified||room?.local,offline=!room&&mode==='ai';show($('aiSettings'),!!supports||offline);show($('wagerSettings'),!!room?.verified&&!room.aiLevels?.length);
     if(supports||offline){const max=room?10-[...room.players.values()].filter(p=>!p.bot).length:9,levels=room?.aiLevels||[5],key=(room?.local?'local':room?.verified?'server':'offline')+'|'+max+'|'+levels.join(',');
@@ -305,6 +310,15 @@
   }
   function roomChanged() {
     if(!room)return;
+    if(room.spectator){
+      engine=null;clearInputs();
+      if(['countdown','playing'].includes(room.phase)){
+        if(activeRound!==room.round){activeRound=room.round;resultRound=-1;target=null;countPlayed=-1;}
+        show($('menu'),false);show($('result'),false);$('pauseBtn').disabled=true;
+        $('modeLabel').textContent='SPECTATE';$('roundLabel').textContent=`ROUND ${room.round} · 3 MIN`;
+        render();return;
+      }
+    }
     if(['countdown','playing'].includes(room.phase)){
       if(activeRound!==room.round || !engine){
         activeRound=room.round;resultRound=-1;completionSent=false;paused=false;clearInputs();
@@ -344,37 +358,41 @@
         const button=document.createElement('button'),name=document.createElement('span'),canvas=document.createElement('canvas'),info=document.createElement('small'),label=document.createElement('span');
         button.className='rival';button.dataset.player=p.id;button.title='攻擊 '+p.name;button.setAttribute('aria-label','選擇攻擊對手 '+p.name);
         canvas.width=60;canvas.height=120;name.textContent=p.name;label.className='target-label';button.append(name,canvas,info,label);
-        button.addEventListener('click',()=>{if(!room.players.get(p.id)?.alive)return;target=p.id;room.selectTarget?.(target);vibrate('selection');renderRivals();});$('rivals').append(button);
+        button.addEventListener('click',()=>{if(!room.players.get(p.id)?.alive)return;target=p.id;if(canPlay())room.selectTarget?.(target);vibrate('selection');render();});$('rivals').append(button);
       }
     }
-    if(!room.players.get(target)?.alive||target===room.self)target=opponents.find(p=>p.alive)?.id||null;
-    for(const button of $('rivals').children){const p=room.players.get(button.dataset.player),selected=target===p.id;button.classList.toggle('target',selected);button.classList.toggle('out',!p.alive);button.setAttribute('aria-pressed',String(selected));button.querySelector('small').textContent=!p.connected?'同步中':!p.alive?'已淘汰':`${p.view?.lines||0} 行`;button.querySelector('.target-label').textContent=selected?'◎ 攻擊目標':'';const canvas=button.querySelector('canvas');if(canvas.clientWidth)drawBoard(canvas,p.view);}
+    if(!room.players.get(target)?.alive||target===room.self)target=opponents.find(p=>p.alive)?.id||opponents.find(p=>p.view)?.id||null;
+    for(const button of $('rivals').children){const p=room.players.get(button.dataset.player),selected=target===p.id;button.title=(isWatching()?'觀看 ':'攻擊 ')+p.name;button.setAttribute('aria-label',(isWatching()?'觀戰玩家 ':'選擇攻擊對手 ')+p.name);button.classList.toggle('target',selected);button.classList.toggle('out',!p.alive);button.setAttribute('aria-pressed',String(selected));button.querySelector('small').textContent=!p.connected?'同步中':!p.alive?'已淘汰':`${p.view?.lines||0} 行`;button.querySelector('.target-label').textContent=selected?(isWatching()?'◎ 正在觀看':'◎ 攻擊目標'):'';const canvas=button.querySelector('canvas');if(canvas.clientWidth)drawBoard(canvas,p.view);}
     $('aliveCount').textContent=`${[...room.players.values()].filter(p=>p.alive).length} 人存活`;
-    $('targetHint').textContent=target?'目標 · '+room.players.get(target).name:'等待對手';
+    $('targetHint').textContent=target?(isWatching()?'觀看 · ':'目標 · ')+room.players.get(target).name:'等待玩家開局';
   }
+  const isWatching=()=>!!room&&(room.spectator||['countdown','playing'].includes(room.phase)&&!room.players.get(room.self)?.alive);
   let viewCache=null;
   function render() {
     if(disposed)return;
-    if(engine){
+    renderRivals();
+    const observing=isWatching(),watched=observing?room.players.get(target)?.view:null;
+    document.body.classList.toggle('spectator-mode',observing);
+    if(engine||watched){
       // Main rendering uses the current board directly; snapshots copy only when sent.
-      const observing=room?.phase==='playing'&&!room.players.get(room.self).alive;
       const view=observing?room.players.get(target)?.view:{board:engine.board,active:engine.active,status:engine.status};
+      const stats=observing?{...watched,queue:watched?.next||[],pendingGarbage:watched?.pending||0}:engine;
       drawBoard($('board'),view,!observing);
-      if (room) $('playerName').textContent=observing?'觀戰 · '+(room.players.get(target)?.name||'等待對手'):room.players.get(room.self).name;
-      $('score').textContent=decimal(engine.score);$('lines').textContent=room?engine.lines:`${engine.lines} / ${mode==='sprint'?40:150}`;
-      $('level').textContent=String(engine.level).padStart(2,'0');$('elapsed').textContent=room?formatTime(room.endAt-clock()):formatTime(engine.elapsed);$('attack').textContent=String(engine.attack);
-      $('garbageFill').style.height=Math.min(100,engine.pendingGarbage/20*100)+'%';$('garbageCount').textContent=String(engine.pendingGarbage);
-      document.querySelector('.hold-tile').classList.toggle('used',!engine.canHold);
-      const previewKey=engine.hold+'|'+engine.queue.slice(0,5).join();if(previewKey!==viewCache){viewCache=previewKey;preview($('holdCanvas'),[engine.hold],true);preview($('nextCanvas'),engine.queue.slice(0,5));}
-    }else{drawBoard($('board'),null);preview($('nextCanvas'),['T','I','S','O','L']);}
+      if (room) $('playerName').textContent=observing?'觀戰 · '+(room.players.get(target)?.name||'等待對手'):room.players.get(room.self)?.name||'你';
+      $('score').textContent=decimal(stats.score||0);$('lines').textContent=room?stats.lines||0:`${stats.lines} / ${mode==='sprint'?40:150}`;
+      $('level').textContent=String(stats.level||1).padStart(2,'0');$('elapsed').textContent=room?formatTime(room.endAt-clock()):formatTime(engine.elapsed);$('attack').textContent=String(stats.attack||0);
+      $('garbageFill').style.height=Math.min(100,stats.pendingGarbage/20*100)+'%';$('garbageCount').textContent=String(stats.pendingGarbage);
+      document.querySelector('.hold-tile').classList.toggle('used',!observing&&!engine.canHold);
+      const previewKey=stats.hold+'|'+stats.queue.slice(0,5).join();if(previewKey!==viewCache){viewCache=previewKey;preview($('holdCanvas'),[stats.hold],true);preview($('nextCanvas'),stats.queue.slice(0,5));}
+    }else{drawBoard($('board'),null);preview($('holdCanvas'),[],true);preview($('nextCanvas'),observing?[]:['T','I','S','O','L']);if(observing){$('playerName').textContent='觀戰 · 等待玩家開局';for(const id of ['score','lines','attack','garbageCount'])$(id).textContent='0';$('garbageFill').style.height='0%';}}
     if(room?.recovering&&['countdown','playing'].includes(room.phase)){showBoardOverlay('伺服器同步中','正在自動取得最新棋盤，請稍候。');$('liveStatus').textContent='自動同步中';}
     else if(room?.phase==='countdown'){const n=Math.max(1,Math.ceil((room.startAt-clock())/1000));if(countPlayed!==n){countPlayed=n;sound('count');vibrate('light');}showBoardOverlay(String(n),'全員同一方塊序列 · 準備攻防');$('liveStatus').textContent='倒數開始';}
-    else if(room?.phase==='playing'&&!room.players.get(room.self).alive){showBoardOverlay('觀戰中','點選右側對手，切換觀戰棋盤。');$('liveStatus').textContent='已淘汰 · 觀戰';}
+    else if(room?.phase==='playing'&&observing){showBoardOverlay('觀戰中','點選玩家，切換觀戰棋盤。');$('liveStatus').textContent=room.spectator?'免費觀戰':'已淘汰 · 觀戰';}
     else if(session&&sdk.status!=='PLAYING'){showBoardOverlay('對局結束','請返回房間重新開始。');$('liveStatus').textContent='對局已結束';}
     else if(paused){showBoardOverlay('暫停','調整呼吸，接著挑戰。',true);$('liveStatus').textContent='已暫停';}
     else{showBoardOverlay('','');$('liveStatus').textContent=canPlay()?(room?'攻防進行中':'挑戰進行中'):'準備好就開始';}
-    renderRivals();for(const b of document.querySelectorAll('[data-action]'))b.disabled=!canPlay();
-    $('boardOverlay').classList.toggle('spectating',!!room&&room.phase==='playing'&&!room.players.get(room.self).alive&&!room.recovering);
+    for(const b of document.querySelectorAll('[data-action]'))b.disabled=!canPlay();
+    $('boardOverlay').classList.toggle('spectating',!!room&&room.phase==='playing'&&observing&&!room.recovering);
   }
   function pause(value) {
     if(room||!engine||engine.status!=='playing'){if(room)toast('多人攻防無法暫停');return;}
@@ -416,7 +434,7 @@
         if(saved?.room)room.restore(saved.room);
         $('modeLabel').textContent='BATTLE';$('menuEyebrow').textContent='STACK. CLEAR. ATTACK.';$('menuTitle').textContent='把消行，變成攻擊。';$('menuIntro').textContent='2–10 人方塊攻防。先抵消垃圾，再擊破對手；最後存活者勝出。';
         show($('lobbyPlayers'),true);$('miniRules').textContent='每局 3 分鐘 · 點選對手指定攻擊 · 淘汰後觀戰';show($('miniRules'),true);
-        roomChanged();room.sync();
+        roomChanged();if(!room.spectator)room.sync();
       }else{
         show($('modeOptions'),true);show($('miniRules'),true);$('menuTitle').textContent='一個人，也能突破。';$('menuIntro').textContent='選擇單人挑戰，鍛鍊下一場攻防的節奏。';$('startBtn').textContent='開始挑戰 →';$('startBtn').disabled=false;$('menuNote').textContent='房間單人挑戰 · 本局可自由再玩';
         const restore=saved?.engine?Engine.restore(saved.engine):null;

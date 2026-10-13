@@ -81,6 +81,15 @@ let serverStartTime = 0, serverTimeReceived = 0, serverReceivedAt = 0;
 let serverSyncTimer = null, serverUiTimer = null, shownServerRequest = null;
 let serverCommandPending = false;
 let serverPendingCommand = null, serverCommandTimeout = null, optimisticMove = null;
+let tournamentRoot = null, selectedTableId = null, lastServerPacket = null;
+const tableSelect = document.createElement('select');
+tableSelect.id='tableSelect';tableSelect.setAttribute('aria-label','選擇對弈或觀戰棋盤');tableSelect.hidden=true;
+ui.autoStartNotice.before(tableSelect);
+const myTableButton=document.createElement('button');myTableButton.id='myTableButton';myTableButton.type='button';myTableButton.textContent='我的棋盤';myTableButton.hidden=true;
+ui.autoStartNotice.before(myTableButton);
+myTableButton.addEventListener('click',()=>{const own=tournamentRoot?.tables.find(t=>t.round===tournamentRoot.round&&[t.blackId,t.whiteId].includes(Number(me.id)));if(own){selectedTableId=own.id;optimisticMove=null;applyServerState(lastServerPacket);}});
+const tournamentRanking=document.createElement('div');tournamentRanking.id='tournamentRanking';ui.rosterList.after(tournamentRanking);
+tableSelect.addEventListener('change',()=>{selectedTableId=tableSelect.value;optimisticMove=null;if(lastServerPacket)applyServerState(lastServerPacket);});
 
 function gameServerTime() {
   return serverTimeReceived + performance.now() - serverReceivedAt;
@@ -109,7 +118,7 @@ function sendServerCommand(kind, fields = {}) {
   let command = { kind };
   if (kind !== 'SYNC') {
     if (!window.crypto?.randomUUID) { showToast('此環境無法送出正式棋局操作，請更新瀏覽器。'); return false; }
-    command = { ...fields, kind, commandId: window.crypto.randomUUID(), expectedVersion: serverVersion };
+    command = { ...fields, ...(tournamentRoot?{tableId:selectedTableId,tableVersion:tournamentRoot.tables.find(t=>t.id===selectedTableId)?.version}:{}), kind, commandId: window.crypto.randomUUID(), expectedVersion: serverVersion };
     serverCommandPending = true; serverPendingCommand = command;
     clearTimeout(serverCommandTimeout);
     const commandId = command.commandId;
@@ -132,7 +141,16 @@ function refreshServerNotice() {
   if (!serverState) return;
   const now = gameServerTime();
   if (serverState.phase === 'PLAYING') {
-    isPlaying = now >= serverStartTime;
+    isPlaying = now >= serverStartTime && sdk.getWagerState?.()?.phase !== 'PROPOSAL' && !sdk.isSpectator;
+    if(tournamentRoot) {
+      const table=tournamentRoot.tables.find(t=>t.id===selectedTableId);
+      isPlaying=isPlaying&&tournamentRoot.started&&table?.round===tournamentRoot.round&&!table.scored&&now>=table.deadline-120000;
+      const clock=table?.scored?'本桌已結束，可切換觀戰':now<(table?.deadline||0)-120000
+        ? Math.ceil((table.deadline-120000-now)/1000)+' 秒後本輪開始'
+        : Math.max(0,Math.ceil(((table?.turnDeadline||now)-now)/1000))+' 秒落子';
+      ui.autoStartNotice.textContent=sdk.getWagerState?.()?.phase==='PROPOSAL'?'請先投票並確認賭金與賽制':`第 ${tournamentRoot.round}/${tournamentRoot.rounds.length} 輪 · ${clock} · 輪空 ${tournamentRoot.byes[tournamentRoot.round-1]?.join('、')||'無'}`;
+      return;
+    }
     ui.autoStartNotice.textContent = isPlaying ? '🎮 伺服器對局中 · 三勝制'
       : `⏱️ ${Math.max(0, Math.ceil((serverStartTime - now) / 1000))} 秒後開始`;
   } else if (serverState.phase === 'MATCH_RESULT') {
@@ -145,16 +163,37 @@ function refreshServerNotice() {
 function applyServerState(packet) {
   if (!packet || !Number.isSafeInteger(packet.version) || packet.version < serverVersion ||
       !packet.state || packet.state.rulesVersion !== 1 || !Array.isArray(packet.state.board)) return;
-  const state = packet.state;
+  lastServerPacket=packet;
+  const previousRound=tournamentRoot?.round;
+  tournamentRoot=packet.state.tournament||null;
+  let state = packet.state;
+  tableSelect.hidden=!tournamentRoot;
+  myTableButton.hidden=!tournamentRoot||sdk.isSpectator;
+  if(tournamentRoot) {
+    const tables=tournamentRoot.tables, own=tables.find(t=>t.round===tournamentRoot.round&&!t.scored&&[t.blackId,t.whiteId].includes(Number(me.id)));
+    myTableButton.disabled=!tables.some(t=>t.round===tournamentRoot.round&&[t.blackId,t.whiteId].includes(Number(me.id)));
+    if(previousRound!==tournamentRoot.round||!tables.some(t=>t.id===selectedTableId))selectedTableId=(own||tables.find(t=>t.round===tournamentRoot.round)||tables[0])?.id||null;
+    tableSelect.replaceChildren();
+    for(const table of tables){const option=document.createElement('option');option.value=table.id;const name=id=>sdk.getSession().players.find(p=>Number(p.userId??p.id)===id)?.username||String(id);option.textContent=`第 ${table.round} 輪 · ${name(table.blackId)} vs ${name(table.whiteId)}${table.scored?' · 已結束':''}`;tableSelect.append(option);}tableSelect.value=selectedTableId||'';
+    const active=tables.find(t=>t.id===selectedTableId);
+    if(active)state={...active.state,phase:packet.state.phase==='MATCH_RESULT'?'MATCH_RESULT':active.state.phase,returnAt:packet.state.returnAt};
+    const rankings=tournamentRoot.rankings.length?tournamentRoot.rankings:[...tournamentRoot.ids].sort((a,b)=>tournamentRoot.points[b]-tournamentRoot.points[a]).map(id=>({id,points:tournamentRoot.points[id]}));
+    tournamentRanking.textContent=rankings.map(r=>`${r.rank?'第 '+r.rank+' 名 · ':''}${sdk.getSession().players.find(p=>Number(p.userId??p.id)===Number(r.id))?.username||r.id} ${r.points} 分`).join(' ／ ');
+    for(const button of [ui.btnUndo,ui.btnRestart])button.hidden=true;
+  }
   // State is only dispatched from the SDK's authenticated SYSTEM envelope.
   if (state.board.length !== BOARD_SIZE || state.board.some(row => !Array.isArray(row) || row.length !== BOARD_SIZE)) return;
-  if (serverPendingCommand && packet.version > serverPendingCommand.expectedVersion) clearPendingServerCommand();
-  if (optimisticMove && packet.version > optimisticMove.expectedVersion) {
-    const confirmed = Array.isArray(state.moves) && state.moves.some(move =>
+  const changed=request=>request.tableId&&request.tableVersion!==undefined
+    ? (packet.state.tournament?.tables.find(t=>t.id===request.tableId)?.version||Infinity)>request.tableVersion
+    : packet.version>request.expectedVersion;
+  if (serverPendingCommand && changed(serverPendingCommand)) clearPendingServerCommand();
+  const optimisticState=optimisticMove?.tableId?packet.state.tournament?.tables.find(t=>t.id===optimisticMove.tableId)?.state:state;
+  if (optimisticMove && changed(optimisticMove)) {
+    const confirmed = Array.isArray(optimisticState?.moves) && optimisticState.moves.some(move =>
       move[0] === optimisticMove.row && move[1] === optimisticMove.col && move[2] === optimisticMove.color);
     optimisticMove = null;
     if (!confirmed) showToast('這步沒有被伺服器接受，棋盤已同步。');
-  } else if (optimisticMove && Array.isArray(state.moves) && state.moves.some(move =>
+  } else if (optimisticMove && Array.isArray(optimisticState?.moves) && optimisticState.moves.some(move =>
     move[0] === optimisticMove.row && move[1] === optimisticMove.col && move[2] === optimisticMove.color)) {
     optimisticMove = null;
   }
@@ -171,7 +210,7 @@ function applyServerState(packet) {
   aiDifficulty = ['easy', 'normal', 'master'].includes(state.aiDifficulty) ? state.aiDifficulty : 'normal';
   if (ui.btnHint) ui.btnHint.style.display = 'none';
   updateRosterUI(); updateTurnUI(); syncAiDifficultyControls(); drawBoard(); refreshServerNotice();
-  if (state.phase === 'PLAYING') ui.resultOverlay.classList.add('hidden');
+  if (state.phase === 'PLAYING' || tournamentRoot&&packet.state.phase!=='MATCH_RESULT') ui.resultOverlay.classList.add('hidden');
   else {
     const winner = state.winnerColor === 1 ? playerBlack : state.winnerColor === 2 ? playerWhite : null;
     ui.resultTitle.textContent = !winner ? '🤝 平手！' : state.phase === 'MATCH_RESULT'
@@ -183,6 +222,7 @@ function applyServerState(packet) {
           : '結果已由伺服器驗證 · 本遊戲尚未設定銀幣獎勵')
       : '結果等待伺服器驗證';
     ui.resultOverlay.classList.remove('hidden');
+    if(tournamentRoot){ui.resultTitle.textContent='🏆 積分賽結束';ui.resultSubtitle.textContent=tournamentRanking.textContent;ui.resultReward.textContent='排名及派彩由伺服器驗證，獎池收據請開啟共用選單。';}
   }
   const pending = state.pending;
   if (!pending) { shownServerRequest = null; document.getElementById('confirmOverlay')?.classList.add('hidden'); }
@@ -377,7 +417,7 @@ function updateRosterUI() {
   pList.filter(Boolean).forEach((p, idx) => {
     const chip = document.createElement('div');
     chip.className = `roster-chip${p.id === me.id ? ' active' : ''}`;
-    const roleTag = idx === 0 ? ' (黑子)' : idx === 1 ? ' (白子)' : ' (觀戰)';
+    const roleTag = idx === 0 ? ' (黑子)' : idx === 1 ? ' (白子)' : tournamentRoot?' (其他桌)':' (觀戰)';
     chip.textContent = `${p.username}${roleTag}`;
     ui.rosterList.appendChild(chip);
   });
@@ -388,6 +428,7 @@ function updateRosterUI() {
 }
 
 function isActivePlayer() {
+  if(authoritativeGomoku&&sdk?.isSpectator)return false;
   return me.id === playerBlack?.id || me.id === playerWhite?.id;
 }
 
@@ -441,7 +482,7 @@ function startGomokuRound() {
 
 function updateTurnUI() {
   ui.moveCount.textContent = `第 ${moveHistory.length} 步`;
-  ui.matchScore.textContent = `${playerBlack?.username || '黑子'} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite?.username || '白子'} (三勝)`;
+  ui.matchScore.textContent = tournamentRoot?`${playerBlack?.username} vs ${playerWhite?.username} · 積分賽`:`${playerBlack?.username || '黑子'} ${getPlayerScore(playerBlack)} : ${getPlayerScore(playerWhite)} ${playerWhite?.username || '白子'} (三勝)`;
 
   const myColorStr = me.id === playerBlack?.id ? '⚫ 你是黑子' : (playerWhite && !playerWhite.isBot && me.id === playerWhite.id) ? '⚪ 你是白子' : '👁 觀戰中';
 
@@ -644,7 +685,8 @@ function handleCanvasClick(e) {
     if (authoritativeGomoku) {
       if (serverCommandPending || optimisticMove) return;
       const color = currentTurn;
-      optimisticMove = { row, col, color, expectedVersion: serverVersion };
+      optimisticMove = { row, col, color, expectedVersion: serverVersion,
+        ...(tournamentRoot?{tableId:selectedTableId,tableVersion:tournamentRoot.tables.find(t=>t.id===selectedTableId)?.version}:{}) };
       hintPos = null; playStoneSound(); drawBoard();
       ui.turnText.textContent = '落子已送出 · 等待伺服器確認';
       syncAiDifficultyControls();
@@ -1191,6 +1233,7 @@ window.onBoomRoomSDKReady = function() {
 const sdkSubscriptions = [];
 if (window.BoomRoomSDK?.version === 2) {
   sdkSubscriptions.push(window.BoomRoomSDK.onGameEvent(handleNetworkEvent));
+  if(window.BoomRoomSDK.onSessionUpdate)sdkSubscriptions.push(window.BoomRoomSDK.onSessionUpdate(session=>{if(session.engine==='GOMOKU')applyServerState({state:session.engineState,version:session.version,startTime:session.startTime,serverTime:session.serverTime,resultVerified:session.resultVerified,session});}));
 }
 
 if (window.BoomRoomSDK && window.BoomRoomSDK.isReady !== false) {

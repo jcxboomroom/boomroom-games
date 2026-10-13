@@ -315,6 +315,12 @@ body, html {
 }
 
 /* Keep a usable board beside the controls on short landscape screens. */
+#tableSelect { width:100%;min-height:36px;background:#211938;color:#fff;border:1px solid #57486b;border-radius:8px; }
+#myTableButton { min-height:32px;border:1px solid #57486b;border-radius:8px;background:#211938;color:#fff;margin:3px 0; }
+[hidden] { display:none!important; }
+.roster-list { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px; }
+.roster-chip { white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0; }
+#tournamentRanking { font-size:11px;line-height:1.5;max-height:50px;overflow:auto; }
 @media (orientation: landscape) and (max-height: 600px) {
   .game-shell {
     display: grid;
