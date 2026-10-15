@@ -6,7 +6,7 @@
     constructor(sdk,callbacks={}){
       this.sdk=sdk;this.callbacks=callbacks;this.self=String(sdk.getUser().id);this.verified=true;this.local=false;
       this.spectator=sdk.isSpectator===true;
-      this.players=new Map();this.ready=new Set();this.received=new Set();this.pending=[];this.seq=0;this.version=-1;this.round=0;this.lastSeen=performance.now();this.lastPing=0;this.lastSend=0;this.lastPull=-Infinity;this.offset=Date.now()-performance.now();
+      this.players=new Map();this.ready=new Set();this.received=new Set();this.pending=[];this.seq=0;this.version=-1;this.round=0;this.serverTime=-1;this.lastSeen=performance.now();this.lastPing=0;this.lastSend=0;this.lastPull=-Infinity;this.offset=Date.now()-performance.now();
       this.off=sdk.onGameEvent((name,payload,sender)=>{
         if(String(sender)!=='SYSTEM')return;
         if(name==='TETRIS_PRIVATE'&&String(payload?.userId)===this.self)this.accept(payload.session);
@@ -14,6 +14,7 @@
         if(name==='TETRIS_ERROR'){
           if(payload?.code==='TETRIS_INPUT_RESYNC'){
             this.pending=[];this.seq=this.players.get(this.self)?.ack||0;this.callbacks.changed?.();
+            this.correctionUntil=performance.now()+2200;
             callbacks.notice?.('操作已與伺服器校準，請繼續');
           }else callbacks.notice?.(payload?.message||'操作未確認，請同步');
         }
@@ -24,15 +25,24 @@
     now(){return performance.now()+this.offset;}
     get isHost(){return !this.spectator&&this.host===this.self;}
     get seedForRound(){return (this.state.seed+Math.imul(this.round,2654435761))>>>0;}
-    get allReady(){return this.players.size>=2&&[...this.players.values()].filter(p=>!p.bot).every(p=>p.connected&&this.ready.has(p.id)&&Object.hasOwn(this.proposals,p.id));}
+    get allReady(){const humans=[...this.players.values()].filter(p=>!p.bot);return humans.length===1?humans[0].connected&&!humans[0].forfeited:humans.length>=2&&humans.every(p=>p.connected&&!p.forfeited&&this.ready.has(p.id)&&Object.hasOwn(this.proposals,p.id));}
     accept(session,announce=true){
-      if(session?.engine!=='TETRIS'||session.sessionId!==this.sdk.getSession()?.sessionId||session.version<this.version)return;
+      if(session?.engine!=='TETRIS'||session.sessionId!==this.sdk.getSession()?.sessionId||!Number.isSafeInteger(session.version)||session.version<0||!Number.isFinite(session.serverTime)||session.version<this.version)return;
       let state=session.engineState;if(!state||!Array.isArray(state.members))return;
+      if(state.round<this.round)return;
+      if(session.version===this.version){
+        if(session.serverTime<=this.serverTime)return;
+        this.serverTime=session.serverTime;this.lastSeen=performance.now();this.recovering=false;
+        const target=session.serverTime-performance.now();this.offset+=Math.max(-50,Math.min(50,target-this.offset))*.12;
+        if(announce)this.callbacks.changed?.();
+        return;
+      }
       if(this.spectator&&state.boardEncoding==='digits-v1'){
         if(state.members.some(m=>m.view&&(!Array.isArray(m.view.board)||m.view.board.length!==22||m.view.board.some(line=>typeof line!=='string'||!/^[0-8]{10}$/.test(line)))))return;
         state={...state,members:state.members.map(m=>({...m,view:m.view?{...m.view,board:m.view.board.map(line=>[...line].map(Number))}:null}))};
       }
-      this.version=session.version;this.offset=Number(session.serverTime)-performance.now();this.lastSeen=performance.now();this.recovering=false;
+      const clock=performance.now(),target=session.serverTime-clock,first=this.version<0;
+      this.version=session.version;this.serverTime=session.serverTime;this.offset=first?target:this.offset+Math.max(-50,Math.min(50,target-this.offset))*.2;this.lastSeen=clock;this.recovering=false;
       if(this.round!==state.round){this.pending=[];this.seq=0;}
       this.state=state;for(const key of ['host','round','phase','startAt','endAt','epoch','stake','limit','proposals','aiLevels','results','settlement','ownBalance'])this[key]=state[key];
       this.ready=new Set(state.ready);this.players=new Map(state.members.map(p=>[p.id,{...p,seq:p.ack}]));

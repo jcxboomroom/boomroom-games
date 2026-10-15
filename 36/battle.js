@@ -21,13 +21,19 @@
       this.proposals={};this.stake=0;this.invalidate();
     }
     vote(id,amount){
-      if(!['lobby','results'].includes(this.phase)||!this.humans.some(m=>m.id===id)||!Number.isSafeInteger(amount)||amount<0||amount>this.limit||amount>0&&(this.aiLevels.length||this.humans.length<2))throw Error('提案金額超出可用餘額，或 AI／單人練習不能加碼');
+      if(!['lobby','results'].includes(this.phase)||!this.humans.some(m=>m.id===id)||this.humans.length<2||!Number.isSafeInteger(amount)||amount<0||amount>this.limit)throw Error('提案金額超出可用餘額，或單人練習不需加碼提案');
       if(this.proposals[id]===amount)return;
       this.proposals[id]=amount;const counts=new Map();for(const value of Object.values(this.proposals))counts.set(value,(counts.get(value)||0)+1);
       this.stake=[...counts].sort((a,b)=>b[1]-a[1]||a[0]-b[0])[0]?.[0]||0;this.invalidate();
     }
     consent(id,epoch,stake,now=Date.now()){if(!['lobby','results'].includes(this.phase)||epoch!==this.epoch||stake!==this.stake||!this.humans.some(m=>m.id===id)||!this.humans.every(m=>Object.hasOwn(this.proposals,m.id)))throw Error('金額或設定已變更，或尚未全員投票，請重新確認');if(!this.ready.includes(id))this.ready.push(id);this.readyAt??={};this.readyAt[id]=now;}
-    canStart(){return ['lobby','results'].includes(this.phase)&&this.members.length>=2&&this.humans.every(m=>!m.forfeited&&m.connected&&this.ready.includes(m.id)&&Object.hasOwn(this.proposals,m.id))&&(!this.stake||!this.aiLevels.length&&this.humans.length>=2);}
+    canStart(){
+      if(!['lobby','results'].includes(this.phase)||!this.humans.length||this.humans.some(m=>m.forfeited||!m.connected))return false;
+      // One real player starts a free server-authoritative challenge directly;
+      // configured AI seats remain optional opponents and never vote or pay.
+      if(this.humans.length===1)return this.stake===0;
+      return this.humans.every(m=>this.ready.includes(m.id)&&Object.hasOwn(this.proposals,m.id))&&(!this.stake||this.humans.length>=2);
+    }
     begin(now){
       if(!this.canStart())throw Error('須全員投票並確認同一金額與 AI 設定');this.round++;this.phase='countdown';this.startAt=now+3000;this.endAt=this.startAt+180000;this.at=now;this.results=[];this.settlement=null;this.abortReason='';this.ready=[];
       const seed=(this.seed+Math.imul(this.round,2654435761))>>>0;
@@ -73,7 +79,8 @@
           if(m.bot&&m.alive&&next>=m.nextAI){for(const kind of ai.plan(m.engine,m.level))ai.apply(m.engine,kind);this.drain(m,next);m.nextAI=next+ai.delay(m.level);}
           if(!m.bot&&m.alive&&next-m.lastSeen>25000){m.engine.finish('disconnected');this.drain(m,next);}
         }
-        if(this.members.filter(m=>m.alive).length<=1||next>=this.endAt)this.finish();
+        const competitors=this.members.filter(m=>m.inRound),alive=this.members.filter(m=>m.alive);
+        if(next>=this.endAt||(this.humans.length===1&&!this.humans[0].alive)||(competitors.length>1&&alive.length<=1))this.finish();
       }
     }
     finish(){

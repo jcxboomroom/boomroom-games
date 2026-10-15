@@ -19,6 +19,7 @@
   function render(){
     if(disposed||!sdk?.isReady)return;
     const session=sdk.getSession(),state=sdk.getWagerState();if(!state)return;
+    if(state.aiPractice&&(session.players||[]).length===1){if(host){host.hidden=true;delete host.dataset.open;}return;}
     const free=session.economicMode==='PRACTICE';if(free)selected=0;
     if(!host)mount();
     const proposal=state.supported&&state.phase==='PROPOSAL'&&!sdk.isSpectator;
@@ -30,7 +31,7 @@
     shadow.getElementById('funds').textContent=free?'本局不扣款。遊戲成績與正式排行榜分開。':`目前錢包 ${value(state.balance??sdk.getUser()?.silverCoins)} · 可加碼 0–${value(state.limit)} 銀幣`;
     shadow.getElementById('rules').textContent=free?`${state.rankingRule}\n免費練習不計銀幣或正式榜；提案、歌曲或規則變更仍需全員重新確認。`:state.supported?`${state.rankingRule}\n${state.distribution}\n提案或規則變更會撤銷全員同意；中斷、未完成對局退還加碼，入場費另計。`:state.reason;
     shadow.getElementById('candidate').textContent=free?'請先完成玩法設定，再逐位送出 0 與確認。':`候選每人 ${value(state.amount)} · 預估獎池 ${value(Number(state.amount||0)*(session.players?.length||0))} 銀幣`;
-    shadow.getElementById('ai').textContent=free?'真人仍需各自確認；AI 身分與難度由房間設定。':state.aiPractice?'AI 練習：加碼只可選 0，AI 不出資、不領獎。':'每位真人可提案任意整數；票最多者為候選，同票取低額。';
+    shadow.getElementById('ai').textContent=free?'真人仍需各自確認；房間 AI 身分與難度由房間設定。':session.aiSeats?.length?'只計真人票數與真人獎池；AI 不投票、不出資、不領獎。':'每位真人可提案任意整數；票最多者為候選，同票取低額。';
     const controls=shadow.getElementById('controls');controls.hidden=!proposal;
     const setup=shadow.getElementById('setup');setup.hidden=session.engine!=='BLUFF'||!proposal;
     if(!setup.hidden){

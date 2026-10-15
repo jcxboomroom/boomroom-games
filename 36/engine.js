@@ -5,7 +5,13 @@
   else root.TetrisBattleEngine = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const WIDTH = 10, HEIGHT = 22, HIDDEN = 2;
+  const WIDTH = 10, HEIGHT = 22, HIDDEN = 2, MAX_SCORE = 2147483647;
+  const SCORE = Object.freeze({
+    clear: [0, 40, 90, 160, 240],
+    spinMini: [0, 10, 20], spinFull: [0, 30, 60, 80, 100],
+    backToBack: 40, comboStep: 15, comboCap: 6, allClear: 120,
+    dropPerCell: 1, dropCap: 20,
+  });
   const TYPES = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
   const SHAPES = {
     I: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
@@ -93,6 +99,15 @@
     resetLock(wasGrounded) {
       if (wasGrounded && this.lockResets < 15) { this.lockTime = 0; this.lockResets++; }
     }
+    addScore(delta) {
+      if (!integer(delta, 0, MAX_SCORE)) throw new Error('計分增量無效');
+      if (this.score > MAX_SCORE - delta) {
+        this.events.push({ kind: 'scoreLimit', score: this.score, attempted: delta });
+        return false;
+      }
+      this.score += delta;
+      return true;
+    }
     move(dx) {
       if (this.status !== 'playing' || ![-1,1].includes(dx)) return false;
       const wasGrounded = this.grounded(), next = { ...this.active, x: this.active.x + dx };
@@ -124,7 +139,6 @@
       const next = { ...this.active, y: this.active.y + 1 };
       if (!this.fits(next)) return false;
       this.active = next; this.lockTime = 0;
-      if (soft) this.score++;
       return true;
     }
     ghost() {
@@ -136,8 +150,13 @@
     hardDrop() {
       if (this.status !== 'playing') return false;
       const p = this.ghost();
-      this.score += (p.y - this.active.y) * 2;
-      this.active = p; this.events.push({ kind: 'drop' }); this.lock(); return true;
+      const distance = p.y - this.active.y, requested = Math.min(SCORE.dropCap, distance * SCORE.dropPerCell);
+      this.active = p;
+      const dropEvent={kind:'drop',distance,scoreDelta:0};this.events.push(dropEvent);
+      const accepted = this.addScore(requested);
+      if(accepted)dropEvent.scoreDelta=requested;
+      if (accepted) this.lock(); else this.finish('score-limit');
+      return true;
     }
     spin() {
       if (this.active.type !== 'T' || !this.lastRotation) return null;
@@ -160,20 +179,25 @@
       const count = cleared.length, effectiveSpin = spin === 'mini' && count >= 2 ? 'full' : spin;
       const special = count > 0 && (count === 4 || effectiveSpin);
       const backToBack = !!(special && this.b2b);
-      let damage = 0;
+      let damage = 0, clearScore = 0, spinScore = 0, allClearScore = 0;
       if (count) {
         this.combo++;
-        let base = effectiveSpin === 'full' ? [400,800,1200,1600][count] : effectiveSpin === 'mini' ? [100,200,400][count] : [0,100,300,500,800][count];
-        this.score += (base * (backToBack ? 1.5 : 1) + Math.max(0,this.combo) * 50) * this.level;
+        clearScore = SCORE.clear[count] || 0;
+        spinScore = effectiveSpin === 'full' ? (SCORE.spinFull[count] || 0) : effectiveSpin === 'mini' ? (SCORE.spinMini[count] || 0) : 0;
         damage = effectiveSpin === 'full' ? [0,2,4,6][count] : effectiveSpin === 'mini' ? [0,1,2][count] : [0,0,1,2,4][count];
         if (backToBack) damage++;
         damage += Math.min(4, Math.floor(this.combo / 2));
-        if (this.board.every(row => row.every(v => !v))) { damage += 10; this.score += 3500 * this.level; }
+        if (this.board.every(row => row.every(v => !v))) { damage += 10; allClearScore = SCORE.allClear; }
         this.b2b = !!special;
       } else {
         this.combo = -1;
-        if (spin) this.score += (spin === 'full' ? 400 : 100) * this.level;
+        spinScore = spin === 'full' ? 20 : spin === 'mini' ? 10 : 0;
       }
+      const backToBackScore = backToBack ? SCORE.backToBack : 0;
+      const comboScore = count ? Math.min(this.combo, SCORE.comboCap) * SCORE.comboStep : 0;
+      const requestedScore = clearScore + spinScore + backToBackScore + comboScore + allClearScore;
+      const scoreAccepted = this.addScore(requestedScore);
+      const scoreDelta = scoreAccepted ? requestedScore : 0;
       this.lines += count;
       this.level = this.mode === 'battle' ? 1 + Math.floor(this.elapsed / 30000) : 1 + Math.floor(this.lines / 10);
       const cancelled = Math.min(damage, this.pendingGarbage);
@@ -184,7 +208,12 @@
         if (!packet.lines) this.garbage.shift();
       }
       damage -= cancelled; this.attack += damage;
-      this.events.push({ kind: 'lock', count, rows: cleared, spin: effectiveSpin, combo: this.combo, backToBack, damage, cancelled });
+      this.events.push({ kind: 'lock', count, rows: cleared, spin: effectiveSpin, combo: this.combo, backToBack, damage, cancelled,
+        scoreDelta, scoreRequested: requestedScore,
+        scoreBreakdown: { clear: scoreAccepted ? clearScore : 0, spin: scoreAccepted ? spinScore : 0,
+          backToBack: scoreAccepted ? backToBackScore : 0, combo: scoreAccepted ? comboScore : 0,
+          allClear: scoreAccepted ? allClearScore : 0, total: scoreDelta } });
+      if (!scoreAccepted) { this.finish('score-limit'); return; }
       if (this.mode === 'sprint' && this.lines >= 40 || this.mode === 'marathon' && this.lines >= 150) {
         this.finish('complete'); return;
       }
@@ -266,7 +295,7 @@
       integer(v.active.x,-3,9) && integer(v.active.y,0,21) &&
       Array.isArray(v.next) && v.next.length === 5 && v.next.every(t => TYPES.includes(t)) &&
       (v.hold === null || TYPES.includes(v.hold)) && ['playing','complete','over'].includes(v.status) &&
-      ['score','lines','level','attack','pieces','pending'].every(k => integer(v[k],0,k === 'pending' ? 40 : 100000000));
+      ['score','lines','level','attack','pieces','pending'].every(k => integer(v[k],0,k === 'score' ? MAX_SCORE : k === 'pending' ? 40 : 100000000));
   }
-  return { Engine, WIDTH, HEIGHT, HIDDEN, TYPES, matrix, cells, validView };
+  return { Engine, WIDTH, HEIGHT, HIDDEN, MAX_SCORE, SCORE, TYPES, matrix, cells, validView };
 });
