@@ -5,6 +5,23 @@
   const VERSION = 2;
   let sdk = null, me = null, session = null, server = null, hand = [];
   let stateVersion = 0, selected = new Set(), selectedRank = 'A', busy = false;
+  let pendingConfigure = null, pendingSync = null;
+  let minimumProposalEpoch = 0;
+  let recoveryTimer = 0, recoveryAttempts = 0;
+  function recoverProposal(reset = false) {
+    if(reset)recoveryAttempts=0;
+    clearTimeout(recoveryTimer);busy=true;pendingSync=null;
+    if(recoveryAttempts>=3){toast('同步暫時失敗，請按重新同步後重試。');render();return;}
+    recoveryTimer=setTimeout(()=>{
+      if(!busy||pendingConfigure)return;
+      recoveryAttempts++;
+      const request={commandId:uuid()};pendingSync=request;
+      // The host reads the authenticated session; this does not enter game:wager.
+      if(!sdk.requestGameUi?.('SYNC',request))recoverProposal();
+      render();
+    },350* Math.max(1,recoveryAttempts));
+    render();
+  }
   let roomPlayers = [], toastTimer = 0, clockTimer = 0, audio = null, soundOn = true;
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -69,6 +86,25 @@
     if (!sdk.__bluffSubscribed) {
       sdk.__bluffSubscribed = true;
       sdk.onGameEvent?.((eventName,payload,userId) => handleServerEvent(eventName,payload,userId));
+      sdk.onSessionUpdate?.(next => {
+        if(next?.sessionId===session?.sessionId&&Number(next.version)>=stateVersion){busy=Number(next.wager?.epoch||0)<minimumProposalEpoch;if(!busy)pendingSync=null;acceptSession(next);}
+      });
+      sdk.onHostUiChange?.(state => {
+        const receipt=state?.wagerResult;
+        if(!receipt||receipt.status==='PENDING')return;
+        if(pendingConfigure&&receipt.commandId===pendingConfigure.commandId){
+          pendingConfigure=null;
+          if(receipt.status==='ACCEPTED'){minimumProposalEpoch=Math.max(minimumProposalEpoch,Number(receipt.serverEpoch)||0);const current=sdk.getSession?.();busy=Number(current?.wager?.epoch||0)<minimumProposalEpoch;if(!busy)acceptSession(current);else render();return;}
+          toast(receipt.message||state.message||'規則尚未確認，正在重新同步。');
+          // A failed or uncertain delivery does not authorize retrying old state.
+          recoverProposal(true);
+        }else if(pendingSync&&receipt.commandId===pendingSync.commandId){
+          pendingSync=null;
+          const current=sdk.getSession?.();
+          if(receipt.status==='ACCEPTED'){minimumProposalEpoch=Math.max(minimumProposalEpoch,Number(receipt.serverEpoch)||0);busy=Number(current?.wager?.epoch||0)<minimumProposalEpoch;if(!busy)acceptSession(current);else render();}
+          else{toast(receipt.message||'尚未取得最新提案，請同步後重試。');recoverProposal();}
+        }
+      });
       sdk.onPlayerJoin?.(() => syncRoster());
       sdk.onPlayerLeave?.(() => syncRoster());
       sdk.onError?.(error => { if (error?.code) toast('連線更新中，請稍候…'); });
@@ -91,6 +127,13 @@
   }
   function handleServerEvent(eventName, payload, userId) {
     if (userId !== 'SYSTEM') return;
+    if(eventName==='WAGER_STATE'){
+      const incoming=payload?.session;
+      if(incoming?.sessionId!==session?.sessionId||Number(incoming.version)<stateVersion)return;
+      busy=Number(incoming.wager?.epoch||0)<minimumProposalEpoch;
+      if(!busy)pendingSync=null;
+      acceptSession(incoming);return;
+    }
     if (eventName === 'BLUFF_PRIVATE') {
       const incoming = payload?.session;
       if (incoming?.sessionId !== session?.sessionId || Number(incoming.version) < stateVersion) return;
@@ -106,6 +149,9 @@
       if (payload?.sessionId !== session?.sessionId || Number(payload.version) < stateVersion) return;
       busy = false; stateVersion = Number(payload.version); server = payload.state;
       selected.clear(); render(); return;
+    }
+    if (eventName === 'GAME_ACTION_ERROR') {
+      pendingConfigure=null;toast(payload?.message||'提案未確認，請重新同步。');recoverProposal(true);return;
     }
     if (eventName === 'BLUFF_ERROR') {
       busy = false; toast(payload?.message || '操作沒有完成，正在重新同步…'); render();
@@ -128,15 +174,16 @@
     const isHost = !!sdk.isHost, n = server.settings.aiCount, limit = maxAi();
     const participants = server.players.length, canStart = participants >= 2;
     const hostControls = isHost ? `
+      ${busy?'<button id="syncProposalBtn" class="cta secondary">重新同步提案</button>':''}
       <section class="panel"><div class="sectionTitle">🤖 AI 對手</div>
         <div class="setupSummary"><span>真人玩家／上限</span><b>${humans().length}／10</b></div>
-        <div class="aiStepper"><button class="cta secondary" id="aiLess" ${busy||server.roomAiLocked||n<=0?'disabled':''}>−</button><div class="setupSummary"><span>AI 數量</span><b>${n}</b></div><button class="cta secondary" id="aiMore" ${busy||server.roomAiLocked||n>=limit?'disabled':''}>＋</button></div>
+        <div class="aiStepper"><button class="cta secondary" id="aiLess" disabled>−</button><div class="setupSummary"><span>AI 數量</span><b>${n}</b></div><button class="cta secondary" id="aiMore" disabled>＋</button></div>
         <div class="compactNote">可選 0～${limit} 位 AI・目前共 ${humans().length+n}／10 人。AI 由伺服器操控；數量與難度先在房間的虛擬座位設定。</div>
       </section>
       <section class="panel"><div class="sectionTitle">🃏 牌組</div><div class="selectRow">${[1,2].map(count=>`<button class="choice ${server.settings.deckCount===count?'active':''}" data-deck="${count}" ${busy?'disabled':''}><b>${count===1?'54 張':'108 張'}</b><span>${count===1?'一副牌':'兩副牌'}</span></button>`).join('')}</div></section>
       <section class="panel"><div class="sectionTitle">🔥 質疑回應方式</div><div class="selectRow"><button class="choice ${server.settings.challengeMode==='SEQUENTIAL'?'active':''}" data-mode="SEQUENTIAL" ${busy?'disabled':''}><b>依序回應</b><span>輪到者可質疑、跟牌或跳過</span></button><button class="choice ${server.settings.challengeMode==='VOTE_FIRST'?'active':''}" data-mode="VOTE_FIRST" ${busy?'disabled':''}><b>全員先質疑</b><span>先表態，再依序跟牌</span></button></div></section>
       <section class="panel"><div class="sectionTitle">👥 本局座位・${participants}／10</div><div class="players">${seatCards()}</div><div class="compactNote">牌局開始後座位與 AI 人數會鎖定，離線真人不會被替換成 AI。</div></section>
-      <div class="actionDock"><button id="startBtn" class="cta" ${busy||!canStart?'disabled':''}>⚡ 房主開始對局</button>${!canStart?'<div class="notice">目前沒有對手；增加至少 1 位 AI 後即可開始。</div>':''}</div>`
+      <div class="actionDock"><button id="startBtn" class="cta" ${busy||!canStart?'disabled':''}>⚡ 開啟加碼與全員確認</button><div class="compactNote">每位真人先投票與確認，可選 0 銀幣；全員確認後由共用介面開始。AI 數量與難度請回房間設定。</div>${!canStart?'<div class="notice">目前沒有對手；請回房間增加至少 1 位 AI。</div>':''}</div>`
       : `<section class="panel hero"><div class="heroTitle">🃏 等候房主開始</div><div class="heroSub">房主正在設定 AI 對手與牌組；座位固定後會由伺服器發牌。</div></section>
       <section class="panel"><div class="sectionTitle">👥 本局座位・${participants}／10</div><div class="players">${seatCards()}</div></section><section class="panel waitCard"><div class="waitIcon">👑</div><h3>等候房主</h3><p>開始後會收到只有你看得到的手牌，其他人的手牌由伺服器保密。</p></section>`;
     return `<section class="panel hero"><div class="heroTitle">👑 對局設定</div><div class="heroSub">所有真人與 AI 最多 10 位；1 位真人、0 位 AI 時不會假裝開出多人局。</div><div class="stats"><div class="stat"><b>${humans().length}</b><span>真人</span></div><div class="stat"><b>${server.settings.aiCount}</b><span>AI</span></div><div class="stat"><b>${participants}/10</b><span>總人數</span></div></div></section>${hostControls}`;
@@ -185,7 +232,7 @@
   }
   function renderResult() {
     const winner = server.players.find(player => player.id === server.winnerId);
-    return `<section class="panel resultHero"><div class="emoji">🏆</div><h2>${escapeHtml(winner?.username||'爆爆吹牛王')}</h2><p>爆爆吹牛王・第 ${server.round} 局</p><div class="resultActions"><button id="returnBtn" class="cta green">返回房間</button>${sdk.isHost?'<button id="nextBtn" class="cta secondary">房主再開一局</button>':''}</div></section>
+    return `<section class="panel resultHero"><div class="emoji">🏆</div><h2>${escapeHtml(winner?.username||'本局無有效結果')}</h2><p>伺服器正在結算，將依共用倒數返回原房間。</p></section>
       <section class="panel"><div class="sectionTitle">📊 正式排名・伺服器結算</div><div class="rankList">${server.rankings.map(row=>{const player=server.players.find(item=>item.id===row.playerId);return `<div class="rankRow"><div class="rankNo">#${row.place}</div><div class="rankName"><b>${escapeHtml(player?.username||'玩家')}${player?.ai?' ・AI':''}${row.playerId===me.id?'（你）':''}</b></div><div class="rankScore">剩 ${row.handCount} 張</div><div class="rankDetail">${row.place===1?'爆爆吹牛王':''}</div></div>`;}).join('')}</div></section>
       <section class="panel"><div class="sectionTitle">📜 本局紀錄</div><div class="feedBox">${server.log.slice(-12).reverse().map(item=>`<div class="feedLine">${escapeHtml(item.text)}</div>`).join('')}</div></section>`;
   }
@@ -198,15 +245,21 @@
     setTopStatus(); bindActions();
   }
   function configure(changes = {}) {
-    send('CONFIGURE',{aiCount:changes.aiCount ?? server.settings.aiCount,
-      deckCount:changes.deckCount ?? server.settings.deckCount, challengeMode:changes.challengeMode ?? server.settings.challengeMode});
+    if(busy||!sdk.isHost||sdk.isSpectator||session.wager?.phase!=='PROPOSAL')return;
+    const fields={deckCount:changes.deckCount ?? server.settings.deckCount,challengeMode:changes.challengeMode ?? server.settings.challengeMode};
+    pendingSync=null;
+    clearTimeout(recoveryTimer);recoveryAttempts=0;
+    busy=!!sdk.requestWager?.('CONFIGURE',fields);
+    pendingConfigure=busy?sdk.getLastWagerCommand?.():null;
+    toast(busy?'正在等候伺服器確認規則；變更後須重新確認加碼。':'規則未送出，請重新同步。');render();
   }
   function bindActions() {
+    document.getElementById('syncProposalBtn')?.addEventListener('click',()=>{if(!pendingSync)recoverProposal(true);});
     document.querySelectorAll('[data-deck]').forEach(button=>button.onclick=()=>configure({deckCount:Number(button.dataset.deck)}));
     document.querySelectorAll('[data-mode]').forEach(button=>button.onclick=()=>configure({challengeMode:button.dataset.mode}));
-    document.getElementById('aiLess')?.addEventListener('click',()=>configure({aiCount:Math.max(0,server.settings.aiCount-1)}));
-    document.getElementById('aiMore')?.addEventListener('click',()=>configure({aiCount:Math.min(maxAi(),server.settings.aiCount+1)}));
-    document.getElementById('startBtn')?.addEventListener('click',()=>send('START'));
+    document.getElementById('startBtn')?.addEventListener('click',()=>{
+      if(window.BoomRoomWagerUI?.open)window.BoomRoomWagerUI.open();else toast('共用加碼介面載入中，請稍候。');
+    });
     document.querySelectorAll('[data-card]').forEach(button=>button.addEventListener('click',()=>{
       const id=button.dataset.card; selected.has(id)?selected.delete(id):selected.add(id); playSound(); render();
     }));
@@ -232,7 +285,7 @@
     soundOn=!soundOn; event.currentTarget.textContent=soundOn?'🔊':'🔇'; if(soundOn)playSound();
   });
   document.getElementById('leaveBtn')?.addEventListener('click',()=>{
-    if(window.confirm('返回 BoomRoom 房間？離開不會改變本局結果。')) sdk?.leaveGame?.();
+    if(window.confirm('退出本局並返回 BoomRoom 房間？退出者不領獎，可重新觀戰。')) sdk?.leaveGame?.();
   });
   document.getElementById('helpBtn')?.addEventListener('click',showHelp);
   document.getElementById('closeHelpBtn')?.addEventListener('click',closeHelp);

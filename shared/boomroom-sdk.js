@@ -1,11 +1,11 @@
-/* BoomRoom SDK v2 / additive API revision 8.
+/* BoomRoom SDK v2 / additive API revision 10.
  * No local players, purchases or rewards are fabricated.
  * Games must wait for onBoomRoomSDKReady/onSessionStart before playing.
  * This SDK transports intents; only the authenticated server can award coins.
  */
 (function (root) {
   'use strict';
-  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 9) return;
+  if (root.BoomRoomSDK && root.BoomRoomSDK.version === 2 && root.BoomRoomSDK.apiRevision >= 10) return;
   const previous = root.BoomRoomSDK;
   const legacyCallbacks = root.document?.currentScript?.getAttribute('data-legacy-callbacks') === 'true';
   let native = !!previous && root.parent === root;
@@ -15,7 +15,7 @@
   const reservedEvents = new Set(['GOMOKU_STATE','GOMOKU_ERROR','BLUFF_PUBLIC','BLUFF_PRIVATE','BLUFF_ERROR','TETRIS_PRIVATE','TETRIS_ERROR','TETRIS_STATE','TETRIS_QUEUED','TETRIS_SPECTATOR','GAME_SPECTATOR','WAGER_STATE','BOOMGOLD_STATE','STACK_STATE','ARENA_STATE','GAME_ACTION_ERROR']);
   const hooks = new Map(), pendingPurchases = new Map();
   let data = null, closed = false, parentOrigin = null, timeAtReceive = 0, requestSequence = 0, lastHapticAt = -Infinity;
-  let hostUi = null;
+  let hostUi = null, lastWagerCommand = null;
   const uiScriptUrl = root.document?.currentScript?.src;
   const monotonic = () => root.performance ? root.performance.now() : Date.now();
   const copy = value => value == null ? value : JSON.parse(JSON.stringify(value));
@@ -234,7 +234,7 @@
   }
   const sdk = {
     version: 2,
-    apiRevision: 9,
+    apiRevision: 10,
     get isReady() { return !!data && !closed; },
     get roomId() { return data?.roomId || ''; },
     get isHost() { return data?.isHost || false; },
@@ -266,6 +266,7 @@
     configureGameUi(options) { return root.BoomRoomGameUI?.configure(options) || false; },
     whenGameUiReady: () => uiReady,
     getWagerState: () => copy(data?.session?.wager || null),
+    getLastWagerCommand: () => copy(lastWagerCommand),
     requestWager(kind, amount) {
       const wager=data?.session?.wager;
       if(data?.isSpectator||!wager?.supported||!['VOTE','CONFIRM','DECLINE','START','SYNC','CONFIGURE'].includes(kind))return failure('WAGER_UNAVAILABLE');
@@ -276,6 +277,7 @@
           {round:wager.round,epoch:wager.epoch,stake:wager.amount,...(kind==='VOTE'?{amount}:{})});
       }
       const command=sdk.createCommand(kind,{epoch:wager.epoch,...(kind==='CONFIGURE'?amount:{amount:kind==='VOTE'?amount:wager.amount})});
+      lastWagerCommand=command?{commandId:command.commandId,kind:command.kind,epoch:command.epoch}:null;
       return command?sdk.requestGameUi('WAGER',{command}):false;
     },
     whenPlayable() {
@@ -291,7 +293,7 @@
       sessionStatus: data?.session.status || null, sessionId: data?.gameSessionId || null }),
     getCapabilities: () => ({
       protocolVersion: 2,
-      apiRevision: 9,
+      apiRevision: 10,
       commonWagerUi: true,
       publicSpectating: true,
       tetrisSpectating: true,
@@ -496,6 +498,11 @@
     const script=root.document.createElement('script');script.src=new URL('./wager-ui.js?v=1',uiScriptUrl).href;
     script.onload=()=>root.BoomRoomWagerUI?.attach(sdk);
     script.onerror=()=>failure('WAGER_UI_LOAD_FAILED');root.document.head.appendChild(script);
+  }
+  if(uiScriptUrl&&root.document?.createElement){
+    const script=root.document.createElement('script');script.src=new URL('./result-ui.js?v=1',uiScriptUrl).href;
+    script.onload=()=>root.BoomRoomResultUI?.attach(sdk);
+    script.onerror=()=>failure('RESULT_UI_LOAD_FAILED');root.document.head.appendChild(script);
   }
   if (native && typeof previous.getSession === 'function') {
     const session = previous.getSession();

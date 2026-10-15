@@ -219,7 +219,7 @@ function applyServerState(packet) {
     if (state.phase === 'MATCH_RESULT') ui.resultReward.textContent = packet.resultVerified
       ? (packet.session?.results?.rankingScore != null
           ? `伺服器驗證結算 · ${String(state.aiDifficulty).toUpperCase()} 難度 · 排行分數 ${packet.session.results.rankingScore}（非銀幣獎勵）`
-          : '結果已由伺服器驗證 · 本遊戲尚未設定銀幣獎勵')
+          : '結果已由伺服器驗證 · 分數與派彩見共用結算，10 秒後返回原房間')
       : '結果等待伺服器驗證';
     ui.resultOverlay.classList.remove('hidden');
     if(tournamentRoot){ui.resultTitle.textContent='🏆 積分賽結束';ui.resultSubtitle.textContent=tournamentRanking.textContent;ui.resultReward.textContent='排名及派彩由伺服器驗證，獎池收據請開啟共用選單。';}

@@ -37,9 +37,11 @@
     stopResultReturnCountdown();resultReturnDeadline=Date.now()+ROOM_RETURN_DELAY_MS;
     const update=()=>{
       if(disposed||exiting||$('result').hidden||room?.phase!=='results'){stopResultReturnCountdown();return;}
-      const seconds=Math.max(0,Math.ceil((resultReturnDeadline-Date.now())/1000));
+      const deadline=room?.verified?sdk.getSession()?.completion?.returnAt:resultReturnDeadline;
+      const seconds=deadline==null?null:Math.max(0,Math.ceil((deadline-(room?.verified?sdk.getServerTime():Date.now()))/1000));
+      if(room?.verified&&seconds===null){$('returnCountdown').textContent='等待伺服器共用結算…';resultReturnTimer=setTimeout(update,250);return;}
       $('returnCountdown').textContent=`${seconds} 秒後自動返回房間`;
-      if(seconds===0){resultReturnTimer=0;leave();return;}
+      if(seconds===0){if(room?.verified){$('returnCountdown').textContent='等待伺服器返回原房間…';resultReturnTimer=setTimeout(update,250);return;}resultReturnTimer=0;leave();return;}
       resultReturnTimer=setTimeout(update,250);
     };
     update();
@@ -270,7 +272,7 @@
     const available=[...room.players.values()].filter(p=>p.connected),allReady=room.allReady??(available.length>=2&&available.every(p=>room.ready.has(p.id)));
     $('startBtn').textContent=room.isHost&&allReady?(room.aiLevels?.length?'開始 AI 攻防 →':'開始攻防 →'):room.ready.has(room.self)?'已確認，等待其他玩家':room.aiLevels?.length?'確認免費 AI 對戰 →':room.stake?`確認加碼 ${decimal(room.stake)} 銀幣 →`:'確認 0 加碼 →';
     $('startBtn').disabled=room.recovering||(room.ready.has(room.self)&&!(room.isHost&&allReady));
-    if(room.verified&&!room.aiLevels?.length&&![...room.players.values()].filter(p=>!p.bot).every(p=>Object.hasOwn(room.proposals,p.id))){$('startBtn').disabled=true;$('startBtn').textContent='先由全員送出加碼提案（可選 0）';}
+    if(room.verified){$('startBtn').disabled=room.recovering;$('startBtn').textContent='開啟共用加碼與全員確認（可選 0）';}
     $('menuNote').textContent=room.recovering?'正在向伺服器自動重試同步；也可手動重試':`${available.length} 位參賽者 · ${room.aiLevels?.length?'AI 練習免費，不開放加碼 · 真人確認後開始':'全員確認後由房主開始'}`;
     renderProposalOptions();
     setupControls();
@@ -301,7 +303,7 @@
   function setupControls(){
     if(room?.spectator){for(const id of ['aiSettings','wagerSettings','soloBtn'])show($(id),false);return;}
     $('aiHeading').textContent=room?.verified?'房間 AI · 返回房間調整':'AI 練習';
-    const supports=room?.verified||room?.local,offline=!room&&mode==='ai';show($('aiSettings'),!!supports||offline);show($('wagerSettings'),!!room?.verified&&!room.aiLevels?.length);
+    const supports=room?.verified||room?.local,offline=!room&&mode==='ai';show($('aiSettings'),!!supports||offline);show($('wagerSettings'),false);
     if(supports||offline){const max=room?10-[...room.players.values()].filter(p=>!p.bot).length:9,levels=room?.aiLevels||[5],key=(room?.local?'local':room?.verified?'server':'offline')+'|'+max+'|'+levels.join(',');
       if(key!==settingsKey){settingsKey=key;$('aiCount').replaceChildren();for(let n=offline?1:0;n<=max;n++){const option=document.createElement('option');option.value=n;option.textContent=n+' 位';$('aiCount').append(option);}$('aiCount').value=levels.length;aiRows(levels);}$('aiCount').disabled=!!room&&(room.verified||!room.isHost);
     }
@@ -413,6 +415,7 @@
   }
   function newGame() {
     unlockAudio();
+    if(room?.verified){if(window.BoomRoomWagerUI?.open)window.BoomRoomWagerUI.open();else toast('共用加碼介面載入中，請稍候。');return;}
     if(room){if(room.isHost&&(room.allReady??[...room.players.values()].filter(p=>p.connected).every(p=>room.ready.has(p.id))))room.start();else room.setReady();updateLobby();}
     else if(mode==='ai'){room=new window.TetrisAuthority.PracticeRoom(aiSelection(),{changed:roomChanged,notice:toast});$('sessionTag').textContent='AI 本機練習';room.setReady();room.start();show($('modeOptions'),false);show($('lobbyPlayers'),true);}
     else startSolo();

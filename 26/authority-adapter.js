@@ -14,7 +14,7 @@
   window.BoomRoomOfficialClientAdapters[26] = {
     draw(canvas, session, selectedId) {
       const state = st(session), ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
-      if (selectionRound !== state.round) { selected = []; selectionRound = state.round; }
+      const identity = `${session.sessionId||''}:${state.tableId||''}:${state.tableEpoch||0}:${state.round}`; if (selectionRound !== identity) { selected = []; selectionRound = identity; }
       selected = selected.filter(n => (state.privateHand || []).includes(n));
       ctx.fillStyle = '#301424'; ctx.fillRect(0, 0, w, h);
       ctx.fillStyle = '#682b44'; ctx.beginPath(); ctx.ellipse(w / 2, h * .35, w * .42, h * .24, 0, 0, Math.PI * 2); ctx.fill();
@@ -59,12 +59,12 @@
       const state = st(session), member = state.members.find(p => p.id === String(userId));
       if (state.stage === 'EXCHANGE') return [{
         label: '用所選一張徵求 ' + text(requestRank * 4 + requestSuit), kind: 'EXCHANGE',
-        fields: { offer: selected[0], request: requestRank * 4 + requestSuit },
+        fields: { offer: selected[0], request: requestRank * 4 + requestSuit, turnSerial: state.turnSerial, nativeRound: state.round },
         disabled: state.phase !== 'playing' || state.exchange?.from !== String(userId) || selected.length !== 1
       }];
       const disabled = state.phase !== 'playing' || !member?.alive || state.turn !== String(userId);
-      return [{ label: '出牌 (' + selected.length + ')', kind: 'PLAY', fields: { cards: [...selected] }, disabled: disabled || !selected.length },
-        { label: 'PASS', kind: 'PASS', disabled: disabled || !state.lastPlay }];
+      return [{ label: '出牌 (' + selected.length + ')', kind: 'PLAY', fields: { cards: [...selected], turnSerial: state.turnSerial, nativeRound: state.round }, disabled: disabled || !selected.length },
+        { label: 'PASS', kind: 'PASS', fields: { turnSerial: state.turnSerial, nativeRound: state.round }, disabled: disabled || !state.lastPlay }];
     },
     pointer(canvas, event, session) {
       const state = st(session), cards = layout(canvas, state), rect = canvas.getBoundingClientRect();
@@ -88,9 +88,12 @@
       }
       return null;
     },
-    key(event) {
-      return event.key.toLowerCase() === 'p' ? { kind: 'PASS' } :
-        event.key === 'Enter' && selected.length ? { kind: 'PLAY', cards: [...selected] } : null;
+    key(event, session, userId) {
+      if (event.type !== 'keydown' || event.repeat) return null;
+      const control = this.controls(session, userId).find(c =>
+        event.key.toLowerCase() === 'p' ? c.kind === 'PASS' :
+          event.key === 'Enter' && c.kind === 'PLAY');
+      return control && !control.disabled ? { kind: control.kind, ...control.fields } : null;
     }
   };
 })();

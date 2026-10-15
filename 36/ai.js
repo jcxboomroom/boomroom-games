@@ -13,6 +13,8 @@
     return (engine.lines-before.lines)*9+(engine.attack-before.attack)*5-heights.reduce((a,b)=>a+b,0)*.48-holes*8-covered*.2-bump*.65-Math.max(...heights)*.8-wells*.25-(engine.status!=='playing'?10000:0);
   }
   function candidates(engine, allowHold=true) {
+    // A look-ahead landing may top out and have no restorable active piece.
+    if(!engine||engine.status!=='playing'||!engine.active)return [];
     const starts=[{engine,path:[]}];
     if(allowHold&&engine.canHold){const held=rules.Engine.restore(engine.save());if(held.swapHold()&&held.status==='playing')starts.push({engine:held,path:['hold']});}
     const out=[];
@@ -26,6 +28,7 @@
         const ghost=probe.ghost(),landing=[ghost.x,ghost.y,ghost.rotation].join(':');
         if(!landings.has(landing)){
           landings.add(landing);const result=rules.Engine.restore(start.engine.save());
+          if(!result)continue;
           for(const move of node.path.slice(start.path.length))apply(result,move);
           result.hardDrop();out.push({path:[...node.path,'hard'],score:evaluate(result,engine),result});
         }
@@ -38,6 +41,7 @@
   }
   function apply(engine,kind){return kind==='left'?engine.move(-1):kind==='right'?engine.move(1):kind==='cw'?engine.rotate(1):kind==='ccw'?engine.rotate(-1):kind==='hold'?engine.swapHold():kind==='hard'?engine.hardDrop():engine.drop(true);}
   function plan(engine,level=5){
+    if(!engine||engine.status!=='playing'||!engine.active)return [];
     level=Math.max(1,Math.min(9,Math.round(level)));const options=candidates(engine,level>=4);if(!options.length)return ['hard'];
     if(level>=7){for(const option of options.slice(0,level===9?4:2)){const next=candidates(option.result,false)[0];if(next)option.score+=next.score*.5;}options.sort((a,b)=>b.score-a.score);}
     // Low levels choose a less promising legal placement at a deterministic

@@ -26,7 +26,7 @@
     draw,
     controls(session, userId) {
       const s = state(session), p = own(s, userId); if (s.phase !== 'playing' || !p?.alive || p.left || p.id !== s.turnId) return [];
-      return (s.board || []).map((tile, index) => tile.minedBy ? null : ({ label: '挖 ' + String.fromCharCode(65 + Math.floor(index / 6)) + (index % 6 + 1), kind: 'MINE', fields: { index, turnNo: s.turnNo, level: s.level } })).filter(Boolean);
+      return [{label:'保留寶物並收手',kind:'BANK',fields:{turnNo:s.turnNo}},...(s.board || []).map((tile, index) => tile.minedBy ? null : ({ label: '挖 ' + String.fromCharCode(65 + Math.floor(index / 6)) + (index % 6 + 1), kind: 'MINE', fields: { index, turnNo: s.turnNo, level: s.level } })).filter(Boolean)];
     },
     pointer(canvas, event, session, userId) {
       const s = state(session), p = own(s, userId); if (event.type !== 'pointerdown' || s.phase !== 'playing' || !p?.alive || p.left || p.id !== s.turnId) return null;

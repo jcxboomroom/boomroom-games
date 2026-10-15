@@ -17,9 +17,8 @@
     configure(levels){
       if(!['lobby','results'].includes(this.phase)||!Array.isArray(levels)||levels.length+this.humans.length>10||levels.some(n=>!Number.isInteger(n)||n<1||n>9))throw Error('AI 設定無效');
       this.aiLevels=[...levels];this.members=this.humans.concat(levels.map((level,i)=>({id:'ai:'+i,name:`AI ${i+1} · Lv.${level}`,bot:true,level,alive:true,inRound:false,connected:true,engine:null,ack:0,target:null,soft:false,lastInput:0,lastHard:0,lastSeen:0,eliminatedAt:null,nextAI:0})));
-      // AI matches are free. Auto-record zero for every human so they only
-      // confirm the match instead of submitting a redundant wager proposal.
-      this.proposals=levels.length?Object.fromEntries(this.humans.map(m=>[m.id,0])):{};this.stake=0;this.invalidate();
+      // Free practice still requires each human's explicit zero vote.
+      this.proposals={};this.stake=0;this.invalidate();
     }
     vote(id,amount){
       if(!['lobby','results'].includes(this.phase)||!this.humans.some(m=>m.id===id)||!Number.isSafeInteger(amount)||amount<0||amount>this.limit||amount>0&&(this.aiLevels.length||this.humans.length<2))throw Error('提案金額超出可用餘額，或 AI／單人練習不能加碼');
@@ -28,7 +27,7 @@
       this.stake=[...counts].sort((a,b)=>b[1]-a[1]||a[0]-b[0])[0]?.[0]||0;this.invalidate();
     }
     consent(id,epoch,stake,now=Date.now()){if(!['lobby','results'].includes(this.phase)||epoch!==this.epoch||stake!==this.stake||!this.humans.some(m=>m.id===id)||!this.humans.every(m=>Object.hasOwn(this.proposals,m.id)))throw Error('金額或設定已變更，或尚未全員投票，請重新確認');if(!this.ready.includes(id))this.ready.push(id);this.readyAt??={};this.readyAt[id]=now;}
-    canStart(){return ['lobby','results'].includes(this.phase)&&this.members.length>=2&&this.humans.every(m=>m.connected&&this.ready.includes(m.id)&&Object.hasOwn(this.proposals,m.id))&&(!this.stake||!this.aiLevels.length&&this.humans.length>=2);}
+    canStart(){return ['lobby','results'].includes(this.phase)&&this.members.length>=2&&this.humans.every(m=>!m.forfeited&&m.connected&&this.ready.includes(m.id)&&Object.hasOwn(this.proposals,m.id))&&(!this.stake||!this.aiLevels.length&&this.humans.length>=2);}
     begin(now){
       if(!this.canStart())throw Error('須全員投票並確認同一金額與 AI 設定');this.round++;this.phase='countdown';this.startAt=now+3000;this.endAt=this.startAt+180000;this.at=now;this.results=[];this.settlement=null;this.abortReason='';this.ready=[];
       const seed=(this.seed+Math.imul(this.round,2654435761))>>>0;
@@ -46,6 +45,7 @@
       const m=this.humans.find(p=>p.id===id);if(!m)return false;m.lastSeen=now;
       if(c.kind==='PING')return true;
       if(c.kind==='EXIT'){
+        m.forfeited=true;
         if(['countdown','playing'].includes(this.phase)&&m.alive){m.engine.finish('forfeit');this.drain(m,now);}
         else if(['lobby','results'].includes(this.phase)&&(Object.hasOwn(this.proposals,id)||this.ready.includes(id))){this.proposals={};this.stake=0;this.invalidate();}
         return true;
@@ -53,7 +53,7 @@
       if(this.phase!=='playing'||!m.alive||c.round!==this.round||!Number.isSafeInteger(c.seq)||c.seq<1||c.seq>1000000)return false;
       if(c.seq<=m.ack)return true;if(c.seq!==m.ack+1)return false;
       if(c.kind==='target'){if(!this.members.some(p=>p.id===String(c.target)&&p.id!==id&&p.alive))return false;m.target=String(c.target);m.ack=c.seq;return true;}
-      if(c.kind==='forfeit'){m.engine.finish('forfeit');m.ack=c.seq;this.drain(m,now);return true;}
+      if(c.kind==='forfeit'){m.forfeited=true;m.engine.finish('forfeit');m.ack=c.seq;this.drain(m,now);return true;}
       if(c.kind==='softOn'||c.kind==='softOff'){m.soft=c.kind==='softOn';m.ack=c.seq;return true;}
       if(!['left','right','cw','ccw','hold','hard','soft'].includes(c.kind)||c.pieces!==m.engine.pieces)return false;
       if(c.kind==='hard'&&now-m.lastHard<80)return false;
@@ -77,18 +77,21 @@
       }
     }
     finish(){
-      const values=m=>[m.alive?1:0,m.alive?m.engine.attack:m.eliminatedAt||0,m.engine.score,m.engine.lines];
+      const values=m=>[m.forfeited?-1:m.alive?1:0,m.alive?m.engine.attack:m.eliminatedAt||0,m.engine.score,m.engine.lines];
       const sorted=this.members.filter(m=>m.inRound).sort((a,b)=>{const av=values(a),bv=values(b);for(let i=0;i<4;i++)if(av[i]!==bv[i])return bv[i]-av[i];return a.id.localeCompare(b.id);});let rank=1;
-      this.results=sorted.map((m,i)=>{if(i&&JSON.stringify(values(m))!==JSON.stringify(values(sorted[i-1])))rank=i+1;return {id:m.id,rank,alive:m.alive,bot:m.bot,score:m.engine.score,lines:m.engine.lines,attack:m.engine.attack};});this.phase='results';this.ready=[];
+      this.results=sorted.map((m,i)=>{if(i&&JSON.stringify(values(m))!==JSON.stringify(values(sorted[i-1])))rank=i+1;return {id:m.id,rank,alive:m.alive,bot:m.bot,forfeited:!!m.forfeited,score:m.engine.score,lines:m.engine.lines,attack:m.engine.attack};});this.phase='results';this.ready=[];
     }
     client(id){const own=this.members.find(m=>m.id===id),{walletBalances,...state}=this.save();return {...state,ownBalance:walletBalances?.[id]??null,members:this.members.map(m=>({id:m.id,name:m.name,bot:m.bot,level:m.level,alive:m.alive,inRound:m.inRound,connected:m.connected,ack:m.ack,soft:m.id===id?m.soft:false,target:m.id===id?m.target:null,view:m.engine?.view()||null,engine:m.id===id?m.engine?.save()||null:null,eliminatedAt:m.eliminatedAt})),ownAck:own?.ack||0};}
   }
   function payouts(results,stake){
-    const humans=results.filter(r=>!r.bot),pot=humans.length*stake,weights=humans.length===2?[100,0]:[70,20,10];const out=[];
-    for(let i=0;i<humans.length;){let end=i+1;while(end<humans.length&&humans[end].rank===humans[i].rank)end++;const share=weights.slice(i,end).reduce((a,b)=>a+b,0);for(const r of humans.slice(i,end))out.push({id:r.id,rank:r.rank,payout:Math.floor(pot*share/100/(end-i))});i=end;}
+    const humans=results.filter(r=>!r.bot),valid=humans.filter(r=>!r.forfeited),pot=humans.length*stake,weights=humans.length===2?[100,0]:[70,20,10];const out=[];
+    if(!valid.length)return [];
+    const totalWeight=weights.slice(0,valid.length).reduce((a,b)=>a+b,0);
+    for(let i=0;i<valid.length;){let end=i+1;while(end<valid.length&&valid[end].rank===valid[i].rank)end++;const share=weights.slice(i,end).reduce((a,b)=>a+b,0);for(const r of valid.slice(i,end))out.push({id:r.id,rank:r.rank,payout:Math.floor(pot*share/totalWeight/(end-i))});i=end;}
     let remainder=pot-out.reduce((a,b)=>a+b.payout,0);for(const r of out.filter(r=>r.rank<=3)){if(remainder<=0)break;r.payout++;remainder--;}
     // Only rounding cents remain; cycle over eligible positions deterministically.
     for(let i=0;remainder>0;i++,remainder--)out[i%out.length].payout++;
+    for(const r of humans.filter(r=>r.forfeited))out.push({id:r.id,rank:r.rank,payout:0});
     return out;
   }
   return {Arena,payouts};

@@ -7,6 +7,7 @@
   function command(kind){
     if(Date.now()<busyUntil)return;
     const state=sdk.getWagerState();
+    if(sdk.getSession()?.economicMode==='PRACTICE')selected=0;
     if(kind==='VOTE'&&(!Number.isSafeInteger(selected)||selected<0||selected>state.limit)){shadow.getElementById('message').textContent='請輸入上限內的整數。';return;}
     busyUntil=Date.now()+700;
     const fields=kind==='CONFIGURE'?{deckCount:Number(shadow.getElementById('deckCount').value),challengeMode:shadow.getElementById('challengeMode').value}:selected;
@@ -18,17 +19,18 @@
   function render(){
     if(disposed||!sdk?.isReady)return;
     const session=sdk.getSession(),state=sdk.getWagerState();if(!state)return;
+    const free=session.economicMode==='PRACTICE';if(free)selected=0;
     if(!host)mount();
     const proposal=state.supported&&state.phase==='PROPOSAL'&&!sdk.isSpectator;
     const proposalKey=session.sessionId+':'+state.epoch;
     host.hidden=!(proposal&&host.dataset.dismissed!==proposalKey)&&!host.dataset.open;
     if(host.hidden)return;
-    shadow.getElementById('heading').textContent=proposal?'本局加碼 · 全員同意後開始':'加碼與獎池';
-    shadow.getElementById('fee').textContent=sdk.isSpectator?'免費觀戰':`固定入場費 ${value(state.entryFee)} 銀幣（已另行收取）`;
-    shadow.getElementById('funds').textContent=`目前錢包 ${value(state.balance??sdk.getUser()?.silverCoins)} · 可加碼 0–${value(state.limit)} 銀幣`;
-    shadow.getElementById('rules').textContent=state.supported?`${state.rankingRule}\n${state.distribution}\n提案或規則變更會撤銷全員同意；中斷、未完成對局退還加碼，入場費另計。`:state.reason;
-    shadow.getElementById('candidate').textContent=`候選每人 ${value(state.amount)} · 預估獎池 ${value(Number(state.amount||0)*(session.players?.length||0))} 銀幣`;
-    shadow.getElementById('ai').textContent=state.aiPractice?'AI 練習：加碼只可選 0，AI 不出資、不領獎。':'每位真人可提案任意整數；票最多者為候選，同票取低額。';
+    shadow.getElementById('heading').textContent=free?'免費練習 · 全員確認後開始':proposal?'本局加碼 · 全員同意後開始':'加碼與獎池';
+    shadow.getElementById('fee').textContent=sdk.isSpectator?'免費觀戰':free?'免費練習 · 入場 0 銀幣，不加碼、不派彩、不登正式榜。':`固定入場費 ${value(state.entryFee)} 銀幣（已另行收取）`;
+    shadow.getElementById('funds').textContent=free?'本局不扣款。遊戲成績與正式排行榜分開。':`目前錢包 ${value(state.balance??sdk.getUser()?.silverCoins)} · 可加碼 0–${value(state.limit)} 銀幣`;
+    shadow.getElementById('rules').textContent=free?`${state.rankingRule}\n免費練習不計銀幣或正式榜；提案、歌曲或規則變更仍需全員重新確認。`:state.supported?`${state.rankingRule}\n${state.distribution}\n提案或規則變更會撤銷全員同意；中斷、未完成對局退還加碼，入場費另計。`:state.reason;
+    shadow.getElementById('candidate').textContent=free?'請先完成玩法設定，再逐位送出 0 與確認。':`候選每人 ${value(state.amount)} · 預估獎池 ${value(Number(state.amount||0)*(session.players?.length||0))} 銀幣`;
+    shadow.getElementById('ai').textContent=free?'真人仍需各自確認；AI 身分與難度由房間設定。':state.aiPractice?'AI 練習：加碼只可選 0，AI 不出資、不領獎。':'每位真人可提案任意整數；票最多者為候選，同票取低額。';
     const controls=shadow.getElementById('controls');controls.hidden=!proposal;
     const setup=shadow.getElementById('setup');setup.hidden=session.engine!=='BLUFF'||!proposal;
     if(!setup.hidden){
@@ -36,10 +38,10 @@
       if(signature!==setupSignature){setupSignature=signature;shadow.getElementById('deckCount').value=settings.deckCount||1;shadow.getElementById('challengeMode').value=settings.challengeMode||'SEQUENTIAL';}
       for(const id of ['deckCount','challengeMode','configure'])shadow.getElementById(id).disabled=!sdk.isHost||Date.now()<busyUntil;
     }
-    for(const id of ['amount','range']){const input=shadow.getElementById(id);input.max=state.limit||0;input.disabled=!proposal||Date.now()<busyUntil;}
+    for(const id of ['amount','range']){const input=shadow.getElementById(id);input.max=state.limit||0;input.disabled=free||!proposal||Date.now()<busyUntil;if(free)input.value=0;}
     const me=String(sdk.getUser().id),players=session.players||[],allVoted=players.every(p=>Object.hasOwn(state.proposals||{},String(p.userId??p.id)));
     shadow.getElementById('confirm').disabled=!proposal||!allVoted||!!state.consents?.[me]||Date.now()<busyUntil;
-    shadow.getElementById('confirm').textContent=state.consents?.[me]?'已確認，等待其他玩家':`確認每人 ${value(state.amount)} 銀幣`;
+    shadow.getElementById('confirm').textContent=state.consents?.[me]?'已確認，等待其他玩家':free?'確認免費練習':`確認每人 ${value(state.amount)} 銀幣`;
     shadow.getElementById('start').hidden=!sdk.isHost;
     shadow.getElementById('start').disabled=!proposal||!allVoted||!players.every(p=>state.consents?.[String(p.userId??p.id)])||Date.now()<busyUntil;
     const list=shadow.getElementById('players');list.replaceChildren();
