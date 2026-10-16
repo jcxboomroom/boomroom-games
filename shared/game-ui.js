@@ -4,7 +4,7 @@
   if (root.BoomRoomGameUI) return;
   let sdk, state, host, shadow, observer, resizeObserver, off, config = {}, disposed = false;
   const hidden = new Set(), audioContexts = new Set(), mediaChoices = new WeakMap(), mediaVolumes = new WeakMap(), media = new Set();
-  let muted = false, volume = 1, lastFocus = null;
+  let muted = false, volume = 1, lastFocus = null, wagerButton = null;
   const originalConnect = root.AudioNode?.prototype.connect;
   const constructors = new Map();
   const mediaPrototype = root.HTMLMediaElement?.prototype;
@@ -94,6 +94,10 @@
     element.addEventListener('click', callback); parent.append(element); return element;
   }
   function status(message) { shadow.getElementById('status').textContent = message || ''; }
+  function tetrisHasNoWager() {
+    const session=sdk?.getSession?.();
+    return session?.engine==='TETRIS'&&(session.players||[]).length<2;
+  }
   function request(kind, fields = {}) {
     if (!sdk.requestGameUi(kind, fields)) status('操作未送出，請重試。');
   }
@@ -146,6 +150,7 @@
   function render(next) {
     if (disposed || !next || next.protocol !== 1) return;
     state = next; setAudio(next.muted, next.volume ?? 1);
+    if(wagerButton)wagerButton.hidden=tetrisHasNoWager();
     if (!host) mount();
     shadow.getElementById('coins').textContent = Number.isSafeInteger(next.silverCoins) ? next.silverCoins.toLocaleString('zh-TW') : '—';
     shadow.getElementById('title').textContent = next.gameName || '遊戲設定';
@@ -184,8 +189,9 @@
     root.document.head.append(style);
     const capsule = shadow.querySelector('.capsule');
     resizeObserver = new ResizeObserver(() => root.document.documentElement.style.setProperty('--boomroom-tools-width', `${capsule.getBoundingClientRect().width + 10}px`)); resizeObserver.observe(capsule);
-    const wagerButton=button('本局加碼與獎池',()=>{close();root.BoomRoomWagerUI?.open();},shadow.querySelector('.actions'));
+    wagerButton=button('本局加碼與獎池',()=>{close();if(!tetrisHasNoWager())root.BoomRoomWagerUI?.open();},shadow.querySelector('.actions'));
     wagerButton.id='wager';
+    wagerButton.hidden=tetrisHasNoWager();
     for (const [id, callback] of Object.entries({menu:open,close,scrim:close,help:showHelp,leave,sync:()=>request('SYNC'),mic:()=>request('MIC',{muted:!state.micMuted})})) shadow.getElementById(id).addEventListener('click',callback);
     shadow.getElementById('mute').addEventListener('change',event=>{setAudio(event.target.checked,volume);request('MUTE',{muted:event.target.checked});});
     shadow.getElementById('volume').addEventListener('input',event=>{setAudio(muted,event.target.value/100);request('VOLUME',{volume:event.target.value/100});});

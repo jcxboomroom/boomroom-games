@@ -19,7 +19,8 @@
   function render(){
     if(disposed||!sdk?.isReady)return;
     const session=sdk.getSession(),state=sdk.getWagerState();if(!state)return;
-    if(state.aiPractice&&(session.players||[]).length===1){if(host){host.hidden=true;delete host.dataset.open;}return;}
+    const humanCount=(session.players||[]).length;
+    if((state.aiPractice&&humanCount===1)||(session.engine==='TETRIS'&&humanCount<2)){if(host){host.hidden=true;delete host.dataset.open;}return;}
     const free=session.economicMode==='PRACTICE';if(free)selected=0;
     if(!host)mount();
     const proposal=state.supported&&state.phase==='PROPOSAL'&&!sdk.isSpectator;

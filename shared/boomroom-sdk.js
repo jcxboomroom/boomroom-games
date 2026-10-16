@@ -489,13 +489,13 @@
     if (root.BoomRoomGameUI) { root.BoomRoomGameUI.attach(sdk); resolve(true); return; }
     if (!uiScriptUrl || !root.document?.createElement) { resolve(false); return; }
     const script = root.document.createElement('script');
-    script.src = new URL('./game-ui.js?v=2', uiScriptUrl).href;
+    script.src = new URL('./game-ui.js?v=3', uiScriptUrl).href;
     script.onload = () => { root.BoomRoomGameUI?.attach(sdk); resolve(!!root.BoomRoomGameUI); };
     script.onerror = () => { failure('GAME_UI_LOAD_FAILED'); resolve(false); };
     root.document.head.appendChild(script);
   });
   if(uiScriptUrl&&root.document?.createElement){
-    const script=root.document.createElement('script');script.src=new URL('./wager-ui.js?v=1',uiScriptUrl).href;
+    const script=root.document.createElement('script');script.src=new URL('./wager-ui.js?v=2',uiScriptUrl).href;
     script.onload=()=>root.BoomRoomWagerUI?.attach(sdk);
     script.onerror=()=>failure('WAGER_UI_LOAD_FAILED');root.document.head.appendChild(script);
   }
