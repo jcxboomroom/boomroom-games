@@ -11,11 +11,14 @@
         if(String(sender)!=='SYSTEM')return;
         if(name==='TETRIS_PRIVATE'&&String(payload?.userId)===this.self)this.accept(payload.session);
         if(this.spectator&&name==='TETRIS_SPECTATOR')this.accept(payload.session);
+        if(name==='TETRIS_QUEUED'&&Number(payload?.round)===this.round&&Number.isSafeInteger(payload?.seq)&&Number.isFinite(payload?.receivedAt)){
+          const pending=this.pending.find(command=>command.round===this.round&&command.seq===payload.seq);
+          if(pending)pending.localAt=Math.max(pending.localAt,payload.receivedAt);
+        }
         if(name==='TETRIS_ERROR'){
           if(payload?.code==='TETRIS_INPUT_RESYNC'){
-            this.pending=[];this.seq=this.players.get(this.self)?.ack||0;this.callbacks.changed?.();
+            this.rebasePending();this.callbacks.changed?.();
             this.correctionUntil=performance.now()+2200;
-            callbacks.notice?.('操作已與伺服器校準，請繼續');
           }else callbacks.notice?.(payload?.message||'操作未確認，請同步');
         }
       });
@@ -34,7 +37,6 @@
         if(session.serverTime<=this.serverTime)return;
         this.serverTime=session.serverTime;this.lastSeen=performance.now();this.recovering=false;
         const target=session.serverTime-performance.now();this.offset+=Math.max(-50,Math.min(50,target-this.offset))*.12;
-        if(announce)this.callbacks.changed?.();
         return;
       }
       if(this.spectator&&state.boardEncoding==='digits-v1'){
@@ -51,13 +53,36 @@
       this.ownEngine=own?.engine?Engine.restore(own.engine):null;
       if(announce)this.callbacks.changed?.();
     }
+    rebasePending(){
+      const own=this.players.get(this.self),ack=Number.isSafeInteger(own?.ack)?own.ack:0;
+      const engine=this.ownEngine?Engine.restore(this.ownEngine.save()):null;
+      if(!engine){this.pending=[];this.seq=ack;this.requestSnapshot();return;}
+      let at=Number.isFinite(this.state?.at)?this.state.at:this.now(),soft=!!own?.soft,seq=ack;
+      const kept=[];
+      for(const command of this.pending.filter(c=>c.round===this.round&&c.seq>ack).sort((a,b)=>a.seq-b.seq)){
+        const next=Math.max(at,Number.isFinite(command.localAt)?command.localAt:at);
+        if(this.phase==='playing')engine.advance(Math.min(1000,Math.max(0,next-at)),soft);
+        at=next;
+        command.round=this.round;command.localAt=at;command.sentAt=0;
+        if(command.kind==='softOn'||command.kind==='softOff'){
+          command.pieces=engine.pieces;soft=command.kind==='softOn';
+        }else if(command.kind==='target'){
+          if(!this.players.get(String(command.target))?.alive)continue;
+        }else{
+          command.pieces=engine.pieces;
+          if(!AI.apply(engine,command.kind))continue;
+        }
+        command.seq=++seq;kept.push(command);
+      }
+      this.pending=kept;this.seq=seq;
+    }
     predicted(){
       if(!this.ownEngine)return null;
       const engine=Engine.restore(this.ownEngine.save());let at=this.state.at,soft=this.players.get(this.self)?.soft||false;
       // Replay only unacknowledged commands; boards, attacks and rankings come
       // from the server snapshot. Input stays immediate while packets travel.
       for(const c of this.pending){const next=Math.max(at,c.localAt);if(this.phase==='playing')engine.advance(Math.min(1000,next-at),soft);at=next;
-        if(c.kind==='softOn'||c.kind==='softOff')soft=c.kind==='softOn';else if(c.pieces===engine.pieces)AI.apply(engine,c.kind);
+        if(c.kind==='softOn'||c.kind==='softOff')soft=c.kind==='softOn';else if(c.kind!=='target'&&c.pieces===engine.pieces)AI.apply(engine,c.kind);
       }
       if(this.phase==='playing')engine.advance(Math.min(1000,Math.max(0,this.now()-at)),soft);engine.drainEvents();return engine;
     }
@@ -71,7 +96,7 @@
     selectTarget(id){if(id)this.input('target',null,id);}
     pump(){const time=performance.now();if(time-this.lastSend<12)return;const c=this.pending.find(p=>!p.sentAt||time-p.sentAt>=600);if(!c)return;const {localAt,sentAt,...packet}=c;if(this.send(packet)){c.sentAt=time;this.lastSend=time;}}
     requestSnapshot(){const time=performance.now();if(time-this.lastPull<2000)return;this.lastPull=time;this.sdk.requestGameUi?.('SYNC');}
-    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000){if(!this.recovering){this.recovering=true;this.callbacks.changed?.();}this.requestSnapshot();}if(!this.spectator&&time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});this.send({kind:'SYNC'});}}
+    tick(){this.pump();const time=performance.now();if(time-this.lastSeen>5000){if(!this.recovering){this.recovering=true;this.callbacks.changed?.();}this.requestSnapshot();}if(!this.spectator&&time-this.lastPing>1500){this.lastPing=time;this.send({kind:'PING'});}}
     sync(){this.control('SYNC');this.requestSnapshot();}
     publish(){} attack(){}
     forfeit(){this.send({kind:'EXIT'});}
